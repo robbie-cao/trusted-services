@@ -1,0 +1,48 @@
+'-------------------------------------------------------------------------------
+' Copyright (c) 2019-2021, Arm Limited and Contributors. All rights reserved.
+'
+' SPDX-License-Identifier: BSD-3-Clause
+'
+'-------------------------------------------------------------------------------
+
+@startuml
+participant "Test case" as TC
+participant "Code under test" as CUT
+
+group Setting expectations
+	activate TC
+	TC -> Mock: expect_write("hello1hello2", 6)
+	activate Mock
+	deactivate Mock
+	TC -> Mock: expect_write("hello2", 6)
+	activate Mock
+	deactivate Mock
+end
+
+TC -> CUT: print_to_eeprom("hello%dhello%d", 1, 2)
+activate CUT
+
+	group Using mocked interface
+		CUT -> Mock: eeprom_write("hello1hello2")
+		activate Mock
+		Mock --> CUT: 6
+		deactivate Mock
+
+		CUT -> Mock: eeprom_write("hello2")
+		activate Mock
+		Mock --> CUT: 6
+		deactivate Mock
+	end
+
+CUT --> TC: 6 + 6 = 12
+deactivate CUT
+
+TC -> Mock: mock().checkExpectation()
+activate Mock
+deactivate Mock
+
+TC -> Mock: mock().clear()
+activate Mock
+deactivate Mock
+
+@enduml

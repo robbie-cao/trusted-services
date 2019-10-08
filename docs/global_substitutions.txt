@@ -1,0 +1,26 @@
+.. |FTB| replace:: :term:`FTB`
+.. |CppUMock| replace:: :term:`CppUMock`
+.. |CppUTest| replace:: :term:`CppUTest`
+.. |Test case| replace:: :term:`Test case`
+.. |Test group| replace:: :term:`Test group`
+.. |Test suite| replace:: :term:`Test suite`
+.. |TFA_MAIL_LIST| replace:: `TF-A development`_
+.. |TS_MAIL_LIST| replace:: `TS Mailing List`_
+.. |TS_REPO| replace:: `TS repository`_
+.. |LCS| replace:: :term:`LCS`
+.. |FTB_REPO| replace:: `FTB repository`_
+.. |REST| replace:: reST
+.. |SEMVER| replace:: `Semantic Versioning`_
+
+.. _`TF-A development`: https://lists.trustedfirmware.org/pipermail/tf-a/
+.. _`TS Mailing List`: https://lists.trustedfirmware.org/mailman/listinfo/trusted-services
+.. _`FTB repository`: https://review.trustedfirmware.org/admin/repos/shared/firmware-test-builder
+.. _`TS repository`: https://review.trustedfirmware.org/admin/repos/TS/trusted-services
+.. _`Semantic Versioning`: https://semver.org/spec/v2.0.0.html
+
+..
+    --------------
+
+    *Copyright (c) 2019-2021, Arm Limited. All rights reserved.*
+
+    SPDX-License-Identifier: BSD-3-Clause

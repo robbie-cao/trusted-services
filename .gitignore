@@ -1,0 +1,20 @@
+#
+# Copyright (c) 2019-2021, Arm Limited and Contributors. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+
+#Ignore all build directoryes.
+*build*/
+
+##Python specific intermediate files
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+#Ignore Eclipse project files
+.project
+.cproject
+.settings
+.pydevproject

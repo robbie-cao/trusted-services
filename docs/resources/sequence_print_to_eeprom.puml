@@ -1,0 +1,46 @@
+'-------------------------------------------------------------------------------
+' Copyright (c) 2019-2021, Arm Limited and Contributors. All rights reserved.
+'
+' SPDX-License-Identifier: BSD-3-Clause
+'
+'-------------------------------------------------------------------------------
+
+@startuml
+participant Application as APP
+
+activate APP
+APP -> Print: print_to_eeprom(fmt, ...)
+activate Print
+
+	Print -> EEPROM: eeprom_write(buffer)
+	activate EEPROM
+
+		EEPROM -> I2C: i2c_write(address, buffer)
+		activate I2C
+
+			I2C -> Hardware: I2C transaction
+			activate Hardware
+			Hardware --> I2C: ack/nack
+			deactivate Hardware
+
+		I2C --> EEPROM: result
+		deactivate I2C
+
+		EEPROM -> I2C: i2c_write(address, buffer+ result)
+		activate I2C
+
+			I2C -> Hardware: I2C transaction
+			activate Hardware
+			Hardware --> I2C: ack/nack
+			deactivate Hardware
+
+		I2C --> EEPROM: result
+		deactivate I2C
+
+	EEPROM --> Print: result
+	deactivate EEPROM
+
+Print -> APP: result
+deactivate Print
+
+@enduml
