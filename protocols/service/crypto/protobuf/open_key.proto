@@ -1,0 +1,15 @@
+/*
+ * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+syntax = "proto3";
+
+package ts_crypto;
+
+message OpenKeyIn {
+  uint32 id = 1;
+}
+
+message OpenKeyOut {
+  uint32 handle = 1;
+}
