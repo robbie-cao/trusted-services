@@ -1,0 +1,12 @@
+#
+# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+
+# Python dependencies for building the documentation.
+
+Sphinx==2.3.1
+sphinx-rtd-theme==0.4.3
+sphinxcontrib-moderncmakedomain==3.13
+sphinxcontrib-plantuml==0.18

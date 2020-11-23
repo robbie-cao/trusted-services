@@ -1,0 +1,50 @@
+Maintainers
+===========
+
+|TS| is a Trusted Firmware maintained project. All contributions are ultimately
+merged by the maintainers listed below. Technical ownership of some parts of the
+codebase is delegated to the code owners listed below. An acknowledgement from
+these code maintainers may be required before the maintainers merge a
+contribution.
+
+More details may be found in the `Project Maintenance Process`_ document.
+
+This file follows the format of the Linux Maintainers file. For details on the
+meaning of tags below please refer to the `Linux Maintainers file`_.
+
+Main maintainers
+----------------
+:M: Dan Handley <dan.handley@arm.com>
+:G: `danh-arm`_
+:M: Miklós Bálint <miklos.balint@arm.com>
+:G: `wmnt`_
+:M: György Szing <gyorgy.szing@arm.com>
+:G: `gyuri-szing`_
+:L: |TS_MAIL_LIST|
+
+Code owners
+--------------------
+
+:M: Julian Hall <julian.hall@arm.com>
+:G: `julianhall-arm`_
+:M: Bálint Dobszay <balint.dobszai@arm.com>
+:G: `balintdobszay`_
+:M: Imre Kis <imre.kis@arm.com>
+:G: `imre-kis-arm`_
+
+
+--------------
+
+.. _danh-arm: https://github.com/danh-arm
+.. _wmnt: https://github.com/wmnt
+.. _gyuri-szing: https://github.com/gyuri-szing
+.. _balintdobszay: https://github.com/balintdobszay
+.. _julianhall-arm: https://github.com/julianhall-arm
+.. _imre-kis-arm: https://github.com/imre-kis-arm
+
+.. _`Linux Maintainers file`: https://github.com/torvalds/linux/blob/master/MAINTAINERS#L80
+.. _Project Maintenance Process: https://developer.trustedfirmware.org/w/collaboration/project-maintenance-process/
+
+*Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.*
+
+SPDX-License-Identifier: BSD-3-Clause

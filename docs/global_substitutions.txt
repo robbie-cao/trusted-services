@@ -1,0 +1,20 @@
+.. |TF-A| replace:: :term:`TF-A`
+.. |TS| replace:: :term:`TS`
+
+.. |C identifier like string| replace:: :term:`C identifier like string`
+
+.. |TS_MAIL_LIST| replace:: `TS Mailing List`_
+.. |TS_REPO| replace:: `TS repository`_
+.. |LCS| replace:: :term:`LCS`
+.. |ACLE| replace:: :term:`ACLE`
+.. |REST| replace:: reST
+
+.. _`TS Mailing List`: https://lists.trustedfirmware.org/mailman/listinfo/trusted-services
+.. _`TS repository`: https://review.trustedfirmware.org/TS/trusted-services.git
+
+..
+   --------------
+
+   *Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.*
+
+   SPDX-License-Identifier: BSD-3-Clause
