@@ -276,3 +276,146 @@ ffa_result ffa_msg_send_direct_resp(uint16_t source, uint16_t dest, uint32_t a0,
 
 	return FFA_OK;
 }
+
+ffa_result ffa_mem_donate(uint32_t total_length, uint32_t fragment_length,
+			  void *buffer_address, uint32_t page_count,
+			  uint64_t *handle)
+{
+	struct ffa_params result = {0};
+
+	ffa_svc(FFA_MEM_DONATE_32, total_length, fragment_length,
+		(uintptr_t)buffer_address, page_count, FFA_PARAM_MBZ,
+		FFA_PARAM_MBZ, FFA_PARAM_MBZ, &result);
+
+	if (result.a0 == FFA_ERROR) {
+		*handle = 0U;
+		return ffa_get_errorcode(&result);
+	}
+
+	assert(result.a0 == FFA_SUCCESS_32);
+	*handle = reg_pair_to_64(result.a3, result.a2);
+	return FFA_OK;
+}
+
+ffa_result ffa_mem_donate_rxtx(uint32_t total_length, uint32_t fragment_length,
+			       uint64_t *handle)
+{
+	return ffa_mem_donate(total_length, fragment_length, NULL, 0, handle);
+}
+
+ffa_result ffa_mem_lend(uint32_t total_length, uint32_t fragment_length,
+			void *buffer_address, uint32_t page_count,
+			uint64_t *handle)
+{
+	struct ffa_params result = {0};
+
+	ffa_svc(FFA_MEM_LEND_32, total_length, fragment_length,
+		(uintptr_t)buffer_address, page_count, FFA_PARAM_MBZ,
+		FFA_PARAM_MBZ, FFA_PARAM_MBZ, &result);
+
+	if (result.a0 == FFA_ERROR) {
+		*handle = 0U;
+		return ffa_get_errorcode(&result);
+	}
+
+	assert(result.a0 == FFA_SUCCESS_32);
+	*handle = reg_pair_to_64(result.a3, result.a2);
+	return FFA_OK;
+}
+
+ffa_result ffa_mem_lend_rxtx(uint32_t total_length, uint32_t fragment_length,
+			     uint64_t *handle)
+{
+	return ffa_mem_lend(total_length, fragment_length, NULL, 0, handle);
+}
+
+ffa_result ffa_mem_share(uint32_t total_length, uint32_t fragment_length,
+			 void *buffer_address, uint32_t page_count,
+			 uint64_t *handle)
+{
+	struct ffa_params result = {0};
+
+	ffa_svc(FFA_MEM_SHARE_32, total_length, fragment_length,
+		(uintptr_t)buffer_address, page_count, FFA_PARAM_MBZ,
+		FFA_PARAM_MBZ, FFA_PARAM_MBZ, &result);
+
+	if (result.a0 == FFA_ERROR) {
+		*handle = 0U;
+		return ffa_get_errorcode(&result);
+	}
+
+	assert(result.a0 == FFA_SUCCESS_32);
+	*handle = reg_pair_to_64(result.a3, result.a2);
+	return FFA_OK;
+}
+
+ffa_result ffa_mem_share_rxtx(uint32_t total_length, uint32_t fragment_length,
+			      uint64_t *handle)
+{
+	return ffa_mem_share(total_length, fragment_length, NULL, 0, handle);
+}
+
+ffa_result ffa_mem_retrieve_req(uint32_t total_length, uint32_t fragment_length,
+				void *buffer_address, uint32_t page_count,
+				uint32_t *resp_total_length,
+				uint32_t *resp_fragment_length)
+{
+	struct ffa_params result = {0};
+
+	ffa_svc(FFA_MEM_RETRIEVE_REQ_32, total_length, fragment_length,
+		(uintptr_t)buffer_address, page_count, FFA_PARAM_MBZ,
+		FFA_PARAM_MBZ, FFA_PARAM_MBZ, &result);
+
+	if (result.a0 == FFA_ERROR) {
+		*resp_total_length = 0U;
+		*resp_fragment_length = 0U;
+		return ffa_get_errorcode(&result);
+	}
+
+	assert(result.a0 == FFA_MEM_RETRIEVE_RESP);
+	*resp_total_length = result.a1;
+	*resp_fragment_length = result.a2;
+	return FFA_OK;
+}
+
+ffa_result ffa_mem_retrieve_req_rxtx(uint32_t total_length,
+				     uint32_t fragment_length,
+				     uint32_t *resp_total_length,
+				     uint32_t *resp_fragment_length)
+{
+	return ffa_mem_retrieve_req(total_length, fragment_length, NULL, 0,
+				    resp_total_length, resp_fragment_length);
+}
+
+ffa_result ffa_mem_relinquish(void)
+{
+	struct ffa_params result = {0};
+
+	ffa_svc(FFA_MEM_RELINQUISH, FFA_PARAM_MBZ, FFA_PARAM_MBZ, FFA_PARAM_MBZ,
+		FFA_PARAM_MBZ, FFA_PARAM_MBZ, FFA_PARAM_MBZ, FFA_PARAM_MBZ,
+		&result);
+
+	if (result.a0 == FFA_ERROR)
+		return ffa_get_errorcode(&result);
+
+	assert(result.a0 == FFA_SUCCESS_32);
+	return FFA_OK;
+}
+
+ffa_result ffa_mem_reclaim(uint64_t handle, uint32_t flags)
+{
+	struct ffa_params result = {0};
+	uint32_t handle_hi = 0;
+	uint32_t handle_lo = 0;
+
+	reg_pair_from_64(handle, &handle_hi, &handle_lo);
+
+	ffa_svc(FFA_MEM_RECLAIM, handle_lo, handle_hi, flags, FFA_PARAM_MBZ,
+		FFA_PARAM_MBZ, FFA_PARAM_MBZ, FFA_PARAM_MBZ, &result);
+
+	if (result.a0 == FFA_ERROR)
+		return ffa_get_errorcode(&result);
+
+	assert(result.a0 == FFA_SUCCESS_32);
+	return FFA_OK;
+}

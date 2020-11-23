@@ -160,6 +160,138 @@ ffa_result ffa_msg_send_direct_resp(uint16_t source, uint16_t dest, uint32_t a0,
 				    uint32_t a4, struct ffa_direct_msg *msg);
 
 /**
+ * Memory management interfaces
+ *
+ * @note Functions with _rxtx suffix use the RX/TX buffers mapped by
+ * ffa_rxtx_map to transmit memory descriptors instead of an distinct buffer
+ * allocated by the owner.
+ */
+
+/**
+ * @brief      Starts a transaction to transfer of ownership of a memory region
+ *             from a Sender endpoint to a Receiver endpoint.
+ *
+ * @param[in]  total_length     Total length of the memory transaction
+ *                              descriptor in bytes
+ * @param[in]  fragment_length  Length in bytes of the memory transaction
+ *                              descriptor passed in this ABI invocation
+ * @param[in]  buffer_address   Base address of a buffer allocated by the Owner
+ *                              and distinct from the TX buffer
+ * @param[in]  page_count       Number of 4K pages in the buffer allocated by
+ *                              the Owner and distinct from the TX buffer
+ * @param[out] handle           Globally unique Handle to identify the memory
+ *                              region upon successful transmission of the
+ *                              transaction descriptor.
+ *
+ * @return     The FF-A error status code
+ */
+ffa_result ffa_mem_donate(uint32_t total_length, uint32_t fragment_length,
+			  void *buffer_address, uint32_t page_count,
+			  uint64_t *handle);
+
+ffa_result ffa_mem_donate_rxtx(uint32_t total_length, uint32_t fragment_length,
+			       uint64_t *handle);
+
+/**
+ * @brief      Starts a transaction to transfer an Owner’s access to a memory
+ *             region and  grant access to it to one or more Borrowers.
+ *
+ * @param[in]  total_length     Total length of the memory transaction
+ *                              descriptor in bytes
+ * @param[in]  fragment_length  Length in bytes of the memory transaction
+ *                              descriptor passed in this ABI invocation
+ * @param[in]  buffer_address   Base address of a buffer allocated by the Owner
+ *                              and distinct from the TX buffer
+ * @param[in]  page_count       Number of 4K pages in the buffer allocated by
+ *                              the Owner and distinct from the TX buffer
+ * @param[out] handle           Globally unique Handle to identify the memory
+ *                              region upon successful transmission of the
+ *                              transaction descriptor.
+ *
+ * @return     The FF-A error status code
+ */
+ffa_result ffa_mem_lend(uint32_t total_length, uint32_t fragment_length,
+			void *buffer_address, uint32_t page_count,
+			uint64_t *handle);
+
+ffa_result ffa_mem_lend_rxtx(uint32_t total_length, uint32_t fragment_length,
+			     uint64_t *handle);
+
+/**
+ * @brief      Starts a transaction to grant access to a memory region to one or
+ *             more Borrowers.
+ *
+ * @param[in]  total_length     Total length of the memory transaction
+ *                              descriptor in bytes
+ * @param[in]  fragment_length  Length in bytes of the memory transaction
+ *                              descriptor passed in this ABI invocation
+ * @param[in]  buffer_address   Base address of a buffer allocated by the Owner
+ *                              and distinct from the TX buffer
+ * @param[in]  page_count       Number of 4K pages in the buffer allocated by
+ *                              the Owner and distinct from the TX buffer
+ * @param[out] handle           Globally unique Handle to identify the memory
+ *                              region upon successful transmission of the
+ *                              transaction descriptor.
+ *
+ * @return     The FF-A error status code
+ */
+ffa_result ffa_mem_share(uint32_t total_length, uint32_t fragment_length,
+			 void *buffer_address, uint32_t page_count,
+			 uint64_t *handle);
+
+ffa_result ffa_mem_share_rxtx(uint32_t total_length, uint32_t fragment_length,
+			      uint64_t *handle);
+
+/**
+ * @brief      Requests completion of a donate, lend or share memory management
+ *             transaction.
+ *
+ * @param[in]  total_length          Total length of the memory transaction
+ *                                   descriptor in bytes
+ * @param[in]  fragment_length       Length in bytes of the memory transaction
+ *                                   descriptor passed in this ABI invocation
+ * @param[in]  buffer_address        Base address of a buffer allocated by the
+ *                                   Owner and distinct from the TX buffer
+ * @param[in]  page_count            Number of 4K pages in the buffer allocated
+ *                                   by the Owner and distinct from the TX
+ *                                   buffer
+ * @param[out] resp_total_length     Total length of the response memory
+ *                                   transaction descriptor in bytes
+ * @param[out] resp_fragment_length  Length in bytes of the response memory
+ *                                   transaction descriptor passed in this ABI
+ *                                   invocation
+ *
+ * @return     The FF-A error status code
+ */
+ffa_result ffa_mem_retrieve_req(uint32_t total_length, uint32_t fragment_length,
+				void *buffer_address, uint32_t page_count,
+				uint32_t *resp_total_length,
+				uint32_t *resp_fragment_length);
+
+ffa_result ffa_mem_retrieve_req_rxtx(uint32_t total_length,
+				     uint32_t fragment_length,
+				     uint32_t *resp_total_length,
+				     uint32_t *resp_fragment_length);
+
+/**
+ * @brief      Starts a transaction to transfer access to a shared or lent
+ *             memory region from a Borrower back to its Owner.
+ *
+ * @return     The FF-A error status code
+ */
+ffa_result ffa_mem_relinquish(void);
+
+/**
+ * @brief      Restores exclusive access to a memory region back to its Owner.
+ *
+ * @param[in]  handle  Globally unique Handle to identify the memory region
+ * @param[in]  flags   Flags for modifying the reclaim behavior
+ *
+ * @return     The FF-A error status code
+ */
+ffa_result ffa_mem_reclaim(uint64_t handle, uint32_t flags);
+
+/**
  * @brief      Interrupt handler prototype. Must be implemented by another
  *             component.
  *
