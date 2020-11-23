@@ -1,0 +1,16 @@
+#-------------------------------------------------------------------------------
+# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+#-------------------------------------------------------------------------------
+
+ifeq (,${TS_INSTALL_PREFIX})
+    $(error TS_INSTALL_PREFIX is not defined!)
+endif
+
+ifeq (,${@EXPORT_SP_UUID@-included})
+@EXPORT_SP_UUID@-included=y
+endif
+
+OPTEE_OS_COMMON_EXTRA_FLAGS+=EARLY_TA_PATHS+=${TS_INSTALL_PREFIX}/bin/@EXPORT_SP_UUID@.stripped.elf

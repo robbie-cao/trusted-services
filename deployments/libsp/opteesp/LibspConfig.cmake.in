@@ -1,0 +1,16 @@
+#
+# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+
+@PACKAGE_INIT@
+
+# Any user of the lib will depend on spdevkit. Use our find module to get access to it.
+find_package(Spdevkit
+	 COMPONENTS LIBUTIL
+	 PATHS ${CMAKE_CURRENT_LIST_DIR}
+	 NO_DEFAULT_PATH
+	 REQUIRED)
+
+include("${CMAKE_CURRENT_LIST_DIR}/LibspTargets.cmake")
