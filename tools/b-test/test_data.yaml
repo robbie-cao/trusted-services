@@ -16,13 +16,11 @@ data:
       os_id : "GNU/Linux"
       params:
             - "-GUnix Makefiles"
-            - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
     - name: "libts-pc-linux"
       src: "$TS_ROOT/deployments/libts/linux-pc"
       os_id : "GNU/Linux"
       params:
             - "-GUnix Makefiles"
-            - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
     - name: "secure-storage-optee-arm"
       src: "$TS_ROOT/deployments/secure-storage/opteesp"
       params:
@@ -31,6 +29,11 @@ data:
             - "-DCMAKE_VERBOSE_MAKEFILE=y"
     - name: "sfs-demo-optee-arm"
       src: "$TS_ROOT/deployments/sfs-demo/opteesp"
+      params:
+          - "-GUnix Makefiles"
+          - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
+    - name: "crypto-optee-arm"
+      src: "$TS_ROOT/deployments/crypto/opteesp"
       params:
           - "-GUnix Makefiles"
           - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
