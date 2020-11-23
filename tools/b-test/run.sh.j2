@@ -1,0 +1,174 @@
+#!/bin/bash
+#
+# Copyright (c) 2020, Arm Limited and contributors. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+
+# Exit with error if any command fails
+set -e
+
+# Read in user specific environment settings
+if [ -e user.env ]
+then
+	echo "Reding user specific settings from user.env"
+	source user.env
+fi
+
+# Default to non-verbose mode.
+VERBOSE=${VERBOSE:-0}
+
+# Get root of TS repo.
+TS_ROOT=${TS_ROOT:-$(git rev-parse --show-toplevel)}
+
+# Number of threads to use in parallel
+NUMBER_OF_PROCESSORS=${NUMBER_OF_PROCESSORS:-$(( $(nproc) * 2 )) }
+
+# Convert test name to build directory
+function name-to-bdir() {
+	printf "./build-%s" "$1"
+}
+
+# Wrap cmake to allow verbose vs non-verbose mode
+function _cmake() {
+	log_file=$1
+	shift
+	if [ "$VERBOSE" != "0" ]
+	then
+		cmake "$@" 2>&1 | tee -a "$log_file"
+		return ${PIPESTATUS[0]}
+	else
+		cmake "$@" >>"$log_file" 2>&1
+	fi
+}
+
+{% for config in data %}
+# Run build test "{{config.name}}"
+{{config.name}}() {
+	echo "##################################################################"
+	echo "########################## {{config.name}} started."
+
+	{% if config.os_id is defined %}
+	if [ "$OS_ID" != "{{config.os_id}}" ]
+	then
+		echo "Test case is not supported on this host."
+		echo "########################## $COLOR_YELOW {{config.name}} skipped $COLOR_RESET"
+		echo "##################################################################"
+		return
+	fi
+	{% endif %}
+	b_dir=$(name-to-bdir "{{config.name}}")
+	log_file=$b_dir/build.log
+	rm -rf "$b_dir"
+	mkdir -p "$b_dir"
+
+	_cmake "$log_file" -S {{config.src}} -B "$b_dir" {% for param in config.params %} "{{param}}" {%endfor%} || {
+
+		echo "For details see: $log_file"
+		echo "########################## $COLOR_RED {{config.name}} failed $COLOR_RESET"
+		return
+	}
+
+	if _cmake "$log_file" --build "$b_dir" -j ${NUMBER_OF_PROCESSORS}
+	then
+		if _cmake "$log_file" --install "$b_dir" --prefix ./install
+		then
+			echo "########################## $COLOR_GREEN {{config.name}} passed $COLOR_RESET"
+		else
+			echo "For details see: $log_file"
+			echo "########################## $COLOR_RED {{config.name}} failed $COLOR_RESET"
+		fi
+	else
+		echo "For details see: $log_file"
+		echo "########################## $COLOR_RED {{config.name}} failed $COLOR_RESET"
+	fi
+	echo "##################################################################"
+}
+
+{% endfor %}
+
+# Clean intermediate files
+do_clean() {
+	{% for config in data %}
+	b_dir=$(name-to-bdir "{{config.name}}")
+	if [ -d "$b_dir" ]
+	then
+		echo "Removing $b_dir"
+		rm -rf "$b_dir" || true
+	fi
+	{% endfor %}
+}
+
+# Print usage info
+do_help() {
+	cat <<END_HELP
+Build test runner
+=================
+
+Invocation::
+	``$0 <command>``
+
+The file "user.env" is sourced from the current directory. Use it to set
+environment specific defaults. For config variables see the start of this script
+and any "$<XXXX>" in the "params" array of any command in test_data.yaml
+Some variables to note
+	- VERBOSE : make the script output more info.
+		VERBOSE=$VERBOSE
+	- TS_ROOT : Root directory of the TS repo.
+		TS_ROOT=$TS_ROOT
+	- NUMBER_OF_PROCESSORS: number of processors in the system. Used for setting the number of
+		parallel processes during build
+		NUMBER_OF_PROCESSORS=$NUMBER_OF_PROCESSORS
+	- SP_DEV_KIT_DIR : location of OP-TEE OS SPDEVKIT export.
+		SP_DEV_KIT_DIR=$SP_DEV_KIT_DIR
+
+Available commands:
+	""      - no command/default -> run all test cases
+	clean   - remove build directories
+	help    - print this text
+	<test case> - run a single build
+		available test cases:
+		{% for config in data %}
+			{{config.name}}
+		{% endfor %}
+END_HELP
+}
+
+#################### Entry point ###################################
+
+OS_ID=$(uname -o )
+
+if [ -n $(which tput) -a -t ]
+then
+	COLOR_YELOW=$(tput setaf 3)
+	COLOR_RESET=$(tput sgr0)
+	COLOR_RED=$(tput setaf 1)
+	COLOR_GREEN=$(tput setaf 2)
+else
+	COLOR_YELOW=
+	COLOR_RESET=
+	COLOR_RED=
+	COLOR_GREEN=
+fi
+
+case $1 in
+	{% for config in data %}
+	{{config.name}})
+		{{config.name}}
+		;;
+	{% endfor %}
+	clean)
+		do_clean
+		;;
+	help)
+		do_help
+		;;
+	"")
+		{% for config in data %}
+		{{config.name}}
+		{% endfor %}
+		;;
+	*)
+		do_help
+		;;
+esac
