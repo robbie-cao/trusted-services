@@ -7,5 +7,8 @@
 # Include packages needed for socument generation
 -r docs/requirements.txt
 
+# Include packages needed for nanopb
+-r external/nanopb/requirements.txt
+
 # Include packages needed for build test tool
 -r tools/b-test/requirements.txt

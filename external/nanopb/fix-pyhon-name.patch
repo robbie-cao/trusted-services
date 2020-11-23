@@ -1,0 +1,41 @@
+This patch fixes two issues:
+
+1. On windows the python3 executable is not allways called "python3". As a result
+    "protoc" execution can fail due to the shebang in the file. This patch fixes
+    this by running protoc with the intepreter.
+
+2. In addition when not running from a virtualenv, the install path for python file
+    is set to the "user site-packages" to avoid needing elevated access rights.
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 31c86e7..e827015 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -54,13 +54,25 @@ if(nanopb_BUILD_GENERATOR)
+         string(REGEX REPLACE "([^;]+)" "\\1_pb2.py" generator_proto_py_file "${generator_proto}")
+         add_custom_command(
+             OUTPUT ${generator_proto_py_file}
+-            COMMAND ${nanopb_PROTOC_PATH} --python_out=${PROJECT_BINARY_DIR} -I${PROJECT_SOURCE_DIR}/generator/proto ${generator_proto_file}
++            COMMAND ${Python_EXECUTABLE} ${nanopb_PROTOC_PATH} --python_out=${PROJECT_BINARY_DIR} -I${PROJECT_SOURCE_DIR}/generator/proto ${generator_proto_file}
+             DEPENDS ${generator_proto_file}
+         )
+         add_custom_target("generate_${generator_proto_py_file}" ALL DEPENDS ${generator_proto_py_file})
++
++        if (DEFINED ENV{VIRTUAL_ENV})
++            set(PYTHON_INSTALL_DIR ${Python_SITELIB} CACHE PATH "Install location for generated python modules.")
++        else()
++            execute_process(
++                COMMAND ${Python_EXECUTABLE} -m site --user-site
++                OUTPUT_VARIABLE PYTHON_USER_SITE
++                OUTPUT_STRIP_TRAILING_WHITESPACE
++            )
++            set(PYTHON_INSTALL_DIR ${PYTHON_USER_SITE} CACHE PATH "Install location for generated python modules.")
++        endif()
++
+         install(
+             FILES ${PROJECT_BINARY_DIR}/${generator_proto_py_file}
+-            DESTINATION ${Python_SITELIB}
++            DESTINATION ${PYTHON_INSTALL_DIR}
+         )
+     endforeach()
+ endif()
