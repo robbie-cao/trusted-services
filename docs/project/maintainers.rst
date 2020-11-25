@@ -1,9 +1,9 @@
 Maintainers
 ===========
 
-|TS| is a Trusted Firmware maintained project. All contributions are ultimately
+|TS| is a trustedfirmware.org maintained project. All contributions are ultimately
 merged by the maintainers listed below. Technical ownership of some parts of the
-codebase is delegated to the code owners listed below. An acknowledgement from
+code-base is delegated to the code owners listed below. An acknowledgment from
 these code maintainers may be required before the maintainers merge a
 contribution.
 
@@ -45,6 +45,6 @@ Code owners
 .. _`Linux Maintainers file`: https://github.com/torvalds/linux/blob/master/MAINTAINERS#L80
 .. _Project Maintenance Process: https://developer.trustedfirmware.org/w/collaboration/project-maintenance-process/
 
-*Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

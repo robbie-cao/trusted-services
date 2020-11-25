@@ -96,8 +96,6 @@ Execute ``run.sh help`` to get further details.
 
 --------------
 
-*Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.*
-
 .. |yasha| replace:: `yasha`_
 .. |jinja2| replace:: `Jinja2`_
 .. |yaml| replace:: `yaml`_
@@ -105,3 +103,7 @@ Execute ``run.sh help`` to get further details.
 .. _Jinja2: https://palletsprojects.com/p/jinja
 .. _yasha: https://github.com/kblomqvist/yasha
 .. _yaml: https://yaml.org
+
+*Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.*
+
+SPDX-License-Identifier: BSD-3-Clause

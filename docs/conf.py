@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # -- Metadata about this file ------------------------------------------------
-__copyright__ = "Copyright (c) 2020 Arm Limited"
+__copyright__ = "Copyright (c) 2020-2021 Arm Limited and Contributors."
 __license__ = "SPDX-License-Identifier: BSD-3-Clause"
 
 # Configuration file for the Sphinx documentation builder.
@@ -102,8 +102,7 @@ autosectionlabel_maxdepth = 1
 # -- Options for plantuml ----------------------------------------------------
 
 plantuml_output_format = 'svg_img'
-
 # -- Options for todo extension ----------------------------------------------
 
 # Display todos
-todo_include_todos = True
+todo_include_todos = False

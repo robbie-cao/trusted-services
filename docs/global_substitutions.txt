@@ -8,13 +8,15 @@
 .. |LCS| replace:: :term:`LCS`
 .. |ACLE| replace:: :term:`ACLE`
 .. |REST| replace:: reST
+.. |SEMVER| replace:: `Semantic Versioning`_
 
 .. _`TS Mailing List`: https://lists.trustedfirmware.org/mailman/listinfo/trusted-services
-.. _`TS repository`: https://review.trustedfirmware.org/TS/trusted-services.git
+.. _`TS repository`: https://review.trustedfirmware.org/admin/repos/TS/trusted-services
+.. _`Semantic Versioning`: https://semver.org/spec/v2.0.0.html
 
 ..
    --------------
 
-   *Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.*
+   *Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.*
 
    SPDX-License-Identifier: BSD-3-Clause
