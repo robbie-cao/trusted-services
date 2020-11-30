@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  */
 
 #include "ffa_memory_descriptors.h"
@@ -119,6 +119,7 @@ void ffa_reserve_mem_access_desc(struct ffa_mem_transaction_buffer *buffer,
 	 * memory region descriptor if it exists
 	 */
 	composite_offset = get_composite_desc_offset(buffer);
+	/* The following assert's branches cannot be fully covered. */
 	assert(composite_offset == 0 || required_size <= composite_offset);
 
 	if (buffer->used < required_size)
