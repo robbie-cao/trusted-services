@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  */
 
 #ifndef LIBSP_INCLUDE_SP_API_H_
@@ -9,6 +9,10 @@
 #include <stdint.h>    // for uint32_t
 #include "compiler.h"  // for __noreturn
 #include "ffa_api.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Interface for the SP implementation
@@ -29,5 +33,9 @@ void sp_interrupt_handler(uint32_t interrupt_id);
  * @param      init_info  The boot info
  */
 void __noreturn sp_main(struct ffa_init_info *init_info);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* LIBSP_INCLUDE_SP_API_H_ */
