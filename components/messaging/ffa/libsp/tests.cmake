@@ -17,3 +17,16 @@ unit_test_add_suite(
 	COMPILE_DEFINITIONS
 		-DARM64
 )
+
+unit_test_add_suite(
+	NAME libsp_mock_ffa_internal_api
+	SOURCES
+		${CMAKE_CURRENT_LIST_DIR}/test/mock_ffa_internal_api.cpp
+		${CMAKE_CURRENT_LIST_DIR}/test/test_mock_ffa_internal_api.cpp
+	INCLUDE_DIRECTORIES
+		${CMAKE_CURRENT_LIST_DIR}/include/
+		${PROJECT_PATH}/components/common/utils/include
+	COMPILE_DEFINITIONS
+		-DARM64
+)
+
