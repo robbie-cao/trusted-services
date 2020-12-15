@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -7,6 +7,7 @@
 #include "standalone_crypto_client.h"
 #include <protocols/rpc/common/packed-c/status.h>
 #include <protocols/service/psa/packed-c/status.h>
+#include <service/crypto/provider/serializer/protobuf/pb_crypto_provider_serializer.h>
 
 standalone_crypto_client::standalone_crypto_client() :
     test_crypto_client(),
@@ -35,7 +36,7 @@ bool standalone_crypto_client::init()
         if (!is_fault_injected(FAILED_TO_DISCOVER_SECURE_STORAGE)) {
 
             /* Establish rpc session with storage provider */
-            struct call_ep *storage_ep = sfs_provider_init(&m_storage_provider);
+            struct rpc_interface *storage_ep = sfs_provider_init(&m_storage_provider);
             storage_caller = direct_caller_init_default(&m_storage_caller, storage_ep);
         }
         else {
@@ -49,8 +50,15 @@ bool standalone_crypto_client::init()
                         TS_RPC_CALL_ACCEPTED, PSA_ERROR_STORAGE_FAILURE);
         }
 
-        struct call_ep *crypto_ep = mbed_crypto_provider_init(&m_crypto_provider, storage_caller);
-        struct rpc_caller *crypto_caller = direct_caller_init_default(&m_crypto_caller, crypto_ep);
+        struct rpc_interface *crypto_ep = mbed_crypto_provider_init(&m_crypto_provider,
+                                                                    storage_caller);
+        struct rpc_caller *crypto_caller = direct_caller_init_default(&m_crypto_caller,
+                                                                    crypto_ep);
+
+        mbed_crypto_provider_register_serializer(&m_crypto_provider,
+                    TS_RPC_ENCODING_PROTOBUF, pb_crypto_provider_serializer_instance());
+
+        rpc_caller_set_encoding_scheme(crypto_caller, TS_RPC_ENCODING_PROTOBUF);
 
         crypto_client::set_caller(crypto_caller);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -64,11 +64,11 @@ TEST_GROUP(ServiceFrameworkTests)
 TEST(ServiceFrameworkTests, serviceWithNoOps)
 {
     /* Constructs a service endpoint with no handlers */
-    struct service_provider ep;
+    struct service_provider service_provider;
 
-    service_provider_init(&ep, &ep, NULL, 0);
+    service_provider_init(&service_provider, &service_provider, NULL, 0);
     struct rpc_caller *caller = direct_caller_init_default(&m_direct_caller,
-                                            service_provider_get_call_ep(&ep));
+                                            service_provider_get_rpc_interface(&service_provider));
 
     rpc_call_handle handle;
     uint8_t *req_buf;
@@ -97,11 +97,11 @@ TEST(ServiceFrameworkTests, serviceWithOps)
     handlers[1].opcode = ANOTHER_ARBITRARY_OPCODE;
     handlers[1].invoke = handlerThatFails;
 
-    struct service_provider ep;
+    struct service_provider service_provider;
 
-    service_provider_init(&ep, &ep, handlers, 2);
+    service_provider_init(&service_provider, &service_provider, handlers, 2);
     struct rpc_caller *caller = direct_caller_init_default(&m_direct_caller,
-                                            service_provider_get_call_ep(&ep));
+                                            service_provider_get_rpc_interface(&service_provider));
 
     rpc_call_handle handle;
     rpc_status_t rpc_status;

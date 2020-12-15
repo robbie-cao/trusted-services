@@ -8,6 +8,7 @@
 #include <rpc/dummy/dummy_caller.h>
 #include <service/secure_storage/client/psa/its/its_client.h>
 #include <service/crypto/provider/mbedcrypto/crypto_provider.h>
+#include <service/crypto/provider/serializer/protobuf/pb_crypto_provider_serializer.h>
 #include <protocols/rpc/common/packed-c/status.h>
 #include <ffa_api.h>
 #include <sp_api.h>
@@ -29,7 +30,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 {
 	struct mbed_crypto_provider crypto_provider;
 	struct ffa_call_ep ffarpc_call_ep;
-	struct call_ep *crypto_ep;
+	struct rpc_interface *crypto_iface;
 	struct ffarpc_caller ffarpc_caller;
 	struct dummy_caller dummy_caller;
 	struct rpc_caller *storage_caller;
@@ -45,7 +46,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	storage_caller = ffarpc_caller_init(&ffarpc_caller);
 
 	if (!ffarpc_caller_discover(storage_uuid, storage_sp_ids, sizeof(storage_sp_ids)/sizeof(uint16_t)) ||
-		ffarpc_caller_open(&ffarpc_caller, storage_sp_ids[0])) {
+		ffarpc_caller_open(&ffarpc_caller, storage_sp_ids[0], 0)) {
 		/*
 		 * Failed to establish session.  To allow the crypto service
 		 * to still be initialized, albeit with no persistent storage,
@@ -57,8 +58,11 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	}
 
 	/* Initialize the crypto service */
-	crypto_ep = mbed_crypto_provider_init(&crypto_provider, storage_caller);
-	ffa_call_ep_init(&ffarpc_call_ep, crypto_ep);
+	crypto_iface = mbed_crypto_provider_init(&crypto_provider, storage_caller);
+    mbed_crypto_provider_register_serializer(&crypto_provider,
+                    TS_RPC_ENCODING_PROTOBUF, pb_crypto_provider_serializer_instance());
+
+	ffa_call_ep_init(&ffarpc_call_ep, crypto_iface);
 
  	/* End of boot phase */
 	ffa_msg_wait(&req_msg);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -7,8 +7,8 @@
 #include <string>
 #include <cstring>
 #include <cstdint>
-#include <cassert>
 #include <service/crypto/client/cpp/crypto_client.h>
+#include <protocols/rpc/common/packed-c/encoding.h>
 #include <service_locator.h>
 #include <CppUTest/TestHarness.h>
 
@@ -31,10 +31,10 @@ TEST_GROUP(CryptoServiceOpTests)
         service_locator_init();
 
         m_crypto_service_context = service_locator_query("sn:trustedfirmware.org:crypto:0", &status);
-        assert(m_crypto_service_context);
+        CHECK_TRUE(m_crypto_service_context);
 
-        m_rpc_session_handle = service_context_open(m_crypto_service_context, &caller);
-        assert(m_rpc_session_handle);
+        m_rpc_session_handle = service_context_open(m_crypto_service_context, TS_RPC_ENCODING_PROTOBUF, &caller);
+        CHECK_TRUE(m_rpc_session_handle);
 
         m_crypto_client = new crypto_client(caller);
     }

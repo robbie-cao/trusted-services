@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -7,7 +7,7 @@
 #ifndef SERVICE_PROVIDER_H
 #define SERVICE_PROVIDER_H
 
-#include <rpc/common/endpoint/call_ep.h>
+#include <rpc/common/endpoint/rpc_interface.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -40,28 +40,29 @@ static inline uint32_t service_handler_get_opcode(const struct service_handler *
  *
  * A generalised service provider that acts as an rpc call endpoint.  It receives call
  * requests and delegates them to the approprate handle provided by a concrete service
- * provider.
+ * provider.  To support service specialization and proxying, unhandled requests may
+ * optionally be passed to a delegate rpc_interface to form a chain of responsibility.
  */
 struct service_provider {
-    struct call_ep base;
-    const struct service_handler *handlers;
-    size_t num_handlers;
-    call_param_serializer_ptr default_serializer;
+	struct rpc_interface iface;
+	const struct service_handler *handlers;
+	size_t num_handlers;
+	struct rpc_interface *successor;
 };
 
-static inline struct call_ep *service_provider_get_call_ep(struct service_provider *sp)
+static inline struct rpc_interface *service_provider_get_rpc_interface(struct service_provider *sp)
 {
-	return &sp->base;
+	return &sp->iface;
 }
 
 void service_provider_init(struct service_provider *sp, void *context,
-			     	const struct service_handler *handlers,
-			     	size_t num_handlers);
+				 	const struct service_handler *handlers,
+				 	size_t num_handlers);
 
-static inline void service_set_default_serializer(struct service_provider *sp,
-    				call_param_serializer_ptr serializer)
+static inline void service_provider_link_successor(struct service_provider *sp,
+					struct rpc_interface *successor)
 {
-    sp->default_serializer = serializer;
+	sp->successor = successor;
 }
 
 #ifdef __cplusplus

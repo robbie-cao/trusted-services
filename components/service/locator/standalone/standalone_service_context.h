@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -8,7 +8,7 @@
 #define STANDALONE_SERVICE_CONTEXT_H
 
 #include <service_locator.h>
-#include <rpc/common/endpoint/call_ep.h>
+#include <rpc/common/endpoint/rpc_interface.h>
 #include <rpc/direct/direct_caller.h>
 #include <string>
 
@@ -28,7 +28,7 @@ public:
     struct service_context *get_service_context();
 
 protected:
-    void set_call_ep(call_ep *ep);
+    void set_rpc_interface(rpc_interface *iface);
 
     virtual void do_init() {}
     virtual void do_deinit() {}
@@ -37,7 +37,7 @@ private:
 
     struct rpc_session
     {
-        rpc_session(struct call_ep *call_ep);
+        rpc_session(struct rpc_interface *rpc_interface);
         ~rpc_session();
 
         struct direct_caller m_direct_caller;
@@ -47,7 +47,7 @@ private:
     std::string m_sn;
     int m_ref_count;
     struct service_context m_service_context;
-    struct call_ep *m_call_ep;
+    struct rpc_interface *m_rpc_interface;
 };
 
 #endif /* STANDALONE_SERVICE_CONTEXT_H */

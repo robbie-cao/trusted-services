@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -17,7 +17,7 @@ standalone_service_context::standalone_service_context(const char *sn) :
     m_sn(sn),
     m_ref_count(0),
     m_service_context(),
-    m_call_ep(NULL)
+    m_rpc_interface(NULL)
 {
     m_service_context.context = this;
     m_service_context.open = standalone_service_context_open;
@@ -48,7 +48,7 @@ void standalone_service_context::deinit()
 
 rpc_session_handle standalone_service_context::open(struct rpc_caller **caller)
 {
-    struct rpc_session *session = new rpc_session(m_call_ep);
+    struct rpc_session *session = new rpc_session(m_rpc_interface);
     *caller = session->m_rpc_caller;
     return static_cast<rpc_session_handle>(session);
 }
@@ -69,16 +69,16 @@ struct service_context *standalone_service_context::get_service_context()
     return &m_service_context;
 }
 
-void standalone_service_context::set_call_ep(call_ep *ep)
+void standalone_service_context::set_rpc_interface(rpc_interface *iface)
 {
-    m_call_ep = ep;
+    m_rpc_interface = iface;
 }
 
-standalone_service_context::rpc_session::rpc_session(struct call_ep *call_ep) :
+standalone_service_context::rpc_session::rpc_session(struct rpc_interface *rpc_interface) :
     m_direct_caller(),
     m_rpc_caller()
 {
-    m_rpc_caller = direct_caller_init_default(&m_direct_caller, call_ep);
+    m_rpc_caller = direct_caller_init_default(&m_direct_caller, rpc_interface);
 }
 
 standalone_service_context::rpc_session::~rpc_session()

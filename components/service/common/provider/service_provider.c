@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -9,7 +9,7 @@
 #include <stddef.h>
 
 static const struct service_handler *find_handler(const struct service_provider *sp,
-						      uint32_t opcode)
+							  uint32_t opcode)
 {
 	const struct service_handler *handler = NULL;
 	size_t index = 0;
@@ -27,37 +27,40 @@ static const struct service_handler *find_handler(const struct service_provider 
 	return handler;
 }
 
-static rpc_status_t receive(struct call_ep *base_ep, struct call_req *req)
+static rpc_status_t receive(struct rpc_interface *rpc_iface, struct call_req *req)
 {
 	rpc_status_t rpc_status;
 	struct service_provider *sp = NULL;
 	const struct service_handler *handler = NULL;
 
-	sp = (struct service_provider*)((char*)base_ep - offsetof(struct service_provider, base));
+	sp = (struct service_provider*)((char*)rpc_iface - offsetof(struct service_provider, iface));
 	handler = find_handler(sp, call_req_get_opcode(req));
 
-    if (handler) {
+	if (handler) {
 
-        req->serializer = sp->default_serializer;
-        rpc_status = service_handler_invoke(handler, base_ep->context, req);
-    }
-    else {
+		 rpc_status = service_handler_invoke(handler, rpc_iface->context, req);
+	}
+	else if (sp->successor) {
 
-        rpc_status = TS_RPC_ERROR_INVALID_OPCODE;
-    }
+		rpc_status = rpc_interface_receive(sp->successor, req);
+	}
+	else {
+
+		rpc_status = TS_RPC_ERROR_INVALID_OPCODE;
+	}
 
 	return rpc_status;
 }
 
 void service_provider_init(struct service_provider *sp, void *context,
-			     const struct service_handler *handlers,
-			     size_t num_handlers)
+				 const struct service_handler *handlers,
+				 size_t num_handlers)
 {
-	sp->base.receive = receive;
-	sp->base.context = context;
+	sp->iface.receive = receive;
+	sp->iface.context = context;
 
 	sp->handlers = handlers;
 	sp->num_handlers = num_handlers;
 
-	sp->default_serializer = NULL;
+	sp->successor = NULL;
 }

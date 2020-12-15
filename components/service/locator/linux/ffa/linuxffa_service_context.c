@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -14,7 +14,8 @@ static void linuxffa_service_context_close(void *context, rpc_session_handle ses
 static void linuxffa_service_context_relinquish(void *context);
 
 
-struct linuxffa_service_context *linuxffa_service_context_create(const char *dev_path, uint16_t partition_id)
+struct linuxffa_service_context *linuxffa_service_context_create(const char *dev_path,
+                                                                uint16_t partition_id)
 {
     struct linuxffa_service_context *new_context =
         (struct linuxffa_service_context*)malloc(sizeof(struct linuxffa_service_context));
@@ -42,7 +43,7 @@ static rpc_session_handle linuxffa_service_context_open(void *context, struct rp
 
         int status;
         *caller = ffarpc_caller_init(ffarpc_caller, this_context->ffa_dev_path);
-        status = ffarpc_caller_open(ffarpc_caller, this_context->partition_id);
+        status = ffarpc_caller_open(ffarpc_caller, this_context->partition_id, 0);
 
 		if (status == 0) {
             /* Successfully opened session */

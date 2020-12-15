@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -160,7 +160,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info) {
 	}
 	IMSG("ITS SP ID: 0x%x", sp_ids[0]);
 
-	if (ffarpc_caller_open(&ffa_caller, sp_ids[0])) {
+	if (ffarpc_caller_open(&ffa_caller, sp_ids[0], 0)) {
 		goto err;
 	}
 

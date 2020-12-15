@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  */
 
 #include <service/crypto/client/cpp/crypto_client.h>
+#include <protocols/rpc/common/packed-c/encoding.h>
 #include <app/ts-demo/ts-demo.h>
 #include <service_locator.h>
 #include <rpc_caller.h>
@@ -24,7 +25,7 @@ int main(int argc, char *argv[]) {
 		struct rpc_caller *caller;
 		rpc_session_handle rpc_session_handle;
 
-		rpc_session_handle = service_context_open(crypto_service_context, &caller);
+		rpc_session_handle = service_context_open(crypto_service_context, TS_RPC_ENCODING_PROTOBUF, &caller);
 
 		if (rpc_session_handle) {
 

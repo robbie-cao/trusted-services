@@ -1,11 +1,25 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #include <rpc_caller.h>
 #include <stdint.h>
+#include <protocols/rpc/common/packed-c/encoding.h>
+
+void rpc_caller_init(struct rpc_caller *s, void *context)
+{
+	s->context = context;
+
+	/* The default encoding scheme - may be overridden by a client */
+	s->encoding = TS_RPC_ENCODING_PACKED_C;
+}
+
+void rpc_caller_set_encoding_scheme(struct rpc_caller *s, uint32_t encoding)
+{
+	s->encoding = encoding;
+}
 
 rpc_call_handle rpc_caller_begin(struct rpc_caller *s,
 								uint8_t **req_buf, size_t req_len)

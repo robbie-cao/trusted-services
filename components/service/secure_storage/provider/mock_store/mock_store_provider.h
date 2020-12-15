@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -31,7 +31,7 @@ struct mock_store_provider
     struct mock_store_slot slots[MOCK_STORE_NUM_SLOTS];
 };
 
-struct call_ep *mock_store_provider_init(struct mock_store_provider *context);
+struct rpc_interface *mock_store_provider_init(struct mock_store_provider *context);
 void mock_store_provider_deinit(struct mock_store_provider *context);
 
 /* Test support methods */

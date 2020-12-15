@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -55,9 +55,12 @@ struct service_context *service_locator_query(const char *sn, int *status)
     return located_context;
 }
 
-rpc_session_handle service_context_open(struct service_context *s, struct rpc_caller **caller)
+rpc_session_handle service_context_open(struct service_context *s, uint32_t encoding, struct rpc_caller **caller)
 {
-    return s->open(s->context, caller);
+    rpc_session_handle handle = s->open(s->context, caller);
+    if (handle) rpc_caller_set_encoding_scheme(*caller, encoding);
+
+    return handle;
 }
 
 void service_context_close(struct service_context *s, rpc_session_handle session_handle)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -36,6 +36,7 @@ typedef void *rpc_call_handle;
 struct rpc_caller
 {
 	void *context;
+	uint32_t encoding;
 
 	/* A concrete rpc_caller implements these methods */
 	rpc_call_handle (*call_begin)(void *context, uint8_t **req_buf, size_t req_len);
@@ -45,6 +46,19 @@ struct rpc_caller
 
 	void (*call_end)(void *context, rpc_call_handle handle);
 };
+
+/*
+ * Called by a concrete rpc_caller to initialise the base rpc_caller.
+ */
+void rpc_caller_init(struct rpc_caller *s, void *context);
+
+/*
+ * Allows a client to specify the parameter encoding scheme that the client
+ * intends to use during an RPC session.  It is the client's responsiblity
+ * to choose an encoding scheme that is supported by the remote interface.
+ */
+RPC_CALLER_EXPORTED void rpc_caller_set_encoding_scheme(struct rpc_caller *s,
+			uint32_t encoding);
 
 /*
  * Starts a call transaction. The returned handle is an identifier for the

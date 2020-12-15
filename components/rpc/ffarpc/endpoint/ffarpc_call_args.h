@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -17,11 +17,21 @@ extern "C" {
  * normal world RPC caller and the RPC listener in the SP.
  */
 
+/* Macros for parameters carried in a single register */
+#define FFA_CALL_ARGS_COMBINE_IFACE_ID_OPCODE(i, o) \
+    (((i) << 16) | ((o) & 0xffff))
+#define FFA_CALL_ARGS_EXTRACT_IFACE(reg) \
+    ((reg) >> 16)
+#define FFA_CALL_ARGS_EXTRACT_OPCODE(reg) \
+    ((reg) & 0xffff)
+
 /* Common req & resp arg offests into msg_args structure */
-#define FFA_CALL_ARGS_OPCODE			    (0)
+#define FFA_CALL_ARGS_IFACE_ID_OPCODE	    (0)
 
 /* Req arg offsets */
 #define FFA_CALL_ARGS_REQ_DATA_LEN		    (1)
+#define FFA_CALL_ARGS_CALLER_ID		        (2)
+#define FFA_CALL_ARGS_ENCODING		        (3)
 
 /* Resp arg offsets */
 #define FFA_CALL_ARGS_RESP_DATA_LEN		    (1)

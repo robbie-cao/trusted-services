@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -13,6 +13,7 @@
 #include <sp_rxtx.h>
 #include <trace.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 
 uint8_t shared_buffer[4096] __aligned(4096);
@@ -33,6 +34,11 @@ static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_l
 		goto out;
 	}
 
+	if (req_len > UINT32_MAX) {
+		EMSG("call_begin(): req_len too big");
+		goto out;
+	}
+
 	this_context->is_call_transaction_in_progess = true;
 	handle = this_context;
 
@@ -50,7 +56,7 @@ out:
 }
 
 static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t opcode,
-			    int *opstatus, uint8_t **resp_buf, size_t *resp_len)
+				int *opstatus, uint8_t **resp_buf, size_t *resp_len)
 {
 	struct ffarpc_caller *this_context = (struct ffarpc_caller *)context;
 	ffa_result res = FFA_OK;
@@ -59,7 +65,7 @@ static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t 
 	rpc_status_t status = TS_RPC_ERROR_INTERNAL;
 
 	if (handle != this_context || opstatus == NULL ||
-	    resp_buf == NULL || resp_len == NULL) {
+		resp_buf == NULL || resp_len == NULL) {
 		EMSG("call_invoke(): invalid arguments");
 		status = TS_RPC_ERROR_INVALID_PARAMETER;
 		goto out;
@@ -71,16 +77,24 @@ static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t 
 		goto out;
 	}
 
-	req.destination_id = this_context->call_ep_id;
+	req.destination_id = this_context->dest_partition_id;
 	req.source_id = own_id;
-	req.args[FFA_CALL_ARGS_OPCODE] = opcode;
+	req.args[FFA_CALL_ARGS_IFACE_ID_OPCODE] =
+		FFA_CALL_ARGS_COMBINE_IFACE_ID_OPCODE(this_context->dest_partition_id, opcode);
 	//TODO: downcast problem?
 	req.args[FFA_CALL_ARGS_REQ_DATA_LEN] = (uint32_t)this_context->req_len;
+	req.args[FFA_CALL_ARGS_ENCODING] = this_context->rpc_caller.encoding;
+
+	/* Initialise the caller ID.  Depending on the call path, this may
+	 * be overridden by a higher privilege execution level, based on its
+	 * perspective of the caller identity.
+	 */
+	req.args[FFA_CALL_ARGS_CALLER_ID] = 0;
 
 	res = ffa_msg_send_direct_req(req.source_id, req.destination_id,
-				      req.args[0], req.args[1],
-				      req.args[2], req.args[3],
-				      req.args[4], &resp);
+						req.args[0], req.args[1],
+						req.args[2], req.args[3],
+						req.args[4], &resp);
 
 	if (res != FFA_OK) {
 		EMSG("ffa_msg_send_direct_req(): error %"PRId32, res);
@@ -123,12 +137,13 @@ struct rpc_caller *ffarpc_caller_init(struct ffarpc_caller *s)
 {
 	struct rpc_caller *base = &s->rpc_caller;
 
-	base->context = s;
+	rpc_caller_init(base, s);
 	base->call_begin = call_begin;
 	base->call_invoke = call_invoke;
 	base->call_end = call_end;
 
-	s->call_ep_id = 0;
+	s->dest_partition_id = 0;
+	s->dest_iface_id = 0;
 	s->shared_mem_handle = 0;
 	s->shared_mem_required_size = sizeof(shared_buffer);
 	s->req_buf = NULL;
@@ -191,7 +206,7 @@ out:
 	return sp_cnt;
 }
 
-int ffarpc_caller_open(struct ffarpc_caller *s, uint16_t call_ep_id)
+int ffarpc_caller_open(struct ffarpc_caller *s, uint16_t dest_partition_id, uint16_t dest_iface_id)
 {
 	//TODO: revise return type, error handling
 	ffa_result ffa_res;
@@ -212,7 +227,7 @@ int ffarpc_caller_open(struct ffarpc_caller *s, uint16_t call_ep_id)
 
 	acc_desc.data_access = sp_data_access_read_write;
 	acc_desc.instruction_access = sp_instruction_access_not_executable;
-	acc_desc.receiver_id = call_ep_id;
+	acc_desc.receiver_id = dest_partition_id;
 
 	region.address = shared_buffer;
 	region.page_count = 1;
@@ -224,23 +239,25 @@ int ffarpc_caller_open(struct ffarpc_caller *s, uint16_t call_ep_id)
 	}
 
 	req.source_id = own_id;
-	req.destination_id = call_ep_id;
-	req.args[FFA_CALL_ARGS_OPCODE] = FFA_CALL_OPCODE_SHARE_BUF;
-	req.args[FFA_CALL_ARGS_SHARE_MEM_HANDLE_LSW] = (uint32_t)(handle & 0xffff);
+	req.destination_id = dest_partition_id;
+	req.args[FFA_CALL_ARGS_IFACE_ID_OPCODE] =
+		FFA_CALL_ARGS_COMBINE_IFACE_ID_OPCODE(FFA_CALL_MGMT_IFACE_ID, FFA_CALL_OPCODE_SHARE_BUF);
+	req.args[FFA_CALL_ARGS_SHARE_MEM_HANDLE_LSW] = (uint32_t)(handle & UINT32_MAX);
 	req.args[FFA_CALL_ARGS_SHARE_MEM_HANDLE_MSW] = (uint32_t)(handle >> 32);
 	//TODO: downcast
 	req.args[FFA_CALL_ARGS_SHARE_MEM_SIZE] = (uint32_t)(s->shared_mem_required_size);
 
 	ffa_res = ffa_msg_send_direct_req(req.source_id, req.destination_id,
-					  req.args[0], req.args[1],
-					  req.args[2], req.args[3],
-					  req.args[4], &resp);
+						req.args[0], req.args[1],
+						req.args[2], req.args[3],
+						req.args[4], &resp);
 	if (ffa_res != FFA_OK) {
 		EMSG("ffa_msg_send_direct_req(): error %"PRId32, ffa_res);
 		return -1;
 	}
 
-	s->call_ep_id = call_ep_id;
+	s->dest_partition_id = dest_partition_id;
+	s->dest_iface_id = dest_iface_id;
 	s->shared_mem_handle = handle;
 
 	return 0;
@@ -260,15 +277,16 @@ int ffarpc_caller_close(struct ffarpc_caller *s)
 	handle_hi = (uint32_t)(s->shared_mem_handle >> 32);
 
 	req.source_id = own_id;
-	req.destination_id = s->call_ep_id;
-	req.args[FFA_CALL_ARGS_OPCODE] = FFA_CALL_OPCODE_UNSHARE_BUF;
+	req.destination_id = s->dest_partition_id;
+	req.args[FFA_CALL_ARGS_IFACE_ID_OPCODE] =
+		FFA_CALL_ARGS_COMBINE_IFACE_ID_OPCODE(FFA_CALL_MGMT_IFACE_ID, FFA_CALL_OPCODE_UNSHARE_BUF);
 	req.args[FFA_CALL_ARGS_SHARE_MEM_HANDLE_LSW] = handle_lo;
 	req.args[FFA_CALL_ARGS_SHARE_MEM_HANDLE_MSW] = handle_hi;
 
 	ffa_res = ffa_msg_send_direct_req(req.source_id, req.destination_id,
-				      req.args[0], req.args[1],
-				      req.args[2], req.args[3],
-				      req.args[4], &resp);
+						req.args[0], req.args[1],
+						req.args[2], req.args[3],
+						req.args[4], &resp);
 	if (ffa_res != FFA_OK) {
 		EMSG("ffa_msg_send_direct_req(): error %"PRId32, ffa_res);
 		return -1;
@@ -280,7 +298,8 @@ int ffarpc_caller_close(struct ffarpc_caller *s)
 		return -1;
 	}
 
-	s->call_ep_id = 0;
+	s->dest_partition_id = 0;
+	s->dest_iface_id = 0;
 	s->shared_mem_handle = 0;
 
 	return 0;

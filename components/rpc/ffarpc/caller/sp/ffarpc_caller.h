@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -16,7 +16,8 @@ extern "C" {
 
 struct ffarpc_caller {
 	struct rpc_caller rpc_caller;
-	uint16_t call_ep_id;
+	uint16_t dest_partition_id;
+	uint16_t dest_iface_id;
 	uint64_t shared_mem_handle;
 	size_t shared_mem_required_size;
 	uint8_t *req_buf;
@@ -29,7 +30,7 @@ struct ffarpc_caller {
 struct rpc_caller *ffarpc_caller_init(struct ffarpc_caller *s);
 void ffarpc_caller_deinit(struct ffarpc_caller *s);
 uint32_t ffarpc_caller_discover(const uint8_t *uuid, uint16_t *sp_ids, uint32_t sp_max_cnt);
-int ffarpc_caller_open(struct ffarpc_caller *s, uint16_t call_ep_id);
+int ffarpc_caller_open(struct ffarpc_caller *s, uint16_t dest_partition_id, uint16_t dest_iface_id);
 int ffarpc_caller_close(struct ffarpc_caller *s);
 
 #ifdef __cplusplus

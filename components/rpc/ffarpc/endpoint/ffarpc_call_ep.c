@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -16,16 +16,16 @@
 /* TODO: remove this when own ID will be available in libsp */
 extern uint16_t own_id;
 
-static void set_resp_args(uint32_t *resp_args, uint32_t opcode, uint32_t data_len,
+static void set_resp_args(uint32_t *resp_args, uint32_t ifaceid_opcode, uint32_t data_len,
 			  rpc_status_t rpc_status, uint32_t opstatus)
 {
-	resp_args[FFA_CALL_ARGS_OPCODE] = opcode;
+	resp_args[FFA_CALL_ARGS_IFACE_ID_OPCODE] = ifaceid_opcode;
 	resp_args[FFA_CALL_ARGS_RESP_DATA_LEN] = data_len;
 	resp_args[FFA_CALL_ARGS_RESP_RPC_STATUS] = rpc_status;
 	resp_args[FFA_CALL_ARGS_RESP_OP_STATUS] = opstatus;
 }
 
-static void set_mgmt_resp_args(uint32_t *resp_args, uint32_t opcode,
+static void set_mgmt_resp_args(uint32_t *resp_args, uint32_t ifaceid_opcode,
 			       rpc_status_t rpc_status)
 {
 	/*
@@ -33,7 +33,7 @@ static void set_mgmt_resp_args(uint32_t *resp_args, uint32_t opcode,
 	 * rather than from a higher layer service. These responses are not
 	 * associated with a shared buffer for any additional message payload.
 	 */
-	set_resp_args(resp_args, opcode, 0, rpc_status, 0);
+	set_resp_args(resp_args, ifaceid_opcode, 0, rpc_status, 0);
 }
 
 static void init_shmem_buf(struct ffa_call_ep *call_ep, uint16_t source_id,
@@ -68,7 +68,7 @@ static void init_shmem_buf(struct ffa_call_ep *call_ep, uint16_t source_id,
 		EMSG("memory retrieve error: %d", sp_res);
 	}
 
-	set_mgmt_resp_args(resp_args, req_args[FFA_CALL_ARGS_OPCODE], rpc_status);
+	set_mgmt_resp_args(resp_args, req_args[FFA_CALL_ARGS_IFACE_ID_OPCODE], rpc_status);
 }
 
 static void deinit_shmem_buf(struct ffa_call_ep *call_ep, const uint32_t *req_args,
@@ -94,7 +94,7 @@ static void deinit_shmem_buf(struct ffa_call_ep *call_ep, const uint32_t *req_ar
 		EMSG("memory relinquish error: %d", sp_res);
 	}
 
-	set_mgmt_resp_args(resp_args, req_args[FFA_CALL_ARGS_OPCODE], rpc_status);
+	set_mgmt_resp_args(resp_args, req_args[FFA_CALL_ARGS_IFACE_ID_OPCODE], rpc_status);
 }
 
 static void handle_service_msg(struct ffa_call_ep *call_ep, uint16_t source_id,
@@ -103,8 +103,12 @@ static void handle_service_msg(struct ffa_call_ep *call_ep, uint16_t source_id,
 	rpc_status_t rpc_status;
 	struct call_req call_req;
 
+	uint32_t ifaceid_opcode = req_args[FFA_CALL_ARGS_IFACE_ID_OPCODE];
+
 	call_req.caller_id = source_id;
-	call_req.opcode = req_args[FFA_CALL_ARGS_OPCODE];
+	call_req.interface_id = FFA_CALL_ARGS_EXTRACT_IFACE(ifaceid_opcode);
+	call_req.opcode = FFA_CALL_ARGS_EXTRACT_OPCODE(ifaceid_opcode);
+	call_req.encoding = req_args[FFA_CALL_ARGS_ENCODING];
 
 	call_req.req_buf.data = call_ep->shmem_buf;
 	call_req.req_buf.data_len = req_args[FFA_CALL_ARGS_REQ_DATA_LEN];
@@ -114,10 +118,10 @@ static void handle_service_msg(struct ffa_call_ep *call_ep, uint16_t source_id,
 	call_req.resp_buf.data_len = 0;
 	call_req.resp_buf.size = call_ep->shmem_buf_size;
 
-	rpc_status = call_ep_receive(call_ep->call_ep, &call_req);
+	rpc_status = rpc_interface_receive(call_ep->iface, &call_req);
 
 	set_resp_args(resp_args,
-		      call_req.opcode,
+		      ifaceid_opcode,
 		      call_req.resp_buf.data_len,
 		      rpc_status,
 		      call_req.opstatus);
@@ -126,7 +130,8 @@ static void handle_service_msg(struct ffa_call_ep *call_ep, uint16_t source_id,
 static void handle_mgmt_msg(struct ffa_call_ep *call_ep, uint16_t source_id,
 			    const uint32_t *req_args, uint32_t *resp_args)
 {
-	uint32_t opcode = req_args[FFA_CALL_ARGS_OPCODE];
+	uint32_t ifaceid_opcode = req_args[FFA_CALL_ARGS_IFACE_ID_OPCODE];
+	uint32_t opcode = FFA_CALL_ARGS_EXTRACT_OPCODE(ifaceid_opcode);
 
 	/*
 	 * TODO: shouldn't this be used to keep track of multiple
@@ -142,14 +147,14 @@ static void handle_mgmt_msg(struct ffa_call_ep *call_ep, uint16_t source_id,
 		deinit_shmem_buf(call_ep, req_args, resp_args);
 		break;
 	default:
-		set_mgmt_resp_args(resp_args, opcode, TS_RPC_ERROR_INVALID_OPCODE);
+		set_mgmt_resp_args(resp_args, ifaceid_opcode, TS_RPC_ERROR_INVALID_OPCODE);
 		break;
 	}
 }
 
-void ffa_call_ep_init(struct ffa_call_ep *ffa_call_ep, struct call_ep *call_ep)
+void ffa_call_ep_init(struct ffa_call_ep *ffa_call_ep, struct rpc_interface *iface)
 {
-	ffa_call_ep->call_ep = call_ep;
+	ffa_call_ep->iface = iface;
 	ffa_call_ep->shmem_buf_handle = 0;
 	ffa_call_ep->shmem_buf_size = 0;
 	ffa_call_ep->shmem_buf = NULL;
@@ -163,9 +168,9 @@ void ffa_call_ep_receive(struct ffa_call_ep *call_ep,
 	uint32_t *resp_args = resp_msg->args;
 
 	uint16_t source_id = req_msg->source_id;
-	uint32_t opcode = req_args[FFA_CALL_ARGS_OPCODE];
+	uint32_t ifaceid_opcode = req_args[FFA_CALL_ARGS_IFACE_ID_OPCODE];
 
-	if (FFA_CALL_OPCODE_IS_MGMT(opcode)) {
+	if (FFA_CALL_ARGS_EXTRACT_IFACE(ifaceid_opcode) == FFA_CALL_MGMT_IFACE_ID) {
 		/* It's an RPC layer management request */
 		handle_mgmt_msg(call_ep, source_id, req_args, resp_args);
 	} else {
@@ -177,6 +182,6 @@ void ffa_call_ep_receive(struct ffa_call_ep *call_ep,
 		if (call_ep->shmem_buf)
 			handle_service_msg(call_ep, source_id, req_args, resp_args);
 		else
-			set_mgmt_resp_args(resp_args, opcode, TS_RPC_ERROR_NOT_READY);
+			set_mgmt_resp_args(resp_args, ifaceid_opcode, TS_RPC_ERROR_NOT_READY);
 	}
 }

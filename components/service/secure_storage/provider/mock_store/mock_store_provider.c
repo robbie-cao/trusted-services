@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -21,13 +21,13 @@ static rpc_status_t remove_handler(void *context, struct call_req* req);
 
 /* Handler mapping table for service */
 static const struct service_handler handler_table[] = {
-	{TS_SECURE_STORAGE_OPCODE_SET,      set_handler},
-	{TS_SECURE_STORAGE_OPCODE_GET,	    get_handler},
-	{TS_SECURE_STORAGE_OPCODE_GET_INFO,	get_info_handler},
-	{TS_SECURE_STORAGE_OPCODE_REMOVE,	remove_handler}
+    {TS_SECURE_STORAGE_OPCODE_SET,      set_handler},
+    {TS_SECURE_STORAGE_OPCODE_GET,      get_handler},
+    {TS_SECURE_STORAGE_OPCODE_GET_INFO, get_info_handler},
+    {TS_SECURE_STORAGE_OPCODE_REMOVE,   remove_handler}
 };
 
-struct call_ep *mock_store_provider_init(struct mock_store_provider *context)
+struct rpc_interface *mock_store_provider_init(struct mock_store_provider *context)
 {
     for (int i = 0; i < MOCK_STORE_NUM_SLOTS; ++i) {
 
@@ -40,7 +40,7 @@ struct call_ep *mock_store_provider_init(struct mock_store_provider *context)
     service_provider_init(&context->base_provider, context,
                     handler_table, sizeof(handler_table)/sizeof(struct service_handler));
 
-    return service_provider_get_call_ep(&context->base_provider);
+    return service_provider_get_rpc_interface(&context->base_provider);
 }
 
 void mock_store_provider_deinit(struct mock_store_provider *context)
@@ -120,21 +120,21 @@ static rpc_status_t set_handler(void *context, struct call_req *req)
     psa_status_t psa_status = PSA_ERROR_INSUFFICIENT_MEMORY;
     struct mock_store_provider *this_context = (struct mock_store_provider*)context;
     struct mock_store_slot *slot;
-  	struct secure_storage_request_set *request_desc;
+      struct secure_storage_request_set *request_desc;
 
-	/* Checking if the descriptor fits into the request buffer */
-	if (req->req_buf.data_len < sizeof(struct secure_storage_request_set))
-		return TS_RPC_ERROR_INVALID_REQ_BODY;
+    /* Checking if the descriptor fits into the request buffer */
+    if (req->req_buf.data_len < sizeof(struct secure_storage_request_set))
+        return TS_RPC_ERROR_INVALID_REQ_BODY;
 
-	request_desc = (struct secure_storage_request_set *)(req->req_buf.data);
+    request_desc = (struct secure_storage_request_set *)(req->req_buf.data);
 
-	/* Checking for overflow */
-	if (sizeof(struct secure_storage_request_set) + request_desc->data_length < request_desc->data_length)
-		return TS_RPC_ERROR_INVALID_REQ_BODY;
+    /* Checking for overflow */
+    if (sizeof(struct secure_storage_request_set) + request_desc->data_length < request_desc->data_length)
+        return TS_RPC_ERROR_INVALID_REQ_BODY;
 
-	/* Checking if descriptor and data fits into the request buffer */
-	if (req->req_buf.data_len < sizeof(struct secure_storage_request_set) + request_desc->data_length)
-		return TS_RPC_ERROR_INVALID_REQ_BODY;
+    /* Checking if descriptor and data fits into the request buffer */
+    if (req->req_buf.data_len < sizeof(struct secure_storage_request_set) + request_desc->data_length)
+        return TS_RPC_ERROR_INVALID_REQ_BODY;
 
     /* Replace existing or add new item */
     slot = find_slot(this_context, request_desc->uid);
@@ -152,27 +152,27 @@ static rpc_status_t set_handler(void *context, struct call_req *req)
         }
     }
 
-	call_req_set_opstatus(req, psa_status);
+    call_req_set_opstatus(req, psa_status);
 
-	return TS_RPC_CALL_ACCEPTED;
+    return TS_RPC_CALL_ACCEPTED;
 }
 
 static rpc_status_t get_handler(void *context, struct call_req *req)
 {
-	struct mock_store_provider *this_context = (struct mock_store_provider*)context;
+    struct mock_store_provider *this_context = (struct mock_store_provider*)context;
     struct secure_storage_request_get *request_desc;
-	psa_status_t psa_status = PSA_ERROR_DOES_NOT_EXIST;
+    psa_status_t psa_status = PSA_ERROR_DOES_NOT_EXIST;
     struct mock_store_slot *slot;
 
-	/* Checking if the descriptor fits into the request buffer */
-	if (req->req_buf.data_len < sizeof(struct secure_storage_request_get))
-		return TS_RPC_ERROR_INVALID_REQ_BODY;
+    /* Checking if the descriptor fits into the request buffer */
+    if (req->req_buf.data_len < sizeof(struct secure_storage_request_get))
+        return TS_RPC_ERROR_INVALID_REQ_BODY;
 
-	request_desc = (struct secure_storage_request_get *)(req->req_buf.data);
+    request_desc = (struct secure_storage_request_get *)(req->req_buf.data);
 
-	/* Check if the requested data would fit into the response buffer. */
-	if (req->resp_buf.size < request_desc->data_size)
-		return TS_RPC_ERROR_INVALID_RESP_BODY;
+    /* Check if the requested data would fit into the response buffer. */
+    if (req->resp_buf.size < request_desc->data_size)
+        return TS_RPC_ERROR_INVALID_RESP_BODY;
 
     /* Find the item */
     slot = find_slot(this_context, request_desc->uid);
@@ -183,28 +183,28 @@ static rpc_status_t get_handler(void *context, struct call_req *req)
         psa_status = PSA_SUCCESS;
     }
 
-	call_req_set_opstatus(req, psa_status);
+    call_req_set_opstatus(req, psa_status);
 
-	return TS_RPC_CALL_ACCEPTED;
+    return TS_RPC_CALL_ACCEPTED;
 }
 
 static rpc_status_t get_info_handler(void *context, struct call_req *req)
 {
- 	struct mock_store_provider *this_context = (struct mock_store_provider*)context;
+     struct mock_store_provider *this_context = (struct mock_store_provider*)context;
     struct secure_storage_request_get_info *request_desc;
-	struct secure_storage_response_get_info *response_desc;
-	psa_status_t psa_status;
+    struct secure_storage_response_get_info *response_desc;
+    psa_status_t psa_status;
     struct mock_store_slot *slot;
 
-	/* Checking if the descriptor fits into the request buffer */
-	if (req->req_buf.data_len < sizeof(struct secure_storage_request_get_info))
-		return TS_RPC_ERROR_INVALID_REQ_BODY;
+    /* Checking if the descriptor fits into the request buffer */
+    if (req->req_buf.data_len < sizeof(struct secure_storage_request_get_info))
+        return TS_RPC_ERROR_INVALID_REQ_BODY;
 
-	request_desc = (struct secure_storage_request_get_info *)(req->req_buf.data);
+    request_desc = (struct secure_storage_request_get_info *)(req->req_buf.data);
 
-	/* Checking if the response structure would fit the response buffer */
-	if (req->resp_buf.size < sizeof(struct secure_storage_response_get_info))
-		return TS_RPC_ERROR_INVALID_RESP_BODY;
+    /* Checking if the response structure would fit the response buffer */
+    if (req->resp_buf.size < sizeof(struct secure_storage_response_get_info))
+        return TS_RPC_ERROR_INVALID_RESP_BODY;
 
     response_desc = (struct secure_storage_response_get_info *)(req->resp_buf.data);
     req->resp_buf.data_len = sizeof(struct secure_storage_response_get_info);
@@ -227,21 +227,21 @@ static rpc_status_t get_info_handler(void *context, struct call_req *req)
 
     call_req_set_opstatus(req, psa_status);
 
-	return TS_RPC_CALL_ACCEPTED;
+    return TS_RPC_CALL_ACCEPTED;
 }
 
 static rpc_status_t remove_handler(void *context, struct call_req *req)
 {
-	struct mock_store_provider *this_context = (struct mock_store_provider*)context;
+    struct mock_store_provider *this_context = (struct mock_store_provider*)context;
     struct secure_storage_request_remove *request_desc;
-	psa_status_t psa_status = PSA_ERROR_DOES_NOT_EXIST;
+    psa_status_t psa_status = PSA_ERROR_DOES_NOT_EXIST;
     struct mock_store_slot *slot;
 
-	/* Checking if the descriptor fits into the request buffer */
-	if (req->req_buf.data_len < sizeof(struct secure_storage_request_remove))
-		return TS_RPC_ERROR_INVALID_REQ_BODY;
+    /* Checking if the descriptor fits into the request buffer */
+    if (req->req_buf.data_len < sizeof(struct secure_storage_request_remove))
+        return TS_RPC_ERROR_INVALID_REQ_BODY;
 
-	request_desc = (struct secure_storage_request_remove *)(req->req_buf.data);
+    request_desc = (struct secure_storage_request_remove *)(req->req_buf.data);
 
     /* Find and remove the item */
     slot = find_slot(this_context, request_desc->uid);
@@ -253,5 +253,5 @@ static rpc_status_t remove_handler(void *context, struct call_req *req)
 
     call_req_set_opstatus(req, psa_status);
 
-	return TS_RPC_CALL_ACCEPTED;
+    return TS_RPC_CALL_ACCEPTED;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -17,7 +17,7 @@ struct sfs_provider {
 	struct service_provider base_provider;
 };
 
-struct call_ep *sfs_provider_init(struct sfs_provider *context);
+struct rpc_interface *sfs_provider_init(struct sfs_provider *context);
 rpc_status_t sfs_set_handler(void *context, struct call_req *req);
 rpc_status_t sfs_get_handler(void *context, struct call_req *req);
 rpc_status_t sfs_get_info_handler(void *context, struct call_req *req);

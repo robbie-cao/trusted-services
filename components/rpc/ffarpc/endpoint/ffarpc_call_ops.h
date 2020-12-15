@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -12,13 +12,15 @@ extern "C" {
 #endif
 
 /* Common opcodes used by the FFA based RPC layer for management operations */
-#define FFA_CALL_OPCODE_BASE		(0x10)
-#define FFA_CALL_OPCODE_SHARE_BUF	(FFA_CALL_OPCODE_BASE + 0)
-#define FFA_CALL_OPCODE_UNSHARE_BUF	(FFA_CALL_OPCODE_BASE + 1)
-#define FFA_CALL_OPCODE_LIMIT		(FFA_CALL_OPCODE_BASE + 2)
+enum
+{
+	FFA_CALL_OPCODE_SHARE_BUF		= 0,
+	FFA_CALL_OPCODE_UNSHARE_BUF		= 1,
+	FFA_CALL_OPCODE_LIMIT
+};
 
-#define FFA_CALL_OPCODE_IS_MGMT(opcode) \
-	((opcode >= FFA_CALL_OPCODE_BASE) && (opcode < FFA_CALL_OPCODE_LIMIT))
+/* Interface ID for FFA management interface */
+#define FFA_CALL_MGMT_IFACE_ID		(0x1000)
 
 #ifdef __cplusplus
 }

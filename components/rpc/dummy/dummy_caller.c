@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -18,7 +18,7 @@ struct rpc_caller *dummy_caller_init(struct dummy_caller *s,
 {
     struct rpc_caller *base = &s->rpc_caller;
 
-    base->context = s;
+    rpc_caller_init(base, s);
     base->call_begin = call_begin;
     base->call_invoke = call_invoke;
     base->call_end = call_end;

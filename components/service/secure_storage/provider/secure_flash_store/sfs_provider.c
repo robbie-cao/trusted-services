@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -9,7 +9,7 @@
 #include <protocols/service/secure_storage/packed-c/secure_storage_proto.h>
 #include <protocols/service/psa/packed-c/status.h>
 #include <protocols/rpc/common/packed-c/status.h>
-#include <components/rpc/common/endpoint/call_ep.h>
+#include <components/rpc/common/endpoint/rpc_interface.h>
 
 #include <stdio.h>
 
@@ -21,9 +21,9 @@ static const struct service_handler handler_table[] = {
 	{TS_SECURE_STORAGE_OPCODE_REMOVE,	sfs_remove_handler}
 };
 
-struct call_ep *sfs_provider_init(struct sfs_provider *context)
+struct rpc_interface *sfs_provider_init(struct sfs_provider *context)
 {
-	struct call_ep *call_ep = NULL;
+	struct rpc_interface *rpc_interface = NULL;
 
 	if (context == NULL)
 		goto out;
@@ -34,10 +34,10 @@ struct call_ep *sfs_provider_init(struct sfs_provider *context)
 	service_provider_init(&context->base_provider, context, handler_table,
 			      sizeof(handler_table) / sizeof(handler_table[0]));
 
-	call_ep = service_provider_get_call_ep(&context->base_provider);
+	rpc_interface = service_provider_get_rpc_interface(&context->base_provider);
 
 out:
-	return call_ep;
+	return rpc_interface;
 }
 
 rpc_status_t sfs_set_handler(void *context, struct call_req *req)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -93,9 +93,10 @@ struct service_location_strategy
 
 /*
  * Open an RPC session in order to use the service associated with this
- * service_context.
+ * service_context.  The parameter encoding scheme that the client
+ * intends to use for serializing RPC parameters must be specified.
  */
-SERVICE_LOCATOR_EXPORTED rpc_session_handle service_context_open(struct service_context *s, struct rpc_caller **caller);
+SERVICE_LOCATOR_EXPORTED rpc_session_handle service_context_open(struct service_context *s, uint32_t encoding, struct rpc_caller **caller);
 
 /*
  * Close an RPC session.

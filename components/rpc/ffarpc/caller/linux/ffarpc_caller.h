@@ -24,7 +24,8 @@ struct ffarpc_caller {
 	struct rpc_caller rpc_caller;
 	int fd;
 	const char *device_path;
-	uint16_t call_ep_id;
+	uint16_t dest_partition_id;
+	uint16_t dest_iface_id;
 	uint64_t shared_mem_handle;
 	size_t shared_mem_required_size;
 	uint8_t *req_buf;
@@ -38,7 +39,7 @@ struct rpc_caller *ffarpc_caller_init(struct ffarpc_caller *s, const char *devic
 void ffarpc_caller_deinit(struct ffarpc_caller *s);
 size_t ffarpc_caller_discover(const struct ffarpc_caller *s, const struct uuid_canonical *uuid,
 						uint16_t *partition_ids, size_t discover_limit);
-int ffarpc_caller_open(struct ffarpc_caller *s, uint16_t call_ep_id);
+int ffarpc_caller_open(struct ffarpc_caller *s, uint16_t dest_partition_id, uint16_t dest_iface_id);
 int ffarpc_caller_close(struct ffarpc_caller *s);
 
 #ifdef __cplusplus

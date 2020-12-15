@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #include "direct_caller.h"
-#include <rpc/common/endpoint/call_ep.h>
+#include <rpc/common/endpoint/rpc_interface.h>
 #include <protocols/rpc/common/packed-c/status.h>
 #include <stdlib.h>
 
@@ -18,17 +18,17 @@ static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t 
 static void call_end(void *context, rpc_call_handle handle);
 
 
-struct rpc_caller *direct_caller_init(struct direct_caller *s, struct call_ep *ep,
+struct rpc_caller *direct_caller_init(struct direct_caller *s, struct rpc_interface *iface,
                         size_t req_buf_size, size_t resp_buf_size)
 {
     struct rpc_caller *base = &s->rpc_caller;
 
-    base->context = s;
+    rpc_caller_init(base, s);
     base->call_begin = call_begin;
     base->call_invoke = call_invoke;
     base->call_end = call_end;
 
-    s->call_ep = ep;
+    s->rpc_interface = iface;
     s->caller_id = 0;
     s->is_call_transaction_in_progess = false;
     s->req_len = 0;
@@ -47,10 +47,10 @@ struct rpc_caller *direct_caller_init(struct direct_caller *s, struct call_ep *e
     return base;
 }
 
-struct rpc_caller *direct_caller_init_default(struct direct_caller *s, struct call_ep *ep)
+struct rpc_caller *direct_caller_init_default(struct direct_caller *s, struct rpc_interface *iface)
 {
     /* Initialise with default buffer sizes */
-    return direct_caller_init(s, ep,
+    return direct_caller_init(s, iface,
         DIRECT_CALLER_DEFAULT_REQ_BUF_SIZE,
         DIRECT_CALLER_DEFAULT_RESP_BUF_SIZE);
 }
@@ -94,7 +94,9 @@ static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t 
 
         struct call_req req;
 
+        req.interface_id = 0;
         req.opcode = opcode;
+        req.encoding = this_context->rpc_caller.encoding;
         req.caller_id = this_context->caller_id;
         req.opstatus = 0;
         req.req_buf = call_param_buf_init_full(this_context->req_buf,
@@ -102,7 +104,7 @@ static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t 
         req.resp_buf = call_param_buf_init_empty(this_context->resp_buf,
                             this_context->resp_buf_size);
 
-        status = call_ep_receive(this_context->call_ep, &req);
+        status = rpc_interface_receive(this_context->rpc_interface, &req);
 
         *resp_buf = this_context->resp_buf;
         *resp_len = call_req_get_resp_buf(&req)->data_len;

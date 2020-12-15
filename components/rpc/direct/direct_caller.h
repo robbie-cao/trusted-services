@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-struct call_ep;
+struct rpc_interface;
 
 /** An rpc_caller that calls methods associated with a specific endpoint
  *  directly.  Used when the caller and endpoint are running in the same
@@ -25,7 +25,7 @@ struct call_ep;
 struct direct_caller
 {
     struct rpc_caller rpc_caller;
-    struct call_ep *call_ep;
+    struct rpc_interface *rpc_interface;
     uint32_t caller_id;
     bool is_call_transaction_in_progess;
     size_t req_len;
@@ -35,10 +35,10 @@ struct direct_caller
     uint8_t *resp_buf;
 };
 
-struct rpc_caller *direct_caller_init(struct direct_caller *s, struct call_ep *ep,
+struct rpc_caller *direct_caller_init(struct direct_caller *s, struct rpc_interface *iface,
                         size_t req_buf_size, size_t resp_buf_size);
 
-struct rpc_caller *direct_caller_init_default(struct direct_caller *s, struct call_ep *ep);
+struct rpc_caller *direct_caller_init_default(struct direct_caller *s, struct rpc_interface *iface);
 
 void direct_caller_deinit(struct direct_caller *s);
 

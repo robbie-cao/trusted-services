@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #include "sp.h"
 #include <ffa_api.h>
-#include <components/rpc/common/endpoint/call_ep.h>
+#include <components/rpc/common/endpoint/rpc_interface.h>
 #include <components/rpc/ffarpc/endpoint/ffarpc_call_ep.h>
 #include <components/service/secure_storage/provider/secure_flash_store/sfs_provider.h>
 #include <components/service/common/provider/service_provider.h>
@@ -22,7 +22,7 @@ void sp_main(struct ffa_init_info *init_info)
 {
 	ffa_result ffa_res;
 	sp_result sp_res;
-	struct call_ep *sfs_ep;
+	struct rpc_interface *sfs_iface;
 	struct ffa_call_ep ffa_call_ep;
 	struct ffa_direct_msg req_msg;
 	struct ffa_direct_msg resp_msg;
@@ -41,8 +41,8 @@ void sp_main(struct ffa_init_info *init_info)
 		EMSG("rxtx map error: %d", sp_res);
 	}
 
-	sfs_ep = sfs_provider_init(&sfs_provider);
-	ffa_call_ep_init(&ffa_call_ep, sfs_ep);
+	sfs_iface = sfs_provider_init(&sfs_provider);
+	ffa_call_ep_init(&ffa_call_ep, sfs_iface);
 
 	/* End of boot phase */
 	ffa_msg_wait(&req_msg);

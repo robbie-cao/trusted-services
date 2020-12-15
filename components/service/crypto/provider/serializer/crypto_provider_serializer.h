@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -10,7 +10,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <psa/crypto.h>
-#include <rpc/common/endpoint/call_ep.h>
+#include <rpc/common/endpoint/rpc_interface.h>
 
 /* Provides a common interface for parameter serialization operations
  * for the crypto service provider.  Allows alternative serialization

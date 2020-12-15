@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -17,7 +17,7 @@ TEST_GROUP(InternalTrustedStorageTests)
 {
     void setup()
     {
-        struct call_ep *storage_ep = sfs_provider_init(&m_storage_provider);
+        struct rpc_interface *storage_ep = sfs_provider_init(&m_storage_provider);
         struct rpc_caller *storage_caller = direct_caller_init_default(&m_storage_caller, storage_ep);
         psa_its_client_init(storage_caller);
     }

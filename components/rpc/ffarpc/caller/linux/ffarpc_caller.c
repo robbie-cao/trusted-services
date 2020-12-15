@@ -21,7 +21,7 @@
 
 static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_len);
 static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t opcode,
-			    int *opstatus, uint8_t **resp_buf, size_t *resp_len);
+			int *opstatus, uint8_t **resp_buf, size_t *resp_len);
 static void call_end(void *context, rpc_call_handle handle);
 
 static int kernel_write_req_buf(struct ffarpc_caller *s);
@@ -35,14 +35,15 @@ struct rpc_caller *ffarpc_caller_init(struct ffarpc_caller *s, const char *devic
 {
 	struct rpc_caller *base = &s->rpc_caller;
 
-	base->context = s;
+	rpc_caller_init(base, s);
 	base->call_begin = call_begin;
 	base->call_invoke = call_invoke;
 	base->call_end = call_end;
 
 	s->device_path = device_path;
 	s->fd = -1;
-	s->call_ep_id = 0;
+	s->dest_partition_id = 0;
+	s->dest_iface_id = 0;
 	s->shared_mem_handle = 0;
 	s->shared_mem_required_size = DEFAULT_SHMEM_BUF_SIZE;
 	s->req_buf = NULL;
@@ -93,12 +94,12 @@ size_t ffarpc_caller_discover(const struct ffarpc_caller *s, const struct uuid_c
 		}
 	}
 
-    return discover_count;
+	return discover_count;
 }
 
-int ffarpc_caller_open(struct ffarpc_caller *s, uint16_t call_ep_id)
+int ffarpc_caller_open(struct ffarpc_caller *s, uint16_t dest_partition_id, uint16_t dest_iface_id)
 {
-    int ioctl_status = -1;
+	int ioctl_status = -1;
 
 	if (s->device_path) {
 
@@ -110,7 +111,8 @@ int ffarpc_caller_open(struct ffarpc_caller *s, uint16_t call_ep_id)
 
 			if (ioctl_status == 0) {
 				/* Session successfully opened */
-				s->call_ep_id = call_ep_id;
+				s->dest_partition_id = dest_partition_id;
+				s->dest_iface_id = dest_iface_id;
 				ioctl_status = share_mem_with_partition(s);
 			}
 
@@ -122,23 +124,23 @@ int ffarpc_caller_open(struct ffarpc_caller *s, uint16_t call_ep_id)
 		}
 	}
 
-    return ioctl_status;
+	return ioctl_status;
 }
 
 int ffarpc_caller_close(struct ffarpc_caller *s)
 {
-    int ioctl_status = -1;
+	int ioctl_status = -1;
 
-    if (s->fd >= 0) {
+	if (s->fd >= 0) {
 
-        unshare_mem_with_partition(s);
-        ioctl_status = ioctl(s->fd, FFA_IOC_SHM_DEINIT);
-        close(s->fd);
-        s->fd = -1;
-        s->call_ep_id = 0;
-    }
+		unshare_mem_with_partition(s);
+		ioctl_status = ioctl(s->fd, FFA_IOC_SHM_DEINIT);
+		close(s->fd);
+		s->fd = -1;
+		s->dest_partition_id = 0;
+	}
 
-    return ioctl_status;
+	return ioctl_status;
 }
 
 static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_len)
@@ -146,96 +148,104 @@ static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_l
 	rpc_call_handle handle = NULL;
 	struct ffarpc_caller *s = (struct ffarpc_caller*)context;
 
-    if (!s->is_call_transaction_in_progess) {
+	if (!s->is_call_transaction_in_progess) {
 
-        s->is_call_transaction_in_progess = true;
-        handle = s;
+		s->is_call_transaction_in_progess = true;
+		handle = s;
 
-        if (req_len > 0) {
+		if (req_len > 0) {
 
-            s->req_buf = malloc(req_len);
+			s->req_buf = malloc(req_len);
 
-            if (s->req_buf) {
+			if (s->req_buf) {
 
-                *req_buf = s->req_buf;
-                s->req_len = req_len;
-            }
-            else {
-                /* Failed to allocate req buffer */
-                handle = NULL;
-                s->is_call_transaction_in_progess = false;
-            }
-        }
-        else {
+				*req_buf = s->req_buf;
+				s->req_len = req_len;
+			}
+			else {
+				/* Failed to allocate req buffer */
+				handle = NULL;
+				s->is_call_transaction_in_progess = false;
+			}
+		}
+		else {
 
-            *req_buf = NULL;
-            s->req_buf = NULL;
-            s->req_len = req_len;
-        }
-    }
+			*req_buf = NULL;
+			s->req_buf = NULL;
+			s->req_len = req_len;
+		}
+	}
 
-    return handle;
+	return handle;
 }
 
 static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t opcode,
-			    int *opstatus, uint8_t **resp_buf, size_t *resp_len)
+				int *opstatus, uint8_t **resp_buf, size_t *resp_len)
 {
-    rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
+	rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
 	struct ffarpc_caller *s = (struct ffarpc_caller*)context;
 
-    if ((handle == s) && s->is_call_transaction_in_progess) {
-        int kernel_op_status = 0;
+	if ((handle == s) && s->is_call_transaction_in_progess) {
+		int kernel_op_status = 0;
 
-        if (s->req_len > 0) {
-            kernel_op_status = kernel_write_req_buf(s);
-        }
+		if (s->req_len > 0) {
+			kernel_op_status = kernel_write_req_buf(s);
+		}
 
-        if (kernel_op_status == 0) {
-            /* Make direct call to send the request */
-            struct ffa_ioctl_msg_args direct_msg;
-            memset(&direct_msg, 0, sizeof(direct_msg));
+		if (kernel_op_status == 0) {
+			/* Make direct call to send the request */
+			struct ffa_ioctl_msg_args direct_msg;
+			memset(&direct_msg, 0, sizeof(direct_msg));
 
-		    direct_msg.dst_id = s->call_ep_id;
-		    direct_msg.args[FFA_CALL_ARGS_OPCODE] = (uint64_t)opcode;
-		    direct_msg.args[FFA_CALL_ARGS_REQ_DATA_LEN] = (uint64_t)s->req_len;
+			direct_msg.dst_id = s->dest_partition_id;
+			direct_msg.args[FFA_CALL_ARGS_IFACE_ID_OPCODE] =
+				FFA_CALL_ARGS_COMBINE_IFACE_ID_OPCODE(s->dest_partition_id, opcode);
+			direct_msg.args[FFA_CALL_ARGS_REQ_DATA_LEN] = (uint64_t)s->req_len;
+			direct_msg.args[FFA_CALL_ARGS_ENCODING] = s->rpc_caller.encoding;
 
-            kernel_op_status = ioctl(s->fd, FFA_IOC_MSG_SEND, &direct_msg);
+			/* Initialise the caller ID.  Depending on the call path, this may
+			* be overridden by a higher privilege execution level, based on its
+			* perspective of the caller identity.
+			*/
+			direct_msg.args[FFA_CALL_ARGS_CALLER_ID] = 0;
 
-            if (kernel_op_status == 0) {
-                /* Send completed normally - ffa return args in msg_args struct */
-                s->resp_len = (size_t)direct_msg.args[FFA_CALL_ARGS_RESP_DATA_LEN];
-                rpc_status = (int)direct_msg.args[FFA_CALL_ARGS_RESP_RPC_STATUS];
-                *opstatus = (int)direct_msg.args[FFA_CALL_ARGS_RESP_OP_STATUS];
+			kernel_op_status = ioctl(s->fd, FFA_IOC_MSG_SEND, &direct_msg);
 
-                if (s->resp_len > 0) {
-                    s->resp_buf = malloc(s->resp_len);
+			if (kernel_op_status == 0) {
+				/* Send completed normally - ffa return args in msg_args struct */
+				s->resp_len = (size_t)direct_msg.args[FFA_CALL_ARGS_RESP_DATA_LEN];
+				rpc_status = (int)direct_msg.args[FFA_CALL_ARGS_RESP_RPC_STATUS];
+				*opstatus = (int)direct_msg.args[FFA_CALL_ARGS_RESP_OP_STATUS];
 
-                    if (s->resp_buf) {
-                        kernel_op_status = kernel_read_resp_buf(s);
+				if (s->resp_len > 0) {
+					s->resp_buf = malloc(s->resp_len);
 
-                        if (kernel_op_status != 0) {
-                            /* Failed to read response buffer */
-                            rpc_status = TS_RPC_ERROR_INTERNAL;
-                        }
-                    }
-                    else {
-                        /* Failed to allocate response buffer */
-                        s->resp_len = 0;
-                        rpc_status = TS_RPC_ERROR_INTERNAL;
-                    }
-                }
-                else {
+					if (s->resp_buf) {
+						kernel_op_status = kernel_read_resp_buf(s);
+
+						if (kernel_op_status != 0) {
+							/* Failed to read response buffer */
+							rpc_status = TS_RPC_ERROR_INTERNAL;
+						}
+					}
+					else {
+						/* Failed to allocate response buffer */
+						s->resp_len = 0;
+						rpc_status = TS_RPC_ERROR_INTERNAL;
+					}
+				}
+				else {
 					/* No response parameters */
-                    s->resp_buf = NULL;
-                }
+					s->resp_buf = NULL;
+				}
 
-                *resp_len = s->resp_len;
-                *resp_buf = s->resp_buf;
-	        }
-        }
+				*resp_len = s->resp_len;
+				*resp_buf = s->resp_buf;
+			}
+		}
 	}
 
-    return rpc_status;
+	return rpc_status;
 }
 
 static void call_end(void *context, rpc_call_handle handle)
@@ -244,73 +254,75 @@ static void call_end(void *context, rpc_call_handle handle)
 
 	if ((handle == s) && s->is_call_transaction_in_progess) {
 
-        /* Call transaction complete so free resource */
-        free(s->req_buf);
-        s->req_buf = NULL;
-        s->req_len = 0;
+		/* Call transaction complete so free resource */
+		free(s->req_buf);
+		s->req_buf = NULL;
+		s->req_len = 0;
 
-        free(s->resp_buf);
-        s->resp_buf = NULL;
-        s->resp_len = 0;
+		free(s->resp_buf);
+		s->resp_buf = NULL;
+		s->resp_len = 0;
 
-        s->is_call_transaction_in_progess = false;
-    }
+		s->is_call_transaction_in_progess = false;
+	}
 }
 
 static int kernel_write_req_buf(struct ffarpc_caller *s) {
 
-    int ioctl_status;
-    struct ffa_ioctl_buf_desc req_descr;
+	int ioctl_status;
+	struct ffa_ioctl_buf_desc req_descr;
 
-    req_descr.buf_ptr = (uintptr_t)s->req_buf;
-    req_descr.buf_len = s->req_len;
-    ioctl_status = ioctl(s->fd, FFA_IOC_SHM_WRITE, &req_descr);
+	req_descr.buf_ptr = (uintptr_t)s->req_buf;
+	req_descr.buf_len = s->req_len;
+	ioctl_status = ioctl(s->fd, FFA_IOC_SHM_WRITE, &req_descr);
 
-    return ioctl_status;
+	return ioctl_status;
 }
 
 
 static int kernel_read_resp_buf(struct ffarpc_caller *s) {
 
-    int ioctl_status;
-    struct ffa_ioctl_buf_desc resp_descr;
+	int ioctl_status;
+	struct ffa_ioctl_buf_desc resp_descr;
 
-    resp_descr.buf_ptr = (uintptr_t)s->resp_buf;
-    resp_descr.buf_len = s->resp_len;
-    ioctl_status = ioctl(s->fd, FFA_IOC_SHM_READ, &resp_descr);
+	resp_descr.buf_ptr = (uintptr_t)s->resp_buf;
+	resp_descr.buf_len = s->resp_len;
+	ioctl_status = ioctl(s->fd, FFA_IOC_SHM_READ, &resp_descr);
 
-    return ioctl_status;
+	return ioctl_status;
 }
 
 static int share_mem_with_partition(struct ffarpc_caller *s) {
 
-    int ioctl_status;
-    struct ffa_ioctl_msg_args direct_msg;
-    memset(&direct_msg, 0, sizeof(direct_msg));
+	int ioctl_status;
+	struct ffa_ioctl_msg_args direct_msg;
+	memset(&direct_msg, 0, sizeof(direct_msg));
 
-    direct_msg.dst_id = s->call_ep_id;
-    direct_msg.args[FFA_CALL_ARGS_OPCODE] = (uint64_t)FFA_CALL_OPCODE_SHARE_BUF;
-    direct_msg.args[FFA_CALL_ARGS_SHARE_MEM_HANDLE_LSW] = (uint32_t)s->shared_mem_handle;
-    direct_msg.args[FFA_CALL_ARGS_SHARE_MEM_HANDLE_MSW] = (uint32_t)(s->shared_mem_handle >> 32);
-    direct_msg.args[FFA_CALL_ARGS_SHARE_MEM_SIZE] = (uint64_t)s->shared_mem_required_size;
+	direct_msg.dst_id = s->dest_partition_id;
+	direct_msg.args[FFA_CALL_ARGS_IFACE_ID_OPCODE] =
+		FFA_CALL_ARGS_COMBINE_IFACE_ID_OPCODE(FFA_CALL_MGMT_IFACE_ID, FFA_CALL_OPCODE_SHARE_BUF);
+	direct_msg.args[FFA_CALL_ARGS_SHARE_MEM_HANDLE_LSW] = (uint32_t)s->shared_mem_handle;
+	direct_msg.args[FFA_CALL_ARGS_SHARE_MEM_HANDLE_MSW] = (uint32_t)(s->shared_mem_handle >> 32);
+	direct_msg.args[FFA_CALL_ARGS_SHARE_MEM_SIZE] = (uint64_t)s->shared_mem_required_size;
 
-    ioctl_status = ioctl(s->fd, FFA_IOC_MSG_SEND, &direct_msg);
+	ioctl_status = ioctl(s->fd, FFA_IOC_MSG_SEND, &direct_msg);
 
-    return ioctl_status;
+	return ioctl_status;
 }
 
 static int unshare_mem_with_partition(struct ffarpc_caller *s) {
 
-    int ioctl_status;
-    struct ffa_ioctl_msg_args direct_msg;
-    memset(&direct_msg, 0, sizeof(direct_msg));
+	int ioctl_status;
+	struct ffa_ioctl_msg_args direct_msg;
+	memset(&direct_msg, 0, sizeof(direct_msg));
 
-    direct_msg.dst_id = s->call_ep_id;
-    direct_msg.args[FFA_CALL_ARGS_OPCODE] = (uint64_t)FFA_CALL_OPCODE_UNSHARE_BUF;
-    direct_msg.args[FFA_CALL_ARGS_SHARE_MEM_HANDLE_LSW] = (uint32_t)s->shared_mem_handle;
-    direct_msg.args[FFA_CALL_ARGS_SHARE_MEM_HANDLE_MSW] = (uint32_t)(s->shared_mem_handle >> 32);
+	direct_msg.dst_id = s->dest_partition_id;
+	direct_msg.args[FFA_CALL_ARGS_IFACE_ID_OPCODE] =
+		FFA_CALL_ARGS_COMBINE_IFACE_ID_OPCODE(FFA_CALL_MGMT_IFACE_ID, FFA_CALL_OPCODE_UNSHARE_BUF);
+	direct_msg.args[FFA_CALL_ARGS_SHARE_MEM_HANDLE_LSW] = (uint32_t)s->shared_mem_handle;
+	direct_msg.args[FFA_CALL_ARGS_SHARE_MEM_HANDLE_MSW] = (uint32_t)(s->shared_mem_handle >> 32);
 
-    ioctl_status = ioctl(s->fd, FFA_IOC_MSG_SEND, &direct_msg);
+	ioctl_status = ioctl(s->fd, FFA_IOC_MSG_SEND, &direct_msg);
 
-    return ioctl_status;
+	return ioctl_status;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -43,6 +43,11 @@ crypto_client::crypto_client(struct rpc_caller *caller) :
 crypto_client::~crypto_client()
 {
 
+}
+
+void crypto_client::set_caller(struct rpc_caller *caller)
+{
+    m_caller = caller;
 }
 
 int crypto_client::err_rpc_status() const
