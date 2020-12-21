@@ -13,10 +13,11 @@
 extern "C" {
 #endif
 
-/* Singleton method to provide access to the Protobuf serializer
+/*
+ * Singleton method to provide access to the Protobuf serializer
  * for the crypto service provider.
  */
-extern const struct crypto_provider_serializer *pb_crypto_provider_serializer_instance(void);
+const struct crypto_provider_serializer *pb_crypto_provider_serializer_instance(void);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -30,6 +30,7 @@ add_components(
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/rpc/direct"
+		"components/common/tlv"
 		"components/service/common"
 		"components/service/common/serializer/protobuf"
 		"components/service/common/provider"
@@ -38,6 +39,7 @@ add_components(
 		"components/service/crypto/provider/mbedcrypto"
 		"components/service/crypto/provider/mbedcrypto/entropy_source/mock"
 		"components/service/crypto/provider/serializer/protobuf"
+		"components/service/crypto/provider/serializer/packed-c"
 		"components/service/secure_storage/client/psa"
 		"components/service/secure_storage/provider/secure_flash_store"
 		"components/service/secure_storage/provider/secure_flash_store/flash_fs"
@@ -82,10 +84,16 @@ add_components(
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/app/test-runner"
+		"components/common/tlv"
 		"components/service/crypto/test/service"
+		"components/service/crypto/test/service/protobuf"
+		"components/service/crypto/test/service/packed-c"
 		"components/service/crypto/client/cpp"
+		"components/service/crypto/client/cpp/protobuf"
+		"components/service/crypto/client/cpp/packed-c"
 		"components/service/common/serializer/protobuf"
 		"protocols/service/crypto/protobuf"
+		"protocols/service/crypto/packed-c"
 )
 
 #-------------------------------------------------------------------------------

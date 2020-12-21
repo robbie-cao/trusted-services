@@ -6,6 +6,7 @@
 
 #include "crypto_service_context.h"
 #include <service/crypto/provider/serializer/protobuf/pb_crypto_provider_serializer.h>
+#include <service/crypto/provider/serializer/packed-c/packedc_crypto_provider_serializer.h>
 
 crypto_service_context::crypto_service_context(const char *sn) :
     standalone_service_context(sn),
@@ -29,6 +30,9 @@ void crypto_service_context::do_init()
 
     mbed_crypto_provider_register_serializer(&m_crypto_provider,
                     TS_RPC_ENCODING_PROTOBUF, pb_crypto_provider_serializer_instance());
+
+    mbed_crypto_provider_register_serializer(&m_crypto_provider,
+                    TS_RPC_ENCODING_PACKED_C, packedc_crypto_provider_serializer_instance());
 
     standalone_service_context::set_rpc_interface(crypto_ep);
 }

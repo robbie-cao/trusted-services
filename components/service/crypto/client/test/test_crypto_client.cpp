@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -10,7 +10,7 @@
 test_crypto_client::factory *test_crypto_client::m_default_factory = NULL;
 
 test_crypto_client::test_crypto_client() :
-    crypto_client(),
+    protobuf_crypto_client(),
     m_is_initialized(false),
     m_injected_faults()
 {

@@ -3,7 +3,7 @@
  * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  */
 
-#include <service/crypto/client/cpp/crypto_client.h>
+#include <service/crypto/client/cpp/packed-c/packedc_crypto_client.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
 #include <app/ts-demo/ts-demo.h>
 #include <service_locator.h>
@@ -25,11 +25,11 @@ int main(int argc, char *argv[]) {
 		struct rpc_caller *caller;
 		rpc_session_handle rpc_session_handle;
 
-		rpc_session_handle = service_context_open(crypto_service_context, TS_RPC_ENCODING_PROTOBUF, &caller);
+		rpc_session_handle = service_context_open(crypto_service_context, TS_RPC_ENCODING_PACKED_C, &caller);
 
 		if (rpc_session_handle) {
 
-			crypto_client crypto_client(caller);
+			packedc_crypto_client crypto_client(caller);
 
 			status = run_ts_demo(&crypto_client, true);
 

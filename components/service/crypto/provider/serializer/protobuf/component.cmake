@@ -12,9 +12,3 @@ target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/pb_crypto_provider_serializer.c"
 	"${CMAKE_CURRENT_LIST_DIR}/pb_key_attributes_translator.c"
 	)
-
-
-target_include_directories(${TGT}
-	 PRIVATE
-		"${CMAKE_CURRENT_LIST_DIR}"
-	)

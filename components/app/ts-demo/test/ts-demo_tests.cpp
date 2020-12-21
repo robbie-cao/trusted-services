@@ -5,6 +5,7 @@
  */
 
 #include <app/ts-demo/ts-demo.h>
+#include <service/crypto/client/cpp/packed-c/packedc_crypto_client.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
 #include <CppUTest/TestHarness.h>
 #include <service_locator.h>
@@ -27,10 +28,10 @@ TEST_GROUP(TsDemoTests) {
         m_crypto_service_context = service_locator_query("sn:trustedfirmware.org:crypto:0", &status);
         CHECK(m_crypto_service_context);
 
-        m_rpc_session_handle = service_context_open(m_crypto_service_context, TS_RPC_ENCODING_PROTOBUF, &caller);
+        m_rpc_session_handle = service_context_open(m_crypto_service_context, TS_RPC_ENCODING_PACKED_C, &caller);
         CHECK(m_rpc_session_handle);
 
-        m_crypto_client = new crypto_client(caller);
+        m_crypto_client = new packedc_crypto_client(caller);
     }
 
     void teardown()

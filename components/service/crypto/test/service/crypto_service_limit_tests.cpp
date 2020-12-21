@@ -8,7 +8,7 @@
 #include <vector>
 #include <cstring>
 #include <cstdint>
-#include <service/crypto/client/cpp/crypto_client.h>
+#include <service/crypto/client/cpp/protobuf/protobuf_crypto_client.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
 #include <service_locator.h>
 #include <CppUTest/TestHarness.h>
@@ -36,7 +36,7 @@ TEST_GROUP(CryptoServiceLimitTests)
         m_rpc_session_handle = service_context_open(m_crypto_service_context, TS_RPC_ENCODING_PROTOBUF, &caller);
         CHECK(m_rpc_session_handle);
 
-        m_crypto_client = new crypto_client(caller);
+        m_crypto_client = new protobuf_crypto_client(caller);
     }
 
     void teardown()

@@ -6,6 +6,7 @@
 
 #include "mock_crypto_client.h"
 #include <service/crypto/provider/serializer/protobuf/pb_crypto_provider_serializer.h>
+#include <service/crypto/provider/serializer/packed-c/packedc_crypto_provider_serializer.h>
 
 mock_crypto_client::mock_crypto_client() :
     test_crypto_client(),
@@ -39,6 +40,9 @@ bool mock_crypto_client::init()
 
         mbed_crypto_provider_register_serializer(&m_crypto_provider,
                     TS_RPC_ENCODING_PROTOBUF, pb_crypto_provider_serializer_instance());
+
+        mbed_crypto_provider_register_serializer(&m_crypto_provider,
+                    TS_RPC_ENCODING_PACKED_C, packedc_crypto_provider_serializer_instance());
 
         rpc_caller_set_encoding_scheme(crypto_caller, TS_RPC_ENCODING_PROTOBUF);
 

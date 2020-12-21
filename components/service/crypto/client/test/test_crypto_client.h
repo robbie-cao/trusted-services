@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -7,7 +7,7 @@
 #ifndef TEST_CRYPTO_CLIENT_H
 #define TEST_CRYPTO_CLIENT_H
 
-#include <service/crypto/client/cpp/crypto_client.h>
+#include <service/crypto/client/cpp/protobuf/protobuf_crypto_client.h>
 #include <vector>
 
 /*
@@ -20,7 +20,7 @@
  * Each virtual test method is paired with a is_supported() method to
  * allow test cases to adapt to circumstances.
  */
-class test_crypto_client : public crypto_client
+class test_crypto_client : public protobuf_crypto_client
 {
 public:
     virtual ~test_crypto_client();

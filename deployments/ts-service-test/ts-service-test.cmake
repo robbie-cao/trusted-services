@@ -27,10 +27,16 @@ add_components(
 	TARGET "ts-service-test"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+		"components/common/tlv"
 		"components/service/crypto/test/service"
+		"components/service/crypto/test/service/protobuf"
+		"components/service/crypto/test/service/packed-c"
 		"components/service/crypto/client/cpp"
+		"components/service/crypto/client/cpp/protobuf"
+		"components/service/crypto/client/cpp/packed-c"
 		"components/service/common/serializer/protobuf"
 		"protocols/service/crypto/protobuf"
+		"protocols/service/crypto/packed-c"
 )
 
 #-------------------------------------------------------------------------------

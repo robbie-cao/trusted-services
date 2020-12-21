@@ -31,6 +31,7 @@ target_link_libraries(crypto-sp PRIVATE ${SP_DEV_KIT_LIBRARIES})
 add_components(TARGET "crypto-sp"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+		"components/common/tlv"
 		"components/messaging/ffa/libsp"
 		"components/rpc/ffarpc/endpoint"
 		"components/rpc/ffarpc/caller/sp"
@@ -43,6 +44,7 @@ add_components(TARGET "crypto-sp"
 		"components/service/crypto/provider/mbedcrypto"
 		"components/service/crypto/provider/mbedcrypto/entropy_source/mock"
 		"components/service/crypto/provider/serializer/protobuf"
+		"components/service/crypto/provider/serializer/packed-c"
 		"components/service/secure_storage/client/psa"
 		"protocols/rpc/common/packed-c"
 		"protocols/service/secure_storage/packed-c"

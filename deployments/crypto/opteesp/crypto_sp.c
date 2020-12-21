@@ -9,6 +9,7 @@
 #include <service/secure_storage/client/psa/its/its_client.h>
 #include <service/crypto/provider/mbedcrypto/crypto_provider.h>
 #include <service/crypto/provider/serializer/protobuf/pb_crypto_provider_serializer.h>
+#include <service/crypto/provider/serializer/packed-c/packedc_crypto_provider_serializer.h>
 #include <protocols/rpc/common/packed-c/status.h>
 #include <ffa_api.h>
 #include <sp_api.h>
@@ -59,8 +60,12 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 
 	/* Initialize the crypto service */
 	crypto_iface = mbed_crypto_provider_init(&crypto_provider, storage_caller);
-    mbed_crypto_provider_register_serializer(&crypto_provider,
+
+	mbed_crypto_provider_register_serializer(&crypto_provider,
                     TS_RPC_ENCODING_PROTOBUF, pb_crypto_provider_serializer_instance());
+
+	mbed_crypto_provider_register_serializer(&crypto_provider,
+                    TS_RPC_ENCODING_PACKED_C, packedc_crypto_provider_serializer_instance());
 
 	ffa_call_ep_init(&ffarpc_call_ep, crypto_iface);
 

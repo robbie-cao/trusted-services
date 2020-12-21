@@ -7,56 +7,23 @@
 #include <string>
 #include <cstring>
 #include <cstdint>
-#include <service/crypto/client/cpp/crypto_client.h>
-#include <protocols/rpc/common/packed-c/encoding.h>
-#include <service_locator.h>
 #include <CppUTest/TestHarness.h>
+#include "crypto_service_scenarios.h"
 
-/*
- * Service-level tests that focus on exercising each supported operation.
- * These are mainly valid behaviour tests with the goal of checking
- * that the number of operations supported is as expected.
- */
-TEST_GROUP(CryptoServiceOpTests)
+
+crypto_service_scenarios::crypto_service_scenarios(crypto_client *crypto_client) :
+    m_crypto_client(crypto_client)
 {
-    void setup()
-    {
-        struct rpc_caller *caller;
-        int status;
 
-        m_rpc_session_handle = NULL;
-        m_crypto_service_context = NULL;
-        m_crypto_client = NULL;
+}
 
-        service_locator_init();
+crypto_service_scenarios::~crypto_service_scenarios()
+{
+    delete m_crypto_client;
+    m_crypto_client = NULL;
+}
 
-        m_crypto_service_context = service_locator_query("sn:trustedfirmware.org:crypto:0", &status);
-        CHECK_TRUE(m_crypto_service_context);
-
-        m_rpc_session_handle = service_context_open(m_crypto_service_context, TS_RPC_ENCODING_PROTOBUF, &caller);
-        CHECK_TRUE(m_rpc_session_handle);
-
-        m_crypto_client = new crypto_client(caller);
-    }
-
-    void teardown()
-    {
-        delete m_crypto_client;
-        m_crypto_client = NULL;
-
-        service_context_close(m_crypto_service_context, m_rpc_session_handle);
-        m_rpc_session_handle = NULL;
-
-        service_context_relinquish(m_crypto_service_context);
-        m_crypto_service_context = NULL;
-    }
-
-    rpc_session_handle m_rpc_session_handle;
-    struct service_context *m_crypto_service_context;
-    crypto_client *m_crypto_client;
-};
-
-TEST(CryptoServiceOpTests, generateVolatileKeys)
+void crypto_service_scenarios::generateVolatileKeys()
 {
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -89,7 +56,7 @@ TEST(CryptoServiceOpTests, generateVolatileKeys)
     psa_reset_key_attributes(&attributes);
 }
 
-TEST(CryptoServiceOpTests, generatePersistentKeys)
+void crypto_service_scenarios::generatePersistentKeys()
 {
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -151,7 +118,7 @@ TEST(CryptoServiceOpTests, generatePersistentKeys)
     psa_reset_key_attributes(&attributes);
 }
 
-TEST(CryptoServiceOpTests, exportPublicKey)
+void crypto_service_scenarios::exportPublicKey()
 {
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -175,14 +142,14 @@ TEST(CryptoServiceOpTests, exportPublicKey)
 
     status = m_crypto_client->export_public_key(key_handle, key_buf, sizeof(key_buf), &key_len);
     CHECK_EQUAL(PSA_SUCCESS, status);
-    CHECK(key_len > 0);
+    CHECK_TRUE(key_len > 0);
 
     /* Remove the key */
     status = m_crypto_client->destroy_key(key_handle);
     CHECK_EQUAL(PSA_SUCCESS, status);
 }
 
-TEST(CryptoServiceOpTests, exportAndImportKeyPair)
+void crypto_service_scenarios::exportAndImportKeyPair()
 {
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -221,7 +188,7 @@ TEST(CryptoServiceOpTests, exportAndImportKeyPair)
     CHECK_EQUAL(PSA_SUCCESS, status);
 }
 
-TEST(CryptoServiceOpTests, signAndVerifyHash)
+void crypto_service_scenarios::signAndVerifyHash()
 {
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -271,7 +238,7 @@ TEST(CryptoServiceOpTests, signAndVerifyHash)
     CHECK_EQUAL(PSA_SUCCESS, status);
 }
 
-TEST(CryptoServiceOpTests, asymEncryptDecrypt)
+void crypto_service_scenarios::asymEncryptDecrypt()
 {
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -310,14 +277,14 @@ TEST(CryptoServiceOpTests, asymEncryptDecrypt)
 
     /* Expect the encrypted/decrypted message to match theh original */
     CHECK_EQUAL(sizeof(message), plaintext_len);
-    CHECK(memcmp(message, plaintext, plaintext_len) == 0);
+    MEMCMP_EQUAL(message, plaintext, plaintext_len);
 
     /* Remove the key */
     status = m_crypto_client->destroy_key(key_handle);
     CHECK_EQUAL(PSA_SUCCESS, status);
 }
 
-TEST(CryptoServiceOpTests, generateRandomNumbers)
+void crypto_service_scenarios::generateRandomNumbers()
 {
     psa_status_t status;
     uint8_t num1_8bit[1];
@@ -373,9 +340,7 @@ TEST(CryptoServiceOpTests, generateRandomNumbers)
     status = m_crypto_client->generate_random(num12_128bit, sizeof(num12_128bit));
     CHECK_EQUAL(PSA_SUCCESS, status);
 
-    /* Expect different numbers to be generated */
-    CHECK(memcmp(num1_8bit, num2_8bit, sizeof(num1_8bit)) != 0);
-    CHECK(memcmp(num3_16bit, num4_16bit, sizeof(num3_16bit)) != 0);
+    /* For larger numbers, it should be improbable that numbers are the same  */
     CHECK(memcmp(num5_24bit, num6_24bit, sizeof(num5_24bit)) != 0);
     CHECK(memcmp(num7_32bit, num8_32bit, sizeof(num7_32bit)) != 0);
     CHECK(memcmp(num9_64bit, num10_64bit, sizeof(num9_64bit)) != 0);

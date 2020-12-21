@@ -29,7 +29,7 @@
 static size_t max_deserialised_parameter_size(const struct call_param_buf *req_buf)
 {
     /*
-     * Assume that a deserialized parameter must be the same size or smalled than the
+     * Assume that a deserialized parameter must be the same size or smaller than the
      * entire serialized message.
      */
     return req_buf->data_len;

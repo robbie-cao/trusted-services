@@ -36,20 +36,16 @@ add_components(
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/app/ts-demo"
+		"components/common/tlv"
 		"components/service/crypto/client/cpp"
-		"components/service/common/serializer/protobuf"
-		"protocols/service/crypto/protobuf"
+		"components/service/crypto/client/cpp/packed-c"
+		"protocols/service/crypto/packed-c"
 )
 
 #-------------------------------------------------------------------------------
 #  Components used from external projects
 #
 #-------------------------------------------------------------------------------
-
-# Nanopb
-include(${TS_ROOT}/external/nanopb/nanopb.cmake)
-target_link_libraries(ts-demo PRIVATE nanopb::protobuf-nanopb-static)
-protobuf_generate_all(TGT "ts-demo" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protocols")
 
 # Mbedcrypto
 include(${TS_ROOT}/external/mbed-crypto/mbedcrypto.cmake)
