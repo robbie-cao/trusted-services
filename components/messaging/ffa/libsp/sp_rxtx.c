@@ -45,7 +45,7 @@ sp_result sp_rxtx_buffer_map(void *tx_buffer, const void *rx_buffer,
 
 	/* Checking max page count for RXTX buffers */
 	page_count = size / FFA_RXTX_MAP_PAGE_SIZE;
-	if (page_count >= FFA_RXTX_MAP_PAGE_COUNT_MAX)
+	if (page_count > FFA_RXTX_MAP_PAGE_COUNT_MAX)
 		return SP_RESULT_INVALID_PARAMETERS;
 
 	/* Mapping the buffers */
