@@ -89,7 +89,7 @@ sp_result sp_rxtx_buffer_unmap(void)
 
 sp_result sp_rxtx_buffer_alignment_boundary_get(uintptr_t *alignment)
 {
-	struct ffa_interface_properties interface_props = {0};
+	struct ffa_interface_properties interface_props = { 0 };
 	uint32_t *props = NULL;
 	ffa_result result = FFA_OK;
 	uint32_t granularity = 0;
