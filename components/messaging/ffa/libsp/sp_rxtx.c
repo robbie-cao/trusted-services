@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  */
 
 #include "sp_rxtx.h"
@@ -9,9 +9,9 @@
 #include <stdlib.h>
 #include <stdlib.h>
 
-void *ffa_tx_buffer;
-const void *ffa_rx_buffer;
-size_t ffa_rxtx_size;
+static void *ffa_tx_buffer;
+static const void *ffa_rx_buffer;
+static size_t ffa_rxtx_size;
 
 sp_result sp_rxtx_buffer_map(void *tx_buffer, const void *rx_buffer,
 			     size_t size)
