@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  */
 
 #include "sp_discovery.h"
@@ -64,7 +64,7 @@ partition_info_get(const struct sp_uuid *uuid,
 		return SP_RESULT_FFA(ffa_res);
 	}
 
-	if (*count * sizeof(struct ffa_partition_information) < buffer_size) {
+	if ((*count * sizeof(struct ffa_partition_information)) > buffer_size) {
 		/*
 		 * The indicated amount of info structures doesn't fit into the
 		 * RX buffer.
