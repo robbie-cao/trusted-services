@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  */
 
 #include "sp_memory_management.h"
@@ -297,6 +297,9 @@ static sp_result sp_mem_is_dynamic_supported(uint32_t func_id, bool *support)
 	uint32_t *props = NULL;
 	ffa_result result = FFA_OK;
 
+	if (!support)
+		return SP_RESULT_INVALID_PARAMETERS;
+
 	result = ffa_features(func_id, &interface_props);
 	if (result != FFA_OK) {
 		*support = false;
@@ -320,12 +323,19 @@ sp_result sp_memory_donate(struct sp_memory_descriptor *descriptor,
 	sp_result sp_res = SP_RESULT_OK;
 	ffa_result ffa_res = FFA_OK;
 
-	if (!descriptor || !acc_desc || !regions || !region_count || !handle)
+	if (!handle)
 		return SP_RESULT_INVALID_PARAMETERS;
 
+	if (!descriptor || !acc_desc || !regions || !region_count) {
+		*handle = UINT64_C(0);
+		return SP_RESULT_INVALID_PARAMETERS;
+	}
+
 	sp_res = get_tx_buffer(&buffer);
-	if (sp_res != SP_RESULT_OK)
+	if (sp_res != SP_RESULT_OK) {
+		*handle = UINT64_C(0);
 		return sp_res;
+	}
 
 	setup_descriptors(&buffer, descriptor, acc_desc, 1, regions,
 			  region_count, MEM_HANDLE_UNUSED);
@@ -344,11 +354,14 @@ sp_result sp_memory_donate_dynamic(struct sp_memory_descriptor *descriptor,
 	uint32_t page_count = 0;
 	ffa_result ffa_res = FFA_OK;
 
-	if (!descriptor || !acc_desc || !regions || !region_count || !handle)
+	if (!handle)
 		return SP_RESULT_INVALID_PARAMETERS;
 
-	if (!is_valid_buffer(buffer))
+	if (!descriptor || !acc_desc || !regions || !region_count ||
+	    !is_valid_buffer(buffer)) {
+		*handle = UINT64_C(0);
 		return SP_RESULT_INVALID_PARAMETERS;
+	}
 
 	setup_descriptors(buffer, descriptor, acc_desc, 1, regions,
 			  region_count, MEM_HANDLE_UNUSED);
@@ -375,13 +388,20 @@ sp_result sp_memory_lend(struct sp_memory_descriptor *descriptor,
 	sp_result sp_res = SP_RESULT_OK;
 	ffa_result ffa_res = FFA_OK;
 
-	if (!descriptor || !acc_desc || !acc_desc_count || !regions ||
-	    !region_count || !handle)
+	if (!handle)
 		return SP_RESULT_INVALID_PARAMETERS;
 
+	if (!descriptor || !acc_desc || !acc_desc_count || !regions ||
+	    !region_count) {
+		*handle = UINT64_C(0);
+		return SP_RESULT_INVALID_PARAMETERS;
+	}
+
 	sp_res = get_tx_buffer(&buffer);
-	if (sp_res != SP_RESULT_OK)
+	if (sp_res != SP_RESULT_OK) {
+		*handle = UINT64_C(0);
 		return sp_res;
+	}
 
 	setup_descriptors(&buffer, descriptor, acc_desc, acc_desc_count,
 			  regions, region_count, MEM_HANDLE_UNUSED);
@@ -401,12 +421,14 @@ sp_result sp_memory_lend_dynamic(struct sp_memory_descriptor *descriptor,
 	uint32_t page_count = 0;
 	ffa_result ffa_res = FFA_OK;
 
-	if (!descriptor || !acc_desc || !acc_desc_count || !regions ||
-	    !region_count || !handle)
+	if (!handle)
 		return SP_RESULT_INVALID_PARAMETERS;
 
-	if (!is_valid_buffer(buffer))
+	if (!descriptor || !acc_desc || !acc_desc_count || !regions ||
+	    !region_count || !is_valid_buffer(buffer)) {
+		*handle = UINT64_C(0);
 		return SP_RESULT_INVALID_PARAMETERS;
+	}
 
 	setup_descriptors(buffer, descriptor, acc_desc, acc_desc_count, regions,
 			  region_count, MEM_HANDLE_UNUSED);
@@ -433,13 +455,20 @@ sp_result sp_memory_share(struct sp_memory_descriptor *descriptor,
 	sp_result sp_res = SP_RESULT_OK;
 	ffa_result ffa_res = FFA_OK;
 
-	if (!descriptor || !acc_desc || !acc_desc_count || !regions ||
-	    !region_count || !handle)
+	if (!handle)
 		return SP_RESULT_INVALID_PARAMETERS;
 
+	if (!descriptor || !acc_desc || !acc_desc_count || !regions ||
+	    !region_count) {
+		*handle = UINT64_C(0);
+		return SP_RESULT_INVALID_PARAMETERS;
+	}
+
 	sp_res = get_tx_buffer(&buffer);
-	if (sp_res != SP_RESULT_OK)
+	if (sp_res != SP_RESULT_OK) {
+		*handle = UINT64_C(0);
 		return sp_res;
+	}
 
 	setup_descriptors(&buffer, descriptor, acc_desc, acc_desc_count,
 			  regions, region_count, MEM_HANDLE_UNUSED);
@@ -459,12 +488,14 @@ sp_result sp_memory_share_dynamic(struct sp_memory_descriptor *descriptor,
 	uint32_t page_count = 0;
 	ffa_result ffa_res = FFA_OK;
 
-	if (!descriptor || !acc_desc || !acc_desc_count || !regions ||
-	    !region_count || !handle)
+	if (!handle)
 		return SP_RESULT_INVALID_PARAMETERS;
 
-	if (!is_valid_buffer(buffer))
+	if (!descriptor || !acc_desc || !acc_desc_count || !regions ||
+	    !region_count || !is_valid_buffer(buffer)) {
+		*handle = UINT64_C(0);
 		return SP_RESULT_INVALID_PARAMETERS;
+	}
 
 	setup_descriptors(buffer, descriptor, acc_desc, acc_desc_count, regions,
 			  region_count, MEM_HANDLE_UNUSED);
@@ -494,18 +525,26 @@ sp_result sp_memory_retrieve(struct sp_memory_descriptor *descriptor,
 	uint32_t resp_total_length = 0;
 	uint32_t resp_fragment_length = 0;
 
-	/* in_region_count can be 0 */
-	if (!descriptor || !acc_desc || !regions || !out_region_count ||
-	    !handle)
+	if (!out_region_count)
 		return SP_RESULT_INVALID_PARAMETERS;
 
+	/* in_region_count can be 0 */
+	if (!descriptor || !acc_desc || !regions) {
+		*out_region_count = UINT32_C(0);
+		return SP_RESULT_INVALID_PARAMETERS;
+	}
+
 	sp_res = get_tx_buffer(&tx_buffer);
-	if (sp_res != SP_RESULT_OK)
+	if (sp_res != SP_RESULT_OK) {
+		*out_region_count = UINT32_C(0);
 		return sp_res;
+	}
 
 	sp_res = get_rx_buffer(&rx_buffer);
-	if (sp_res != SP_RESULT_OK)
+	if (sp_res != SP_RESULT_OK) {
+		*out_region_count = UINT32_C(0);
 		return sp_res;
+	}
 
 	setup_descriptors(&tx_buffer, descriptor, acc_desc, 1, regions,
 			  in_region_count, handle);
@@ -514,12 +553,16 @@ sp_result sp_memory_retrieve(struct sp_memory_descriptor *descriptor,
 					    &resp_total_length,
 					    &resp_fragment_length);
 
-	if (ffa_res != FFA_OK)
+	if (ffa_res != FFA_OK) {
+		*out_region_count = UINT32_C(0);
 		return SP_RESULT_FFA(ffa_res);
+	}
 
 	/* Fragmentation is not supported currently */
-	if (resp_total_length != resp_fragment_length)
+	if (resp_total_length != resp_fragment_length) {
+		*out_region_count = UINT32_C(0);
 		return SP_RESULT_INTERNAL_ERROR;
+	}
 
 	rx_buffer.used = resp_total_length;
 	parse_descriptors(&rx_buffer, descriptor, acc_desc, 1, regions,
@@ -541,13 +584,15 @@ sp_memory_retrieve_dynamic(struct sp_memory_descriptor *descriptor,
 	uint32_t resp_total_length = 0;
 	uint32_t resp_fragment_length = 0;
 
-	/* in_region_count can be 0 */
-	if (!descriptor || !acc_desc || !regions || !out_region_count ||
-	    !handle)
+	if (!out_region_count)
 		return SP_RESULT_INVALID_PARAMETERS;
 
-	if (!is_valid_buffer(buffer))
+	/* in_region_count can be 0 */
+	if (!descriptor || !acc_desc || !regions || !handle ||
+	    !is_valid_buffer(buffer)) {
+		*out_region_count = UINT32_C(0);
 		return SP_RESULT_INVALID_PARAMETERS;
+	}
 
 	setup_descriptors(buffer, descriptor, acc_desc, 1, regions,
 			  in_region_count, handle);
@@ -558,12 +603,16 @@ sp_memory_retrieve_dynamic(struct sp_memory_descriptor *descriptor,
 				      &resp_total_length,
 				      &resp_fragment_length);
 
-	if (sp_res != FFA_OK)
+	if (sp_res != FFA_OK) {
+		*out_region_count = UINT32_C(0);
 		return SP_RESULT_FFA(sp_res);
+	}
 
 	/* Fragmentation is not supported currently */
-	if (resp_total_length != resp_fragment_length)
+	if (resp_total_length != resp_fragment_length) {
+		*out_region_count = UINT32_C(0);
 		return SP_RESULT_INTERNAL_ERROR;
+	}
 
 	/* Same buffer is used for both TX and RX directions */
 	buffer->used = resp_total_length;
