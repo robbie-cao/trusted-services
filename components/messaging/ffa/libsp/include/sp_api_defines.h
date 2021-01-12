@@ -1,10 +1,12 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  */
 
 #ifndef LIBSP_INCLUDE_SP_API_DEFINES_H_
 #define LIBSP_INCLUDE_SP_API_DEFINES_H_
+
+#include "ffa_api_defines.h"
 
 /**
  * SP result values are integers where the zero value indicates success and
