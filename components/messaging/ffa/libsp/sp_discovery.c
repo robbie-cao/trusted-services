@@ -9,7 +9,7 @@
 #include "util.h"
 #include <string.h>
 
-static const struct sp_uuid uuid_nil = {0};
+static const struct sp_uuid uuid_nil = { 0 };
 
 sp_result sp_discovery_ffa_version_get(uint16_t *major, uint16_t *minor)
 {
@@ -45,7 +45,7 @@ partition_info_get(const struct sp_uuid *uuid,
 {
 	const void *buffer = NULL;
 	size_t buffer_size = 0;
-	struct ffa_uuid ffa_uuid = {0};
+	struct ffa_uuid ffa_uuid = { 0 };
 	sp_result sp_res = SP_RESULT_OK;
 	ffa_result ffa_res = FFA_OK;
 
@@ -78,6 +78,33 @@ partition_info_get(const struct sp_uuid *uuid,
 	return SP_RESULT_OK;
 }
 
+static sp_result
+partition_info_get_single(const struct sp_uuid *uuid,
+			  const struct ffa_partition_information **info)
+{
+	uint32_t count = 0;
+	sp_result sp_res = SP_RESULT_OK;
+
+	if (uuid == NULL)
+		return SP_RESULT_INVALID_PARAMETERS;
+
+	/*
+	 * Nil UUID means querying all partitions which is handled by a separate
+	 * function.
+	 */
+	if (memcmp(&uuid_nil, uuid, sizeof(struct sp_uuid)) == 0)
+		return SP_RESULT_INVALID_PARAMETERS;
+
+	sp_res = partition_info_get(uuid, info, &count);
+	if (sp_res != SP_RESULT_OK)
+		return sp_res;
+
+	if (count == 0)
+		return SP_RESULT_NOT_FOUND;
+
+	return SP_RESULT_OK;
+}
+
 static void unpack_ffa_info(const struct ffa_partition_information ffa_info[],
 			    struct sp_partition_info *sp_info)
 {
@@ -86,11 +113,11 @@ static void unpack_ffa_info(const struct ffa_partition_information ffa_info[],
 	sp_info->partition_id = ffa_info->partition_id;
 	sp_info->execution_context_count = ffa_info->execution_context_count;
 	sp_info->supports_direct_requests =
-			props & FFA_PARTITION_SUPPORTS_DIRECT_REQUESTS;
+		props & FFA_PARTITION_SUPPORTS_DIRECT_REQUESTS;
 	sp_info->can_send_direct_requests =
-			props & FFA_PARTITION_CAN_SEND_DIRECT_REQUESTS;
+		props & FFA_PARTITION_CAN_SEND_DIRECT_REQUESTS;
 	sp_info->supports_indirect_requests =
-			props & FFA_PARTITION_SUPPORTS_INDIRECT_REQUESTS;
+		props & FFA_PARTITION_SUPPORTS_INDIRECT_REQUESTS;
 }
 
 sp_result sp_discovery_partition_id_get(const struct sp_uuid *uuid,
@@ -100,27 +127,13 @@ sp_result sp_discovery_partition_id_get(const struct sp_uuid *uuid,
 	uint32_t count = 0;
 	sp_result sp_res = SP_RESULT_OK;
 
-	if (uuid == NULL || id == NULL)
+	if (id == NULL)
 		return SP_RESULT_INVALID_PARAMETERS;
 
-	/*
-	 * Nil UUID means querying all partitions which is handled by a separate
-	 * function.
-	 */
-	if (memcmp(&uuid_nil, uuid, sizeof(struct sp_uuid)) == 0) {
-		*id = FFA_ID_GET_ID_MASK;
-		return SP_RESULT_INVALID_PARAMETERS;
-	}
-
-	sp_res = partition_info_get(uuid, &ffa_info, &count);
+	sp_res = partition_info_get_single(uuid, &ffa_info);
 	if (sp_res != SP_RESULT_OK) {
 		*id = FFA_ID_GET_ID_MASK;
 		return sp_res;
-	}
-
-	if (count == 0) {
-		*id = FFA_ID_GET_ID_MASK;
-		return SP_RESULT_NOT_FOUND;
 	}
 
 	*id = ffa_info->partition_id;
@@ -135,27 +148,13 @@ sp_result sp_discovery_partition_info_get(const struct sp_uuid *uuid,
 	uint32_t count = 0;
 	sp_result sp_res = SP_RESULT_OK;
 
-	if (uuid == NULL || info == NULL)
+	if (info == NULL)
 		return SP_RESULT_INVALID_PARAMETERS;
 
-	/*
-	 * Nil UUID means querying all partitions which is handled by a separate
-	 * function.
-	 */
-	if (memcmp(&uuid_nil, uuid, sizeof(struct sp_uuid)) == 0) {
-		*info = (struct sp_partition_info){0};
-		return SP_RESULT_INVALID_PARAMETERS;
-	}
-
-	sp_res = partition_info_get(uuid, &ffa_info, &count);
+	sp_res = partition_info_get_single(uuid, &ffa_info);
 	if (sp_res != SP_RESULT_OK) {
-		*info = (struct sp_partition_info){0};
+		*info = (struct sp_partition_info){ 0 };
 		return sp_res;
-	}
-
-	if (count == 0) {
-		*info = (struct sp_partition_info){0};
-		return SP_RESULT_NOT_FOUND;
 	}
 
 	unpack_ffa_info(ffa_info, info);
@@ -171,8 +170,13 @@ sp_result sp_discovery_partition_info_get_all(struct sp_partition_info info[],
 	uint32_t i = 0;
 	sp_result sp_res = SP_RESULT_OK;
 
-	if (info == NULL || count == NULL)
+	if (count == NULL)
 		return SP_RESULT_INVALID_PARAMETERS;
+
+	if (info == NULL) {
+		*count = UINT32_C(0);
+		return SP_RESULT_INVALID_PARAMETERS;
+	}
 
 	sp_res = partition_info_get(&uuid_nil, &ffa_info, &ffa_count);
 	if (sp_res != SP_RESULT_OK) {
