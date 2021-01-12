@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  */
 
 #ifndef LIBSP_INCLUDE_SP_MEMORY_MANAGEMENT_H_
@@ -96,6 +96,24 @@ enum sp_memory_transaction_type {
 };
 
 /**
+ * @brief       This union contains the memory attributes for normal and device
+ *              memory areas.
+ */
+union sp_memory_attr {
+	/** Normal memory attributes */
+	struct sp_normal_memory_attributes {
+		/** Cacheability attribute */
+		enum sp_cacheability_attribute cacheability;
+
+		/** Shareability attribute */
+		enum sp_shareablity_attribute shareability;
+	} normal_memory;
+
+	/** Device memory attributes */
+	enum sp_device_memory_attributes device_memory;
+};
+
+/**
  * @brief      Flags are used to govern the behavior of a memory management
  *             transaction.
  */
@@ -165,19 +183,7 @@ struct sp_memory_descriptor {
 	 * be used. In case of non-specified memory type the contents of the
 	 * union is ignored.
 	 */
-	union sp_memory_attr {
-		/** Normal memory attributes */
-		struct sp_normal_memory_attributes {
-			/** Cacheability attribute */
-			enum sp_cacheability_attribute cacheability;
-
-			/** Shareability attribute */
-			enum sp_shareablity_attribute shareability;
-		} normal_memory;
-
-		/** Device memory attributes */
-		enum sp_device_memory_attributes device_memory;
-	} mem_region_attr;
+	union sp_memory_attr mem_region_attr;
 
 	/**
 	 * Flags are used to govern the behavior of a memory management
