@@ -271,8 +271,7 @@ static void parse_descriptors(struct ffa_mem_transaction_buffer *buffer,
 		acc_desc[i].receiver_id = acc->mem_access_perm_desc.endpoint_id;
 
 		acc_perm = acc->mem_access_perm_desc.mem_access_permissions;
-		parse_mem_access_perm(acc_perm,
-				      &acc_desc[i].instruction_access,
+		parse_mem_access_perm(acc_perm, &acc_desc[i].instruction_access,
 				      &acc_desc[i].data_access);
 	}
 
@@ -293,7 +292,7 @@ static void parse_descriptors(struct ffa_mem_transaction_buffer *buffer,
 
 static sp_result sp_mem_is_dynamic_supported(uint32_t func_id, bool *support)
 {
-	struct ffa_interface_properties interface_props = {0};
+	struct ffa_interface_properties interface_props = { 0 };
 	uint32_t *props = NULL;
 	ffa_result result = FFA_OK;
 
@@ -319,7 +318,7 @@ sp_result sp_memory_donate(struct sp_memory_descriptor *descriptor,
 			   struct sp_memory_region regions[],
 			   uint32_t region_count, uint64_t *handle)
 {
-	struct ffa_mem_transaction_buffer buffer = {0};
+	struct ffa_mem_transaction_buffer buffer = { 0 };
 	sp_result sp_res = SP_RESULT_OK;
 	ffa_result ffa_res = FFA_OK;
 
@@ -384,7 +383,7 @@ sp_result sp_memory_lend(struct sp_memory_descriptor *descriptor,
 			 struct sp_memory_region regions[],
 			 uint32_t region_count, uint64_t *handle)
 {
-	struct ffa_mem_transaction_buffer buffer = {0};
+	struct ffa_mem_transaction_buffer buffer = { 0 };
 	sp_result sp_res = SP_RESULT_OK;
 	ffa_result ffa_res = FFA_OK;
 
@@ -451,7 +450,7 @@ sp_result sp_memory_share(struct sp_memory_descriptor *descriptor,
 			  struct sp_memory_region regions[],
 			  uint32_t region_count, uint64_t *handle)
 {
-	struct ffa_mem_transaction_buffer buffer = {0};
+	struct ffa_mem_transaction_buffer buffer = { 0 };
 	sp_result sp_res = SP_RESULT_OK;
 	ffa_result ffa_res = FFA_OK;
 
@@ -518,8 +517,8 @@ sp_result sp_memory_retrieve(struct sp_memory_descriptor *descriptor,
 			     uint32_t in_region_count,
 			     uint32_t *out_region_count, uint64_t handle)
 {
-	struct ffa_mem_transaction_buffer tx_buffer = {0};
-	struct ffa_mem_transaction_buffer rx_buffer = {0};
+	struct ffa_mem_transaction_buffer tx_buffer = { 0 };
+	struct ffa_mem_transaction_buffer rx_buffer = { 0 };
 	sp_result sp_res = SP_RESULT_OK;
 	ffa_result ffa_res = FFA_OK;
 	uint32_t resp_total_length = 0;
@@ -631,7 +630,7 @@ sp_result sp_memory_relinquish(uint64_t handle, const uint16_t endpoints[],
 			       uint32_t endpoint_count,
 			       struct sp_memory_transaction_flags *flags)
 {
-	struct ffa_mem_transaction_buffer buffer = {0};
+	struct ffa_mem_transaction_buffer buffer = { 0 };
 	sp_result sp_res = SP_RESULT_OK;
 	ffa_result ffa_res = FFA_OK;
 	struct ffa_mem_relinquish_desc *relinquish_desc = NULL;
