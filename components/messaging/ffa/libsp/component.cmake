@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -19,16 +19,16 @@ target_sources(${TGT} PRIVATE
 	)
 
 set_property(TARGET ${TGT} PROPERTY PUBLIC_HEADER
+	${CMAKE_CURRENT_LIST_DIR}/include/ffa_api.h
 	${CMAKE_CURRENT_LIST_DIR}/include/ffa_api_defines.h
 	${CMAKE_CURRENT_LIST_DIR}/include/ffa_api_types.h
-	${CMAKE_CURRENT_LIST_DIR}/include/sp_discovery.h
-	${CMAKE_CURRENT_LIST_DIR}/include/ffa_api.h
 	${CMAKE_CURRENT_LIST_DIR}/include/ffa_internal_api.h
 	${CMAKE_CURRENT_LIST_DIR}/include/ffa_memory_descriptors.h
-	${CMAKE_CURRENT_LIST_DIR}/include/sp_memory_management.h
+	${CMAKE_CURRENT_LIST_DIR}/include/sp_api.h
 	${CMAKE_CURRENT_LIST_DIR}/include/sp_api_defines.h
 	${CMAKE_CURRENT_LIST_DIR}/include/sp_api_types.h
-	${CMAKE_CURRENT_LIST_DIR}/include/sp_api.h
+	${CMAKE_CURRENT_LIST_DIR}/include/sp_discovery.h
+	${CMAKE_CURRENT_LIST_DIR}/include/sp_memory_management.h
 	${CMAKE_CURRENT_LIST_DIR}/include/sp_rxtx.h
 	)
 
