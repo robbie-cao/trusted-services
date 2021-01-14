@@ -13,7 +13,7 @@ unit_test_add_suite(
 		${CMAKE_CURRENT_LIST_DIR}/test/test_mock_assert.cpp
 	INCLUDE_DIRECTORIES
 		${CMAKE_CURRENT_LIST_DIR}/include/
-		${PROJECT_PATH}/components/common/utils/include
+		${UNIT_TEST_PROJECT_PATH}/components/common/utils/include
 	COMPILE_DEFINITIONS
 		-DARM64
 )
@@ -25,7 +25,7 @@ unit_test_add_suite(
 		${CMAKE_CURRENT_LIST_DIR}/test/test_mock_ffa_internal_api.cpp
 	INCLUDE_DIRECTORIES
 		${CMAKE_CURRENT_LIST_DIR}/include/
-		${PROJECT_PATH}/components/common/utils/include
+		${UNIT_TEST_PROJECT_PATH}/components/common/utils/include
 	COMPILE_DEFINITIONS
 		-DARM64
 )
@@ -41,7 +41,7 @@ unit_test_add_suite(
 		${CMAKE_CURRENT_LIST_DIR}/test/mock_assert.cpp
 	INCLUDE_DIRECTORIES
 		${CMAKE_CURRENT_LIST_DIR}/include/
-		${PROJECT_PATH}/components/common/utils/include
+		${UNIT_TEST_PROJECT_PATH}/components/common/utils/include
 	COMPILE_DEFINITIONS
 		-DARM64
 )
@@ -53,7 +53,7 @@ unit_test_add_suite(
 		${CMAKE_CURRENT_LIST_DIR}/test/mock_ffa_api.cpp
 	INCLUDE_DIRECTORIES
 		${CMAKE_CURRENT_LIST_DIR}/include/
-		${PROJECT_PATH}/components/common/utils/include
+		${UNIT_TEST_PROJECT_PATH}/components/common/utils/include
 	COMPILE_DEFINITIONS
 		-DARM64
 )
@@ -66,7 +66,7 @@ unit_test_add_suite(
 		${CMAKE_CURRENT_LIST_DIR}/sp_rxtx.c
 	INCLUDE_DIRECTORIES
 		${CMAKE_CURRENT_LIST_DIR}/include/
-		${PROJECT_PATH}/components/common/utils/include
+		${UNIT_TEST_PROJECT_PATH}/components/common/utils/include
 	COMPILE_DEFINITIONS
 		-DARM64
 )
@@ -78,7 +78,7 @@ unit_test_add_suite(
 		${CMAKE_CURRENT_LIST_DIR}/test/mock_sp_rxtx.cpp
 	INCLUDE_DIRECTORIES
 		${CMAKE_CURRENT_LIST_DIR}/include/
-		${PROJECT_PATH}/components/common/utils/include
+		${UNIT_TEST_PROJECT_PATH}/components/common/utils/include
 	COMPILE_DEFINITIONS
 		-DARM64
 )
@@ -92,7 +92,7 @@ unit_test_add_suite(
 		${CMAKE_CURRENT_LIST_DIR}/test/mock_sp_rxtx.cpp
 	INCLUDE_DIRECTORIES
 		${CMAKE_CURRENT_LIST_DIR}/include/
-		${PROJECT_PATH}/components/common/utils/include
+		${UNIT_TEST_PROJECT_PATH}/components/common/utils/include
 	COMPILE_DEFINITIONS
 		-DARM64
 )
@@ -108,7 +108,7 @@ unit_test_add_suite(
 		${CMAKE_CURRENT_LIST_DIR}/test/mock_sp_rxtx.cpp
 	INCLUDE_DIRECTORIES
 		${CMAKE_CURRENT_LIST_DIR}/include/
-		${PROJECT_PATH}/components/common/utils/include
+		${UNIT_TEST_PROJECT_PATH}/components/common/utils/include
 	COMPILE_DEFINITIONS
 		-DARM64
 )
@@ -122,7 +122,7 @@ unit_test_add_suite(
 		${CMAKE_CURRENT_LIST_DIR}/test/mock_assert.cpp
 	INCLUDE_DIRECTORIES
 		${CMAKE_CURRENT_LIST_DIR}/include/
-		${PROJECT_PATH}/components/common/utils/include
+		${UNIT_TEST_PROJECT_PATH}/components/common/utils/include
 	COMPILE_DEFINITIONS
 		-DARM64
 )
