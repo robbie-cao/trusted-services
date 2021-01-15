@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -59,7 +59,7 @@ static struct service_context *query(const char *sn, int *status)
     for (suggeston_index = 0; suggeston_index < num_suggestons; ++suggeston_index) {
 
         uint16_t partition_id;
-        const char *dev_path = "/sys/kernel/debug/buf";
+        const char *dev_path = "/sys/kernel/debug/arm_ffa_user";
 
         if (discover_partition(sn, &uuids[suggeston_index], dev_path, &partition_id)) {
 
@@ -134,9 +134,8 @@ static bool discover_partition(const char *sn, struct uuid_canonical *uuid,
                             const char *dev_path, uint16_t *partition_id)
 {
     bool discovered = false;
-    struct uuid_octets uuid_bytes;
 
-    if (uuid_parse_to_octets_reversed(uuid->characters, uuid_bytes.octets, UUID_OCTETS_LEN) == UUID_CANONICAL_FORM_LEN) {
+    if (uuid_is_valid(uuid->characters) == UUID_CANONICAL_FORM_LEN) {
 
         struct ffarpc_caller ffarpc_caller;
         unsigned int required_instance = sn_get_service_instance(sn);
@@ -146,7 +145,7 @@ static bool discover_partition(const char *sn, struct uuid_canonical *uuid,
         uint16_t discovered_partitions[MAX_PARTITION_INSTANCES];
         size_t discovered_count;
 
-        discovered_count = ffarpc_caller_discover(&ffarpc_caller, uuid_bytes.octets,
+        discovered_count = ffarpc_caller_discover(&ffarpc_caller, uuid,
                                         discovered_partitions, MAX_PARTITION_INSTANCES);
 
         if ((discovered_count > 0) && (required_instance < discovered_count)) {

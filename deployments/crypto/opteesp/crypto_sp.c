@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  */
 
 #include <rpc/ffarpc/caller/sp/ffarpc_caller.h>
@@ -16,7 +16,7 @@
 
 
 #define SP_STORAGE_UUID_BYTES \
-	{ 0x48, 0xef, 0x1e, 0xdc, 0x7a, 0xb1, 0xcf, 0x4c, \
+	{ 0xdc, 0x1e, 0xef, 0x48, 0xb1, 0x7a, 0x4c, 0xcf, \
 	  0xac, 0x8b, 0xdf, 0xcf, 0xf7, 0x71, 0x1b, 0x14, }
 
 uint16_t own_id = 0; /* !!Needs refactoring as parameter to ffarpc_caller_init */

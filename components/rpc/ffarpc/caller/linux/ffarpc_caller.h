@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -7,6 +7,7 @@
 #ifndef FFARPC_CALLER_H
 #define FFARPC_CALLER_H
 
+#include <common/uuid/uuid.h>
 #include <rpc_caller.h>
 #include <stdbool.h>
 
@@ -35,7 +36,7 @@ struct ffarpc_caller {
 
 struct rpc_caller *ffarpc_caller_init(struct ffarpc_caller *s, const char *device_path);
 void ffarpc_caller_deinit(struct ffarpc_caller *s);
-size_t ffarpc_caller_discover(const struct ffarpc_caller *s, const uint8_t *uuid,
+size_t ffarpc_caller_discover(const struct ffarpc_caller *s, const struct uuid_canonical *uuid,
 						uint16_t *partition_ids, size_t discover_limit);
 int ffarpc_caller_open(struct ffarpc_caller *s, uint16_t call_ep_id);
 int ffarpc_caller_close(struct ffarpc_caller *s);
