@@ -31,12 +31,12 @@ bool mock_crypto_client::init()
 
         struct rpc_interface *storage_ep = mock_store_provider_init(&m_storage_provider);
         struct rpc_caller *storage_caller = direct_caller_init_default(&m_storage_caller,
-                                                                    storage_ep);
+                                                                storage_ep);
 
         struct rpc_interface *crypto_ep = mbed_crypto_provider_init(&m_crypto_provider,
-                                                                    storage_caller);
+                                                                storage_caller, NULL);
         struct rpc_caller *crypto_caller = direct_caller_init_default(&m_crypto_caller,
-                                                                    crypto_ep);
+                                                                crypto_ep);
 
         mbed_crypto_provider_register_serializer(&m_crypto_provider,
                     TS_RPC_ENCODING_PROTOBUF, pb_crypto_provider_serializer_instance());

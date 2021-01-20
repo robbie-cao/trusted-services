@@ -34,7 +34,8 @@ struct mbed_crypto_provider
  * a pointer to the rpc_interface for the service is returned.
  */
 struct rpc_interface *mbed_crypto_provider_init(struct mbed_crypto_provider *context,
-                                        struct rpc_caller *storage_provider);
+                                        struct rpc_caller *storage_provider,
+                                        void *entropy_adapter_config);
 
 /*
  * When operation of the provider is no longer required, this function

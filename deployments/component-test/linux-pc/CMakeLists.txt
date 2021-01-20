@@ -64,6 +64,17 @@ unit_test_add_suite(
 target_include_directories(component-test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 
 #-------------------------------------------------------------------------------
+#  Components that are specific to deployment in the linux-pc environment.
+#
+#-------------------------------------------------------------------------------
+add_components(
+	TARGET "component-test"
+	BASE_DIR ${TS_ROOT}
+    COMPONENTS
+        "components/service/crypto/provider/mbedcrypto/entropy_adapter/linux"
+)
+
+#-------------------------------------------------------------------------------
 #  Extend with components that are common across all deployments of
 #  component-test
 #

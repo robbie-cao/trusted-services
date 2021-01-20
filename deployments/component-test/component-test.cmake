@@ -40,7 +40,6 @@ add_components(
 		"components/service/crypto/client/test"
 		"components/service/crypto/client/test/standalone"
 		"components/service/crypto/provider/mbedcrypto"
-		"components/service/crypto/provider/mbedcrypto/entropy_source/mock"
 		"components/service/crypto/provider/serializer/protobuf"
 		"components/service/crypto/provider/serializer/packed-c"
 		"components/service/crypto/test/unit"

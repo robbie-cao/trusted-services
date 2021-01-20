@@ -27,7 +27,10 @@ find_package(Spdevkit REQUIRED)
 sp_dev_kit_configure_linking(TARGET crypto-sp DEFINES ARM64=1)
 target_link_libraries(crypto-sp PRIVATE ${SP_DEV_KIT_LIBRARIES})
 
-
+#-------------------------------------------------------------------------------
+#  Components that are specific to deployment in the opteesp environment.
+#
+#-------------------------------------------------------------------------------
 add_components(TARGET "crypto-sp"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
@@ -42,7 +45,7 @@ add_components(TARGET "crypto-sp"
 		"components/service/common/serializer/protobuf"
 		"components/service/common/provider"
 		"components/service/crypto/provider/mbedcrypto"
-		"components/service/crypto/provider/mbedcrypto/entropy_source/mock"
+		"components/service/crypto/provider/mbedcrypto/entropy_adapter/platform"
 		"components/service/crypto/provider/serializer/protobuf"
 		"components/service/crypto/provider/serializer/packed-c"
 		"components/service/secure_storage/client/psa"
@@ -56,12 +59,28 @@ target_sources(crypto-sp PRIVATE
 	crypto_sp.c
 )
 
-######################################################## Build protobuf files
+#-------------------------------------------------------------------------------
+#  Use the selected platform to provide drivers needed by the deployment
+#
+#-------------------------------------------------------------------------------
+# temporarily force platform - with this change, the build interface to
+# an external builder such as a Yocto recipe is unchanged.  Should remove
+# once the build interface is published.
+set(TS_PLATFORM "ts/mock" CACHE STRING "Overridden" FORCE)
+
+add_platform(TARGET "crypto-sp")
+
+#-------------------------------------------------------------------------------
+#  Components used from external projects
+#
+#-------------------------------------------------------------------------------
+
+# Nanopb
 include(../../../external/nanopb/nanopb.cmake)
 target_link_libraries(crypto-sp PRIVATE nanopb::protobuf-nanopb-static)
 protobuf_generate_all(TGT "crypto-sp" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protocols")
 
-################################################################# mbedcrypto
+# Mbedcrypto
 include(../../../external/mbed-crypto/mbedcrypto.cmake)
 target_link_libraries(crypto-sp PRIVATE mbedcrypto)
 

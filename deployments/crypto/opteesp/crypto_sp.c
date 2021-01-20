@@ -46,7 +46,8 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	/* Establish RPC session with secure storage SP */
 	storage_caller = ffarpc_caller_init(&ffarpc_caller);
 
-	if (!ffarpc_caller_discover(storage_uuid, storage_sp_ids, sizeof(storage_sp_ids)/sizeof(uint16_t)) ||
+	if (!ffarpc_caller_discover(storage_uuid, storage_sp_ids,
+								sizeof(storage_sp_ids)/sizeof(uint16_t)) ||
 		ffarpc_caller_open(&ffarpc_caller, storage_sp_ids[0], 0)) {
 		/*
 		 * Failed to establish session.  To allow the crypto service
@@ -59,7 +60,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	}
 
 	/* Initialize the crypto service */
-	crypto_iface = mbed_crypto_provider_init(&crypto_provider, storage_caller);
+	crypto_iface = mbed_crypto_provider_init(&crypto_provider, storage_caller, NULL);
 
 	mbed_crypto_provider_register_serializer(&crypto_provider,
                     TS_RPC_ENCODING_PROTOBUF, pb_crypto_provider_serializer_instance());

@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -22,6 +22,7 @@ set(ENV{TS_ROOT} "${TS_ROOT}")
 # Common utilities used by the build system
 include(${TS_ROOT}/tools/cmake/common/Utils.cmake REQUIRED)
 include(${TS_ROOT}/tools/cmake/common/AddComponents.cmake REQUIRED)
+include(${TS_ROOT}/tools/cmake/common/AddPlatform.cmake REQUIRED)
 
 # Check build environment requirements are met
 ts_verify_build_env()
@@ -30,4 +31,27 @@ ts_verify_build_env()
 set(TOP_LEVEL_INCLUDE_DIRS
   "${TS_ROOT}"
   "${TS_ROOT}/components"
+  )
+
+# Set platform provider root default to use if no commandline variable value has been specified.
+# The root path may be specified to allow an external project to provide platform definitions.
+if (DEFINED ENV{TS_PLATFORM_ROOT})
+  set(_default_platform_root ENV{TS_PLATFORM_ROOT})
+else()
+  set(_default_platform_root "${TS_ROOT}/platform/providers")
+endif()
+set(TS_PLATFORM_ROOT ${_default_platform_root} CACHE STRING "Platform provider path")
+
+# Set the default platform to use if no explict platform has been specified on the cmake commandline.
+if (DEFINED ENV{TS_PLATFORM})
+  set(_default_platform ENV{TS_PLATFORM})
+else()
+  set(_default_platform "ts/vanilla")
+endif()
+set(TS_PLATFORM ${_default_platform} CACHE STRING "Selected platform")
+
+# Custom property for defining platform feature dependencies based on components used in a deployment
+define_property(TARGET PROPERTY TS_PLATFORM_DRIVER_DEPENDENCIES
+  BRIEF_DOCS "List of platform driver interfaces used for a deployment."
+  FULL_DOCS "Used by the platform specific builder to specify a configuration for the built platform components."
   )
