@@ -27,7 +27,6 @@ add_components(
 	TARGET "ts-service-test"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
-		"components/app/test-runner"
 		"components/service/crypto/test/service"
 		"components/service/crypto/client/cpp"
 		"components/service/common/serializer/protobuf"
@@ -38,10 +37,6 @@ add_components(
 #  Components used from external projects
 #
 #-------------------------------------------------------------------------------
-
-# CppUTest
-include(${TS_ROOT}/external/CppUTest/CppUTest.cmake)
-target_link_libraries(ts-service-test PRIVATE CppUTest)
 
 # Nanopb
 include(${TS_ROOT}/external/nanopb/nanopb.cmake)

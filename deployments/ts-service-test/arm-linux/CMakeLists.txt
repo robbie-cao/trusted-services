@@ -18,6 +18,15 @@ project(trusted-services LANGUAGES CXX C)
 add_executable(ts-service-test)
 target_include_directories(ts-service-test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 
+add_components(
+	TARGET "ts-service-test"
+	BASE_DIR ${TS_ROOT}
+	COMPONENTS   "components/app/test-runner"
+ )
+
+include(${TS_ROOT}/external/CppUTest/CppUTest.cmake)
+target_link_libraries(ts-service-test PRIVATE CppUTest)
+
 #-------------------------------------------------------------------------------
 #  Extend with components that are common across all deployments of
 #  ts-service-test

@@ -14,7 +14,6 @@ add_components(
 	TARGET "component-test"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
-		"components/app/test-runner"
 		"components/app/ts-demo"
 		"components/app/ts-demo/test"
 		"components/common/uuid"
@@ -58,10 +57,6 @@ add_components(
 #  Components used from external projects
 #
 #-------------------------------------------------------------------------------
-
-# CppUTest
-include(${TS_ROOT}/external/CppUTest/CppUTest.cmake)
-target_link_libraries(component-test PRIVATE CppUTest)
 
 # Nanopb
 include(${TS_ROOT}/external/nanopb/nanopb.cmake)
