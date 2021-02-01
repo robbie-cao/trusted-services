@@ -3,10 +3,10 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <platform/interface/entropy.h>
+#include <platform/interface/trng.h>
 
 /*
- * A platform entropy driver that provides a mock implementation that
+ * A platform trng driver that provides a mock implementation that
  * always returns a fixed value.  Intended for test purposes only.
  */
 static int mock_poll(void *context, unsigned char *output, size_t nbyte, size_t *len)
@@ -24,11 +24,12 @@ static int mock_poll(void *context, unsigned char *output, size_t nbyte, size_t 
     return 0;
 }
 
-int ts_plat_entropy_create(struct ts_plat_entropy_driver *driver, void *config)
+int platform_trng_create(struct platform_trng_driver *driver,
+                            const struct device_region *device_region)
 {
-    static const struct ts_plat_entropy_iface iface =  { .poll = mock_poll };
+    static const struct platform_trng_iface iface =  { .poll = mock_poll };
 
-    (void)config;
+    (void)device_region;
 
     driver->context = NULL;
     driver->iface = &iface;
@@ -36,7 +37,7 @@ int ts_plat_entropy_create(struct ts_plat_entropy_driver *driver, void *config)
     return 0;
 }
 
-void ts_plat_entropy_destroy(struct ts_plat_entropy_driver *driver)
+void platform_trng_destroy(struct platform_trng_driver *driver)
 {
     (void)driver;
 }

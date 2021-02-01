@@ -3,6 +3,7 @@
  * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  */
 
+#include <config/ramstore/config_ramstore.h>
 #include <rpc/ffarpc/caller/sp/ffarpc_caller.h>
 #include <rpc/ffarpc/endpoint/ffarpc_call_ep.h>
 #include <rpc/dummy/dummy_caller.h>
@@ -43,6 +44,10 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 
 	if (sp_init(&own_id) != 0) goto fatal_error;
 
+	/* Read config data */
+	config_ramstore_init();
+	// ~ read here
+
 	/* Establish RPC session with secure storage SP */
 	storage_caller = ffarpc_caller_init(&ffarpc_caller);
 
@@ -60,7 +65,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	}
 
 	/* Initialize the crypto service */
-	crypto_iface = mbed_crypto_provider_init(&crypto_provider, storage_caller, NULL);
+	crypto_iface = mbed_crypto_provider_init(&crypto_provider, storage_caller, 0);
 
 	mbed_crypto_provider_register_serializer(&crypto_provider,
                     TS_RPC_ENCODING_PROTOBUF, pb_crypto_provider_serializer_instance());

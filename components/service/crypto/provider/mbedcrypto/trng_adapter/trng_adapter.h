@@ -3,8 +3,8 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef MBED_CRYPTO_ENTROPY_ADAPTER_H
-#define MBED_CRYPTO_ENTROPY_ADAPTER_H
+#ifndef MBED_CRYPTO_TRNG_ADAPTER_H
+#define MBED_CRYPTO_TRNG_ADAPTER_H
 
 /*
  * The build-time configuration of Mbed Crypto creates a dependency on a
@@ -20,21 +20,21 @@ extern "C" {
 #endif
 
 /**
- * \brief Initialise the entropy adapter
+ * \brief Initialise the trng adapter
  *
- * \param config    Entropy adapter specific configuration or NULL if none.
+ * \param instance    Deployment specific trng instance.
  *
  * \return          0 if successful.
  */
-int entropy_adapter_init(void *config);
+int trng_adapter_init(int instance);
 
 /**
- * \brief Cleans-up the entropy adapter.
+ * \brief Cleans-up the trng adapter.
  */
-void entropy_adapter_deinit(void);
+void trng_adapter_deinit();
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif /* MBED_CRYPTO_ENTROPY_ADAPTER_H */
+#endif /* MBED_CRYPTO_TRNG_ADAPTER_H */

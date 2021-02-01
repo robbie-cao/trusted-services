@@ -37,7 +37,7 @@ add_components(
 		"components/service/locator/standalone"
 		"components/service/locator/standalone/services/crypto"
 		"components/service/crypto/provider/mbedcrypto"
-		"components/service/crypto/provider/mbedcrypto/entropy_adapter/linux"
+		"components/service/crypto/provider/mbedcrypto/trng_adapter/linux"
 		"components/service/crypto/provider/serializer/protobuf"
 		"components/service/crypto/provider/serializer/packed-c"
 		"components/service/secure_storage/client/psa"

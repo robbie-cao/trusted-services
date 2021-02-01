@@ -4,28 +4,29 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef TS_PLATFORM_INTERFACE_ENTROPY_H
-#define TS_PLATFORM_INTERFACE_ENTROPY_H
+#ifndef TS_PLATFORM_INTERFACE_TRNG_H
+#define TS_PLATFORM_INTERFACE_TRNG_H
 
 /*
- * Interface definintion for a platform entropy driver.  A platform provider will
+ * Interface definintion for a platform trng driver.  A platform provider will
  * provide concrete implementations of this interface for each alternative
  * implementation supported.
  */
 #include <stddef.h>
+#include "device_region.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /*
- * Virtual interface for a platform entropy driver.  A platform will provide
+ * Virtual interface for a platform trng driver.  A platform will provide
  * one or more concrete implementations of this interface.
  */
-struct ts_plat_entropy_iface
+struct platform_trng_iface
 {
    /**
-    * \brief Poll for bytes of entropy from a platform entropy source
+    * \brief Poll for bytes of entropy from a platform trng
     *
     * \param context     Platform driver context
     * \param output      Buffer for output
@@ -38,33 +39,34 @@ struct ts_plat_entropy_iface
 };
 
 /*
- * A platform entropy driver instance.
+ * A platform trng driver instance.
  */
-struct ts_plat_entropy_driver
+struct platform_trng_driver
 {
     void *context;                              /**< Opaque driver context */
-    const struct ts_plat_entropy_iface *iface;  /**< Interface methods */
+    const struct platform_trng_iface *iface;  /**< Interface methods */
 };
 
 /**
- * \brief Factory method to construct a platform specific entropy driver
+ * \brief Factory method to construct a platform specific trng driver
  *
  * \param driver    Pointer to driver structure to initialize on construction.
- * \param config    Driver specific configuration or NULL if none.
+ * \param device_region Pointer a device region object or NULL if none.
  *
  * \return          0 if successful.
  */
-int ts_plat_entropy_create(struct ts_plat_entropy_driver *driver, void *config);
+int platform_trng_create(struct platform_trng_driver *driver,
+                           const struct device_region *device_region);
 
 /**
  * \brief Destroy a driver constructed using the factory method
  *
  * \param driver    Pointer to driver structure for constructed driver.
  */
-void ts_plat_entropy_destroy(struct ts_plat_entropy_driver *driver);
+void platform_trng_destroy(struct platform_trng_driver *driver);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* TS_PLATFORM_INTERFACE_ENTROPY_H */
+#endif /* TS_PLATFORM_INTERFACE_TRNG_H */

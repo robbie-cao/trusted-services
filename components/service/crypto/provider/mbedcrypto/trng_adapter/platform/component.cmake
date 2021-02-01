@@ -9,9 +9,9 @@ if (NOT DEFINED TGT)
 endif()
 
 target_sources(${TGT} PRIVATE
-	"${CMAKE_CURRENT_LIST_DIR}/platform_entropy_adapter.c"
+	"${CMAKE_CURRENT_LIST_DIR}/platform_trng_adapter.c"
 	)
 
 set_property(TARGET ${TGT} APPEND_STRING PROPERTY TS_PLATFORM_DRIVER_DEPENDENCIES
-	"entropy"
+	"trng"
 	)

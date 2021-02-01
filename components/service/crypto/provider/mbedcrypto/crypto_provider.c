@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <protocols/service/crypto/packed-c/opcodes.h>
 #include <service/crypto/provider/mbedcrypto/crypto_provider.h>
-#include <service/crypto/provider/mbedcrypto/entropy_adapter/entropy_adapter.h>
+#include <service/crypto/provider/mbedcrypto/trng_adapter/trng_adapter.h>
 #include <service/secure_storage/client/psa/its/its_client.h>
 #include <protocols/rpc/common/packed-c/status.h>
 #include <psa/crypto.h>
@@ -46,11 +46,11 @@ static const struct service_handler handler_table[] = {
 
 struct rpc_interface *mbed_crypto_provider_init(struct mbed_crypto_provider *context,
                                         struct rpc_caller *storage_provider,
-                                        void *entropy_adapter_config)
+                                        int trng_instance)
 {
     struct rpc_interface *rpc_interface = NULL;
 
-    entropy_adapter_init(entropy_adapter_config);
+    trng_adapter_init(trng_instance);
 
     /*
      * A storage provider is required for persistent key storage.  As this
@@ -76,7 +76,7 @@ struct rpc_interface *mbed_crypto_provider_init(struct mbed_crypto_provider *con
 void mbed_crypto_provider_deinit(struct mbed_crypto_provider *context)
 {
     (void)context;
-    entropy_adapter_deinit();
+    trng_adapter_deinit();
 }
 
 void mbed_crypto_provider_register_serializer(struct mbed_crypto_provider *context,

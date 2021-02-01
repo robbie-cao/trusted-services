@@ -26,9 +26,9 @@ void crypto_service_context::do_init()
 {
     struct rpc_interface *storage_ep = sfs_provider_init(&m_storage_provider);
     struct rpc_caller *storage_caller = direct_caller_init_default(&m_storage_caller,
-                                                                    storage_ep);
+                                                                storage_ep);
     struct rpc_interface *crypto_ep = mbed_crypto_provider_init(&m_crypto_provider,
-                                                                    storage_caller, NULL);
+                                                                storage_caller, 0);
 
     mbed_crypto_provider_register_serializer(&m_crypto_provider,
                     TS_RPC_ENCODING_PROTOBUF, pb_crypto_provider_serializer_instance());

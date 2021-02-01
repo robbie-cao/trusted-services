@@ -5,7 +5,9 @@
  */
 #include <mbedtls/entropy.h>
 #include <mbedtls/entropy_poll.h>
-#include <service/crypto/provider/mbedcrypto/entropy_adapter/entropy_adapter.h>
+#include <service/crypto/provider/mbedcrypto/trng_adapter/trng_adapter.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 #include <errno.h>
 #include <sys/syscall.h>
 #include <unistd.h>
@@ -15,13 +17,12 @@
  * function to the Linux getrandom system call.
  */
 
-int entropy_adapter_init(void *config)
+int trng_adapter_init(int instance)
 {
-    (void)config;
-    return 0;
+    (void)instance;
 }
 
-void entropy_adapter_deinit(void)
+void trng_adapter_deinit()
 {
 
 }

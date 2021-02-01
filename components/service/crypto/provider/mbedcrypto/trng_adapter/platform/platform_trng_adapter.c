@@ -5,25 +5,33 @@
  */
 #include <mbedtls/entropy.h>
 #include <mbedtls/entropy_poll.h>
-#include <platform/interface/entropy.h>
-#include <service/crypto/provider/mbedcrypto/entropy_adapter/entropy_adapter.h>
+#include <platform/interface/trng.h>
+#include <service/crypto/provider/mbedcrypto/trng_adapter/trng_adapter.h>
+#include <config/interface/platform_config.h>
 #include <stddef.h>
 
 /*
  * An mbed tls compatibile hardware entropy source that adapts the mbed tls hardware poll
- * function to a platform entropy driver.  The actual realization of the driver
+ * function to a platform trng driver.  The actual realization of the driver
  * will depend on the platform selected at build-time.
  */
-static struct ts_plat_entropy_driver driver = {0};
+static struct platform_trng_driver driver = {0};
 
-int entropy_adapter_init(void *config)
+int trng_adapter_init(int instance)
 {
-    return ts_plat_entropy_create(&driver, config);
+    int status;
+    struct device_region *device_region;
+
+    device_region = platform_config_device_query("trng", instance);
+    status = platform_trng_create(&driver, device_region);
+    platform_config_device_query_free(device_region);
+
+    return status;
 }
 
-void entropy_adapter_deinit(void)
+void trng_adapter_deinit()
 {
-    ts_plat_entropy_destroy(&driver);
+    platform_trng_destroy(&driver);
 
     driver.iface = NULL;
     driver.context = NULL;

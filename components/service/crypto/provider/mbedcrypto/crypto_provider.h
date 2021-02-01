@@ -35,7 +35,7 @@ struct mbed_crypto_provider
  */
 struct rpc_interface *mbed_crypto_provider_init(struct mbed_crypto_provider *context,
                                         struct rpc_caller *storage_provider,
-                                        void *entropy_adapter_config);
+                                        int trng_instance);
 
 /*
  * When operation of the provider is no longer required, this function

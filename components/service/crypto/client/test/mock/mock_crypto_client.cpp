@@ -34,7 +34,7 @@ bool mock_crypto_client::init()
                                                                 storage_ep);
 
         struct rpc_interface *crypto_ep = mbed_crypto_provider_init(&m_crypto_provider,
-                                                                storage_caller, NULL);
+                                                                storage_caller, 0);
         struct rpc_caller *crypto_caller = direct_caller_init_default(&m_crypto_caller,
                                                                 crypto_ep);
 

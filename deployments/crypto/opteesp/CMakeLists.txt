@@ -35,6 +35,7 @@ add_components(TARGET "crypto-sp"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/common/tlv"
+		"components/config/ramstore"
 		"components/messaging/ffa/libsp"
 		"components/rpc/ffarpc/endpoint"
 		"components/rpc/ffarpc/caller/sp"
@@ -45,7 +46,7 @@ add_components(TARGET "crypto-sp"
 		"components/service/common/serializer/protobuf"
 		"components/service/common/provider"
 		"components/service/crypto/provider/mbedcrypto"
-		"components/service/crypto/provider/mbedcrypto/entropy_adapter/platform"
+		"components/service/crypto/provider/mbedcrypto/trng_adapter/platform"
 		"components/service/crypto/provider/serializer/protobuf"
 		"components/service/crypto/provider/serializer/packed-c"
 		"components/service/secure_storage/client/psa"
@@ -66,7 +67,7 @@ target_sources(crypto-sp PRIVATE
 # temporarily force platform - with this change, the build interface to
 # an external builder such as a Yocto recipe is unchanged.  Should remove
 # once the build interface is published.
-set(TS_PLATFORM "ts/mock" CACHE STRING "Overridden" FORCE)
+set(TS_PLATFORM "arm/fvp/fvp_base_revc-2xaemv8a" CACHE STRING "Overridden" FORCE)
 
 add_platform(TARGET "crypto-sp")
 

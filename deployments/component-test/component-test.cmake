@@ -20,6 +20,8 @@ add_components(
 		"components/common/uuid/test"
 		"components/common/tlv"
 		"components/common/tlv/test"
+		"components/config/ramstore"
+		"components/config/ramstore/test"
 		"components/rpc/common/caller"
 		"components/rpc/common/interface"
 		"components/rpc/common/test/protocol"

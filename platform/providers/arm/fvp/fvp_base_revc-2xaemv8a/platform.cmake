@@ -13,6 +13,10 @@ get_property(_platform_driver_dependencies TARGET ${TGT}
 	PROPERTY TS_PLATFORM_DRIVER_DEPENDENCIES
 )
 
-target_sources(${TGT} PRIVATE
-	"${TS_ROOT}/platform/drivers/mock/mock_entropy.c"
-)
+#-------------------------------------------------------------------------------
+#  Map platform dependencies to suitable drivers for this platform
+#
+#-------------------------------------------------------------------------------
+if ("trng" IN_LIST _platform_driver_dependencies)
+	include(${TS_ROOT}/platform/drivers/arm/tztrng/driver.cmake)
+endif()
