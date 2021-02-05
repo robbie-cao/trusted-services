@@ -75,7 +75,7 @@ static void init_shmem_buf(struct ffa_call_ep *call_ep, uint16_t source_id,
 	struct sp_memory_descriptor desc = { };
 	struct sp_memory_access_descriptor acc_desc = { };
 	struct sp_memory_region region = { };
-	uint32_t in_region_count = 1;
+	uint32_t in_region_count = 0;
 	uint32_t out_region_count = 1;
 	uint64_t handle = 0;
 	rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
