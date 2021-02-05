@@ -226,7 +226,7 @@ int ffarpc_caller_open(struct ffarpc_caller *s, uint16_t dest_partition_id, uint
 	desc.mem_region_attr.normal_memory.shareability = sp_shareability_inner_shareable;
 
 	acc_desc.data_access = sp_data_access_read_write;
-	acc_desc.instruction_access = sp_instruction_access_not_executable;
+	acc_desc.instruction_access = sp_instruction_access_not_specified;
 	acc_desc.receiver_id = dest_partition_id;
 
 	region.address = shared_buffer;
