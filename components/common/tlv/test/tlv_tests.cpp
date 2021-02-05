@@ -76,6 +76,26 @@ TEST(TlvTests, findAndDecode)
     UNSIGNED_LONGS_EQUAL(1, decoded_record.length);
 }
 
+TEST(TlvTests, findAndDecodeMissingOptional)
+{
+    struct tlv_const_iterator iter;
+    struct tlv_record decoded_record;
+
+    /*
+     * Checks finding a missing record is correctly
+     * identified as not present but that the following
+     * record is found.
+     */
+    const uint8_t encoded_records[] = {
+        0x00, 0x07, 0x00, 0x02, 0x77, 0x77
+    };
+
+    tlv_const_iterator_begin(&iter, encoded_records, sizeof(encoded_records));
+    CHECK(!tlv_find_decode(&iter, 0x0001, &decoded_record));
+    CHECK(tlv_find_decode(&iter, 0x0007, &decoded_record));
+    CHECK_EQUAL(2, decoded_record.length);
+}
+
 TEST(TlvTests, decodeBadRecords)
 {
     struct tlv_const_iterator iter;

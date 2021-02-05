@@ -82,10 +82,13 @@ bool tlv_decode(struct tlv_const_iterator *iter, struct tlv_record *output)
 
 bool tlv_find_decode(struct tlv_const_iterator *iter, uint16_t tag, struct tlv_record *output)
 {
-    while (tlv_decode(iter, output)) {
+    struct tlv_const_iterator temp_iter = *iter;
+
+    while (tlv_decode(&temp_iter, output)) {
 
         if (output->tag == tag) {
-            /* Found a record  */
+            /* Found a record - update input iterator to next record */
+            *iter = temp_iter;
             return true;
         }
         else if (output->tag > tag) {

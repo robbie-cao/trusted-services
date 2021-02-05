@@ -64,6 +64,18 @@ unit_test_add_suite(
 target_include_directories(ts-service-test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 
 #-------------------------------------------------------------------------------
+#  Components that are specific to deployment in the linux-pc environment.
+#
+#-------------------------------------------------------------------------------
+add_components(
+	TARGET "ts-service-test"
+	BASE_DIR ${TS_ROOT}
+    COMPONENTS
+        "components/service/test_runner/client/cpp"
+		"components/service/test_runner/test/service"
+)
+
+#-------------------------------------------------------------------------------
 #  Extend with components that are common across all deployments of
 #  ts-service-test
 #

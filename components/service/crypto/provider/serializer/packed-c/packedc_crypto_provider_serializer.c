@@ -233,7 +233,7 @@ static rpc_status_t deserialize_import_key_req(const struct call_param_buf *req_
 
     if (expected_fixed_len <= req_buf->data_len) {
 
-        struct tlv_const_iterator resp_iter;
+        struct tlv_const_iterator req_iter;
         struct tlv_record decoded_record;
 
         rpc_status = TS_RPC_CALL_ACCEPTED;
@@ -241,11 +241,11 @@ static rpc_status_t deserialize_import_key_req(const struct call_param_buf *req_
         memcpy(&recv_msg, req_buf->data, expected_fixed_len);
         packedc_crypto_provider_translate_key_attributes(attributes, &recv_msg.attributes);
 
-        tlv_const_iterator_begin(&resp_iter,
+        tlv_const_iterator_begin(&req_iter,
             (uint8_t*)req_buf->data + expected_fixed_len,
             req_buf->data_len - expected_fixed_len);
 
-        if (tlv_find_decode(&resp_iter, TS_CRYPTO_IMPORT_KEY_IN_TAG_DATA, &decoded_record)) {
+        if (tlv_find_decode(&req_iter, TS_CRYPTO_IMPORT_KEY_IN_TAG_DATA, &decoded_record)) {
 
             if (decoded_record.length <= *data_len) {
 
@@ -296,7 +296,7 @@ static rpc_status_t deserialize_sign_hash_req(const struct call_param_buf *req_b
 
     if (expected_fixed_len <= req_buf->data_len) {
 
-        struct tlv_const_iterator resp_iter;
+        struct tlv_const_iterator req_iter;
         struct tlv_record decoded_record;
 
         rpc_status = TS_RPC_CALL_ACCEPTED;
@@ -306,11 +306,11 @@ static rpc_status_t deserialize_sign_hash_req(const struct call_param_buf *req_b
         *handle = recv_msg.handle;
         *alg = recv_msg.alg;
 
-        tlv_const_iterator_begin(&resp_iter,
+        tlv_const_iterator_begin(&req_iter,
             (uint8_t*)req_buf->data + expected_fixed_len,
             req_buf->data_len - expected_fixed_len);
 
-        if (tlv_find_decode(&resp_iter, TS_CRYPTO_SIGN_HASH_IN_TAG_HASH, &decoded_record)) {
+        if (tlv_find_decode(&req_iter, TS_CRYPTO_SIGN_HASH_IN_TAG_HASH, &decoded_record)) {
 
             if (decoded_record.length <= *hash_len) {
 
@@ -365,7 +365,7 @@ static rpc_status_t deserialize_verify_hash_req(const struct call_param_buf *req
 
     if (expected_fixed_len <= req_buf->data_len) {
 
-        struct tlv_const_iterator resp_iter;
+        struct tlv_const_iterator req_iter;
         struct tlv_record decoded_record;
 
         rpc_status = TS_RPC_CALL_ACCEPTED;
@@ -375,11 +375,11 @@ static rpc_status_t deserialize_verify_hash_req(const struct call_param_buf *req
         *handle = recv_msg.handle;
         *alg = recv_msg.alg;
 
-        tlv_const_iterator_begin(&resp_iter,
+        tlv_const_iterator_begin(&req_iter,
             (uint8_t*)req_buf->data + expected_fixed_len,
             req_buf->data_len - expected_fixed_len);
 
-        if (tlv_find_decode(&resp_iter, TS_CRYPTO_VERIFY_HASH_IN_TAG_HASH, &decoded_record)) {
+        if (tlv_find_decode(&req_iter, TS_CRYPTO_VERIFY_HASH_IN_TAG_HASH, &decoded_record)) {
 
             if (decoded_record.length <= *hash_len) {
 
@@ -396,7 +396,7 @@ static rpc_status_t deserialize_verify_hash_req(const struct call_param_buf *req
             *hash_len = 0;
         }
 
-        if (tlv_find_decode(&resp_iter, TS_CRYPTO_VERIFY_HASH_IN_TAG_SIGNATURE, &decoded_record)) {
+        if (tlv_find_decode(&req_iter, TS_CRYPTO_VERIFY_HASH_IN_TAG_SIGNATURE, &decoded_record)) {
 
             if (decoded_record.length <= *sig_len) {
 
@@ -429,7 +429,7 @@ static rpc_status_t deserialize_asymmetric_decrypt_req(const struct call_param_b
 
     if (expected_fixed_len <= req_buf->data_len) {
 
-        struct tlv_const_iterator resp_iter;
+        struct tlv_const_iterator req_iter;
         struct tlv_record decoded_record;
 
         rpc_status = TS_RPC_CALL_ACCEPTED;
@@ -439,11 +439,11 @@ static rpc_status_t deserialize_asymmetric_decrypt_req(const struct call_param_b
         *handle = recv_msg.handle;
         *alg = recv_msg.alg;
 
-        tlv_const_iterator_begin(&resp_iter,
+        tlv_const_iterator_begin(&req_iter,
             (uint8_t*)req_buf->data + expected_fixed_len,
             req_buf->data_len - expected_fixed_len);
 
-        if (tlv_find_decode(&resp_iter, TS_CRYPTO_ASYMMETRIC_DECRYPT_IN_TAG_CIPHERTEXT, &decoded_record)) {
+        if (tlv_find_decode(&req_iter, TS_CRYPTO_ASYMMETRIC_DECRYPT_IN_TAG_CIPHERTEXT, &decoded_record)) {
 
             if (decoded_record.length <= *ciphertext_len) {
 
@@ -460,7 +460,7 @@ static rpc_status_t deserialize_asymmetric_decrypt_req(const struct call_param_b
             *ciphertext_len = 0;
         }
 
-        if (tlv_find_decode(&resp_iter, TS_CRYPTO_ASYMMETRIC_DECRYPT_IN_TAG_SALT, &decoded_record)) {
+        if (tlv_find_decode(&req_iter, TS_CRYPTO_ASYMMETRIC_DECRYPT_IN_TAG_SALT, &decoded_record)) {
 
             if (decoded_record.length <= *salt_len) {
 
@@ -515,7 +515,7 @@ static rpc_status_t deserialize_asymmetric_encrypt_req(const struct call_param_b
 
     if (expected_fixed_len <= req_buf->data_len) {
 
-        struct tlv_const_iterator resp_iter;
+        struct tlv_const_iterator req_iter;
         struct tlv_record decoded_record;
 
         rpc_status = TS_RPC_CALL_ACCEPTED;
@@ -525,11 +525,11 @@ static rpc_status_t deserialize_asymmetric_encrypt_req(const struct call_param_b
         *handle = recv_msg.handle;
         *alg = recv_msg.alg;
 
-        tlv_const_iterator_begin(&resp_iter,
+        tlv_const_iterator_begin(&req_iter,
             (uint8_t*)req_buf->data + expected_fixed_len,
             req_buf->data_len - expected_fixed_len);
 
-        if (tlv_find_decode(&resp_iter, TS_CRYPTO_ASYMMETRIC_ENCRYPT_IN_TAG_PLAINTEXT, &decoded_record)) {
+        if (tlv_find_decode(&req_iter, TS_CRYPTO_ASYMMETRIC_ENCRYPT_IN_TAG_PLAINTEXT, &decoded_record)) {
 
             if (decoded_record.length <= *plaintext_len) {
 
@@ -546,7 +546,7 @@ static rpc_status_t deserialize_asymmetric_encrypt_req(const struct call_param_b
             *plaintext_len = 0;
         }
 
-        if (tlv_find_decode(&resp_iter, TS_CRYPTO_ASYMMETRIC_ENCRYPT_IN_TAG_SALT, &decoded_record)) {
+        if (tlv_find_decode(&req_iter, TS_CRYPTO_ASYMMETRIC_ENCRYPT_IN_TAG_SALT, &decoded_record)) {
 
             if (decoded_record.length <= *salt_len) {
 
