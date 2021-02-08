@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef CPPUTEST_TEST_RUNNER_BACKEND_H
-#define CPPUTEST_TEST_RUNNER_BACKEND_H
+#ifndef TEST_RUNNER_BACKEND_H
+#define TEST_RUNNER_BACKEND_H
 
 #include <stddef.h>
 #include <service/test_runner/common/test_runner.h>
@@ -50,4 +50,4 @@ void test_runner_register_default_backend(struct test_runner_provider *context);
 } /* extern "C" */
 #endif
 
-#endif /* CPPUTEST_TEST_RUNNER_BACKEND_H */
+#endif /* TEST_RUNNER_BACKEND_H */

@@ -44,7 +44,7 @@ add_components(TARGET "env_test"
 		"components/service/common/provider"
 		"components/service/test_runner/provider"
 		"components/service/test_runner/provider/serializer/packed-c"
-		"components/service/test_runner/provider/backend/mock"
+		"components/service/test_runner/provider/backend/null"
 		"protocols/rpc/common/packed-c"
 		"environments/opteesp"
 )

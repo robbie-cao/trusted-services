@@ -48,6 +48,7 @@ add_components(
 		"components/service/test_runner/provider"
 		"components/service/test_runner/provider/serializer/packed-c"
 		"components/service/test_runner/provider/backend/mock"
+		"components/service/test_runner/provider/backend/simple_c"
 		"protocols/rpc/common/packed-c"
 		"protocols/service/crypto/packed-c"
 		"protocols/service/crypto/protobuf"
