@@ -8,8 +8,18 @@
 #include <string.h>
 
 /* Mock test test functions */
-static bool test_that_passes(void)  { return true; }
-static bool test_that_fails(void)   { return false; }
+static bool test_that_passes(struct test_failure *failure)
+{
+    (void)failure;
+    return true;
+}
+
+static bool test_that_fails(struct test_failure *failure)
+{
+    failure->line_num = __LINE__;
+    failure->info = 27;
+    return false;
+}
 
 /**
  * The mock backend is a test_runner that provides some mock test cases

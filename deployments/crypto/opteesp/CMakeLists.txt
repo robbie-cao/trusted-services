@@ -36,6 +36,7 @@ add_components(TARGET "crypto-sp"
 	COMPONENTS
 		"components/common/tlv"
 		"components/config/ramstore"
+		"components/config/loader/sp"
 		"components/messaging/ffa/libsp"
 		"components/rpc/ffarpc/endpoint"
 		"components/rpc/ffarpc/caller/sp"

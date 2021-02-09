@@ -18,5 +18,5 @@ get_property(_platform_driver_dependencies TARGET ${TGT}
 #
 #-------------------------------------------------------------------------------
 if ("trng" IN_LIST _platform_driver_dependencies)
-	include(${TS_ROOT}/platform/drivers/arm/tztrng/driver.cmake)
+	include(${TS_ROOT}/platform/drivers/arm/juno_trng/driver.cmake)
 endif()

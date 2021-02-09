@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <mbedtls/entropy.h>
-#include <mbedtls/entropy_poll.h>
 #include <platform/interface/trng.h>
 #include <service/crypto/provider/mbedcrypto/trng_adapter/trng_adapter.h>
 #include <config/interface/platform_config.h>

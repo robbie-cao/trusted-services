@@ -8,11 +8,13 @@
 #include <service/test_runner/provider/test_runner_provider.h>
 #include <service/test_runner/provider/serializer/packed-c/packedc_test_runner_provider_serializer.h>
 #include <protocols/rpc/common/packed-c/status.h>
+#include <config/ramstore/config_ramstore.h>
+#include <config/loader/sp/sp_config_loader.h>
 #include <ffa_api.h>
 #include <sp_api.h>
 #include <sp_rxtx.h>
 #include <trace.h>
-#include "env_test_config.h"
+#include "env_test_tests.h"
 
 
 uint16_t own_id = 0; /* !!Needs refactoring as parameter to ffarpc_caller_init */
@@ -33,13 +35,16 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 
 	if (sp_init(&own_id) != 0) goto fatal_error;
 
-	load_sp_config(init_info);
+	config_ramstore_init();
+	sp_config_load(init_info);
 
 	/* Initialize the test_runner service */
 	test_runner_iface = test_runner_provider_init(&test_runner_provider);
 
 	test_runner_provider_register_serializer(&test_runner_provider,
             TS_RPC_ENCODING_PACKED_C, packedc_test_runner_provider_serializer_instance());
+
+	env_test_register_tests(&test_runner_provider);
 
 	ffa_call_ep_init(&ffarpc_call_ep, test_runner_iface);
 

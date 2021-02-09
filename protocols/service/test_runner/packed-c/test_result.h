@@ -42,17 +42,27 @@ enum
 struct __attribute__ ((__packed__)) ts_test_runner_test_result
 {
   uint32_t run_state;
-  uint32_t fail_line;
 };
 
 /* Variable length output parameter tags */
 enum
 {
     /* The name of the test */
-    TS_TEST_RUNNER_TEST_RESULT_TAG_NAME  = 1,
+    TS_TEST_RUNNER_TEST_RESULT_TAG_NAME = 1,
 
     /* The group the test belongs to */
-    TS_TEST_RUNNER_TEST_RESULT_TAG_GROUP  = 2
+    TS_TEST_RUNNER_TEST_RESULT_TAG_GROUP = 2,
+
+    /* Test failure recorded, optionally included on failure */
+    TS_TEST_RUNNER_TEST_RESULT_TAG_FAILURE = 3
 };
+
+/* Test failure fixed sized structure */
+struct __attribute__ ((__packed__)) ts_test_runner_test_failure
+{
+  uint32_t line_num;
+  uint64_t info;
+};
+
 
 #endif /* TS_TEST_RUNNER_TEST_RESULT */

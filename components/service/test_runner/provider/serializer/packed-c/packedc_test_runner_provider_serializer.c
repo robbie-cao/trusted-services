@@ -55,6 +55,8 @@ static uint8_t *serialize_test_result(const struct test_result *result, size_t *
 
     if (name_len)   required_space += tlv_required_space(name_len);
     if (group_len)  required_space += tlv_required_space(group_len);
+    if (result->run_state == TEST_RUN_STATE_FAILED)
+        required_space += tlv_required_space(sizeof(struct ts_test_runner_test_failure));
 
     *serialized_len = required_space;
 
@@ -64,7 +66,6 @@ static uint8_t *serialize_test_result(const struct test_result *result, size_t *
 
         struct ts_test_runner_test_result result_msg;
         result_msg.run_state = result->run_state;
-        result_msg.fail_line = result->fail_line;
 
         memcpy(out_buf, &result_msg, fixed_len);
 
@@ -86,6 +87,19 @@ static uint8_t *serialize_test_result(const struct test_result *result, size_t *
             record.tag = TS_TEST_RUNNER_TEST_RESULT_TAG_GROUP;
             record.length = group_len;
             record.value = result->group;
+            tlv_encode(&tlv_iter, &record);
+        }
+
+        if (result->run_state == TEST_RUN_STATE_FAILED) {
+
+            struct ts_test_runner_test_failure serialized_failure;
+            serialized_failure.line_num = result->failure.line_num;
+            serialized_failure.info = result->failure.info;
+
+            struct tlv_record record;
+            record.tag = TS_TEST_RUNNER_TEST_RESULT_TAG_FAILURE;
+            record.length = sizeof(serialized_failure);
+            record.value = (const uint8_t*)&serialized_failure;
             tlv_encode(&tlv_iter, &record);
         }
     }

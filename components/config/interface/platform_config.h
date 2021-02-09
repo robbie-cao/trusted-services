@@ -46,6 +46,13 @@ void platform_config_device_query_free(struct device_region *device_region);
  */
 int platform_config_device_add(const struct device_region *device_region);
 
+/**
+ * \brief Returns a count of the number of device regions
+ *
+ * \return          0 if successful
+ */
+unsigned int platform_config_device_region_count(void);
+
 
 #ifdef __cplusplus
 }

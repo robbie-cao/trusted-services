@@ -128,6 +128,7 @@ TEST(TestRunnerServiceTests, runAllTests)
     CHECK(strcmp(results[2].group, "ConfigTests") == 0);
     CHECK(strcmp(results[2].name, "ValidateConfig") == 0);
     CHECK_EQUAL(TEST_RUN_STATE_FAILED, results[2].run_state);
+    CHECK_EQUAL(27, results[2].failure.info);
 
     CHECK(strcmp(results[3].group, "ConfigTests") == 0);
     CHECK(strcmp(results[3].name, "ApplyConfig") == 0);

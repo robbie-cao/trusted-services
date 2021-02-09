@@ -211,9 +211,9 @@ int test_runner_client::deserialize_result(
         memcpy(&packed_result, value_buf, fixed_size);
 
         result.run_state = (enum test_run_state)packed_result.run_state;
-        result.fail_line = packed_result.fail_line;
         result.name[0] = 0;
         result.group[0] = 0;
+        result.failure = {0};
 
         /* Deserialize name and group if present */
         struct tlv_const_iterator req_iter;
@@ -236,6 +236,17 @@ int test_runner_client::deserialize_result(
 
                 memcpy(result.group, decoded_record.value, decoded_record.length);
                 result.group[decoded_record.length] = 0;
+            }
+        }
+
+        if (tlv_find_decode(&req_iter, TS_TEST_RUNNER_TEST_RESULT_TAG_FAILURE, &decoded_record)) {
+
+            if (decoded_record.length == sizeof(ts_test_runner_test_failure)) {
+
+                struct ts_test_runner_test_failure deserialized_failure;
+                memcpy(&deserialized_failure, decoded_record.value, decoded_record.length);
+                result.failure.line_num = deserialized_failure.line_num;
+                result.failure.info = deserialized_failure.info;
             }
         }
     }

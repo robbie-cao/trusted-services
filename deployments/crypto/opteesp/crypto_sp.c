@@ -3,7 +3,6 @@
  * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  */
 
-#include <config/ramstore/config_ramstore.h>
 #include <rpc/ffarpc/caller/sp/ffarpc_caller.h>
 #include <rpc/ffarpc/endpoint/ffarpc_call_ep.h>
 #include <rpc/dummy/dummy_caller.h>
@@ -12,6 +11,8 @@
 #include <service/crypto/provider/serializer/protobuf/pb_crypto_provider_serializer.h>
 #include <service/crypto/provider/serializer/packed-c/packedc_crypto_provider_serializer.h>
 #include <protocols/rpc/common/packed-c/status.h>
+#include <config/ramstore/config_ramstore.h>
+#include <config/loader/sp/sp_config_loader.h>
 #include <ffa_api.h>
 #include <sp_api.h>
 #include <sp_rxtx.h>
@@ -44,9 +45,8 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 
 	if (sp_init(&own_id) != 0) goto fatal_error;
 
-	/* Read config data */
 	config_ramstore_init();
-	// ~ read here
+	sp_config_load(init_info);
 
 	/* Establish RPC session with secure storage SP */
 	storage_caller = ffarpc_caller_init(&ffarpc_caller);

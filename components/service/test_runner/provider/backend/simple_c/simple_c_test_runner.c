@@ -80,11 +80,12 @@ static int test_iterate(const struct test_spec *spec, bool list_only,
                 if (does_qualify(spec->name, test_case->name)) {
 
                     enum test_run_state run_state = TEST_RUN_STATE_NOT_RUN;
+                    struct test_failure failure = {0};
 
                     /* Run the qualifying test case if we're not just listing tests */
                     if (!list_only) {
 
-                        if (test_case->test_func()) {
+                        if (test_case->test_func(&failure)) {
 
                             run_state = TEST_RUN_STATE_PASSED;
                             ++summary->num_passed;
@@ -102,7 +103,7 @@ static int test_iterate(const struct test_spec *spec, bool list_only,
                         struct test_result *new_result = &results[summary->num_results];
 
                         new_result->run_state = run_state;
-                        new_result->fail_line = 0;
+                        new_result->failure = failure;
                         strcpy(new_result->group, test_group->group);
                         strcpy(new_result->name, test_case->name);
 

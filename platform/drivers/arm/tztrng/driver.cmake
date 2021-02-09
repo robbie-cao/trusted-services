@@ -65,4 +65,4 @@ target_link_libraries(${TGT} PRIVATE ${_arm-tztrng_genlib})
 add_dependencies(${TGT} libcc_tztrng)
 
 # Add adapter to map platform trng interface to tz-trng driver
-target_sources(${TGT} PRIVATE "${CMAKE_CURRENT_LIST_DIR}/tztrng_trng.c")
+target_sources(${TGT} PRIVATE "${CMAKE_CURRENT_LIST_DIR}/tztrng_adapter.c")

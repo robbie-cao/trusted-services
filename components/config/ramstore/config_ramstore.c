@@ -114,3 +114,18 @@ void platform_config_device_query_free(struct device_region *device_region)
 {
 	free(device_region);
 }
+
+unsigned int platform_config_device_region_count(void)
+{
+	unsigned int count = 0;
+
+	const struct config_container *container = ramstore.device_region_list;
+
+	while (container) {
+
+		++count;
+		container = container->next;
+	}
+
+	return count;
+}

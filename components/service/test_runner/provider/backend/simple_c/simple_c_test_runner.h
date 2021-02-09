@@ -7,6 +7,7 @@
 #ifndef SIMPLE_C_TEST_RUNNER_H
 #define SIMPLE_C_TEST_RUNNER_H
 
+#include <service/test_runner/common/test_runner.h>
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -30,7 +31,7 @@ struct simple_c_test_case
 	const char *name;
 
 	/* The test function that results true for a pass, false for a fail. */
-	bool (*test_func)(void);
+	bool (*test_func)(struct test_failure *test_failure);
 };
 
 /**

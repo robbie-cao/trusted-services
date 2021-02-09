@@ -38,7 +38,7 @@ TEST(ConfigRamstoreTests, checkSingleConfig)
     /* This would be external configuration, obtained say from device tree */
     strcpy(config.dev_class, "fs");
     config.dev_instance = 2;
-    config.base_addr = (uint8_t*)0x0f000010;
+    config.base_addr = (uintptr_t)0x0f000010;
     config.io_region_size = 0x100;
 
     /* Add the configuration object */
@@ -65,7 +65,7 @@ TEST(ConfigRamstoreTests, checkMultipleConfig)
 
     strcpy(config1.dev_class, "flash");
     config1.dev_instance = 0;
-    config1.base_addr = (uint8_t*)0x0f000010;
+    config1.base_addr = (uintptr_t)0x0f000010;
     config1.io_region_size = 0x100;
 
     status = platform_config_device_add(&config1);
@@ -76,11 +76,13 @@ TEST(ConfigRamstoreTests, checkMultipleConfig)
 
     strcpy(config2.dev_class, "flash");
     config2.dev_instance = 1;
-    config2.base_addr = (uint8_t*)0x0f000010;
+    config2.base_addr = (uintptr_t)0x0f000010;
     config2.io_region_size = 0x100;
 
     status = platform_config_device_add(&config2);
     CHECK_EQUAL(0, status);
+
+    CHECK_EQUAL(2, platform_config_device_region_count());
 
     /* Expect queries for both objects to work */
     struct device_region *query1_result = platform_config_device_query(config1.dev_class, config1.dev_instance);

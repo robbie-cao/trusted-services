@@ -15,7 +15,7 @@ include(../../deployment.cmake REQUIRED)
 #  test cases.
 #-------------------------------------------------------------------------------
 include(${TS_ROOT}/environments/opteesp/env.cmake)
-project(trusted-services LANGUAGES C CXX ASM)
+project(trusted-services LANGUAGES C ASM)
 add_executable(env_test)
 target_include_directories(env_test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID "33c75baf-ac6a-4fe4-8ac7-e9909bee2d17")
@@ -35,23 +35,26 @@ target_link_libraries(env_test PRIVATE ${SP_DEV_KIT_LIBRARIES})
 add_components(TARGET "env_test"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
-		"components/common/tlv"
-		"components/config/ramstore"
+		"components/config/loader/sp"
 		"components/messaging/ffa/libsp"
 		"components/rpc/ffarpc/endpoint"
-		"components/rpc/common/interface"
-		"components/service/common"
-		"components/service/common/provider"
-		"components/service/test_runner/provider"
-		"components/service/test_runner/provider/serializer/packed-c"
-		"components/service/test_runner/provider/backend/null"
-		"protocols/rpc/common/packed-c"
+		"components/config/test/sp"
 		"environments/opteesp"
 )
 
+#-------------------------------------------------------------------------------
+#  Extend with components that are common across all deployments of
+#  env_test
+#
+#-------------------------------------------------------------------------------
+include(../env_test.cmake REQUIRED)
+
+#-------------------------------------------------------------------------------
+#  Deployment specific source files
+#-------------------------------------------------------------------------------
 target_sources(env_test PRIVATE
 	env_test.c
-	env_test_config.c
+	env_test_tests.c
 )
 
 #-------------------------------------------------------------------------------
@@ -62,11 +65,6 @@ target_sources(env_test PRIVATE
 set(TS_PLATFORM "arm/fvp/fvp_base_revc-2xaemv8a" CACHE STRING "Overridden" FORCE)
 
 add_platform(TARGET "env_test")
-
-#-------------------------------------------------------------------------------
-#  Components used from external projects
-#
-#-------------------------------------------------------------------------------
 
 if(CMAKE_CROSSCOMPILING)
 	target_link_libraries(env_test PRIVATE stdc++ gcc m)

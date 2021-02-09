@@ -136,6 +136,8 @@ void remote_test_runner::output_results(const struct test_summary &summary,
         else if (results[i].run_state == TEST_RUN_STATE_FAILED) {
 
             printf("error\n");
+            printf("\tline number: %d\n", results[i].failure.line_num);
+            printf("\tinfo: 0x%016lx\n", results[i].failure.info);
         }
         else {
 

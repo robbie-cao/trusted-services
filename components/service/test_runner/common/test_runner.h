@@ -4,10 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef CPPUTEST_TEST_RUNNER_H
-#define CPPUTEST_TEST_RUNNER_H
+#ifndef TEST_RUNNER_H
+#define TEST_RUNNER_H
 
 #include <protocols/service/test_runner/packed-c/test_result.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,10 +34,10 @@ struct test_spec
  */
 struct test_summary
 {
-	int num_tests;		/* Number of qualifying tests */
-	int num_results;	/* Number of available test result objects */
-	int num_passed;		/* Number that ran and passed */
-	int num_failed;		/* Number that ran and failed */
+	unsigned int num_tests;		/* Number of qualifying tests */
+	unsigned int num_results;	/* Number of available test result objects */
+	unsigned int num_passed;	/* Number that ran and passed */
+	unsigned int num_failed;	/* Number that ran and failed */
 };
 
 /**
@@ -50,6 +51,15 @@ enum test_run_state
 };
 
 /**
+ * Test failue to describe a failure
+ */
+struct test_failure
+{
+	unsigned int line_num;		/* Source line where test assertion failed */
+	uint64_t info;				/* Provides test specific information about the failure */
+};
+
+/**
  * The result for a particular test case.
  */
 struct test_result
@@ -57,11 +67,11 @@ struct test_result
 	char name[TEST_NAME_MAX_LEN];
 	char group[TEST_GROUP_MAX_LEN];
 	enum test_run_state run_state;
-	unsigned int fail_line;
+	struct test_failure failure;
 };
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif /* CPPUTEST_TEST_RUNNER_H */
+#endif /* TEST_RUNNER_H */
