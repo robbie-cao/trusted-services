@@ -15,6 +15,7 @@ target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/ffa_memory_descriptors.c"
 	"${CMAKE_CURRENT_LIST_DIR}/sp_discovery.c"
 	"${CMAKE_CURRENT_LIST_DIR}/sp_memory_management.c"
+	"${CMAKE_CURRENT_LIST_DIR}/sp_messaging.c"
 	"${CMAKE_CURRENT_LIST_DIR}/sp_rxtx.c"
 	)
 
@@ -29,6 +30,7 @@ set_property(TARGET ${TGT} PROPERTY PUBLIC_HEADER
 	${CMAKE_CURRENT_LIST_DIR}/include/sp_api_types.h
 	${CMAKE_CURRENT_LIST_DIR}/include/sp_discovery.h
 	${CMAKE_CURRENT_LIST_DIR}/include/sp_memory_management.h
+	${CMAKE_CURRENT_LIST_DIR}/include/sp_messaging.h
 	${CMAKE_CURRENT_LIST_DIR}/include/sp_rxtx.h
 	)
 
