@@ -1,10 +1,12 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
 #-------------------------------------------------------------------------------
-set(ENV{CROSS_COMPILE} "aarch64-linux-gnu-;aarch64-none-linux-gnu-")
+if(NOT CROSS_COMPILE AND NOT DEFINED ENV{CROSS_COMPILE})
+        set(CROSS_COMPILE "aarch64-elf-;aarch64-none-elf-;aarch64-linux-gnu-" CACHE STRING "List of GCC prefix triplets to use.")
+endif()
 
 set(CMAKE_CROSSCOMPILING True)
 set(CMAKE_SYSTEM_NAME Linux)
