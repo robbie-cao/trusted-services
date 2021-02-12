@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -112,14 +112,15 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "location to install build output to." FORCE)
 endif()
 #TODO: api headers
+
 install(TARGETS crypto-sp
-			PUBLIC_HEADER DESTINATION include
-			RUNTIME DESTINATION bin
+			PUBLIC_HEADER DESTINATION ${TS_ENV}/include
+			RUNTIME DESTINATION ${TS_ENV}/bin
 		)
-install(FILES ${STRIPPED_ELF} DESTINATION bin)
+install(FILES ${STRIPPED_ELF} DESTINATION ${TS_ENV}/bin)
 
 get_property(_PROTO_FILES TARGET crypto-sp PROPERTY PROTOBUF_FILES)
-install(FILES ${_PROTO_FILES} DESTINATION lib/protobuf)
+install(FILES ${_PROTO_FILES} DESTINATION ${TS_ENV}/lib/protobuf)
 
 
 set(EXPORT_SP_NAME "crypto")

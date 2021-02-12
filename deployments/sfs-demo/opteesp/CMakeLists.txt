@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -88,5 +88,5 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "location to install build output to." FORCE)
 endif()
 #TODO: API header, protobuf files?
-install(TARGETS sfs-demo DESTINATION bin)
-install(FILES ${STRIPPED_ELF} DESTINATION bin)
+install(TARGETS sfs-demo DESTINATION ${TS_ENV}/bin)
+install(FILES ${STRIPPED_ELF} DESTINATION ${TS_ENV}/bin)

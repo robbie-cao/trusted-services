@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -66,9 +66,9 @@ install(
 	EXPORT
 		LibspTargets
 	ARCHIVE	DESTINATION
-		lib
+		${TS_ENV}/lib
 	PUBLIC_HEADER DESTINATION
-		include
+		${TS_ENV}/include
 	COMPONENT
 		libsp
 )
@@ -77,7 +77,7 @@ install(
 #install(FILES $<TARGET_PROPERTY:sp_devkit_ifc,INTERFACE_LINK_LIBRARIES> DESTINATION lib)
 #install(FILES $<TARGET_PROPERTY:sp_devkit_ifc,INTERFACE_INCLUDE_DIRECTORIES>/ DESTINATION include)
 ### Create a config file package.
-set(ConfigPackageLocation lib/cmake/libsp)
+set(ConfigPackageLocation ${TS_ENV}/lib/cmake/libsp)
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(

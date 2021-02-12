@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -43,7 +43,7 @@ if (_exec_error)
 endif()
 
 # Import the built library
-include(${LIBTS_INSTALL_PATH}/lib/cmake/libts_targets.cmake)
+include(${LIBTS_INSTALL_PATH}/${TS_ENV}/lib/cmake/libts_targets.cmake)
 add_library(libts SHARED IMPORTED)
-set_property(TARGET libts PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${LIBTS_INSTALL_PATH}/include")
-set_property(TARGET libts PROPERTY IMPORTED_LOCATION "${LIBTS_INSTALL_PATH}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}ts${CMAKE_SHARED_LIBRARY_SUFFIX}")
+set_property(TARGET libts PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${LIBTS_INSTALL_PATH}/${TS_ENV}/include")
+set_property(TARGET libts PROPERTY IMPORTED_LOCATION "${LIBTS_INSTALL_PATH}/${TS_ENV}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}ts${CMAKE_SHARED_LIBRARY_SUFFIX}")

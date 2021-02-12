@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -48,17 +48,17 @@ function(export_library)
 		TARGETS ${MY_PARAMS_TARGET}
 		EXPORT ${MY_PARAMS_LIB_NAME}_targets
 		ARCHIVE
-			DESTINATION lib
+			DESTINATION ${TS_ENV}/lib
 		LIBRARY
-			DESTINATION lib
+			DESTINATION ${TS_ENV}/lib
 		PUBLIC_HEADER
-			DESTINATION include
+			DESTINATION ${TS_ENV}/include
 	)
 
 	# Install library header files files
 	install(
 		FILES ${MY_PARAMS_INTERFACE_FILES}
-		DESTINATION include
+		DESTINATION ${TS_ENV}/include
 	)
 
 	# Install the export details
@@ -66,7 +66,7 @@ function(export_library)
 		EXPORT ${MY_PARAMS_LIB_NAME}_targets
 		FILE ${MY_PARAMS_LIB_NAME}_targets.cmake
 		NAMESPACE ${MY_PARAMS_LIB_NAME}::
-		DESTINATION lib/cmake
+		DESTINATION ${TS_ENV}/lib/cmake
 		COMPONENT ${MY_PARAMS_LIB_NAME}
 	)
 endfunction()
