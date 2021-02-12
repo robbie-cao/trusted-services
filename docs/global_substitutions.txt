@@ -1,0 +1,20 @@
+.. |C_PICKER| replace:: :term:`c-picker`
+.. |TFA_MAIL_LIST| replace:: `TF-A development`_
+.. |TS_MAIL_LIST| replace:: `TS Mailing List`_
+.. |TS_REPO| replace:: `TS repository`_
+.. |C_PICKER_REPO| replace:: `c-picker repository`_
+.. |REST| replace:: reST
+.. |SEMVER| replace:: `Semantic Versioning`_
+
+.. _`TF-A development`: https://lists.trustedfirmware.org/pipermail/tf-a/
+.. _`TS Mailing List`: https://lists.trustedfirmware.org/mailman/listinfo/trusted-services
+.. _`c-picker repository`: https://review.trustedfirmware.org/admin/repos/shared/c-picker
+.. _`TS repository`: https://review.trustedfirmware.org/admin/repos/TS/trusted-services
+.. _`Semantic Versioning`: https://semver.org/spec/v2.0.0.html
+
+..
+    --------------
+
+    *Copyright (c) 2019-2021, Arm Limited. All rights reserved.*
+
+    SPDX-License-Identifier: BSD-3-Clause
