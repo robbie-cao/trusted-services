@@ -8,8 +8,8 @@
 #include <ffa_api.h>
 #include <components/rpc/common/endpoint/rpc_interface.h>
 #include <components/rpc/ffarpc/endpoint/ffarpc_call_ep.h>
-#include <components/service/secure_storage/provider/secure_flash_store/sfs_provider.h>
-#include <components/service/common/provider/service_provider.h>
+#include <components/service/secure_storage/backend/secure_flash_store/secure_flash_store.h>
+#include <components/service/secure_storage/frontend/secure_storage_provider/secure_storage_provider.h>
 #include <sp_api.h>
 #include <sp_rxtx.h>
 #include <trace.h>
@@ -22,11 +22,12 @@ void sp_main(struct ffa_init_info *init_info)
 {
 	ffa_result ffa_res;
 	sp_result sp_res;
-	struct rpc_interface *sfs_iface;
+	struct rpc_interface *secure_storage_iface;
 	struct ffa_call_ep ffa_call_ep;
 	struct ffa_direct_msg req_msg;
 	struct ffa_direct_msg resp_msg;
-	struct sfs_provider sfs_provider;
+	struct secure_storage_provider secure_storage_provider;
+	struct storage_backend *storage_backend;
 
 	/* Boot */
 	(void) init_info;
@@ -41,8 +42,9 @@ void sp_main(struct ffa_init_info *init_info)
 		EMSG("rxtx map error: %d", sp_res);
 	}
 
-	sfs_iface = sfs_provider_init(&sfs_provider);
-	ffa_call_ep_init(&ffa_call_ep, sfs_iface);
+	storage_backend = sfs_init();
+	secure_storage_iface = secure_storage_provider_init(&secure_storage_provider, storage_backend);
+	ffa_call_ep_init(&ffa_call_ep, secure_storage_iface);
 
 	/* End of boot phase */
 	ffa_msg_wait(&req_msg);

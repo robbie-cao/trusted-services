@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -9,11 +9,7 @@ if (NOT DEFINED TGT)
 endif()
 
 target_sources(${TGT} PRIVATE
-	"${CMAKE_CURRENT_LIST_DIR}/its/its_client.c"
+	"${CMAKE_CURRENT_LIST_DIR}/secure_flash_store.c"
+	"${CMAKE_CURRENT_LIST_DIR}/sfs_utils.c"
 	)
 
-
-target_include_directories(${TGT}
-	 PRIVATE
-		"${CMAKE_CURRENT_LIST_DIR}/.."
-	)

@@ -7,6 +7,7 @@
 #include "crypto_service_context.h"
 #include <service/crypto/provider/serializer/protobuf/pb_crypto_provider_serializer.h>
 #include <service/crypto/provider/serializer/packed-c/packedc_crypto_provider_serializer.h>
+#include <service/secure_storage/backend/secure_flash_store/secure_flash_store.h>
 
 crypto_service_context::crypto_service_context(const char *sn) :
     standalone_service_context(sn),
@@ -24,7 +25,9 @@ crypto_service_context::~crypto_service_context()
 
 void crypto_service_context::do_init()
 {
-    struct rpc_interface *storage_ep = sfs_provider_init(&m_storage_provider);
+    struct storage_backend *storage_backend = sfs_init();
+    struct rpc_interface *storage_ep = secure_storage_provider_init(&m_storage_provider,
+                                                                storage_backend);
     struct rpc_caller *storage_caller = direct_caller_init_default(&m_storage_caller,
                                                                 storage_ep);
     struct rpc_interface *crypto_ep = mbed_crypto_provider_init(&m_crypto_provider,
@@ -42,5 +45,6 @@ void crypto_service_context::do_init()
 void crypto_service_context::do_deinit()
 {
     mbed_crypto_provider_deinit(&m_crypto_provider);
+    secure_storage_provider_deinit(&m_storage_provider);
     direct_caller_deinit(&m_storage_caller);
 }

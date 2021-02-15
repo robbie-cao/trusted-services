@@ -4,44 +4,16 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "sfs_provider.h"
-#include "secure_flash_store.h"
+#include "secure_storage_provider.h"
 #include <protocols/service/secure_storage/packed-c/secure_storage_proto.h>
 #include <protocols/service/psa/packed-c/status.h>
 #include <protocols/rpc/common/packed-c/status.h>
 #include <components/rpc/common/endpoint/rpc_interface.h>
 
-#include <stdio.h>
 
-/* Handler mapping table for service */
-static const struct service_handler handler_table[] = {
-	{TS_SECURE_STORAGE_OPCODE_SET,	sfs_set_handler},
-	{TS_SECURE_STORAGE_OPCODE_GET,	sfs_get_handler},
-	{TS_SECURE_STORAGE_OPCODE_GET_INFO,	sfs_get_info_handler},
-	{TS_SECURE_STORAGE_OPCODE_REMOVE,	sfs_remove_handler}
-};
-
-struct rpc_interface *sfs_provider_init(struct sfs_provider *context)
+static rpc_status_t set_handler(void *context, struct call_req *req)
 {
-	struct rpc_interface *rpc_interface = NULL;
-
-	if (context == NULL)
-		goto out;
-
-	if (sfs_init() != PSA_SUCCESS)
-		goto out;
-
-	service_provider_init(&context->base_provider, context, handler_table,
-			      sizeof(handler_table) / sizeof(handler_table[0]));
-
-	rpc_interface = service_provider_get_rpc_interface(&context->base_provider);
-
-out:
-	return rpc_interface;
-}
-
-rpc_status_t sfs_set_handler(void *context, struct call_req *req)
-{
+	struct secure_storage_provider *this_context = (struct secure_storage_provider*)context;
 	struct secure_storage_request_set *request_desc;
 	psa_status_t psa_status;
 
@@ -59,17 +31,20 @@ rpc_status_t sfs_set_handler(void *context, struct call_req *req)
 	if (req->req_buf.data_len < sizeof(struct secure_storage_request_set) + request_desc->data_length)
 		return TS_RPC_ERROR_INVALID_REQ_BODY;
 
-	psa_status = sfs_set(req->caller_id, request_desc->uid,
-				 request_desc->data_length,
-				 request_desc->p_data,
-				 request_desc->create_flags);
+	psa_status = this_context->backend->interface->set(this_context->backend->context,
+				req->caller_id,
+				request_desc->uid,
+				request_desc->data_length,
+				request_desc->p_data,
+				request_desc->create_flags);
 	call_req_set_opstatus(req, psa_status);
 
 	return TS_RPC_CALL_ACCEPTED;
 }
 
-rpc_status_t sfs_get_handler(void *context, struct call_req *req)
+static rpc_status_t get_handler(void *context, struct call_req *req)
 {
+	struct secure_storage_provider *this_context = (struct secure_storage_provider*)context;
 	struct secure_storage_request_get *request_desc;
 	psa_status_t psa_status;
 
@@ -83,20 +58,22 @@ rpc_status_t sfs_get_handler(void *context, struct call_req *req)
 	if (req->resp_buf.size < request_desc->data_size)
 		return TS_RPC_ERROR_INVALID_RESP_BODY;
 
-	psa_status = sfs_get(req->caller_id, request_desc->uid,
-				 request_desc->data_offset,
-				 request_desc->data_size,
-				 req->resp_buf.data, &req->resp_buf.data_len);
+	psa_status = this_context->backend->interface->get(this_context->backend->context,
+				req->caller_id, request_desc->uid,
+				request_desc->data_offset,
+				request_desc->data_size,
+				req->resp_buf.data, &req->resp_buf.data_len);
 	call_req_set_opstatus(req, psa_status);
 
 	return TS_RPC_CALL_ACCEPTED;
 }
 
-rpc_status_t sfs_get_info_handler(void *context, struct call_req *req)
+static rpc_status_t get_info_handler(void *context, struct call_req *req)
 {
+	struct secure_storage_provider *this_context = (struct secure_storage_provider*)context;
 	struct secure_storage_request_get_info *request_desc;
 	struct secure_storage_response_get_info *response_desc;
-	struct secure_storage_response_get_info storage_info; //TODO: unnecessary?
+	struct psa_storage_info_t storage_info;
 	psa_status_t psa_status;
 
 	/* Checking if the descriptor fits into the request buffer */
@@ -111,7 +88,10 @@ rpc_status_t sfs_get_info_handler(void *context, struct call_req *req)
 
 	response_desc = (struct secure_storage_response_get_info *)(req->resp_buf.data);
 
-	psa_status = sfs_get_info(req->caller_id, request_desc->uid, &storage_info);
+	psa_status = this_context->backend->interface->get_info(this_context->backend->context,
+				req->caller_id,
+				request_desc->uid,
+				&storage_info);
 	call_req_set_opstatus(req, psa_status);
 
 	if (psa_status != PSA_SUCCESS) {
@@ -128,8 +108,9 @@ rpc_status_t sfs_get_info_handler(void *context, struct call_req *req)
 	return TS_RPC_CALL_ACCEPTED;
 }
 
-rpc_status_t sfs_remove_handler(void *context, struct call_req *req)
+static rpc_status_t remove_handler(void *context, struct call_req *req)
 {
+	struct secure_storage_provider *this_context = (struct secure_storage_provider*)context;
 	struct secure_storage_request_remove *request_desc;
 	psa_status_t psa_status;
 
@@ -139,8 +120,45 @@ rpc_status_t sfs_remove_handler(void *context, struct call_req *req)
 
 	request_desc = (struct secure_storage_request_remove *)(req->req_buf.data);
 
-	psa_status = sfs_remove(req->caller_id, request_desc->uid);
+	psa_status = this_context->backend->interface->remove(this_context->backend->context,
+				req->caller_id,
+				request_desc->uid);
 	call_req_set_opstatus(req, psa_status);
 
 	return TS_RPC_CALL_ACCEPTED;
+}
+
+/* Handler mapping table for service */
+static const struct service_handler handler_table[] = {
+	{TS_SECURE_STORAGE_OPCODE_SET,	set_handler},
+	{TS_SECURE_STORAGE_OPCODE_GET,	get_handler},
+	{TS_SECURE_STORAGE_OPCODE_GET_INFO,	get_info_handler},
+	{TS_SECURE_STORAGE_OPCODE_REMOVE,	remove_handler}
+};
+
+struct rpc_interface *secure_storage_provider_init(struct secure_storage_provider *context,
+												struct storage_backend *backend)
+{
+	struct rpc_interface *rpc_interface = NULL;
+
+	if (context == NULL)
+		goto out;
+
+	if (backend == NULL)
+		goto out;
+
+	service_provider_init(&context->base_provider, context, handler_table,
+			      sizeof(handler_table) / sizeof(handler_table[0]));
+
+	rpc_interface = service_provider_get_rpc_interface(&context->base_provider);
+
+	context->backend = backend;
+
+out:
+	return rpc_interface;
+}
+
+void secure_storage_provider_deinit(struct secure_storage_provider *context)
+{
+	(void)context;
 }

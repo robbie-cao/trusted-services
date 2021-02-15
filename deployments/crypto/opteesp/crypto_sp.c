@@ -6,7 +6,7 @@
 #include <rpc/ffarpc/caller/sp/ffarpc_caller.h>
 #include <rpc/ffarpc/endpoint/ffarpc_call_ep.h>
 #include <rpc/dummy/dummy_caller.h>
-#include <service/secure_storage/client/psa/its/its_client.h>
+#include <service/secure_storage/backend/secure_storage_client/secure_storage_client.h>
 #include <service/crypto/provider/mbedcrypto/crypto_provider.h>
 #include <service/crypto/provider/serializer/protobuf/pb_crypto_provider_serializer.h>
 #include <service/crypto/provider/serializer/packed-c/packedc_crypto_provider_serializer.h>
@@ -75,7 +75,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 
 	ffa_call_ep_init(&ffarpc_call_ep, crypto_iface);
 
- 	/* End of boot phase */
+	/* End of boot phase */
 	ffa_msg_wait(&req_msg);
 
 	while (1) {

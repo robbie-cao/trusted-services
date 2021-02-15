@@ -8,7 +8,7 @@
 #include <protocols/service/crypto/packed-c/opcodes.h>
 #include <service/crypto/provider/mbedcrypto/crypto_provider.h>
 #include <service/crypto/provider/mbedcrypto/trng_adapter/trng_adapter.h>
-#include <service/secure_storage/client/psa/its/its_client.h>
+#include <service/secure_storage/frontend/psa/its/its_frontend.h>
 #include <protocols/rpc/common/packed-c/status.h>
 #include <psa/crypto.h>
 
@@ -45,7 +45,7 @@ static const struct service_handler handler_table[] = {
 };
 
 struct rpc_interface *mbed_crypto_provider_init(struct mbed_crypto_provider *context,
-                                        struct rpc_caller *storage_provider,
+                                        struct rpc_caller *storage_caller,
                                         int trng_instance)
 {
     struct rpc_interface *rpc_interface = NULL;
@@ -57,7 +57,7 @@ struct rpc_interface *mbed_crypto_provider_init(struct mbed_crypto_provider *con
      * is a mandatory feature of the crypto service, insist on a storage
      * provider being available.
      */
-    if (context && storage_provider) {
+    if (context && storage_caller) {
 
         for (size_t encoding = 0; encoding < TS_RPC_ENCODING_LIMIT; ++encoding)
             context->serializers[encoding] = NULL;
@@ -65,9 +65,15 @@ struct rpc_interface *mbed_crypto_provider_init(struct mbed_crypto_provider *con
         service_provider_init(&context->base_provider, context,
                     handler_table, sizeof(handler_table)/sizeof(struct service_handler));
 
-        if ((psa_its_client_init(storage_provider) == PSA_SUCCESS) &&
-            (psa_crypto_init() == PSA_SUCCESS))
+        struct storage_backend *storage_backend =
+            secure_storage_client_init(&context->secure_storage_client, storage_caller);
+
+        if (storage_backend &&
+            (psa_its_frontend_init(storage_backend) == PSA_SUCCESS) &&
+            (psa_crypto_init() == PSA_SUCCESS)) {
+
             rpc_interface = service_provider_get_rpc_interface(&context->base_provider);
+        }
     }
 
     return rpc_interface;

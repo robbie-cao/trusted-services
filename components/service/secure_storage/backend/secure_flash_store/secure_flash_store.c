@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, Arm Limited. All rights reserved.
+ * Copyright (c) 2019-2021, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -10,6 +10,7 @@
 #include "sfs_utils.h"
 #include "secure_flash_store.h"
 #include <string.h>
+#include <stddef.h>
 
 #define SFS_MAX_ASSET_SIZE (4096) /* TODO: comes from flash layout */
 #define SFS_CREATE_FLASH_LAYOUT /* TODO: move this to a proper place */
@@ -50,45 +51,8 @@ static void sfs_get_fid(uint32_t client_id,
     memcpy(fid + sizeof(client_id), (const void *)&uid, sizeof(uid));
 }
 
-psa_status_t sfs_init(void)
-{
-    psa_status_t status;
-
-    /* Initialise the SFS context */
-    status = sfs_flash_fs_prepare(&fs_ctx_sfs,
-                                  sfs_flash_get_info());
-#ifdef SFS_CREATE_FLASH_LAYOUT
-    /* If SFS_CREATE_FLASH_LAYOUT is set, it indicates that it is required to
-     * create a SFS flash layout. SFS service will generate an empty and valid
-     * SFS flash layout to store assets. It will erase all data located in the
-     * assigned SFS memory area before generating the SFS layout.
-     * This flag is required to be set if the SFS memory area is located in
-     * non-persistent memory.
-     * This flag can be set if the SFS memory area is located in persistent
-     * memory without a previous valid SFS flash layout in it. That is the case
-     * when it is the first time in the device life that the SFS service is
-     * executed.
-     */
-     if (status != PSA_SUCCESS) {
-        /* Remove all data in the SFS memory area and create a valid SFS flash
-         * layout in that area.
-         */
-        status = sfs_flash_fs_wipe_all(&fs_ctx_sfs);
-        if (status != PSA_SUCCESS) {
-            return status;
-        }
-
-        /* Attempt to initialise again */
-        status = sfs_flash_fs_prepare(&fs_ctx_sfs,
-                                     sfs_flash_get_info());
-    }
-#endif /* SFS_CREATE_FLASH_LAYOUT */
-
-
-    return status;
-}
-
-psa_status_t sfs_set(uint32_t client_id,
+static psa_status_t sfs_set(void *context,
+                         uint32_t client_id,
                          uint64_t uid,
                          size_t data_length,
                          const void *p_data,
@@ -97,9 +61,7 @@ psa_status_t sfs_set(uint32_t client_id,
     psa_status_t status;
     size_t write_size;
     size_t offset;
-    const uint8_t *data = p_data;
-
-    data = (const uint8_t *)p_data;
+    const uint8_t *data = (const uint8_t *)p_data;
 
     /* Check that the UID is valid */
     if (uid == SFS_INVALID_UID) {
@@ -107,9 +69,9 @@ psa_status_t sfs_set(uint32_t client_id,
     }
 
     /* Check that the create_flags does not contain any unsupported flags */
-    if (create_flags & ~(TS_SECURE_STORAGE_FLAG_WRITE_ONCE |
-                         TS_SECURE_STORAGE_FLAG_NO_CONFIDENTIALITY |
-                         TS_SECURE_STORAGE_FLAG_NO_REPLAY_PROTECTION)) {
+    if (create_flags & ~(PSA_STORAGE_FLAG_WRITE_ONCE |
+                         PSA_STORAGE_FLAG_NO_CONFIDENTIALITY |
+                         PSA_STORAGE_FLAG_NO_REPLAY_PROTECTION)) {
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
@@ -122,7 +84,7 @@ psa_status_t sfs_set(uint32_t client_id,
         /* If the object exists and has the write once flag set, then it
          * cannot be modified. Otherwise it needs to be removed.
          */
-        if (g_file_info.flags & TS_SECURE_STORAGE_FLAG_WRITE_ONCE) {
+        if (g_file_info.flags & PSA_STORAGE_FLAG_WRITE_ONCE) {
             return PSA_ERROR_NOT_PERMITTED;
         } else {
             status = sfs_flash_fs_file_delete(&fs_ctx_sfs, g_fid);
@@ -181,7 +143,8 @@ psa_status_t sfs_set(uint32_t client_id,
     return PSA_SUCCESS;
 }
 
-psa_status_t sfs_get(uint32_t client_id,
+static psa_status_t sfs_get(void *context,
+                         uint32_t client_id,
                          uint64_t uid,
                          size_t data_offset,
                          size_t data_size,
@@ -246,8 +209,8 @@ psa_status_t sfs_get(uint32_t client_id,
     return PSA_SUCCESS;
 }
 
-psa_status_t sfs_get_info(uint32_t client_id, uint64_t uid,
-                              struct secure_storage_response_get_info *p_info)
+static psa_status_t sfs_get_info(void *context, uint32_t client_id, uint64_t uid,
+                              struct psa_storage_info_t *p_info)
 {
     psa_status_t status;
 
@@ -273,7 +236,7 @@ psa_status_t sfs_get_info(uint32_t client_id, uint64_t uid,
     return PSA_SUCCESS;
 }
 
-psa_status_t sfs_remove(uint32_t client_id, uint64_t uid)
+static psa_status_t sfs_remove(void *context, uint32_t client_id, uint64_t uid)
 {
     psa_status_t status;
 
@@ -293,10 +256,64 @@ psa_status_t sfs_remove(uint32_t client_id, uint64_t uid)
     /* If the object exists and has the write once flag set, then it
      * cannot be deleted.
      */
-    if (g_file_info.flags & TS_SECURE_STORAGE_FLAG_WRITE_ONCE) {
+    if (g_file_info.flags & PSA_STORAGE_FLAG_WRITE_ONCE) {
         return PSA_ERROR_NOT_PERMITTED;
     }
 
     /* Delete old file from the persistent area */
     return sfs_flash_fs_file_delete(&fs_ctx_sfs, g_fid);
+}
+
+struct storage_backend *sfs_init(void)
+{
+    psa_status_t status;
+
+    /* Initialise the SFS context */
+    status = sfs_flash_fs_prepare(&fs_ctx_sfs,
+                                  sfs_flash_get_info());
+#ifdef SFS_CREATE_FLASH_LAYOUT
+    /* If SFS_CREATE_FLASH_LAYOUT is set, it indicates that it is required to
+     * create a SFS flash layout. SFS service will generate an empty and valid
+     * SFS flash layout to store assets. It will erase all data located in the
+     * assigned SFS memory area before generating the SFS layout.
+     * This flag is required to be set if the SFS memory area is located in
+     * non-persistent memory.
+     * This flag can be set if the SFS memory area is located in persistent
+     * memory without a previous valid SFS flash layout in it. That is the case
+     * when it is the first time in the device life that the SFS service is
+     * executed.
+     */
+    if (status != PSA_SUCCESS) {
+        /* Remove all data in the SFS memory area and create a valid SFS flash
+         * layout in that area.
+         */
+        status = sfs_flash_fs_wipe_all(&fs_ctx_sfs);
+        if (status != PSA_SUCCESS) {
+            return NULL;
+        }
+
+        /* Attempt to initialise again */
+        status = sfs_flash_fs_prepare(&fs_ctx_sfs,
+                                     sfs_flash_get_info());
+
+        if (status != PSA_SUCCESS) {
+            return NULL;
+        }
+    }
+#endif /* SFS_CREATE_FLASH_LAYOUT */
+
+    static const struct storage_backend_interface interface =
+    {
+        sfs_set,
+        sfs_get,
+        sfs_get_info,
+        sfs_remove
+    };
+
+    static struct storage_backend backend;
+
+    backend.context = NULL;
+    backend.interface = &interface;
+
+    return &backend;
 }

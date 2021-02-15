@@ -9,6 +9,7 @@
 #include <protocols/service/psa/packed-c/status.h>
 #include <service/crypto/provider/serializer/protobuf/pb_crypto_provider_serializer.h>
 #include <service/crypto/provider/serializer/packed-c/packedc_crypto_provider_serializer.h>
+#include <service/secure_storage/backend/secure_flash_store/secure_flash_store.h>
 
 standalone_crypto_client::standalone_crypto_client() :
     test_crypto_client(),
@@ -37,7 +38,9 @@ bool standalone_crypto_client::init()
         if (!is_fault_injected(FAILED_TO_DISCOVER_SECURE_STORAGE)) {
 
             /* Establish rpc session with storage provider */
-            struct rpc_interface *storage_ep = sfs_provider_init(&m_storage_provider);
+            struct storage_backend *storage_backend = sfs_init();
+            struct rpc_interface *storage_ep = secure_storage_provider_init(&m_storage_provider,
+                                                                storage_backend);
             storage_caller = direct_caller_init_default(&m_storage_caller, storage_ep);
         }
         else {
@@ -77,6 +80,7 @@ bool standalone_crypto_client::deinit()
     if (should_do) {
 
         mbed_crypto_provider_deinit(&m_crypto_provider);
+        secure_storage_provider_deinit(&m_storage_provider);
 
         direct_caller_deinit(&m_storage_caller);
         direct_caller_deinit(&m_crypto_caller);

@@ -34,10 +34,12 @@ add_components(TARGET "secure-storage"
 		components/messaging/ffa/libsp
 		components/rpc/ffarpc/endpoint
 		components/rpc/common/interface
+		components/service/common
 		components/service/common/provider
-		components/service/secure_storage/provider/secure_flash_store
-		components/service/secure_storage/provider/secure_flash_store/flash_fs
-		components/service/secure_storage/provider/secure_flash_store/flash
+		components/service/secure_storage/frontend/secure_storage_provider
+		components/service/secure_storage/backend/secure_flash_store
+		components/service/secure_storage/backend/secure_flash_store/flash_fs
+		components/service/secure_storage/backend/secure_flash_store/flash
 		protocols/rpc/common/packed-c
 		protocols/service/secure_storage/packed-c
 		environments/opteesp

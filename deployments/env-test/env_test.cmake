@@ -12,7 +12,7 @@
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
-#  Components that are common accross all deployments
+#  Components that are common across all deployments
 #
 #-------------------------------------------------------------------------------
 add_components(
@@ -32,7 +32,8 @@ add_components(
 	"components/service/crypto/provider/mbedcrypto"
 	"components/service/crypto/provider/mbedcrypto/trng_adapter/platform"
 	"components/service/crypto/provider/mbedcrypto/trng_adapter/test"
-	"components/service/secure_storage/client/psa"
+	"components/service/secure_storage/frontend/psa/its"
+	"components/service/secure_storage/backend/secure_storage_client"
 	"protocols/rpc/common/packed-c"
 )
 

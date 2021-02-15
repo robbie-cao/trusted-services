@@ -10,7 +10,7 @@
 #include <service/locator/standalone/standalone_service_context.h>
 #include <rpc/direct/direct_caller.h>
 #include <service/crypto/provider/mbedcrypto/crypto_provider.h>
-#include <service/secure_storage/provider/secure_flash_store/sfs_provider.h>
+#include <service/secure_storage/frontend/secure_storage_provider/secure_storage_provider.h>
 
 class crypto_service_context : public standalone_service_context
 {
@@ -24,7 +24,7 @@ private:
     void do_deinit();
 
     struct mbed_crypto_provider m_crypto_provider;
-    struct sfs_provider m_storage_provider;
+    struct secure_storage_provider m_storage_provider;
     struct direct_caller m_storage_caller;
 };
 

@@ -7,7 +7,8 @@
 #include "sp.h"
 #include <ffa_api.h>
 #include <components/rpc/ffarpc/caller/sp/ffarpc_caller.h>
-#include <components/service/secure_storage/client/psa/its/its_client.h>
+#include <components/service/secure_storage/frontend/psa/its/its_frontend.h>
+#include <service/secure_storage/backend/secure_storage_client/secure_storage_client.h>
 #include <psa/internal_trusted_storage.h>
 #include <sp_api.h>
 #include <sp_rxtx.h>
@@ -133,6 +134,8 @@ void __noreturn sp_main(struct ffa_init_info *init_info) {
 	struct ffa_direct_msg req_msg;
 	struct rpc_caller *caller;
 	struct ffarpc_caller ffa_caller;
+	struct secure_storage_client secure_storage_client;
+	struct storage_backend *storage_backend;
 	uint16_t sp_ids[3];
 	uint32_t sp_id_cnt = 0;
 
@@ -164,7 +167,8 @@ void __noreturn sp_main(struct ffa_init_info *init_info) {
 		goto err;
 	}
 
-	psa_its_client_init(caller);
+	storage_backend = secure_storage_client_init(&secure_storage_client, caller);
+	psa_its_frontend_init(storage_backend);
 
 	/*
 	 * This is not thorough testing of the ITS SP!
