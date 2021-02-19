@@ -13,6 +13,27 @@
 #include <stdint.h>
 #include <string.h>
 
+#define SP_MEM_DESC_C(sender_id_val, tag_val)                                                      \
+	((const struct sp_memory_descriptor){                                                      \
+		.sender_id = (sender_id_val),                                                      \
+		.memory_type = sp_memory_type_not_specified,                                       \
+		.mem_region_attr = { .normal_memory = { .cacheability =                            \
+								sp_cacheability_reserved0,         \
+							.shareability =                            \
+								sp_shareability_non_shareable } }, \
+		.flags = { 0 },                                                                    \
+		.tag = (tag_val) })
+
+#define FFA_MEM_DESC_C(sender_id_val, handle_val, tag_val)                     \
+	((const struct ffa_mem_transaction_desc){ .sender_id =                 \
+							  (sender_id_val),     \
+						  .mem_region_attr = 0,        \
+						  .reserved_mbz0 = 0,          \
+						  .flags = 0,                  \
+						  .handle = (handle_val),      \
+						  .tag = (tag_val),            \
+						  .reserved_mbz1 = 0 })
+
 static uint8_t tx_buffer_area[FFA_MEM_TRANSACTION_PAGE_SIZE]
 	__attribute__((aligned(FFA_MEM_TRANSACTION_PAGE_SIZE)));
 static uint8_t rx_buffer_area[FFA_MEM_TRANSACTION_PAGE_SIZE]
@@ -221,8 +242,7 @@ TEST(sp_memory_management, sp_memory_donate_ffa_error)
 
 TEST(sp_memory_management, sp_memory_donate)
 {
-	struct sp_memory_descriptor desc = { .sender_id = sender_id,
-					     .tag = tag };
+	struct sp_memory_descriptor desc = SP_MEM_DESC_C(sender_id, tag);
 	struct sp_memory_access_descriptor acc_desc = { .receiver_id =
 								receiver_id };
 	struct sp_memory_region regions = { .address = ptr,
@@ -239,9 +259,8 @@ TEST(sp_memory_management, sp_memory_donate)
 						   region_count, &handle));
 	UNSIGNED_LONGLONGS_EQUAL(expected_handle, handle);
 
-	const struct ffa_mem_transaction_desc expected_transaction = {
-		.sender_id = sender_id, .tag = tag
-	};
+	const struct ffa_mem_transaction_desc expected_transaction =
+		FFA_MEM_DESC_C(sender_id, 0, tag);
 	const struct ffa_mem_access_perm_desc expected_access_perm_desc = {
 		.endpoint_id = receiver_id
 	};
@@ -350,8 +369,7 @@ TEST(sp_memory_management, sp_memory_donate_dynamic_ffa_error)
 
 TEST(sp_memory_management, sp_memory_donate_dynamic)
 {
-	struct sp_memory_descriptor desc = { .sender_id = sender_id,
-					     .tag = tag };
+	struct sp_memory_descriptor desc = SP_MEM_DESC_C(sender_id, tag);
 	struct sp_memory_access_descriptor acc_desc = { .receiver_id =
 								receiver_id };
 	struct sp_memory_region regions = { .address = ptr,
@@ -370,9 +388,8 @@ TEST(sp_memory_management, sp_memory_donate_dynamic)
 					     &tx_mem_transaction_buffer));
 	UNSIGNED_LONGLONGS_EQUAL(expected_handle, handle);
 
-	const struct ffa_mem_transaction_desc expected_transaction = {
-		.sender_id = sender_id, .tag = tag
-	};
+	const struct ffa_mem_transaction_desc expected_transaction =
+		FFA_MEM_DESC_C(sender_id, 0, tag);
 	const struct ffa_mem_access_perm_desc expected_access_perm_desc = {
 		.endpoint_id = receiver_id
 	};
@@ -513,8 +530,7 @@ TEST(sp_memory_management, sp_memory_lend_ffa_error)
 
 TEST(sp_memory_management, sp_memory_lend)
 {
-	struct sp_memory_descriptor desc = { .sender_id = sender_id,
-					     .tag = tag };
+	struct sp_memory_descriptor desc = SP_MEM_DESC_C(sender_id, tag);
 	struct sp_memory_access_descriptor acc_desc = { .receiver_id =
 								receiver_id };
 	struct sp_memory_region regions = { .address = ptr,
@@ -531,9 +547,8 @@ TEST(sp_memory_management, sp_memory_lend)
 						 region_count, &handle));
 	UNSIGNED_LONGLONGS_EQUAL(expected_handle, handle);
 
-	const struct ffa_mem_transaction_desc expected_transaction = {
-		.sender_id = sender_id, .tag = tag
-	};
+	const struct ffa_mem_transaction_desc expected_transaction =
+		FFA_MEM_DESC_C(sender_id, 0, tag);
 	const struct ffa_mem_access_perm_desc expected_access_perm_desc = {
 		.endpoint_id = receiver_id
 	};
@@ -656,8 +671,7 @@ TEST(sp_memory_management, sp_memory_lend_dynamic_ffa_error)
 
 TEST(sp_memory_management, sp_memory_lend_dynamic)
 {
-	struct sp_memory_descriptor desc = { .sender_id = sender_id,
-					     .tag = tag };
+	struct sp_memory_descriptor desc = SP_MEM_DESC_C(sender_id, tag);
 	struct sp_memory_access_descriptor acc_desc = { .receiver_id =
 								receiver_id };
 	struct sp_memory_region regions = { .address = ptr,
@@ -676,9 +690,8 @@ TEST(sp_memory_management, sp_memory_lend_dynamic)
 					   &tx_mem_transaction_buffer));
 	UNSIGNED_LONGLONGS_EQUAL(expected_handle, handle);
 
-	const struct ffa_mem_transaction_desc expected_transaction = {
-		.sender_id = sender_id, .tag = tag
-	};
+	const struct ffa_mem_transaction_desc expected_transaction =
+		FFA_MEM_DESC_C(sender_id, 0, tag);
 	const struct ffa_mem_access_perm_desc expected_access_perm_desc = {
 		.endpoint_id = receiver_id
 	};
@@ -819,8 +832,7 @@ TEST(sp_memory_management, sp_memory_share_ffa_error)
 
 TEST(sp_memory_management, sp_memory_share)
 {
-	struct sp_memory_descriptor desc = { .sender_id = sender_id,
-					     .tag = tag };
+	struct sp_memory_descriptor desc = SP_MEM_DESC_C(sender_id, tag);
 	struct sp_memory_access_descriptor acc_desc = { .receiver_id =
 								receiver_id };
 	struct sp_memory_region regions = { .address = ptr,
@@ -837,9 +849,8 @@ TEST(sp_memory_management, sp_memory_share)
 						  region_count, &handle));
 	UNSIGNED_LONGLONGS_EQUAL(expected_handle, handle);
 
-	const struct ffa_mem_transaction_desc expected_transaction = {
-		.sender_id = sender_id, .tag = tag
-	};
+	const struct ffa_mem_transaction_desc expected_transaction =
+		FFA_MEM_DESC_C(sender_id, 0, tag);
 	const struct ffa_mem_access_perm_desc expected_access_perm_desc = {
 		.endpoint_id = receiver_id
 	};
@@ -964,8 +975,7 @@ TEST(sp_memory_management, sp_memory_share_dynamic_ffa_error)
 
 TEST(sp_memory_management, sp_memory_share_dynamic)
 {
-	struct sp_memory_descriptor desc = { .sender_id = sender_id,
-					     .tag = tag };
+	struct sp_memory_descriptor desc = SP_MEM_DESC_C(sender_id, tag);
 	struct sp_memory_access_descriptor acc_desc = { .receiver_id =
 								receiver_id };
 	struct sp_memory_region regions = { .address = ptr,
@@ -984,9 +994,8 @@ TEST(sp_memory_management, sp_memory_share_dynamic)
 					    &tx_mem_transaction_buffer));
 	UNSIGNED_LONGLONGS_EQUAL(expected_handle, handle);
 
-	const struct ffa_mem_transaction_desc expected_transaction = {
-		.sender_id = sender_id, .tag = tag
-	};
+	const struct ffa_mem_transaction_desc expected_transaction =
+		FFA_MEM_DESC_C(sender_id, 0, tag);
 	const struct ffa_mem_access_perm_desc expected_access_perm_desc = {
 		.endpoint_id = receiver_id
 	};
@@ -1147,8 +1156,7 @@ TEST(sp_memory_management, sp_memory_retrieve_fragmented_response)
 
 TEST(sp_memory_management, sp_memory_retrieve_in_out)
 {
-	struct sp_memory_descriptor desc = { .sender_id = sender_id,
-					     .tag = tag };
+	struct sp_memory_descriptor desc = SP_MEM_DESC_C(sender_id, tag);
 	struct sp_memory_access_descriptor acc_desc = { .receiver_id =
 								receiver_id };
 	struct sp_memory_region regions = { .address = ptr,
@@ -1180,9 +1188,8 @@ TEST(sp_memory_management, sp_memory_retrieve_in_out)
 	UNSIGNED_LONGS_EQUAL(1, out_region_count);
 
 	/* Checking TX buffer */
-	const struct ffa_mem_transaction_desc expected_transaction = {
-		.sender_id = sender_id, .handle = handle, .tag = tag
-	};
+	const struct ffa_mem_transaction_desc expected_transaction =
+		FFA_MEM_DESC_C(sender_id, handle, tag);
 	const struct ffa_mem_access_perm_desc expected_access_perm_desc = {
 		.endpoint_id = receiver_id
 	};
@@ -1325,8 +1332,7 @@ TEST(sp_memory_management, sp_memory_retrieve_dynamic_fragmented_response)
 
 TEST(sp_memory_management, sp_memory_retrieve_dynamic_in_out)
 {
-	struct sp_memory_descriptor desc = { .sender_id = sender_id,
-					     .tag = tag };
+	struct sp_memory_descriptor desc = SP_MEM_DESC_C(sender_id, tag);
 	struct sp_memory_access_descriptor acc_desc = { .receiver_id =
 								receiver_id };
 	struct sp_memory_region regions = { .address = ptr,
@@ -1350,9 +1356,8 @@ TEST(sp_memory_management, sp_memory_retrieve_dynamic_in_out)
 	UNSIGNED_LONGS_EQUAL(1, out_region_count);
 
 	/* Checking TX buffer */
-	const struct ffa_mem_transaction_desc expected_transaction = {
-		.sender_id = sender_id, .handle = handle, .tag = tag
-	};
+	const struct ffa_mem_transaction_desc expected_transaction =
+		FFA_MEM_DESC_C(sender_id, handle, tag);
 	const struct ffa_mem_access_perm_desc expected_access_perm_desc = {
 		.endpoint_id = receiver_id
 	};
