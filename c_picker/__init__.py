@@ -9,4 +9,4 @@ Package information.
 
 __all__ = ["picker", "runner", "coverage"]
 __license__ = "BSD-3-Clause"
-__version__ = "1.0.0"
+__version__ = "1.0.1"

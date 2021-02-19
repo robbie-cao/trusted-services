@@ -3,6 +3,14 @@ Change Log & Release Notes
 
 This document contains a summary of the new features, changes, fixes and known issues in each release of Trusted Services.
 
+Version 1.0.1
+-------------
+
+Changes
+^^^^^^^
+Use libclang pip dependency instead of clang.
+
+
 Version 1.0.0
 -------------
 

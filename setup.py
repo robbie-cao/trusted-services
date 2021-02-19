@@ -23,7 +23,7 @@ def get_install_requires():
     deps = ["pyyaml>5"]
 
     try:
-        pkg_resources.get_distribution("clang")
+        pkg_resources.get_distribution("libclang")
         has_clang_pip = True
     except pkg_resources.DistributionNotFound:
         has_clang_pip = False
@@ -36,7 +36,7 @@ def get_install_requires():
     # modules if they were installed without pip (i.e. using the system's
     # package manager instead of pip).
     if not has_clang_module or has_clang_pip:
-        deps.append("clang")
+        deps.append("libclang")
 
     return deps
 
