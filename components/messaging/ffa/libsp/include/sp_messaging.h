@@ -57,6 +57,18 @@ sp_result sp_msg_send_direct_req(const struct sp_msg *req, struct sp_msg *resp);
 sp_result sp_msg_send_direct_resp(const struct sp_msg *resp,
 				  struct sp_msg *req);
 
+#if FFA_DIRECT_MSG_ROUTING_EXTENSION
+/**
+ * @brief      Sends a request on the return channel and waits for the response
+ *             message which it returns then.
+ *
+ * @param[in]  req   The request message
+ * @param[out] resp  The response message
+ * @return     The SP API result
+ */
+sp_result sp_msg_send_rc_req(const struct sp_msg *req, struct sp_msg *resp);
+#endif /* FFA_DIRECT_MSG_ROUTING_EXTENSION */
+
 #ifdef __cplusplus
 }
 #endif

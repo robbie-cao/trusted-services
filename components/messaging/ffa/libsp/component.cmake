@@ -8,6 +8,8 @@ if (NOT DEFINED TGT)
 	message(FATAL_ERROR "mandatory parameter TGT is not defined.")
 endif()
 
+set(FFA_DIRECT_MSG_ROUTING_EXTENSION ON CACHE BOOL "Enable FF-A direct message routing extension")
+
 target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/aarch64/ffa_syscalls_a64.S"
 	"${CMAKE_CURRENT_LIST_DIR}/ffa.c"
@@ -34,6 +36,15 @@ set_property(TARGET ${TGT} PROPERTY PUBLIC_HEADER
 	${CMAKE_CURRENT_LIST_DIR}/include/sp_rxtx.h
 	)
 
+if (FFA_DIRECT_MSG_ROUTING_EXTENSION)
+	target_sources(${TGT} PRIVATE
+		"${CMAKE_CURRENT_LIST_DIR}/ffa_direct_msg_routing_extension.c"
+		)
+
+	target_compile_options(${TGT} PUBLIC
+		-DFFA_DIRECT_MSG_ROUTING_EXTENSION=1
+		)
+endif()
 
 target_include_directories(${TGT}
 	 PUBLIC
