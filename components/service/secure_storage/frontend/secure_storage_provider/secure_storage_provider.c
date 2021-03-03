@@ -128,12 +128,90 @@ static rpc_status_t remove_handler(void *context, struct call_req *req)
 	return TS_RPC_CALL_ACCEPTED;
 }
 
+static rpc_status_t create_handler(void *context, struct call_req *req)
+{
+	struct secure_storage_provider *this_context = (struct secure_storage_provider*)context;
+	struct secure_storage_request_create *request_desc;
+	psa_status_t psa_status;
+
+	/* Checking if the descriptor fits into the request buffer */
+	if (req->req_buf.data_len < sizeof(struct secure_storage_request_create))
+		return TS_RPC_ERROR_INVALID_REQ_BODY;
+
+	request_desc = (struct secure_storage_request_create *)(req->req_buf.data);
+
+	psa_status = this_context->backend->interface->create(this_context->backend->context,
+				req->caller_id,
+				request_desc->uid,
+				request_desc->capacity,
+				request_desc->create_flags);
+	call_req_set_opstatus(req, psa_status);
+
+	return TS_RPC_CALL_ACCEPTED;
+}
+
+static rpc_status_t set_extended_handler(void *context, struct call_req *req)
+{
+	struct secure_storage_provider *this_context = (struct secure_storage_provider*)context;
+	struct secure_storage_request_set_extended *request_desc;
+	psa_status_t psa_status;
+
+	/* Checking if the descriptor fits into the request buffer */
+	if (req->req_buf.data_len < sizeof(struct secure_storage_request_set_extended))
+		return TS_RPC_ERROR_INVALID_REQ_BODY;
+
+	request_desc = (struct secure_storage_request_set_extended *)(req->req_buf.data);
+
+	/* Checking for overflow */
+	if (sizeof(struct secure_storage_request_set_extended) + request_desc->data_length < request_desc->data_length)
+		return TS_RPC_ERROR_INVALID_REQ_BODY;
+
+	/* Checking if descriptor and data fits into the request buffer */
+	if (req->req_buf.data_len < sizeof(struct secure_storage_request_set_extended) + request_desc->data_length)
+		return TS_RPC_ERROR_INVALID_REQ_BODY;
+
+	psa_status = this_context->backend->interface->set_extended(this_context->backend->context,
+				req->caller_id,
+				request_desc->uid,
+				request_desc->data_offset,
+				request_desc->data_length,
+				request_desc->p_data);
+	call_req_set_opstatus(req, psa_status);
+
+	return TS_RPC_CALL_ACCEPTED;
+}
+
+static rpc_status_t get_support_handler(void *context, struct call_req *req)
+{
+	struct secure_storage_provider *this_context = (struct secure_storage_provider*)context;
+	struct secure_storage_response_get_support *response_desc;
+	uint32_t feature_map;
+
+	/* Checking if the response structure would fit the response buffer */
+	if (req->resp_buf.size < sizeof(struct secure_storage_response_get_support))
+		return TS_RPC_ERROR_INVALID_RESP_BODY;
+
+	response_desc = (struct secure_storage_response_get_support *)(req->resp_buf.data);
+
+	feature_map = this_context->backend->interface->get_support(this_context->backend->context,
+				req->caller_id);
+	call_req_set_opstatus(req, PSA_SUCCESS);
+
+	response_desc->support = feature_map;
+	req->resp_buf.data_len = sizeof(struct secure_storage_response_get_support);
+
+	return TS_RPC_CALL_ACCEPTED;
+}
+
 /* Handler mapping table for service */
 static const struct service_handler handler_table[] = {
 	{TS_SECURE_STORAGE_OPCODE_SET,	set_handler},
 	{TS_SECURE_STORAGE_OPCODE_GET,	get_handler},
 	{TS_SECURE_STORAGE_OPCODE_GET_INFO,	get_info_handler},
-	{TS_SECURE_STORAGE_OPCODE_REMOVE,	remove_handler}
+	{TS_SECURE_STORAGE_OPCODE_REMOVE,	remove_handler},
+	{TS_SECURE_STORAGE_OPCODE_CREATE,	create_handler},
+	{TS_SECURE_STORAGE_OPCODE_SET_EXTENDED,	set_extended_handler},
+	{TS_SECURE_STORAGE_OPCODE_GET_SUPPORT,	get_support_handler}
 };
 
 struct rpc_interface *secure_storage_provider_init(struct secure_storage_provider *context,

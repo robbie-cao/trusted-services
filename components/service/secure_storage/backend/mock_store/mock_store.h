@@ -17,12 +17,14 @@ extern "C" {
 #endif
 
 #define MOCK_STORE_NUM_SLOTS        (100)
+#define MOCK_STORE_ITEM_SIZE_LIMIT  (10000)
 
 struct mock_store_slot
 {
-    uint64_t id;
+    uint64_t uid;
     uint32_t flags;
     size_t len;
+    size_t capacity;
     uint8_t *item;
 };
 
@@ -37,7 +39,7 @@ void mock_store_deinit(struct mock_store *context);
 
 /* Test support methods */
 void mock_store_reset(struct mock_store *context);
-bool mock_store_exists(const struct mock_store *context, uint32_t id);
+bool mock_store_exists(const struct mock_store *context, uint64_t uid);
 size_t mock_store_num_items(const struct mock_store *context);
 
 #ifdef __cplusplus

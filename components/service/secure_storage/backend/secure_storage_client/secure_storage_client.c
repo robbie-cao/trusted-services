@@ -28,6 +28,8 @@ static psa_status_t secure_storage_client_set(void *context,
 	rpc_status_t rpc_status = TS_RPC_CALL_ACCEPTED;
 	psa_status_t psa_status = PSA_SUCCESS;
 
+	(void)client_id;
+
 	/* Validating input parameters */
 	if (p_data == NULL)
 		return PSA_ERROR_INVALID_ARGUMENT;
@@ -84,6 +86,8 @@ static psa_status_t secure_storage_client_get(void *context,
 	rpc_status_t rpc_status = TS_RPC_CALL_ACCEPTED;
 	psa_status_t psa_status = PSA_SUCCESS;
 
+	(void)client_id;
+
 	/* Validating input parameters */
 	if (p_data == NULL)
 		return PSA_ERROR_INVALID_ARGUMENT;
@@ -136,6 +140,8 @@ static psa_status_t secure_storage_client_get_info(void *context,
 	rpc_call_handle handle;
 	rpc_status_t rpc_status;
 	psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
+
+	(void)client_id;
 
 	/* Validating input parameters */
 	if (p_info == NULL)
@@ -193,6 +199,8 @@ static psa_status_t secure_storage_client_remove(void *context,
 	rpc_status_t rpc_status = TS_RPC_CALL_ACCEPTED;
 	psa_status_t psa_status = PSA_SUCCESS;
 
+	(void)client_id;
+
 	handle = rpc_caller_begin(this_context->rpc_caller, &request, sizeof(*request_desc));
 
 	if (handle) {
@@ -219,6 +227,154 @@ static psa_status_t secure_storage_client_remove(void *context,
 	return psa_status;
 }
 
+static psa_status_t secure_storage_client_create(void *context,
+                            uint32_t client_id,
+                            uint64_t uid,
+                            size_t capacity,
+                            uint32_t create_flags)
+{
+	struct secure_storage_client *this_context = (struct secure_storage_client*)context;
+	uint8_t *request;
+	uint8_t *response;
+	size_t request_length = 0;
+	size_t response_length = 0;
+	struct secure_storage_request_create *request_desc;
+	rpc_call_handle handle;
+	rpc_status_t rpc_status = TS_RPC_CALL_ACCEPTED;
+	psa_status_t psa_status = PSA_SUCCESS;
+
+	(void)client_id;
+
+	request_length = sizeof(*request_desc);
+
+	handle = rpc_caller_begin(this_context->rpc_caller, &request, request_length);
+
+	if (handle) {
+
+		request_desc = (struct secure_storage_request_create*)request;
+		request_desc->uid = uid;
+		request_desc->capacity = capacity;
+		request_desc->create_flags = create_flags;
+
+		rpc_status = rpc_caller_invoke(this_context->rpc_caller, handle,
+						TS_SECURE_STORAGE_OPCODE_CREATE,
+						(uint32_t *)&psa_status, &response,
+						&response_length);
+
+		if (rpc_status != TS_RPC_CALL_ACCEPTED) {
+			/* RPC failure */
+			psa_status = PSA_ERROR_GENERIC_ERROR;
+		}
+
+		rpc_caller_end(this_context->rpc_caller, handle);
+	}
+	else {
+		psa_status = PSA_ERROR_GENERIC_ERROR;
+	}
+
+	return psa_status;
+}
+
+static psa_status_t secure_storage_set_extended(void *context,
+                            uint32_t client_id,
+                            uint64_t uid,
+                            size_t data_offset,
+                            size_t data_length,
+                            const void *p_data)
+{
+	struct secure_storage_client *this_context = (struct secure_storage_client*)context;
+	uint8_t *request;
+	uint8_t *response;
+	size_t request_length = 0;
+	size_t response_length = 0;
+	struct secure_storage_request_set_extended *request_desc;
+	rpc_call_handle handle;
+	rpc_status_t rpc_status = TS_RPC_CALL_ACCEPTED;
+	psa_status_t psa_status = PSA_SUCCESS;
+
+	(void)client_id;
+
+	/* Validating input parameters */
+	if (p_data == NULL)
+		return PSA_ERROR_INVALID_ARGUMENT;
+
+	request_length = sizeof(*request_desc) + data_length;
+	if (request_length < data_length) {
+		/* size_t overflow */
+		return PSA_ERROR_INVALID_ARGUMENT;
+	}
+
+	handle = rpc_caller_begin(this_context->rpc_caller, &request, request_length);
+
+	if (handle) {
+		/* Populating request descriptor */
+		request_desc = (struct secure_storage_request_set_extended *)request;
+		request_desc->uid = uid;
+		request_desc->data_offset = data_offset;
+		request_desc->data_length = data_length;
+		memcpy(&request_desc->p_data, p_data, data_length);
+
+		rpc_status = rpc_caller_invoke(this_context->rpc_caller, handle,
+						TS_SECURE_STORAGE_OPCODE_SET_EXTENDED,
+						(uint32_t *)&psa_status, &response,
+						&response_length);
+
+		if (rpc_status != TS_RPC_CALL_ACCEPTED) {
+			/* RPC failure */
+			psa_status = PSA_ERROR_GENERIC_ERROR;
+		}
+
+		rpc_caller_end(this_context->rpc_caller, handle);
+	}
+	else {
+		psa_status = PSA_ERROR_GENERIC_ERROR;
+	}
+
+	return psa_status;
+}
+
+static uint32_t secure_storage_get_support(void *context, uint32_t client_id)
+{
+	struct secure_storage_client *this_context = (struct secure_storage_client*)context;
+	uint8_t *request;
+	uint8_t *response;
+	size_t response_length = 0;
+	struct secure_storage_response_get_support *response_desc;
+	rpc_call_handle handle;
+	rpc_status_t rpc_status;
+	psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
+	uint32_t feature_map = 0;
+
+	(void)client_id;
+
+	handle = rpc_caller_begin(this_context->rpc_caller, &request, 0);
+
+	if (handle) {
+
+		rpc_status = rpc_caller_invoke(this_context->rpc_caller, handle,
+						TS_SECURE_STORAGE_OPCODE_GET_SUPPORT,
+						(uint32_t *)&psa_status, &response,
+						&response_length);
+
+		if (rpc_status != TS_RPC_CALL_ACCEPTED) {
+			/* RPC failure */
+			psa_status = PSA_ERROR_GENERIC_ERROR;
+		} else if (response_length < sizeof(*response_desc)) {
+			psa_status = PSA_ERROR_GENERIC_ERROR;
+		}
+
+		if (psa_status == PSA_SUCCESS) {
+			response_desc = (struct secure_storage_response_get_support*)response;
+			feature_map = response_desc->support;
+		}
+
+		rpc_caller_end(this_context->rpc_caller, handle);
+	}
+
+	return feature_map;
+}
+
+
 struct storage_backend *secure_storage_client_init(struct secure_storage_client *context,
 								struct rpc_caller *caller)
 {
@@ -229,7 +385,10 @@ struct storage_backend *secure_storage_client_init(struct secure_storage_client 
 		secure_storage_client_set,
 		secure_storage_client_get,
 		secure_storage_client_get_info,
-		secure_storage_client_remove
+		secure_storage_client_remove,
+		secure_storage_client_create,
+		secure_storage_set_extended,
+		secure_storage_get_support
 	};
 
 	context->backend.context = context;

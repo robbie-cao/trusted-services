@@ -1,45 +1,14 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
 #include <cstring>
-#include <cstdint>
 #include <CppUTest/TestHarness.h>
-#include <rpc/direct/direct_caller.h>
-#include <service/secure_storage/frontend/psa/its/its_frontend.h>
-#include <service/secure_storage/backend/secure_storage_client/secure_storage_client.h>
-#include <service/secure_storage/frontend/secure_storage_provider/secure_storage_provider.h>
-#include <service/secure_storage/backend/secure_flash_store/secure_flash_store.h>
 #include <psa/internal_trusted_storage.h>
-#include <psa/error.h>
+#include "its_api_tests.h"
 
-TEST_GROUP(InternalTrustedStorageTests)
-{
-    void setup()
-    {
-        struct storage_backend *storage_provider_backend = sfs_init();
-        struct rpc_interface *storage_ep = secure_storage_provider_init(&m_storage_provider, storage_provider_backend);
-        struct rpc_caller *storage_caller = direct_caller_init_default(&m_storage_caller, storage_ep);
-
-        struct storage_backend *storage_client_backend = secure_storage_client_init(&m_storage_client, storage_caller);
-        psa_its_frontend_init(storage_client_backend);
-    }
-
-    void teardown()
-    {
-        secure_storage_provider_deinit(&m_storage_provider);
-        secure_storage_client_deinit(&m_storage_client);
-        direct_caller_deinit(&m_storage_caller);
-    }
-
-    struct secure_storage_provider m_storage_provider;
-    struct secure_storage_client m_storage_client;
-    struct direct_caller m_storage_caller;
-};
-
-TEST(InternalTrustedStorageTests, storeNewItem)
+void its_api_tests::storeNewItem()
 {
     psa_status_t status;
     psa_storage_uid_t uid = 10;
@@ -79,7 +48,7 @@ TEST(InternalTrustedStorageTests, storeNewItem)
     CHECK_EQUAL(PSA_ERROR_DOES_NOT_EXIST, status);
 }
 
-TEST(InternalTrustedStorageTests, storageLimitTest)
+void its_api_tests::storageLimitTest(size_t size_limit)
 {
     psa_status_t status;
     psa_storage_uid_t uid = 10;
@@ -94,8 +63,8 @@ TEST(InternalTrustedStorageTests, storageLimitTest)
     status = psa_its_get_info(uid, &storage_info);
     CHECK_EQUAL(PSA_ERROR_DOES_NOT_EXIST, status);
 
-    /* Attempt to store a reasonably big item */
-    status = psa_its_set(uid, 5000, item, PSA_STORAGE_FLAG_NONE);
+    /* Attempt to store an item that just exceeds the store's limit*/
+    status = psa_its_set(uid, size_limit + 1, item, PSA_STORAGE_FLAG_NONE);
     CHECK(PSA_SUCCESS != status);
 
     /* Attempt to store a stupidly big item */

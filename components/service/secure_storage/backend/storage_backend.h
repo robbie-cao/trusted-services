@@ -41,7 +41,7 @@ struct storage_backend_interface
      * \retval PSA_ERROR_NOT_PERMITTED         The operation failed because the
      *                                         provided `uid` value was already
      *                                         created with
-     *                                         TS_SECURE_STORAGE_FLAG_WRITE_ONCE
+     *                                         PSA_STORAGE_FLAG_WRITE_ONCE
      * \retval PSA_ERROR_NOT_SUPPORTED         The operation failed because one or
      *                                         more of the flags provided in
      *                                         `create_flags` is not supported or is
@@ -158,13 +158,103 @@ struct storage_backend_interface
      *                                     uid value was not found in the storage
      * \retval PSA_ERROR_NOT_PERMITTED     The operation failed because the provided
      *                                     uid value was created with
-     *                                     TS_SECURE_STORAGE_FLAG_WRITE_ONCE
+     *                                     PSA_STORAGE_FLAG_WRITE_ONCE
      * \retval PSA_ERROR_STORAGE_FAILURE   The operation failed because the physical
      *                                     storage has failed (Fatal error)
      */
     psa_status_t (*remove)(void *context,
                                 uint32_t client_id,
                                 uint64_t uid);
+
+    /**
+     * \brief Reserves storage for a new asset
+     *
+     * Creates a new asset of length zero but with the specified space reserved.
+     *
+     * \param[in] context       The concrete backend context
+     * \param[in] client_id     Identifier of the asset's owner (client)
+     * \param[in] uid           The identifier for the data
+     * \param[in] capacity      The space to reserve
+     * \param[in] create_flags  The flags that the data will be stored with
+     *
+     * \return A status indicating the success/failure of the operation
+     *
+     * \retval PSA_SUCCESS                     The operation completed successfully
+     * \retval PSA_ERROR_NOT_SUPPORTED         The operation failed because one or
+     *                                         more of the flags provided in
+     *                                         `create_flags` is not supported or is
+     *                                         not valid
+     * \retval PSA_ERROR_INSUFFICIENT_STORAGE  The operation failed because there
+     *                                         was insufficient space on the
+     *                                         storage medium
+     * \retval PSA_ERROR_STORAGE_FAILURE       The operation failed because the
+     *                                         physical storage has failed (Fatal
+     *                                         error)
+     * \retval PSA_ERROR_INVALID_ARGUMENT      The operation failed because one
+     *                                         of the provided pointers (`p_data`)
+     *                                         is invalid, for example is `NULL` or
+     *                                         references memory the caller cannot
+     *                                         access
+     * \retval PSA_ERROR_ALREADY_EXISTS        The specified uuid already exists
+     */
+    psa_status_t (*create)(void *context,
+                            uint32_t client_id,
+                            uint64_t uid,
+                            size_t capacity,
+                            uint32_t create_flags);
+
+    /**
+     * \brief Set partial data for an existing asset
+     *
+     * \param[in] context       The concrete backend context
+     * \param[in] client_id     Identifier of the asset's owner (client)
+     * \param[in] uid           The identifier for the data
+     * \param[in] data_offset   Offset into asset for start of write
+     * \param[in] data_length   The size in bytes of the data in `p_data`
+     *
+     * \return A status indicating the success/failure of the operation
+     *
+     * \retval PSA_SUCCESS                     The operation completed successfully
+     *
+     * \retval PSA_ERROR_NOT_PERMITTED         The operation failed because the
+     *                                         provided `uid` value was already
+     *                                         created with
+     *                                         PSA_STORAGE_FLAG_WRITE_ONCE
+     * \retval PSA_ERROR_NOT_SUPPORTED         The operation failed because one or
+     *                                         more of the flags provided in
+     *                                         `create_flags` is not supported or is
+     *                                         not valid
+     * \retval PSA_ERROR_STORAGE_FAILURE       The operation failed because the
+     *                                         physical storage has failed (Fatal
+     *                                         error)
+     * \retval PSA_ERROR_INVALID_ARGUMENT      The operation failed because one
+     *                                         of the provided pointers (`p_data`)
+     *                                         is invalid, for example is `NULL` or
+     *                                         references memory the caller cannot
+     *                                         access
+     * \retval PSA_ERROR_DOES_NOT_EXIST        The specified uuid was not found
+     * \retval PSA_ERROR_DOES_DATA_CORRUPT     Existing data is corrupted
+     * \retval PSA_ERROR_INVALID_SIGNATURE     MAC check failed on existing data
+     */
+    psa_status_t (*set_extended)(void *context,
+                            uint32_t client_id,
+                            uint64_t uid,
+                            size_t data_offset,
+                            size_t data_length,
+                            const void *p_data);
+
+    /**
+     * \brief Get supported features
+     *
+     * Returns a bit map of optional features supported by the backend
+     *
+     * \param[in] context       The concrete backend context
+     * \param[in] client_id     Identifier of the asset's owner (client)
+     *
+     * \return Bit map of supported features (defined in psa/storage_common.h)
+     */
+    uint32_t (*get_support)(void *context,
+                            uint32_t client_id);
 };
 
 /**

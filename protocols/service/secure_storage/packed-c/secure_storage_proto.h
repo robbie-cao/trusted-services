@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 
+/* Operation SET request parameters */
 struct __attribute__ ((__packed__)) secure_storage_request_set {
 	uint64_t uid;
 	uint64_t data_length;
@@ -16,12 +17,14 @@ struct __attribute__ ((__packed__)) secure_storage_request_set {
 	uint8_t p_data[];
 };
 
+/* Operation GET request parameters */
 struct __attribute__ ((__packed__)) secure_storage_request_get {
 	uint64_t uid;
 	uint64_t data_offset;
 	uint64_t data_size;
 };
 
+/* Operation GET_INFO request and response parameters */
 struct __attribute__ ((__packed__)) secure_storage_request_get_info {
 	uint64_t uid;
 };
@@ -32,14 +35,38 @@ struct __attribute__ ((__packed__)) secure_storage_response_get_info {
 	uint32_t flags;
 };
 
+/* Operation REMOVE request parameters */
 struct __attribute__ ((__packed__)) secure_storage_request_remove {
 	uint64_t uid;
+};
+
+/* Operation CREATE request parameters */
+struct __attribute__ ((__packed__)) secure_storage_request_create {
+	uint64_t uid;
+	uint64_t capacity;
+	uint32_t create_flags;
+};
+
+/* Operation SET_EXTENDED request parameters */
+struct __attribute__ ((__packed__)) secure_storage_request_set_extended {
+	uint64_t uid;
+	uint64_t data_offset;
+	uint64_t data_length;
+	uint8_t p_data[];
+};
+
+/* Operation GET_SUPPORT response parameters */
+struct __attribute__ ((__packed__)) secure_storage_response_get_support {
+	uint32_t support;
 };
 
 #define TS_SECURE_STORAGE_OPCODE_SET			(0u)
 #define TS_SECURE_STORAGE_OPCODE_GET			(1u)
 #define TS_SECURE_STORAGE_OPCODE_GET_INFO		(2u)
 #define TS_SECURE_STORAGE_OPCODE_REMOVE			(3u)
+#define TS_SECURE_STORAGE_OPCODE_CREATE			(4u)
+#define TS_SECURE_STORAGE_OPCODE_SET_EXTENDED	(5u)
+#define TS_SECURE_STORAGE_OPCODE_GET_SUPPORT	(6u)
 
 #define TS_SECURE_STORAGE_FLAG_NONE			(0u)
 #define TS_SECURE_STORAGE_FLAG_WRITE_ONCE		(1u << 0)

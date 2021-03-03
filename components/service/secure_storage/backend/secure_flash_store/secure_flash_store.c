@@ -264,6 +264,71 @@ static psa_status_t sfs_remove(void *context, uint32_t client_id, uint64_t uid)
     return sfs_flash_fs_file_delete(&fs_ctx_sfs, g_fid);
 }
 
+static psa_status_t sfs_create(void *context,
+                            uint32_t client_id,
+                            uint64_t uid,
+                            size_t capacity,
+                            uint32_t create_flags)
+{
+    psa_status_t status;
+
+    /* Check that the UID is valid */
+    if (uid == SFS_INVALID_UID) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    /* Check that the create_flags does not contain any unsupported flags */
+    if (create_flags & ~(PSA_STORAGE_FLAG_WRITE_ONCE |
+                         PSA_STORAGE_FLAG_NO_CONFIDENTIALITY |
+                         PSA_STORAGE_FLAG_NO_REPLAY_PROTECTION)) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    /* Set file id */
+    sfs_get_fid(client_id, uid, g_fid);
+
+    /* Read file info */
+    status = sfs_flash_fs_file_get_info(&fs_ctx_sfs, g_fid, &g_file_info);
+    if (status == PSA_SUCCESS) {
+        return PSA_ERROR_ALREADY_EXISTS;
+    }
+
+    /* Create the file in the file system */
+    status = sfs_flash_fs_file_create(&fs_ctx_sfs, g_fid, capacity,
+                                      0, (uint32_t)create_flags,
+                                      NULL);
+
+    return status;
+}
+
+static psa_status_t sfs_set_extended(void *context,
+                            uint32_t client_id,
+                            uint64_t uid,
+                            size_t data_offset,
+                            size_t data_length,
+                            const void *p_data)
+{
+    /* Optional function not supported by this backend */
+    (void)context;
+    (void)client_id;
+    (void)uid;
+    (void)data_offset;
+    (void)data_length;
+    (void)p_data;
+
+    return PSA_ERROR_NOT_SUPPORTED;
+}
+
+static uint32_t sfs_get_support(void *context, uint32_t client_id)
+{
+    (void)context;
+    (void)client_id;
+
+    /* No optional functions supported */
+    return 0;
+}
+
+
 struct storage_backend *sfs_init(void)
 {
     psa_status_t status;
@@ -307,7 +372,10 @@ struct storage_backend *sfs_init(void)
         sfs_set,
         sfs_get,
         sfs_get_info,
-        sfs_remove
+        sfs_remove,
+        sfs_create,
+        sfs_set_extended,
+        sfs_get_support
     };
 
     static struct storage_backend backend;
