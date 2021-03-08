@@ -10,7 +10,7 @@
 #include <rpc/common/endpoint/rpc_interface.h>
 #include <service/common/provider/service_provider.h>
 #include <service/crypto/provider/serializer/crypto_provider_serializer.h>
-#include <service/secure_storage/backend/secure_storage_client/secure_storage_client.h>
+#include <service/secure_storage/backend/storage_backend.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
 
 #ifdef __cplusplus
@@ -21,7 +21,6 @@ struct mbed_crypto_provider
 {
     struct service_provider base_provider;
     const struct crypto_provider_serializer *serializers[TS_RPC_ENCODING_LIMIT];
-    struct secure_storage_client secure_storage_client;
 };
 
 /*
@@ -31,7 +30,7 @@ struct mbed_crypto_provider
  * backend.
  */
 struct rpc_interface *mbed_crypto_provider_init(struct mbed_crypto_provider *context,
-                                        struct rpc_caller *storage_caller,
+                                        struct storage_backend *storage_backend,
                                         int trng_instance);
 
 /*

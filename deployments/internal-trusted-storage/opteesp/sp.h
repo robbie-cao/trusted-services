@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -7,6 +7,7 @@
 #ifndef SP_H
 #define SP_H
 
+/* UUID for the Internal Trusted Store */
 #define OPTEE_SP_UUID \
 	{ 0xdc1eef48, 0xb17a, 0x4ccf, \
 		{ 0xac, 0x8b, 0xdf, 0xcf, 0xf7, 0x71, 0x1b, 0x14 } }

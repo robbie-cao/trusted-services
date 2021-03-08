@@ -15,6 +15,7 @@ standalone_crypto_client::standalone_crypto_client() :
     test_crypto_client(),
     m_crypto_provider(),
     m_storage_provider(),
+    m_storage_client(),
     m_crypto_caller(),
     m_storage_caller(),
     m_dummy_storage_caller()
@@ -54,10 +55,13 @@ bool standalone_crypto_client::init()
                         TS_RPC_CALL_ACCEPTED, PSA_ERROR_STORAGE_FAILURE);
         }
 
+        struct storage_backend *client_storage_backend = secure_storage_client_init(&m_storage_client,
+                                                                        storage_caller);
+
         struct rpc_interface *crypto_ep = mbed_crypto_provider_init(&m_crypto_provider,
-                                                                storage_caller, 0);
-        struct rpc_caller *crypto_caller = direct_caller_init_default(&m_crypto_caller,
-                                                                crypto_ep);
+                                                                client_storage_backend, 0);
+
+        struct rpc_caller *crypto_caller = direct_caller_init_default(&m_crypto_caller, crypto_ep);
 
         mbed_crypto_provider_register_serializer(&m_crypto_provider,
                     TS_RPC_ENCODING_PROTOBUF, pb_crypto_provider_serializer_instance());
@@ -81,6 +85,7 @@ bool standalone_crypto_client::deinit()
 
         mbed_crypto_provider_deinit(&m_crypto_provider);
         secure_storage_provider_deinit(&m_storage_provider);
+        secure_storage_client_deinit(&m_storage_client);
 
         direct_caller_deinit(&m_storage_caller);
         direct_caller_deinit(&m_crypto_caller);

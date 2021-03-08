@@ -8,7 +8,7 @@
 #include <ffa_api.h>
 #include <components/rpc/common/endpoint/rpc_interface.h>
 #include <components/rpc/ffarpc/endpoint/ffarpc_call_ep.h>
-#include <components/service/secure_storage/backend/secure_flash_store/secure_flash_store.h>
+#include <components/service/secure_storage/factory/storage_factory.h>
 #include <components/service/secure_storage/frontend/secure_storage_provider/secure_storage_provider.h>
 #include <sp_api.h>
 #include <sp_rxtx.h>
@@ -42,7 +42,7 @@ void sp_main(struct ffa_init_info *init_info)
 		EMSG("rxtx map error: %d", sp_res);
 	}
 
-	storage_backend = sfs_init();
+	storage_backend = storage_factory_create(storage_factory_security_class_PROTECTED);
 	secure_storage_iface = secure_storage_provider_init(&secure_storage_provider, storage_backend);
 	ffa_call_ep_init(&ffa_call_ep, secure_storage_iface);
 

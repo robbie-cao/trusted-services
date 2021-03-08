@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -9,6 +9,7 @@ if (NOT DEFINED TGT)
 endif()
 
 target_sources(${TGT} PRIVATE
-	"${CMAKE_CURRENT_LIST_DIR}/mock_crypto_client.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/its_service_tests.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/ps_service_tests.cpp"
 	)
 

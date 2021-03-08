@@ -45,7 +45,7 @@ static const struct service_handler handler_table[] = {
 };
 
 struct rpc_interface *mbed_crypto_provider_init(struct mbed_crypto_provider *context,
-                                        struct rpc_caller *storage_caller,
+                                        struct storage_backend *storage_backend,
                                         int trng_instance)
 {
     struct rpc_interface *rpc_interface = NULL;
@@ -57,7 +57,7 @@ struct rpc_interface *mbed_crypto_provider_init(struct mbed_crypto_provider *con
      * is a mandatory feature of the crypto service, insist on a storage
      * provider being available.
      */
-    if (context && storage_caller) {
+    if (context && storage_backend) {
 
         for (size_t encoding = 0; encoding < TS_RPC_ENCODING_LIMIT; ++encoding)
             context->serializers[encoding] = NULL;
@@ -65,11 +65,7 @@ struct rpc_interface *mbed_crypto_provider_init(struct mbed_crypto_provider *con
         service_provider_init(&context->base_provider, context,
                     handler_table, sizeof(handler_table)/sizeof(struct service_handler));
 
-        struct storage_backend *storage_backend =
-            secure_storage_client_init(&context->secure_storage_client, storage_caller);
-
-        if (storage_backend &&
-            (psa_its_frontend_init(storage_backend) == PSA_SUCCESS) &&
+        if ((psa_its_frontend_init(storage_backend) == PSA_SUCCESS) &&
             (psa_crypto_init() == PSA_SUCCESS)) {
 
             rpc_interface = service_provider_get_rpc_interface(&context->base_provider);

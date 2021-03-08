@@ -11,7 +11,7 @@
 #include <CppUTest/TestHarness.h>
 
 /*
- * Service-level tests that use the Protobuf access protocol serialization
+ * Service-level tests that use the packed-c access protocol serialization
  */
 TEST_GROUP(CryptoServicePackedcTests)
 {

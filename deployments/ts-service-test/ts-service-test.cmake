@@ -28,6 +28,7 @@ add_components(
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/common/tlv"
+		"components/service/common"
 		"components/service/crypto/test/service"
 		"components/service/crypto/test/service/protobuf"
 		"components/service/crypto/test/service/packed-c"
@@ -37,6 +38,12 @@ add_components(
 		"components/service/common/serializer/protobuf"
 		"protocols/service/crypto/protobuf"
 		"protocols/service/crypto/packed-c"
+		"components/service/secure_storage/test/service"
+		"components/service/secure_storage/frontend/psa/its"
+		"components/service/secure_storage/frontend/psa/its/test"
+		"components/service/secure_storage/frontend/psa/ps"
+		"components/service/secure_storage/frontend/psa/ps/test"
+		"components/service/secure_storage/backend/secure_storage_client"
 )
 
 #-------------------------------------------------------------------------------

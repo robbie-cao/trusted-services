@@ -3,10 +3,9 @@
  * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  */
 
-#include <rpc/ffarpc/caller/sp/ffarpc_caller.h>
+
 #include <rpc/ffarpc/endpoint/ffarpc_call_ep.h>
-#include <rpc/dummy/dummy_caller.h>
-#include <service/secure_storage/backend/secure_storage_client/secure_storage_client.h>
+#include <service/secure_storage/factory/storage_factory.h>
 #include <service/crypto/provider/mbedcrypto/crypto_provider.h>
 #include <service/crypto/provider/serializer/protobuf/pb_crypto_provider_serializer.h>
 #include <service/crypto/provider/serializer/packed-c/packedc_crypto_provider_serializer.h>
@@ -19,12 +18,7 @@
 #include <trace.h>
 
 
-#define SP_STORAGE_UUID_BYTES \
-	{ 0xdc, 0x1e, 0xef, 0x48, 0xb1, 0x7a, 0x4c, 0xcf, \
-	  0xac, 0x8b, 0xdf, 0xcf, 0xf7, 0x71, 0x1b, 0x14, }
-
 uint16_t own_id = 0; /* !!Needs refactoring as parameter to ffarpc_caller_init */
-static const uint8_t storage_uuid[] = SP_STORAGE_UUID_BYTES;
 
 
 static int sp_init(uint16_t *own_sp_id);
@@ -34,38 +28,21 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	struct mbed_crypto_provider crypto_provider;
 	struct ffa_call_ep ffarpc_call_ep;
 	struct rpc_interface *crypto_iface;
-	struct ffarpc_caller ffarpc_caller;
-	struct dummy_caller dummy_caller;
-	struct rpc_caller *storage_caller;
 	struct ffa_direct_msg req_msg;
-	uint16_t storage_sp_ids[1];
+	struct storage_backend *storage_backend;
 
-	/* Boot */
-	(void) init_info;
-
+	/* Boot phase */
 	if (sp_init(&own_id) != 0) goto fatal_error;
 
 	config_ramstore_init();
 	sp_config_load(init_info);
 
-	/* Establish RPC session with secure storage SP */
-	storage_caller = ffarpc_caller_init(&ffarpc_caller);
-
-	if (!ffarpc_caller_discover(storage_uuid, storage_sp_ids,
-								sizeof(storage_sp_ids)/sizeof(uint16_t)) ||
-		ffarpc_caller_open(&ffarpc_caller, storage_sp_ids[0], 0)) {
-		/*
-		 * Failed to establish session.  To allow the crypto service
-		 * to still be initialized, albeit with no persistent storage,
-		 * initialise a dummy_caller that will safely
-		 * handle rpc requests but will report an error.
-		 */
-		storage_caller = dummy_caller_init(&dummy_caller,
-                                TS_RPC_CALL_ACCEPTED, PSA_ERROR_STORAGE_FAILURE);
-	}
+	/* Create a storage backend for persistent key storage - prefer ITS */
+	storage_backend = storage_factory_create(storage_factory_security_class_INTERNAL_TRUSTED);
+	if (!storage_backend) goto fatal_error;
 
 	/* Initialize the crypto service */
-	crypto_iface = mbed_crypto_provider_init(&crypto_provider, storage_caller, 0);
+	crypto_iface = mbed_crypto_provider_init(&crypto_provider, storage_backend, 0);
 
 	mbed_crypto_provider_register_serializer(&crypto_provider,
                     TS_RPC_ENCODING_PROTOBUF, pb_crypto_provider_serializer_instance());
