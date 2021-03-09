@@ -7,7 +7,7 @@
 
 #GNUARM v8 and v9 compilers use a different triplet.
 if(NOT CROSS_COMPILE AND NOT DEFINED ENV{CROSS_COMPILE})
-	set(CROSS_COMPILE "aarch64-elf-;aarch64-none-elf-;aarch64-linux-gnu-" CACHE STRING "List of GCC prefix triplets to use.")
+	set(CROSS_COMPILE "aarch64-elf-;aarch64-none-elf-;aarch64-linux-gnu-;aarch64-none-linux-gnu-" CACHE STRING "List of GCC prefix triplets to use.")
 endif()
 
 set(CMAKE_CROSSCOMPILING True)
