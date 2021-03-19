@@ -5,7 +5,8 @@ Standards Compliance
     :maxdepth: 1
     :caption: Contents:
 
-    psa_certification
+    psa
+    ff-a
 
 --------------
 

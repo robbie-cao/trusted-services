@@ -23,12 +23,21 @@ You can find additional definitions in the `Arm Glossary`_.
     ACLE
         `Arm C language extensions`_
 
+    PSA
+        `Platforn Security Arhitecture`_
+
+    FF-A
+        `Firmware Framework for A`_
+
 
 --------------
 
 .. _`Arm Glossary`: https://developer.arm.com/support/arm-glossary
 .. _`Linux Coding Style`: https://www.kernel.org/doc/html/v4.10/process/coding-style.html
 .. _`Arm C language extensions`: https://developer.arm.com/documentation/101028/0012/?lang=en
+.. _`Platforn Security Arhitecture`:  https://developer.arm.com/architectures/security-architectures/platform-security-architecture
+.. _`Firmware Framework for A`: https://developer.arm.com/docs/den0077/latest
+
 
 *Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.*
 
