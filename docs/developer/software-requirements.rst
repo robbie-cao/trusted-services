@@ -23,7 +23,7 @@ The following tools are required:
          (Note: the compiler part of the OP-TEE build environment works too.)
        * For `linux-pc` environment use the native version of GCC available in your Linux distribution.
 
-To build the documentation, please refer to :ref:`Building Documentation`.
+To build the documentation, please refer to :ref:`Documentation Build Instructions`.
 
 .. todo:: Add info on commit validation dependencies (checkpatch, uncrustify, etc...)
 

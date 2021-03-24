@@ -1,5 +1,5 @@
-Building Documentation
-======================
+Documentation Build Instructions
+================================
 
 To create a rendered copy of this documentation locally you can use the
 `Sphinx`_ tool to build and package the plain-text documents into HTML-formatted
@@ -57,7 +57,7 @@ From the ``docs`` directory of the project, run the following commands.
 
    . ~/sphinx-venv/bin/activate
    make clean
-   make SPHINXOPTS=-W html
+   make
    deactivate
 
 Output from the build process will be placed in:

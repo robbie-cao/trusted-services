@@ -6,6 +6,7 @@ Service Descriptions
     :caption: Contents:
 
     crypto-service-description
+    secure-storage-service-description
 
 --------------
 

@@ -38,11 +38,11 @@ deployments::
     deployment-name = <descriptive-name>/<environment>
 
     deployments
-        |-- secure-storage/opteesp
+        |-- protected-storage/opteesp
         |-- crypto/opteesp
         |-- ts-demo/arm-linux
-        |-- component-test/posix-x86
-        |-- ts-lib/posix-x86
+        |-- component-test/linux-pc
+        |-- libts/linux-pc
 
 The trusted services project uses CMake to configure and generate build files.  A CMakeLists.txt file exists
 for each deployment to define the set of components, any deployment specific configuration and anything
@@ -71,9 +71,9 @@ An environment represents the execution context in which a built image runs.  Th
 represented in the project structure, one for each supported isolated execution context.  Files related to a
 particular environment live under a sub-directory whose name describes the environment.  For example:
 
-    - opteesp     An S-EL0 secure partition hosted by OP-TEE
-    - arm-linux   Linux user-space, cross compiled for Arm.
-    - linux-pc   Native PC POSIX environment
+    - *opteesp*         An S-EL0 secure partition hosted by OP-TEE
+    - *arm-linux*       Linux user-space, cross compiled for Arm.
+    - *linux-pc*        Native PC POSIX environment
 
 Files related to an environment will tend to live outside of the project tree and will need to be imported
 in some way.  How this is handled will depend on the environment.  An environment will generally provide the
@@ -113,8 +113,9 @@ provider components.  The following illustrates this::
         |   |-- common
         |   |       |-- test
         |   |-- secure-storage
-        |   |       |-- client
-        |   |       |-- provider
+        |   |       |-- frontend
+        |   |       |-- backend
+        |   |       |-- factory
         |   |       |-- test
         |   |-- crypto
         |   |       |-- client
@@ -146,8 +147,9 @@ the following about the scope of the tests::
         |   |-- common
         |   |       |-- test        <-- Tests for the common service component
         |   |-- secure-storage
-        |   |       |-- client
-        |   |       |-- provider
+        |   |       |-- frontend
+        |   |       |-- backend
+        |   |       |-- factory
         |   |       |-- test        <-- Service level tests for the secure-storage service
 
 If it is necessary to componentize tests further, sub-directories under the test directory may be used, say

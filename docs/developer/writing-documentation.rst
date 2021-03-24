@@ -1,4 +1,4 @@
-Writing documentation
+Writing Documentation
 =====================
 
 |TS| is documented using `Sphinx`_, which in turn uses Docutils and `Restructured Text`_ (|REST| hereafter).
