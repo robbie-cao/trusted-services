@@ -14,3 +14,4 @@ ifeq (,${@EXPORT_SP_UUID@-included})
 endif
 
 OPTEE_OS_COMMON_EXTRA_FLAGS+=EARLY_TA_PATHS+=${TS_INSTALL_PREFIX}/opteesp/bin/@EXPORT_SP_UUID@.stripped.elf
+TS_SP_DTSI_LIST+="\\n\#include \"${TS_INSTALL_PREFIX}/opteesp/manifest/@EXPORT_SP_UUID@.dtsi\""
