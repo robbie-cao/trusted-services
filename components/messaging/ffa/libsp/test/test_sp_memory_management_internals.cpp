@@ -38,6 +38,12 @@ TEST_GROUP(sp_memory_management_internals)
 		memset(&flags, 0x00, sizeof(flags));
 	}
 
+	TEST_TEARDOWN()
+	{
+		mock().checkExpectations();
+		mock().clear();
+	}
+
 	union sp_memory_attr attr;
 	struct sp_memory_transaction_flags flags;
 };
