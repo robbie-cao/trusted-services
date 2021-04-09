@@ -82,6 +82,11 @@ TEST(CryptoServicePackedcTests, asymEncryptDecrypt)
     m_scenarios->asymEncryptDecrypt();
 }
 
+TEST(CryptoServicePackedcTests, asymEncryptDecryptWithSalt)
+{
+    m_scenarios->asymEncryptDecryptWithSalt();
+}
+
 TEST(CryptoServicePackedcTests, generateRandomNumbers)
 {
     m_scenarios->generateRandomNumbers();

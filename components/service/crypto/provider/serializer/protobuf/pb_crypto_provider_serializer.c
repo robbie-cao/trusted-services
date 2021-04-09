@@ -339,6 +339,7 @@ static rpc_status_t deserialize_asymmetric_decrypt_req(const struct call_param_b
 
     pb_bytes_array_t *salt_buffer = pb_malloc_byte_array(*salt_len);
     recv_msg.salt = pb_in_byte_array(salt_buffer);
+    *salt_len = 0;  /* Default for optional parameter */
 
     pb_istream_t istream = pb_istream_from_buffer((const uint8_t*)req_buf->data, req_buf->data_len);
 
@@ -403,6 +404,7 @@ static rpc_status_t deserialize_asymmetric_encrypt_req(const struct call_param_b
 
     pb_bytes_array_t *salt_buffer = pb_malloc_byte_array(*salt_len);
     recv_msg.salt = pb_in_byte_array(salt_buffer);
+    *salt_len = 0;  /* Default for optional parameter */
 
     pb_istream_t istream = pb_istream_from_buffer((const uint8_t*)req_buf->data, req_buf->data_len);
 

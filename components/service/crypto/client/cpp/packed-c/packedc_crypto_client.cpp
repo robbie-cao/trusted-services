@@ -441,22 +441,26 @@ psa_status_t packedc_crypto_client::asymmetric_encrypt(psa_key_id_t id, psa_algo
     psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
     struct ts_crypto_asymmetric_encrypt_in req_msg;
     size_t req_fixed_len = sizeof(ts_crypto_asymmetric_encrypt_in);
-    size_t req_len = req_fixed_len + tlv_required_space(input_length) + tlv_required_space(salt_length);
+    size_t req_len = req_fixed_len;
 
     *output_length = 0;  /* For failure case */
 
     req_msg.id = id;
     req_msg.alg = alg;
 
+    /* Mandatory parameter */
     struct tlv_record plaintext_record;
     plaintext_record.tag = TS_CRYPTO_ASYMMETRIC_ENCRYPT_IN_TAG_PLAINTEXT;
     plaintext_record.length = input_length;
     plaintext_record.value = input;
+    req_len += tlv_required_space(plaintext_record.length);
 
+    /* Optional parameter */
     struct tlv_record salt_record;
     salt_record.tag = TS_CRYPTO_ASYMMETRIC_ENCRYPT_IN_TAG_SALT;
-    salt_record.length = salt_length;
+    salt_record.length = (salt) ? salt_length : 0;
     salt_record.value = salt;
+    if (salt) req_len += tlv_required_space(salt_record.length);
 
     rpc_call_handle call_handle;
     uint8_t *req_buf;
@@ -474,7 +478,7 @@ psa_status_t packedc_crypto_client::asymmetric_encrypt(psa_key_id_t id, psa_algo
 
         tlv_iterator_begin(&req_iter, &req_buf[req_fixed_len], req_len - req_fixed_len);
         tlv_encode(&req_iter, &plaintext_record);
-        tlv_encode(&req_iter, &salt_record);
+        if (salt) tlv_encode(&req_iter, &salt_record);
 
         m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
                     TS_CRYPTO_OPCODE_ASYMMETRIC_ENCRYPT, &opstatus, &resp_buf, &resp_len);
@@ -522,22 +526,26 @@ psa_status_t packedc_crypto_client::asymmetric_decrypt(psa_key_id_t id, psa_algo
     psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
     struct ts_crypto_asymmetric_decrypt_in req_msg;
     size_t req_fixed_len = sizeof(ts_crypto_asymmetric_decrypt_in);
-    size_t req_len = req_fixed_len + tlv_required_space(input_length) + tlv_required_space(salt_length);
+    size_t req_len = req_fixed_len;
 
     *output_length = 0;  /* For failure case */
 
     req_msg.id = id;
     req_msg.alg = alg;
 
+    /* Mandatory parameter */
     struct tlv_record ciphertext_record;
     ciphertext_record.tag = TS_CRYPTO_ASYMMETRIC_DECRYPT_IN_TAG_CIPHERTEXT;
     ciphertext_record.length = input_length;
     ciphertext_record.value = input;
+    req_len += tlv_required_space(ciphertext_record.length);
 
+    /* Optional parameter */
     struct tlv_record salt_record;
     salt_record.tag = TS_CRYPTO_ASYMMETRIC_DECRYPT_IN_TAG_SALT;
-    salt_record.length = salt_length;
+    salt_record.length = (salt) ? salt_length : 0;
     salt_record.value = salt;
+    if (salt) req_len += tlv_required_space(salt_record.length);
 
     rpc_call_handle call_handle;
     uint8_t *req_buf;
@@ -555,7 +563,7 @@ psa_status_t packedc_crypto_client::asymmetric_decrypt(psa_key_id_t id, psa_algo
 
         tlv_iterator_begin(&req_iter, &req_buf[req_fixed_len], req_len - req_fixed_len);
         tlv_encode(&req_iter, &ciphertext_record);
-        tlv_encode(&req_iter, &salt_record);
+        if (salt) tlv_encode(&req_iter, &salt_record);
 
         m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
                     TS_CRYPTO_OPCODE_ASYMMETRIC_DECRYPT, &opstatus, &resp_buf, &resp_len);

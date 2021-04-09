@@ -19,6 +19,7 @@ public:
 
     void generateRandomNumbers();
     void asymEncryptDecrypt();
+    void asymEncryptDecryptWithSalt();
     void signAndVerifyHash();
     void exportAndImportKeyPair();
     void exportPublicKey();

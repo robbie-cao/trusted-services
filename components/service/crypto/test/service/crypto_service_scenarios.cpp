@@ -261,6 +261,57 @@ void crypto_service_scenarios::asymEncryptDecrypt()
     CHECK_EQUAL(PSA_SUCCESS, status);
 }
 
+void crypto_service_scenarios::asymEncryptDecryptWithSalt()
+{
+    psa_status_t status;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_handle_t key_handle;
+
+    psa_set_key_id(&attributes, 15);
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT);
+    psa_set_key_algorithm(&attributes,  PSA_ALG_RSA_OAEP(PSA_ALG_SHA_256));
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_RSA_KEY_PAIR);
+    psa_set_key_bits(&attributes, 1024);
+
+    /* Generate a key */
+    status = m_crypto_client->generate_key(&attributes, &key_handle);
+    CHECK_EQUAL(PSA_SUCCESS, status);
+
+    psa_reset_key_attributes(&attributes);
+
+    /* Encrypt a message */
+    uint8_t message[] = {'q','u','i','c','k','b','r','o','w','n','f','o','x'};
+    uint8_t ciphertext[128];
+    size_t ciphertext_len = 0;
+
+    /* With salt */
+    uint8_t salt[] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+
+    status = m_crypto_client->asymmetric_encrypt(key_handle, PSA_ALG_RSA_OAEP(PSA_ALG_SHA_256),
+                            message, sizeof(message),
+                            salt, sizeof(salt),
+                            ciphertext, sizeof(ciphertext), &ciphertext_len);
+    CHECK_EQUAL(PSA_SUCCESS, status);
+
+    /* Decrypt it */
+    uint8_t plaintext[256];
+    size_t plaintext_len = 0;
+
+    status = m_crypto_client->asymmetric_decrypt(key_handle, PSA_ALG_RSA_OAEP(PSA_ALG_SHA_256),
+                            ciphertext, ciphertext_len,
+                            salt, sizeof(salt),
+                            plaintext, sizeof(plaintext), &plaintext_len);
+    CHECK_EQUAL(PSA_SUCCESS, status);
+
+    /* Expect the encrypted/decrypted message to match theh original */
+    CHECK_EQUAL(sizeof(message), plaintext_len);
+    MEMCMP_EQUAL(message, plaintext, plaintext_len);
+
+    /* Remove the key */
+    status = m_crypto_client->destroy_key(key_handle);
+    CHECK_EQUAL(PSA_SUCCESS, status);
+}
+
 void crypto_service_scenarios::generateRandomNumbers()
 {
     psa_status_t status;

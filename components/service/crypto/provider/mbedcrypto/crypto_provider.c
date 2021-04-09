@@ -421,9 +421,12 @@ static rpc_status_t asymmetric_decrypt_handler(void *context, struct call_req* r
 
                     if (plaintext_buffer) {
 
+                        /* Salt is an optional parameter */
+                        uint8_t *salt = (salt_len) ? salt_buffer : NULL;
+
                         psa_status = psa_asymmetric_decrypt(id, alg,
                                     ciphertext_buffer, ciphertext_len,
-                                    salt_buffer, salt_len,
+                                    salt, salt_len,
                                     plaintext_buffer, max_decrypt_size, &plaintext_len);
 
                         if (psa_status == PSA_SUCCESS) {
@@ -500,9 +503,12 @@ static rpc_status_t asymmetric_encrypt_handler(void *context, struct call_req* r
 
                     if (ciphertext_buffer) {
 
+                        /* Salt is an optional parameter */
+                        uint8_t *salt = (salt_len) ? salt_buffer : NULL;
+
                         psa_status = psa_asymmetric_encrypt(id, alg,
                                     plaintext_buffer, plaintext_len,
-                                    salt_buffer, salt_len,
+                                    salt, salt_len,
                                     ciphertext_buffer, max_encrypt_size, &ciphertext_len);
 
                         if (psa_status == PSA_SUCCESS) {
