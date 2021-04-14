@@ -265,7 +265,7 @@ void crypto_service_scenarios::asymEncryptDecryptWithSalt()
 {
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t key_handle;
+    psa_key_id_t key_id;
 
     psa_set_key_id(&attributes, 15);
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT);
@@ -274,7 +274,7 @@ void crypto_service_scenarios::asymEncryptDecryptWithSalt()
     psa_set_key_bits(&attributes, 1024);
 
     /* Generate a key */
-    status = m_crypto_client->generate_key(&attributes, &key_handle);
+    status = m_crypto_client->generate_key(&attributes, &key_id);
     CHECK_EQUAL(PSA_SUCCESS, status);
 
     psa_reset_key_attributes(&attributes);
@@ -287,7 +287,7 @@ void crypto_service_scenarios::asymEncryptDecryptWithSalt()
     /* With salt */
     uint8_t salt[] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
 
-    status = m_crypto_client->asymmetric_encrypt(key_handle, PSA_ALG_RSA_OAEP(PSA_ALG_SHA_256),
+    status = m_crypto_client->asymmetric_encrypt(key_id, PSA_ALG_RSA_OAEP(PSA_ALG_SHA_256),
                             message, sizeof(message),
                             salt, sizeof(salt),
                             ciphertext, sizeof(ciphertext), &ciphertext_len);
@@ -297,7 +297,7 @@ void crypto_service_scenarios::asymEncryptDecryptWithSalt()
     uint8_t plaintext[256];
     size_t plaintext_len = 0;
 
-    status = m_crypto_client->asymmetric_decrypt(key_handle, PSA_ALG_RSA_OAEP(PSA_ALG_SHA_256),
+    status = m_crypto_client->asymmetric_decrypt(key_id, PSA_ALG_RSA_OAEP(PSA_ALG_SHA_256),
                             ciphertext, ciphertext_len,
                             salt, sizeof(salt),
                             plaintext, sizeof(plaintext), &plaintext_len);
@@ -308,7 +308,7 @@ void crypto_service_scenarios::asymEncryptDecryptWithSalt()
     MEMCMP_EQUAL(message, plaintext, plaintext_len);
 
     /* Remove the key */
-    status = m_crypto_client->destroy_key(key_handle);
+    status = m_crypto_client->destroy_key(key_id);
     CHECK_EQUAL(PSA_SUCCESS, status);
 }
 

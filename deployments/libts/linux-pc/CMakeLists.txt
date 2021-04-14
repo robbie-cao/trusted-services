@@ -31,7 +31,7 @@ add_components(
 	COMPONENTS
 		"components/rpc/direct"
 		"components/common/tlv"
-		"components/service/common"
+		"components/service/common/include"
 		"components/service/common/serializer/protobuf"
 		"components/service/common/provider"
 		"components/service/locator/standalone"
@@ -43,6 +43,7 @@ add_components(
 		"components/service/crypto/provider/mbedcrypto/trng_adapter/linux"
 		"components/service/crypto/provider/serializer/protobuf"
 		"components/service/crypto/provider/serializer/packed-c"
+		"components/service/secure_storage/include"
 		"components/service/secure_storage/frontend/psa/its"
 		"components/service/secure_storage/frontend/secure_storage_provider"
 		"components/service/secure_storage/backend/secure_storage_client"
@@ -93,7 +94,8 @@ add_components(
 	COMPONENTS
 		"components/app/test-runner"
 		"components/common/tlv"
-		"components/service/common"
+		"components/service/common/include"
+		"components/service/secure_storage/include"
 		"components/service/secure_storage/test/service"
 		"components/service/secure_storage/frontend/psa/its"
 		"components/service/secure_storage/frontend/psa/its/test"

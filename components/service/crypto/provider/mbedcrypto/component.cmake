@@ -26,6 +26,6 @@ set(MBEDTLS_USER_CONFIG_FILE
 	CACHE STRING "Configuration file for Mbed TLS" FORCE)
 
 set(MBEDTLS_EXTRA_INCLUDES
-	"${TS_ROOT}/components/service/common"
-	"${TS_ROOT}/components/service/secure_storage/client"
+	"${TS_ROOT}/components/service/common/include"
+	"${TS_ROOT}/components/service/secure_storage/include"
 	CACHE STRING "PSA ITS for Mbed TLS" FORCE)

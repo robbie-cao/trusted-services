@@ -34,8 +34,9 @@ add_components(TARGET "internal-trusted-storage"
 		components/messaging/ffa/libsp
 		components/rpc/ffarpc/endpoint
 		components/rpc/common/interface
-		components/service/common
+		components/service/common/include
 		components/service/common/provider
+		components/service/secure_storage/include
 		components/service/secure_storage/frontend/secure_storage_provider
 		components/service/secure_storage/backend/secure_flash_store
 		components/service/secure_storage/backend/secure_flash_store/flash_fs

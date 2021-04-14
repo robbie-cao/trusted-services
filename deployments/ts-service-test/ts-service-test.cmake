@@ -28,16 +28,20 @@ add_components(
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/common/tlv"
-		"components/service/common"
+		"components/service/common/include"
+		"components/service/crypto/include"
 		"components/service/crypto/test/service"
 		"components/service/crypto/test/service/protobuf"
 		"components/service/crypto/test/service/packed-c"
+		"components/service/crypto/test/service/psa_crypto_api"
+		"components/service/crypto/client/psa"
 		"components/service/crypto/client/cpp"
 		"components/service/crypto/client/cpp/protobuf"
 		"components/service/crypto/client/cpp/packed-c"
 		"components/service/common/serializer/protobuf"
 		"protocols/service/crypto/protobuf"
 		"protocols/service/crypto/packed-c"
+		"components/service/secure_storage/include"
 		"components/service/secure_storage/test/service"
 		"components/service/secure_storage/frontend/psa/its"
 		"components/service/secure_storage/frontend/psa/its/test"
@@ -55,10 +59,6 @@ add_components(
 include(${TS_ROOT}/external/nanopb/nanopb.cmake)
 target_link_libraries(ts-service-test PRIVATE nanopb::protobuf-nanopb-static)
 protobuf_generate_all(TGT "ts-service-test" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protocols")
-
-# Mbed TLS provides libmbedcrypto
-include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
-target_link_libraries(ts-service-test PRIVATE mbedcrypto)
 
 #-------------------------------------------------------------------------------
 #  Define install content.

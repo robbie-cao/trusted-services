@@ -16,6 +16,13 @@ include(../../deployment.cmake REQUIRED)
 include(${TS_ROOT}/environments/linux-pc/env.cmake)
 project(trusted-services LANGUAGES CXX C)
 
+# Prevents symbols in the ts-service-test executable overriding symbols with
+# with same name in libts during dyanmic linking performed by the program
+# loader.  This avoid psa crypto api symbols provided by the mbedcrypto
+# library from being overridden by the same symbols in the ts-service-test
+# executable.
+set(CMAKE_C_VISIBILITY_PRESET hidden)
+
 # Preparing firmware-test-build by including it
 include(${TS_ROOT}/external/firmware_test_builder/FirmwareTestBuilder.cmake)
 
@@ -81,4 +88,3 @@ add_components(
 #
 #-------------------------------------------------------------------------------
 include(../ts-service-test.cmake REQUIRED)
-
