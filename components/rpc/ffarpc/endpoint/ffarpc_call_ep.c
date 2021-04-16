@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "ffarpc_call_args.h"
+#include "components/rpc/ffarpc/caller/sp/ffarpc_sp_call_args.h"
 #include "ffarpc_call_ep.h"
 #include "ffarpc_call_ops.h"
 #include <ffa_api.h>
@@ -19,10 +19,10 @@ extern uint16_t own_id;
 static void set_resp_args(uint32_t *resp_args, uint32_t ifaceid_opcode, uint32_t data_len,
 			  rpc_status_t rpc_status, uint32_t opstatus)
 {
-	resp_args[FFA_CALL_ARGS_IFACE_ID_OPCODE] = ifaceid_opcode;
-	resp_args[FFA_CALL_ARGS_RESP_DATA_LEN] = data_len;
-	resp_args[FFA_CALL_ARGS_RESP_RPC_STATUS] = rpc_status;
-	resp_args[FFA_CALL_ARGS_RESP_OP_STATUS] = opstatus;
+	resp_args[SP_CALL_ARGS_IFACE_ID_OPCODE] = ifaceid_opcode;
+	resp_args[SP_CALL_ARGS_RESP_DATA_LEN] = data_len;
+	resp_args[SP_CALL_ARGS_RESP_RPC_STATUS] = rpc_status;
+	resp_args[SP_CALL_ARGS_RESP_OP_STATUS] = opstatus;
 }
 
 static void set_mgmt_resp_args(uint32_t *resp_args, uint32_t ifaceid_opcode,
@@ -91,8 +91,8 @@ static void init_shmem_buf(struct ffa_call_ep *call_ep, uint16_t source_id,
 	desc.flags.transaction_type = sp_memory_transaction_type_share;
 	acc_desc.receiver_id = own_id;
 	acc_desc.data_access = sp_data_access_read_write;
-	handle = req_args[FFA_CALL_ARGS_SHARE_MEM_HANDLE_MSW];
-	handle = (handle << 32) | req_args[FFA_CALL_ARGS_SHARE_MEM_HANDLE_LSW];
+	handle = req_args[SP_CALL_ARGS_SHARE_MEM_HANDLE_MSW];
+	handle = (handle << 32) | req_args[SP_CALL_ARGS_SHARE_MEM_HANDLE_LSW];
 
 	sp_res = sp_memory_retrieve(&desc, &acc_desc, &region, in_region_count,
 				    &out_region_count, handle);
@@ -100,7 +100,7 @@ static void init_shmem_buf(struct ffa_call_ep *call_ep, uint16_t source_id,
 	if (sp_res == SP_RESULT_OK) {
 		call_ep->shmem_buf[idx] = region.address;
 		call_ep->shmem_buf_handle[idx] = handle;
-		call_ep->shmem_buf_size[idx] = (size_t)req_args[FFA_CALL_ARGS_SHARE_MEM_SIZE];
+		call_ep->shmem_buf_size[idx] = (size_t)req_args[SP_CALL_ARGS_SHARE_MEM_SIZE];
 		call_ep->src_id[idx] = source_id;
 		rpc_status = TS_RPC_CALL_ACCEPTED;
 	} else {
@@ -108,7 +108,7 @@ static void init_shmem_buf(struct ffa_call_ep *call_ep, uint16_t source_id,
 	}
 
 out:
-	set_mgmt_resp_args(resp_args, req_args[FFA_CALL_ARGS_IFACE_ID_OPCODE], rpc_status);
+	set_mgmt_resp_args(resp_args, req_args[SP_CALL_ARGS_IFACE_ID_OPCODE], rpc_status);
 }
 
 static void deinit_shmem_buf(struct ffa_call_ep *call_ep, uint16_t source_id,
@@ -144,7 +144,7 @@ static void deinit_shmem_buf(struct ffa_call_ep *call_ep, uint16_t source_id,
 	}
 
 out:
-	set_mgmt_resp_args(resp_args, req_args[FFA_CALL_ARGS_IFACE_ID_OPCODE], rpc_status);
+	set_mgmt_resp_args(resp_args, req_args[SP_CALL_ARGS_IFACE_ID_OPCODE], rpc_status);
 }
 
 static void handle_service_msg(struct ffa_call_ep *call_ep, uint16_t source_id,
@@ -153,7 +153,7 @@ static void handle_service_msg(struct ffa_call_ep *call_ep, uint16_t source_id,
 	rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
 	struct call_req call_req;
 
-	uint32_t ifaceid_opcode = req_args[FFA_CALL_ARGS_IFACE_ID_OPCODE];
+	uint32_t ifaceid_opcode = req_args[SP_CALL_ARGS_IFACE_ID_OPCODE];
 	int idx = find_shm(call_ep, source_id);
 
 	if (idx < 0) {
@@ -164,10 +164,10 @@ static void handle_service_msg(struct ffa_call_ep *call_ep, uint16_t source_id,
 	call_req.caller_id = source_id;
 	call_req.interface_id = FFA_CALL_ARGS_EXTRACT_IFACE(ifaceid_opcode);
 	call_req.opcode = FFA_CALL_ARGS_EXTRACT_OPCODE(ifaceid_opcode);
-	call_req.encoding = req_args[FFA_CALL_ARGS_ENCODING];
+	call_req.encoding = req_args[SP_CALL_ARGS_ENCODING];
 
 	call_req.req_buf.data = call_ep->shmem_buf[idx];
-	call_req.req_buf.data_len = req_args[FFA_CALL_ARGS_REQ_DATA_LEN];
+	call_req.req_buf.data_len = req_args[SP_CALL_ARGS_REQ_DATA_LEN];
 	call_req.req_buf.size = call_ep->shmem_buf_size[idx];
 
 	call_req.resp_buf.data = call_ep->shmem_buf[idx];
@@ -187,7 +187,7 @@ out:
 static void handle_mgmt_msg(struct ffa_call_ep *call_ep, uint16_t source_id,
 			    const uint32_t *req_args, uint32_t *resp_args)
 {
-	uint32_t ifaceid_opcode = req_args[FFA_CALL_ARGS_IFACE_ID_OPCODE];
+	uint32_t ifaceid_opcode = req_args[SP_CALL_ARGS_IFACE_ID_OPCODE];
 	uint32_t opcode = FFA_CALL_ARGS_EXTRACT_OPCODE(ifaceid_opcode);
 
 	switch (opcode) {
@@ -218,15 +218,15 @@ void ffa_call_ep_init(struct ffa_call_ep *ffa_call_ep, struct rpc_interface *ifa
 }
 
 void ffa_call_ep_receive(struct ffa_call_ep *call_ep,
-			 const struct ffa_direct_msg *req_msg,
-			 struct ffa_direct_msg *resp_msg)
+			 const struct sp_msg *req_msg,
+			 struct sp_msg *resp_msg)
 {
 	const uint32_t *req_args = req_msg->args;
 	uint32_t *resp_args = resp_msg->args;
 	int idx;
 
 	uint16_t source_id = req_msg->source_id;
-	uint32_t ifaceid_opcode = req_args[FFA_CALL_ARGS_IFACE_ID_OPCODE];
+	uint32_t ifaceid_opcode = req_args[SP_CALL_ARGS_IFACE_ID_OPCODE];
 
 	if (FFA_CALL_ARGS_EXTRACT_IFACE(ifaceid_opcode) == FFA_CALL_MGMT_IFACE_ID) {
 		/* It's an RPC layer management request */

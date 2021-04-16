@@ -26,22 +26,22 @@ extern "C" {
     ((reg) & 0xffff)
 
 /* Common req & resp arg offests into msg_args structure */
-#define FFA_CALL_ARGS_IFACE_ID_OPCODE	    (0)
+#define FFA_CALL_ARGS_IFACE_ID_OPCODE	    (1)
 
 /* Req arg offsets */
-#define FFA_CALL_ARGS_REQ_DATA_LEN		    (1)
-#define FFA_CALL_ARGS_CALLER_ID		        (2)
-#define FFA_CALL_ARGS_ENCODING		        (3)
+#define FFA_CALL_ARGS_REQ_DATA_LEN		    (2)
+#define FFA_CALL_ARGS_CALLER_ID		        (3)
+#define FFA_CALL_ARGS_ENCODING		        (4)
 
 /* Resp arg offsets */
-#define FFA_CALL_ARGS_RESP_DATA_LEN		    (1)
-#define FFA_CALL_ARGS_RESP_RPC_STATUS	    (2)
-#define FFA_CALL_ARGS_RESP_OP_STATUS		(3)
+#define FFA_CALL_ARGS_RESP_DATA_LEN		    (2)
+#define FFA_CALL_ARGS_RESP_RPC_STATUS	    (3)
+#define FFA_CALL_ARGS_RESP_OP_STATUS		(4)
 
 /* Share/unshare offsets */
-#define FFA_CALL_ARGS_SHARE_MEM_HANDLE_LSW	(1)
-#define FFA_CALL_ARGS_SHARE_MEM_HANDLE_MSW	(2)
-#define FFA_CALL_ARGS_SHARE_MEM_SIZE		(3)
+#define FFA_CALL_ARGS_SHARE_MEM_HANDLE_LSW	(2)
+#define FFA_CALL_ARGS_SHARE_MEM_HANDLE_MSW	(3)
+#define FFA_CALL_ARGS_SHARE_MEM_SIZE		(4)
 
 #ifdef __cplusplus
 }

@@ -11,6 +11,7 @@
 #include <service/secure_storage/backend/secure_storage_client/secure_storage_client.h>
 #include <psa/internal_trusted_storage.h>
 #include <sp_api.h>
+#include "sp_messaging.h"
 #include <sp_rxtx.h>
 #include <trace.h>
 #include <string.h>
@@ -131,7 +132,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info) {
 
 	ffa_result ffa_res;
 	sp_result sp_res;
-	struct ffa_direct_msg req_msg;
+	struct sp_msg req_msg = { 0 };
 	struct rpc_caller *caller;
 	struct ffarpc_caller ffa_caller;
 	struct secure_storage_client secure_storage_client;
@@ -181,7 +182,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info) {
 	}
 
 	/* End of boot phase */
-	ffa_msg_wait(&req_msg);
+	sp_msg_wait(&req_msg);
 
 err:
 	EMSG("Test SP error");

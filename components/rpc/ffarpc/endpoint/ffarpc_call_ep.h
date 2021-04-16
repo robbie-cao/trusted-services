@@ -8,6 +8,7 @@
 #define FFA_CALL_EP_H
 
 #include <ffa_api.h>
+#include "sp_messaging.h"
 #include <components/rpc/common/endpoint/rpc_interface.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -30,8 +31,8 @@ struct ffa_call_ep {
 
 void ffa_call_ep_init(struct ffa_call_ep *ffa_call_ep, struct rpc_interface *iface);
 void ffa_call_ep_receive(struct ffa_call_ep *call_ep,
-			 const struct ffa_direct_msg *req_msg,
-			 struct ffa_direct_msg *resp_msg);
+			 const struct sp_msg *req_msg,
+			 struct sp_msg *resp_msg);
 
 #ifdef __cplusplus
 }

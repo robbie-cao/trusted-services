@@ -11,6 +11,7 @@
 #include <components/service/secure_storage/factory/storage_factory.h>
 #include <components/service/secure_storage/frontend/secure_storage_provider/secure_storage_provider.h>
 #include <sp_api.h>
+#include <sp_messaging.h>
 #include <sp_rxtx.h>
 #include <trace.h>
 
@@ -24,8 +25,8 @@ void sp_main(struct ffa_init_info *init_info)
 	sp_result sp_res;
 	struct rpc_interface *secure_storage_iface;
 	struct ffa_call_ep ffa_call_ep;
-	struct ffa_direct_msg req_msg;
-	struct ffa_direct_msg resp_msg;
+	struct sp_msg req_msg = { 0 };
+	struct sp_msg resp_msg = { 0 };
 	struct secure_storage_provider secure_storage_provider;
 	struct storage_backend *storage_backend;
 
@@ -47,17 +48,15 @@ void sp_main(struct ffa_init_info *init_info)
 	ffa_call_ep_init(&ffa_call_ep, secure_storage_iface);
 
 	/* End of boot phase */
-	ffa_msg_wait(&req_msg);
+	sp_msg_wait(&req_msg);
 
 	while (1) {
-		if (req_msg.function_id == FFA_MSG_SEND_DIRECT_REQ_32) {
-			ffa_call_ep_receive(&ffa_call_ep, &req_msg, &resp_msg);
+		ffa_call_ep_receive(&ffa_call_ep, &req_msg, &resp_msg);
 
-			ffa_msg_send_direct_resp(req_msg.destination_id,
-					req_msg.source_id, resp_msg.args[0], resp_msg.args[1],
-					resp_msg.args[2], resp_msg.args[3], resp_msg.args[4],
-					&req_msg);
-		}
+		resp_msg.source_id = req_msg.destination_id;
+		resp_msg.destination_id = req_msg.source_id;
+
+		sp_msg_send_direct_resp(&resp_msg, &req_msg);
 	}
 }
 
