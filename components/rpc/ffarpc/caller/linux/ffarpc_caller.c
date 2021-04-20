@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define KERNEL_MOD_REQ_VER_MAJOR 1
+#define KERNEL_MOD_REQ_VER_MAJOR 2
 #define KERNEL_MOD_REQ_VER_MINOR 0
 #define KERNEL_MOD_REQ_VER_PATCH 0
 
@@ -163,6 +163,7 @@ size_t ffarpc_caller_discover(const struct ffarpc_caller *s, const struct uuid_c
 int ffarpc_caller_open(struct ffarpc_caller *s, uint16_t dest_partition_id, uint16_t dest_iface_id)
 {
 	int ioctl_status = -1;
+	struct ffa_ioctl_shm_desc shm_desc = {.dst_id = dest_partition_id};
 
 	if (s->device_path) {
 
@@ -170,12 +171,13 @@ int ffarpc_caller_open(struct ffarpc_caller *s, uint16_t dest_partition_id, uint
 
 		if (s->fd >= 0) {
 			/* Allocate resource for session */
-			ioctl_status = ioctl(s->fd, FFA_IOC_SHM_INIT, &s->shared_mem_handle);
+			ioctl_status = ioctl(s->fd, FFA_IOC_SHM_INIT, &shm_desc);
 
 			if (ioctl_status == 0) {
 				/* Session successfully opened */
 				s->dest_partition_id = dest_partition_id;
 				s->dest_iface_id = dest_iface_id;
+				s->shared_mem_handle = shm_desc.handle;
 				ioctl_status = share_mem_with_partition(s);
 			}
 
@@ -193,11 +195,15 @@ int ffarpc_caller_open(struct ffarpc_caller *s, uint16_t dest_partition_id, uint
 int ffarpc_caller_close(struct ffarpc_caller *s)
 {
 	int ioctl_status = -1;
+	struct ffa_ioctl_shm_desc shm_desc = {
+		.dst_id = s->dest_partition_id,
+		.handle = s->shared_mem_handle,
+	};
 
 	if (s->fd >= 0) {
 
 		unshare_mem_with_partition(s);
-		ioctl_status = ioctl(s->fd, FFA_IOC_SHM_DEINIT);
+		ioctl_status = ioctl(s->fd, FFA_IOC_SHM_DEINIT, &shm_desc);
 		close(s->fd);
 		s->fd = -1;
 		s->dest_partition_id = 0;
@@ -337,6 +343,7 @@ static int kernel_write_req_buf(struct ffarpc_caller *s) {
 
 	req_descr.buf_ptr = (uintptr_t)s->req_buf;
 	req_descr.buf_len = s->req_len;
+	req_descr.dst_id = s->dest_partition_id;
 	ioctl_status = ioctl(s->fd, FFA_IOC_SHM_WRITE, &req_descr);
 
 	return ioctl_status;
@@ -350,6 +357,7 @@ static int kernel_read_resp_buf(struct ffarpc_caller *s) {
 
 	resp_descr.buf_ptr = (uintptr_t)s->resp_buf;
 	resp_descr.buf_len = s->resp_len;
+	resp_descr.dst_id = s->dest_partition_id;
 	ioctl_status = ioctl(s->fd, FFA_IOC_SHM_READ, &resp_descr);
 
 	return ioctl_status;
