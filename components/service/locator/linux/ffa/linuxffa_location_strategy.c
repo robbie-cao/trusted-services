@@ -141,6 +141,9 @@ static bool discover_partition(const char *sn, struct uuid_canonical *uuid,
         struct ffarpc_caller ffarpc_caller;
         unsigned int required_instance = sn_get_service_instance(sn);
 
+        if (!ffarpc_caller_check_version())
+                return false;
+
         ffarpc_caller_init(&ffarpc_caller, dev_path);
 
         uint16_t discovered_partitions[MAX_PARTITION_INSTANCES];

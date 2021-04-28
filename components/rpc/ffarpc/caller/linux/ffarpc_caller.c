@@ -17,6 +17,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define KERNEL_MOD_REQ_VER_MAJOR 1
+#define KERNEL_MOD_REQ_VER_MINOR 0
+#define KERNEL_MOD_REQ_VER_PATCH 0
+
 #define DEFAULT_SHMEM_BUF_SIZE			(4096)
 
 static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_len);
@@ -29,7 +33,66 @@ static int kernel_read_resp_buf(struct ffarpc_caller *s);
 static int share_mem_with_partition(struct ffarpc_caller *s);
 static int unshare_mem_with_partition(struct ffarpc_caller *s);
 
+bool ffarpc_caller_check_version(void)
+{
+	FILE *f;
+	char mod_name[64];
+	int ver_major, ver_minor, ver_patch;
+	bool mod_loaded = false;
 
+	f = fopen("/proc/modules", "r");
+	if (!f) {
+		printf("error: cannot open /proc/modules\n");
+		return false;
+	}
+
+	while (fscanf(f, "%64s %*[^\n]\n", mod_name) != EOF) {
+		if (!strcmp(mod_name, "arm_ffa_user")) {
+			mod_loaded = true;
+			break;
+		}
+	}
+
+	fclose(f);
+
+	if (!mod_loaded) {
+		printf("error: kernel module not loaded\n");
+		return false;
+	}
+
+	f = fopen("/sys/module/arm_ffa_user/version", "r");
+	if (f) {
+		fscanf(f, "%d.%d.%d", &ver_major, &ver_minor, &ver_patch);
+		fclose(f);
+	} else {
+		/*
+		 * Fallback for the initial release of the kernel module, where
+		 * the version definition was missing.
+		 */
+		ver_major = 1;
+		ver_minor = 0;
+		ver_patch = 0;
+	}
+
+	if (ver_major != KERNEL_MOD_REQ_VER_MAJOR)
+		goto err;
+
+	if (ver_minor < KERNEL_MOD_REQ_VER_MINOR)
+		goto err;
+
+	if (ver_minor == KERNEL_MOD_REQ_VER_MINOR)
+		if (ver_patch < KERNEL_MOD_REQ_VER_PATCH)
+			goto err;
+
+	return true;
+
+err:
+	printf("error: kernel module is v%d.%d.%d but required v%d.%d.%d\n",
+		ver_major, ver_minor, ver_patch, KERNEL_MOD_REQ_VER_MAJOR,
+		KERNEL_MOD_REQ_VER_MINOR, KERNEL_MOD_REQ_VER_PATCH);
+
+	return false;
+}
 
 struct rpc_caller *ffarpc_caller_init(struct ffarpc_caller *s, const char *device_path)
 {
