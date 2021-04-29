@@ -20,6 +20,8 @@ add_components(
 		"components/common/uuid/test"
 		"components/common/tlv"
 		"components/common/tlv/test"
+		"components/common/endian"
+		"components/common/endian/test"
 		"components/config/ramstore"
 		"components/config/ramstore/test"
 		"components/rpc/common/caller"
@@ -39,6 +41,8 @@ add_components(
 		"components/service/locator/standalone/services/internal-trusted-storage"
 		"components/service/locator/standalone/services/protected-storage"
 		"components/service/locator/standalone/services/test-runner"
+		"components/service/attestation/claims/sources/event_log"
+		"components/service/attestation/claims/sources/event_log/test"
 		"components/service/crypto/client/cpp"
 		"components/service/crypto/client/cpp/protobuf"
 		"components/service/crypto/client/cpp/packed-c"
@@ -90,6 +94,10 @@ protobuf_generate_all(TGT "component-test" NAMESPACE "protobuf" BASE_DIR "${TS_R
 # Mbed TLS provides libmbedcrypto
 include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(component-test PRIVATE mbedcrypto)
+
+# Qcbor
+include(${TS_ROOT}/external/qcbor/qcbor.cmake)
+target_link_libraries(component-test PRIVATE qcbor)
 
 #-------------------------------------------------------------------------------
 #  Define install content.
