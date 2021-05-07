@@ -7,6 +7,7 @@
 #ifndef CLAIM_SOURCE_H
 #define CLAIM_SOURCE_H
 
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,7 +25,12 @@ struct claim_source
     bool (*get_claim)(void *context, struct claim *claim);
     void *context;
 
-    /* Generic claim source properties to be added */
+    /**
+     * A bitmap of claim categories that this claim_source provides claims for.
+     * Claim categories are enumerated by enum claim_category.
+     */
+    uint32_t category_map;
+
 };
 
 /**

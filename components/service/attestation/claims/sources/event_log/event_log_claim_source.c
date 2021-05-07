@@ -145,6 +145,7 @@ static bool event_log_iterator_current(struct claim_iterator *iter, struct claim
         {
             case EV_POST_CODE:
                 /* A measurement claim */
+                claim->category = CLAIM_CATEGORY_BOOT_MEASUREMENT;
                 claim->subject_id = CLAIM_SUBJECT_ID_SW_COMPONENT;
                 claim->variant_id = CLAIM_VARIANT_ID_MEASUREMENT;
                 tcg_event2_extract_digest(header, &claim->variant.measurement);
@@ -154,6 +155,7 @@ static bool event_log_iterator_current(struct claim_iterator *iter, struct claim
 
             default:
                 /* Unsupported event type */
+                claim->category = CLAIM_CATEGORY_NONE;
                 claim->subject_id = CLAIM_SUBJECT_ID_NONE;
                 claim->variant_id = CLAIM_VARIANT_ID_UNSUPPORTED;
                 break;

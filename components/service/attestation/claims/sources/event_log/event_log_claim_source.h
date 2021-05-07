@@ -33,7 +33,7 @@ struct event_log_claim_source
  *
  * \param[in] instance      The event_log_claim_source instance to initialze
  * \param[in] event_log     Pointer to the event log.
- * \param[in] event_log_len Byte length of the event logf
+ * \param[in] event_log_len Byte length of the event log
  *
  * \return The initialize base claim_source structure
  */

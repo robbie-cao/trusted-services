@@ -114,13 +114,47 @@ static inline void claim_collection_variant_create_iterator(
 }
 
 /**
+ * Claim category.  Values may be combined in a bitmap
+ * to allow a set of categries to be expressed.
+ */
+enum claim_category
+{
+    CLAIM_CATEGORY_NONE = 0,
+
+    /**
+     * A catagory of claim about the device instance.
+     */
+    CLAIM_CATEGORY_DEVICE = (1U << 0),
+
+    /**
+     * A catagory of claim based on a measurement during boot.
+     */
+    CLAIM_CATEGORY_BOOT_MEASUREMENT = (1U << 1),
+
+    /**
+     * A catagory of claim about an associated verifcation service.
+     */
+    CLAIM_CATEGORY_VERIFICATION_SERVICE = (1U << 2)
+};
+
+/**
  * Claim subject identifier.  Used for identifying what the claim relates
  * to.
  */
 enum claim_subject_id
 {
     CLAIM_SUBJECT_ID_NONE = 0,
-    CLAIM_SUBJECT_ID_SW_COMPONENT,
+    CLAIM_SUBJECT_ID_AUTH_CHALLENGE,
+    CLAIM_SUBJECT_ID_INSTANCE_ID,
+    CLAIM_SUBJECT_ID_VERIFICATION_SERVICE_INDICATOR,
+    CLAIM_SUBJECT_ID_PROFILE_DEFINITION,
+    CLAIM_SUBJECT_ID_IMPLEMENTATION_ID,
+    CLAIM_SUBJECT_ID_CLIENT_ID,
+    CLAIM_SUBJECT_ID_LIFECYCLE_STATE,
+    CLAIM_SUBJECT_ID_HW_VERSION,
+    CLAIM_SUBJECT_ID_BOOT_SEED,
+    CLAIM_SUBJECT_ID_NO_SW_MEASUREMENTS,
+    CLAIM_SUBJECT_ID_SW_COMPONENT
 };
 
 /**
@@ -143,6 +177,7 @@ enum claim_variant_id
  */
 struct claim
 {
+    enum claim_category category;
     enum claim_subject_id subject_id;
     enum claim_variant_id variant_id;
 
