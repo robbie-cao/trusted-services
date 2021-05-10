@@ -31,26 +31,26 @@ void crypto_service_scenarios::generateVolatileKeys()
     psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_VOLATILE);
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH);
     psa_set_key_algorithm(&attributes, PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256));
-    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP_R1));
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
     psa_set_key_bits(&attributes, 256);
 
     /* Generate first key */
-     psa_key_handle_t key_handle_1;
-    status = m_crypto_client->generate_key(&attributes, &key_handle_1);
+     psa_key_id_t key_id_1;
+    status = m_crypto_client->generate_key(&attributes, &key_id_1);
     CHECK_EQUAL(PSA_SUCCESS, status);
 
     /* And another */
-     psa_key_handle_t key_handle_2;
-    status = m_crypto_client->generate_key(&attributes, &key_handle_2);
+     psa_key_id_t key_id_2;
+    status = m_crypto_client->generate_key(&attributes, &key_id_2);
     CHECK_EQUAL(PSA_SUCCESS, status);
 
-    /* Expect the key handles to be different */
-    CHECK(key_handle_1 != key_handle_2);
+    /* Expect the key IDs to be different */
+    CHECK(key_id_1 != key_id_2);
 
     /* Remove the keys */
-    status = m_crypto_client->destroy_key(key_handle_1);
+    status = m_crypto_client->destroy_key(key_id_1);
     CHECK_EQUAL(PSA_SUCCESS, status);
-    status = m_crypto_client->destroy_key(key_handle_2);
+    status = m_crypto_client->destroy_key(key_id_2);
     CHECK_EQUAL(PSA_SUCCESS, status);
 
     psa_reset_key_attributes(&attributes);
@@ -63,56 +63,33 @@ void crypto_service_scenarios::generatePersistentKeys()
 
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH);
     psa_set_key_algorithm(&attributes, PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256));
-    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP_R1));
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
     psa_set_key_bits(&attributes, 256);
 
-    /* First try and generate a key with an invalid keu id */
-    psa_key_id_t key_id_invalid = 0;
-    psa_set_key_id(&attributes, key_id_invalid);
-    psa_key_handle_t key_handle_invalid;
-    status = m_crypto_client->generate_key(&attributes, &key_handle_invalid);
-    CHECK_EQUAL(PSA_ERROR_INVALID_ARGUMENT, status);
-
-    /* Generate first key */
-    psa_key_id_t key_id_1 = 100000;
-    psa_set_key_id(&attributes, key_id_1);
-    psa_key_handle_t key_handle_1;
-    status = m_crypto_client->generate_key(&attributes, &key_handle_1);
-    CHECK_EQUAL(PSA_SUCCESS, status);
-
-    /* And another */
-    psa_key_id_t key_id_2 = 2;
-    psa_set_key_id(&attributes, key_id_2);
-    psa_key_handle_t key_handle_2;
-    status = m_crypto_client->generate_key(&attributes, &key_handle_2);
-    CHECK_EQUAL(PSA_SUCCESS, status);
-
-    /* Expect the key handles to be different */
-    CHECK(key_handle_1 != key_handle_2);
-
-    /* Obtain more handles using key_open */
-    psa_key_handle_t key_handle_3;
-    status = m_crypto_client->open_key(key_id_1, &key_handle_3);
-    CHECK_EQUAL(PSA_SUCCESS, status);
-
-    psa_key_handle_t key_handle_4;
-    status = m_crypto_client->open_key(key_id_1, &key_handle_4);
-    CHECK_EQUAL(PSA_SUCCESS, status);
-
-    /* Relinquish handles */
-    status = m_crypto_client->close_key(key_handle_3);
-    CHECK_EQUAL(PSA_SUCCESS, status);
-    status = m_crypto_client->close_key(key_handle_4);
-    CHECK_EQUAL(PSA_SUCCESS, status);
-
-    /* Expect close handle to now be invalid */
-    status = m_crypto_client->close_key(key_handle_4);
+    /* First try and generate a key with an invalid key id */
+    psa_key_id_t key_id;
+    psa_set_key_id(&attributes, 0);
+    status = m_crypto_client->generate_key(&attributes, &key_id);
     CHECK_EQUAL(PSA_ERROR_INVALID_HANDLE, status);
 
-    /* Remove the keys */
-    status = m_crypto_client->destroy_key(key_handle_1);
+    /* Generate first key */
+    psa_key_id_t key_id_1;
+    psa_set_key_id(&attributes, 100000);
+    status = m_crypto_client->generate_key(&attributes, &key_id_1);
     CHECK_EQUAL(PSA_SUCCESS, status);
-    status = m_crypto_client->destroy_key(key_handle_2);
+    CHECK_EQUAL(100000, key_id_1);
+
+    /* And another */
+    psa_key_id_t key_id_2;
+    psa_set_key_id(&attributes, 2);
+    status = m_crypto_client->generate_key(&attributes, &key_id_2);
+    CHECK_EQUAL(PSA_SUCCESS, status);
+    CHECK_EQUAL(2, key_id_2);
+
+    /* Remove the keys */
+    status = m_crypto_client->destroy_key(key_id_1);
+    CHECK_EQUAL(PSA_SUCCESS, status);
+    status = m_crypto_client->destroy_key(key_id_2);
     CHECK_EQUAL(PSA_SUCCESS, status);
 
     psa_reset_key_attributes(&attributes);
@@ -122,30 +99,30 @@ void crypto_service_scenarios::exportPublicKey()
 {
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t key_handle;
+    psa_key_id_t key_id;
 
     psa_set_key_id(&attributes, 10);
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH);
     psa_set_key_algorithm(&attributes, PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256));
-    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP_R1));
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
     psa_set_key_bits(&attributes, 256);
 
     /* Generate a key */
-    status = m_crypto_client->generate_key(&attributes, &key_handle);
+    status = m_crypto_client->generate_key(&attributes, &key_id);
     CHECK_EQUAL(PSA_SUCCESS, status);
 
     psa_reset_key_attributes(&attributes);
 
     /* Export the public key */
-    uint8_t key_buf[PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(256)];
+    uint8_t key_buf[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
     size_t key_len = 0;
 
-    status = m_crypto_client->export_public_key(key_handle, key_buf, sizeof(key_buf), &key_len);
+    status = m_crypto_client->export_public_key(key_id, key_buf, sizeof(key_buf), &key_len);
     CHECK_EQUAL(PSA_SUCCESS, status);
     CHECK_TRUE(key_len > 0);
 
     /* Remove the key */
-    status = m_crypto_client->destroy_key(key_handle);
+    status = m_crypto_client->destroy_key(key_id);
     CHECK_EQUAL(PSA_SUCCESS, status);
 }
 
@@ -153,38 +130,38 @@ void crypto_service_scenarios::exportAndImportKeyPair()
 {
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t key_handle_1;
-    psa_key_handle_t key_handle_2;
+    psa_key_id_t key_id_1;
+    psa_key_id_t key_id_2;
 
     psa_set_key_id(&attributes, 11);
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_EXPORT);
     psa_set_key_algorithm(&attributes, PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256));
-    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP_R1));
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
     psa_set_key_bits(&attributes, 256);
 
     /* Generate a key */
-    status = m_crypto_client->generate_key(&attributes, &key_handle_1);
+    status = m_crypto_client->generate_key(&attributes, &key_id_1);
     CHECK_EQUAL(PSA_SUCCESS, status);
 
     /* Export the key pair */
-    uint8_t key_buf[PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(256)];
+    uint8_t key_buf[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
     size_t key_len = 0;
 
-    status = m_crypto_client->export_key(key_handle_1, key_buf, sizeof(key_buf), &key_len);
+    status = m_crypto_client->export_key(key_id_1, key_buf, sizeof(key_buf), &key_len);
     CHECK_EQUAL(PSA_SUCCESS, status);
     CHECK(key_len > 0);
 
     /* Import the key pair value with a different key id */
     psa_set_key_id(&attributes, 12);
-    status = m_crypto_client->import_key(&attributes, key_buf, key_len, &key_handle_2);
+    status = m_crypto_client->import_key(&attributes, key_buf, key_len, &key_id_2);
     CHECK_EQUAL(PSA_SUCCESS, status);
 
     psa_reset_key_attributes(&attributes);
 
     /* Remove the keys */
-    status = m_crypto_client->destroy_key(key_handle_1);
+    status = m_crypto_client->destroy_key(key_id_1);
     CHECK_EQUAL(PSA_SUCCESS, status);
-    status = m_crypto_client->destroy_key(key_handle_2);
+    status = m_crypto_client->destroy_key(key_id_2);
     CHECK_EQUAL(PSA_SUCCESS, status);
 }
 
@@ -192,16 +169,16 @@ void crypto_service_scenarios::signAndVerifyHash()
 {
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t key_handle;
+    psa_key_id_t key_id;
 
     psa_set_key_id(&attributes, 13);
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH);
     psa_set_key_algorithm(&attributes, PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256));
-    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP_R1));
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
     psa_set_key_bits(&attributes, 256);
 
     /* Generate a key */
-    status = m_crypto_client->generate_key(&attributes, &key_handle);
+    status = m_crypto_client->generate_key(&attributes, &key_id);
     CHECK_EQUAL(PSA_SUCCESS, status);
 
     psa_reset_key_attributes(&attributes);
@@ -213,7 +190,7 @@ void crypto_service_scenarios::signAndVerifyHash()
 
     memset(hash, 0x71, sizeof(hash));
 
-    status = m_crypto_client->sign_hash(key_handle,
+    status = m_crypto_client->sign_hash(key_id,
         PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256), hash, sizeof(hash),
         signature, sizeof(signature), &signature_length);
 
@@ -221,20 +198,20 @@ void crypto_service_scenarios::signAndVerifyHash()
     CHECK(signature_length > 0);
 
     /* Verify the signature */
-    status = m_crypto_client->verify_hash(key_handle,
+    status = m_crypto_client->verify_hash(key_id,
         PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256), hash, sizeof(hash),
         signature, signature_length);
     CHECK_EQUAL(PSA_SUCCESS, status);
 
     /* Change the hash and expect verify to fail */
     hash[0] = 0x72;
-    status = m_crypto_client->verify_hash(key_handle,
+    status = m_crypto_client->verify_hash(key_id,
         PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256), hash, sizeof(hash),
         signature, signature_length);
     CHECK_EQUAL(PSA_ERROR_INVALID_SIGNATURE, status);
 
     /* Remove the key */
-    status = m_crypto_client->destroy_key(key_handle);
+    status = m_crypto_client->destroy_key(key_id);
     CHECK_EQUAL(PSA_SUCCESS, status);
 }
 
@@ -242,7 +219,7 @@ void crypto_service_scenarios::asymEncryptDecrypt()
 {
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t key_handle;
+    psa_key_id_t key_id;
 
     psa_set_key_id(&attributes, 14);
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT);
@@ -251,7 +228,7 @@ void crypto_service_scenarios::asymEncryptDecrypt()
     psa_set_key_bits(&attributes, 256);
 
     /* Generate a key */
-    status = m_crypto_client->generate_key(&attributes, &key_handle);
+    status = m_crypto_client->generate_key(&attributes, &key_id);
     CHECK_EQUAL(PSA_SUCCESS, status);
 
     psa_reset_key_attributes(&attributes);
@@ -261,7 +238,7 @@ void crypto_service_scenarios::asymEncryptDecrypt()
     uint8_t ciphertext[256];
     size_t ciphertext_len = 0;
 
-    status = m_crypto_client->asymmetric_encrypt(key_handle, PSA_ALG_RSA_PKCS1V15_CRYPT,
+    status = m_crypto_client->asymmetric_encrypt(key_id, PSA_ALG_RSA_PKCS1V15_CRYPT,
                             message, sizeof(message), NULL, 0,
                             ciphertext, sizeof(ciphertext), &ciphertext_len);
     CHECK_EQUAL(PSA_SUCCESS, status);
@@ -270,7 +247,7 @@ void crypto_service_scenarios::asymEncryptDecrypt()
     uint8_t plaintext[256];
     size_t plaintext_len = 0;
 
-    status = m_crypto_client->asymmetric_decrypt(key_handle, PSA_ALG_RSA_PKCS1V15_CRYPT,
+    status = m_crypto_client->asymmetric_decrypt(key_id, PSA_ALG_RSA_PKCS1V15_CRYPT,
                             ciphertext, ciphertext_len, NULL, 0,
                             plaintext, sizeof(plaintext), &plaintext_len);
     CHECK_EQUAL(PSA_SUCCESS, status);
@@ -280,7 +257,7 @@ void crypto_service_scenarios::asymEncryptDecrypt()
     MEMCMP_EQUAL(message, plaintext, plaintext_len);
 
     /* Remove the key */
-    status = m_crypto_client->destroy_key(key_handle);
+    status = m_crypto_client->destroy_key(key_id);
     CHECK_EQUAL(PSA_SUCCESS, status);
 }
 

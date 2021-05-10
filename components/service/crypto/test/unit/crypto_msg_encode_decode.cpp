@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -65,9 +65,7 @@ TEST(CryptoMsgTests, GenerateKeyInMsgTest) {
 	ts_crypto_GenerateKeyIn sent_msg = ts_crypto_GenerateKeyIn_init_default;
 	ts_crypto_KeyAttributes sent_key_attributes = ts_crypto_KeyAttributes_init_default;
 
-	sent_key_attributes.type =
-		ts_crypto_KeyType_KEY_TYPE_ECC_PUBLIC_KEY_BASE |
-		ts_crypto_EccCurve_ECC_CURVE_SECP_R1;
+	sent_key_attributes.type = ts_crypto_EccCurve_ECC_FAMILY_SECP_R1;
 
 	sent_key_attributes.key_bits = 256;
 	sent_key_attributes.lifetime = ts_crypto_KeyLifetime_KEY_LIFETIME_PERSISTENT;
@@ -75,9 +73,7 @@ TEST(CryptoMsgTests, GenerateKeyInMsgTest) {
 
 	sent_key_attributes.has_policy = true;
 	sent_key_attributes.policy.usage = ts_crypto_KeyUsage_KEY_USAGE_SIGN_HASH;
-	sent_key_attributes.policy.alg =
-		ts_crypto_Alg_ALG_DETERMINISTIC_ECDSA_BASE |
-		ts_crypto_Alg_ALG_SHA_256;
+	sent_key_attributes.policy.alg = ts_crypto_Alg_ALG_SHA_256;
 
 	sent_msg.attributes = sent_key_attributes;
 	sent_msg.has_attributes = true;
@@ -121,7 +117,7 @@ TEST(CryptoMsgTests, ExportPublicKeyInMsgTest) {
 	/* Sender - set values and serialize */
 	ts_crypto_ExportPublicKeyIn sent_msg = ts_crypto_ExportPublicKeyIn_init_default;
 
-	sent_msg.handle = 55;
+	sent_msg.id = 55;
 
 	size_t sent_msg_len;
 	CHECK(pb_get_encoded_size(&sent_msg_len, ts_crypto_ExportPublicKeyIn_fields, &sent_msg));
@@ -141,7 +137,7 @@ TEST(CryptoMsgTests, ExportPublicKeyInMsgTest) {
 	CHECK(pb_decode(&istream, ts_crypto_ExportPublicKeyIn_fields, &recv_msg));
 	CHECK_EQUAL(0, istream.bytes_left);
 
-	CHECK_EQUAL(sent_msg.handle, recv_msg.handle);
+	CHECK_EQUAL(sent_msg.id, recv_msg.id);
 
 	free(sent_msg_buf);
 
@@ -194,10 +190,8 @@ TEST(CryptoMsgTests, SignHashInMsgTest) {
 	PB_BYTES_ARRAY_T(6) msg_to_sign = {6, {0x34, 0x32, 0x33, 0x34, 0x35, 0x36}};
 	sent_msg.hash = out_byte_array((const pb_bytes_array_t *)&msg_to_sign);
 
-	sent_msg.handle = 71;
-    sent_msg.alg =
-		ts_crypto_Alg_ALG_DETERMINISTIC_ECDSA_BASE |
-		ts_crypto_Alg_ALG_SHA_256;
+	sent_msg.id = 71;
+	sent_msg.alg = ts_crypto_Alg_ALG_SHA_256;
 
 	size_t sent_msg_len;
 	CHECK(pb_get_encoded_size(&sent_msg_len, ts_crypto_SignHashIn_fields, &sent_msg));
@@ -221,7 +215,7 @@ TEST(CryptoMsgTests, SignHashInMsgTest) {
 
 	free(sent_msg_buf);
 
-	CHECK_EQUAL(sent_msg.handle, recv_msg.handle);
+	CHECK_EQUAL(sent_msg.id, recv_msg.id);
 	CHECK_EQUAL(sent_msg.alg, recv_msg.alg);
 
 	CHECK_EQUAL(msg_to_sign.size, recv_msg_to_sign.size);

@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -12,8 +12,6 @@ set_property(TARGET ${TGT} APPEND PROPERTY PROTOBUF_FILES
 	"${CMAKE_CURRENT_LIST_DIR}/asymmetric_decrypt.proto"
 	"${CMAKE_CURRENT_LIST_DIR}/asymmetric_encrypt.proto"
 	"${CMAKE_CURRENT_LIST_DIR}/destroy_key.proto"
-	"${CMAKE_CURRENT_LIST_DIR}/open_key.proto"
-	"${CMAKE_CURRENT_LIST_DIR}/close_key.proto"
 	"${CMAKE_CURRENT_LIST_DIR}/export_key.proto"
 	"${CMAKE_CURRENT_LIST_DIR}/export_public_key.proto"
 	"${CMAKE_CURRENT_LIST_DIR}/generate_key.proto"

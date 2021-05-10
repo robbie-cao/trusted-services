@@ -18,7 +18,7 @@ struct __attribute__ ((__packed__)) ts_crypto_generate_key_in
 /* Mandatory fixed sized output parameters */
 struct __attribute__ ((__packed__)) ts_crypto_generate_key_out
 {
-  uint32_t handle;
+  uint32_t id;
 };
 
 #endif /* TS_CRYPTO_GENERATE_KEY_H */

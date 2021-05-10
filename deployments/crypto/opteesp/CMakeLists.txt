@@ -84,8 +84,8 @@ include(../../../external/nanopb/nanopb.cmake)
 target_link_libraries(crypto-sp PRIVATE nanopb::protobuf-nanopb-static)
 protobuf_generate_all(TGT "crypto-sp" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protocols")
 
-# Mbedcrypto
-include(../../../external/mbed-crypto/mbedcrypto.cmake)
+# Mbed TLS provides libmbedcrypto
+include(../../../external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(crypto-sp PRIVATE mbedcrypto)
 
 if(CMAKE_CROSSCOMPILING)

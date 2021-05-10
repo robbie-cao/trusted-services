@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -39,13 +39,14 @@ TEST(CryptoFaultTests, volatileKeyWithBrokenStorage)
     psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_VOLATILE);
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH);
     psa_set_key_algorithm(&attributes, PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256));
-    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP_R1));
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
     psa_set_key_bits(&attributes, 256);
 
     /* Expect generation of volatile key to still work with fault */
-    psa_key_handle_t key_handle;
-    status = m_crypto_client->generate_key(&attributes, &key_handle);
+    psa_key_id_t key_id;
+    status = m_crypto_client->generate_key(&attributes, &key_id);
     CHECK_EQUAL(PSA_SUCCESS, status);
+    CHECK(0 != key_id);
 
     psa_reset_key_attributes(&attributes);
 }
@@ -61,14 +62,13 @@ TEST(CryptoFaultTests, persistentKeysWithBrokenStorage)
 
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH);
     psa_set_key_algorithm(&attributes, PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256));
-    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP_R1));
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
     psa_set_key_bits(&attributes, 256);
 
     /* Expect persist key generation to fail */
-    psa_key_id_t key_id_1 = 1;
-    psa_set_key_id(&attributes, key_id_1);
-    psa_key_handle_t key_handle_1;
-    status = m_crypto_client->generate_key(&attributes, &key_handle_1);
+    psa_key_id_t key_id;
+    psa_set_key_id(&attributes, 1);
+    status = m_crypto_client->generate_key(&attributes, &key_id);
     CHECK(PSA_SUCCESS != status);
 
     psa_reset_key_attributes(&attributes);

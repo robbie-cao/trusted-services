@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 syntax = "proto3";
@@ -10,8 +10,6 @@ enum Opcode {
   NOP                 = 0x0000;
   GENERATE_KEY        = 0x0101;
   DESTROY_KEY         = 0x0102;
-  OPEN_KEY            = 0x0103;
-  CLOSE_KEY           = 0x0104;
   EXPORT_KEY          = 0x0105;
   EXPORT_PUBLIC_KEY   = 0x0106;
   IMPORT_KEY          = 0x0107;

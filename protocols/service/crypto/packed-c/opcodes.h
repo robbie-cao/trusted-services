@@ -12,8 +12,6 @@
 #define TS_CRYPTO_OPCODE_NOP                    (0x0000)
 #define TS_CRYPTO_OPCODE_GENERATE_KEY           (0x0101)
 #define TS_CRYPTO_OPCODE_DESTROY_KEY            (0x0102)
-#define TS_CRYPTO_OPCODE_OPEN_KEY               (0x0103)
-#define TS_CRYPTO_OPCODE_CLOSE_KEY              (0x0104)
 #define TS_CRYPTO_OPCODE_EXPORT_KEY             (0x0105)
 #define TS_CRYPTO_OPCODE_EXPORT_PUBLIC_KEY      (0x0106)
 #define TS_CRYPTO_OPCODE_IMPORT_KEY             (0x0107)

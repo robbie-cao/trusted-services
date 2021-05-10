@@ -47,8 +47,8 @@ add_components(
 #
 #-------------------------------------------------------------------------------
 
-# Mbedcrypto
-include(${TS_ROOT}/external/mbed-crypto/mbedcrypto.cmake)
+# Mbed TLS provides libmbedcrypto
+include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(ts-demo PRIVATE mbedcrypto)
 
 #-------------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -14,8 +14,8 @@ class ts_demo {
 public:
     ts_demo(crypto_client *crypto_client, bool is_verbose) :
         m_crypto_client(crypto_client),
-        m_signing_key_handle(0),
-        m_encryption_key_handle(0),
+        m_signing_key_id(0),
+        m_encryption_key_id(0),
         m_verbose(is_verbose),
         m_all_ok(true) {
 
@@ -87,12 +87,12 @@ public:
         psa_set_key_id(&attributes, SIGNING_KEY_ID);
         psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH);
         psa_set_key_algorithm(&attributes, PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256));
-        psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP_R1));
+        psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
         psa_set_key_bits(&attributes, 256);
 
         if (m_verbose) printf("Generating ECC signing key");
 
-        status = m_crypto_client->generate_key(&attributes, &m_signing_key_handle);
+        status = m_crypto_client->generate_key(&attributes, &m_signing_key_id);
         psa_reset_key_attributes(&attributes);
 
         print_status(status);
@@ -116,9 +116,9 @@ public:
         uint8_t signature[PSA_SIGNATURE_MAX_SIZE];
         size_t signature_length;
 
-        if (m_verbose) printf("Signing message: \"%s\" using key: %d", hash, m_signing_key_handle);
+        if (m_verbose) printf("Signing message: \"%s\" using key: %d", hash, m_signing_key_id);
 
-        status = m_crypto_client->sign_hash(m_signing_key_handle,
+        status = m_crypto_client->sign_hash(m_signing_key_id,
             PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256), hash, hash_len,
             signature, sizeof(signature), &signature_length);
 
@@ -134,7 +134,7 @@ public:
         /* Verify signature against original message */
         if (m_verbose) printf("Verify signature using original message: \"%s\"", hash);
 
-        status = m_crypto_client->verify_hash(m_signing_key_handle,
+        status = m_crypto_client->verify_hash(m_signing_key_id,
             PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256), hash, hash_len,
             signature, signature_length);
 
@@ -146,7 +146,7 @@ public:
         hash[0] = '!';
         if (m_verbose) printf("Verify signature using modified message: \"%s\"", hash);
 
-        status = m_crypto_client->verify_hash(m_signing_key_handle,
+        status = m_crypto_client->verify_hash(m_signing_key_id,
             PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256), hash, hash_len,
             signature, signature_length);
 
@@ -173,7 +173,7 @@ public:
 
         if (m_verbose) printf("Generating RSA encryption key");
 
-        status = m_crypto_client->generate_key(&attributes, &m_encryption_key_handle);
+        status = m_crypto_client->generate_key(&attributes, &m_encryption_key_id);
         psa_reset_key_attributes(&attributes);
 
         print_status(status);
@@ -187,12 +187,12 @@ public:
         size_t message_len = strlen(message) + 1;
 
         /* Encrypt a message */
-        if (m_verbose) printf("Encrypting message: \"%s\" using RSA key: %d", message, m_encryption_key_handle);
+        if (m_verbose) printf("Encrypting message: \"%s\" using RSA key: %d", message, m_encryption_key_id);
 
         uint8_t ciphertext[256];
         size_t ciphertext_len = 0;
 
-        status = m_crypto_client->asymmetric_encrypt(m_encryption_key_handle, PSA_ALG_RSA_PKCS1V15_CRYPT,
+        status = m_crypto_client->asymmetric_encrypt(m_encryption_key_id, PSA_ALG_RSA_PKCS1V15_CRYPT,
                                 (const uint8_t*)message, message_len, NULL, 0,
                                 ciphertext, sizeof(ciphertext), &ciphertext_len);
         print_status(status);
@@ -205,12 +205,12 @@ public:
         m_all_ok &= (status == PSA_SUCCESS);
 
         /* Decrypt it */
-        if (m_verbose) printf("Decrypting message using RSA key: %d", m_encryption_key_handle);
+        if (m_verbose) printf("Decrypting message using RSA key: %d", m_encryption_key_id);
 
         uint8_t plaintext[256];
         size_t plaintext_len = 0;
 
-        status = m_crypto_client->asymmetric_decrypt(m_encryption_key_handle, PSA_ALG_RSA_PKCS1V15_CRYPT,
+        status = m_crypto_client->asymmetric_decrypt(m_encryption_key_id, PSA_ALG_RSA_PKCS1V15_CRYPT,
                                 ciphertext, ciphertext_len, NULL, 0,
                                 plaintext, sizeof(plaintext), &plaintext_len);
         print_status(status);
@@ -233,12 +233,12 @@ public:
     void export_public_key()
     {
         psa_status_t status;
-        uint8_t key_buf[PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(256)];
+        uint8_t key_buf[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
         size_t key_len = 0;
 
-        if (m_verbose) printf("Exporting public key: %d", m_signing_key_handle);
+        if (m_verbose) printf("Exporting public key: %d", m_signing_key_id);
 
-        status = m_crypto_client->export_public_key(m_signing_key_handle, key_buf, sizeof(key_buf), &key_len);
+        status = m_crypto_client->export_public_key(m_signing_key_id, key_buf, sizeof(key_buf), &key_len);
 
         print_status(status);
 
@@ -273,13 +273,13 @@ public:
     {
         psa_status_t status;
 
-        if (m_verbose) printf("Destroying signing key: %d", m_signing_key_handle);
-        status = m_crypto_client->destroy_key(m_signing_key_handle);
+        if (m_verbose) printf("Destroying signing key: %d", m_signing_key_id);
+        status = m_crypto_client->destroy_key(m_signing_key_id);
         print_status(status);
         m_all_ok &= (status == PSA_SUCCESS);
 
-        if (m_verbose) printf("Destroying encryption key: %d", m_encryption_key_handle);
-        status = m_crypto_client->destroy_key(m_encryption_key_handle);
+        if (m_verbose) printf("Destroying encryption key: %d", m_encryption_key_id);
+        status = m_crypto_client->destroy_key(m_encryption_key_id);
         print_status(status);
         m_all_ok &= (status == PSA_SUCCESS);
     }
@@ -290,8 +290,8 @@ private:
     static const psa_key_id_t ENCRYPTION_KEY_ID = 0x101;
 
     crypto_client *m_crypto_client;
-    psa_key_handle_t m_signing_key_handle;
-    psa_key_handle_t m_encryption_key_handle;
+    psa_key_id_t m_signing_key_id;
+    psa_key_id_t m_encryption_key_id;
 
     bool m_verbose;
     bool m_all_ok;

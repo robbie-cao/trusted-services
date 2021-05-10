@@ -11,7 +11,7 @@
 /* Mandatory fixed sized input parameters */
 struct __attribute__ ((__packed__)) ts_crypto_verify_hash_in
 {
-  uint32_t handle;
+  uint32_t id;
   uint32_t alg;
 };
 

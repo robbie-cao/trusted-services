@@ -12,14 +12,12 @@
 #include <protocols/service/crypto/packed-c/key_attributes.h>
 #include <protocols/service/crypto/packed-c/asymmetric_decrypt.h>
 #include <protocols/service/crypto/packed-c/asymmetric_encrypt.h>
-#include <protocols/service/crypto/packed-c/close_key.h>
 #include <protocols/service/crypto/packed-c/destroy_key.h>
 #include <protocols/service/crypto/packed-c/export_key.h>
 #include <protocols/service/crypto/packed-c/export_public_key.h>
 #include <protocols/service/crypto/packed-c/generate_key.h>
 #include <protocols/service/crypto/packed-c/generate_random.h>
 #include <protocols/service/crypto/packed-c/import_key.h>
-#include <protocols/service/crypto/packed-c/open_key.h>
 #include <protocols/service/crypto/packed-c/sign_hash.h>
 #include <protocols/service/crypto/packed-c/verify_hash.h>
 #include <common/tlv/tlv.h>
@@ -43,7 +41,7 @@ packedc_crypto_client::~packedc_crypto_client()
 
 }
 
-psa_status_t packedc_crypto_client::generate_key(const psa_key_attributes_t *attributes, psa_key_handle_t *handle)
+psa_status_t packedc_crypto_client::generate_key(const psa_key_attributes_t *attributes, psa_key_id_t *id)
 {
     psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
     struct ts_crypto_generate_key_in req_msg;
@@ -77,7 +75,7 @@ psa_status_t packedc_crypto_client::generate_key(const psa_key_attributes_t *att
 
                     struct ts_crypto_generate_key_out resp_msg;
                     memcpy(&resp_msg, resp_buf, sizeof(ts_crypto_generate_key_out));
-                    *handle = resp_msg.handle;
+                    *id = resp_msg.id;
                 }
                 else {
                     /* Failed to decode response message */
@@ -92,13 +90,13 @@ psa_status_t packedc_crypto_client::generate_key(const psa_key_attributes_t *att
     return psa_status;
 }
 
-psa_status_t packedc_crypto_client::destroy_key(psa_key_handle_t handle)
+psa_status_t packedc_crypto_client::destroy_key(psa_key_id_t id)
 {
     psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
     struct ts_crypto_destroy_key_in req_msg;
     size_t req_len = sizeof(ts_crypto_destroy_key_in);
 
-    req_msg.handle = handle;
+    req_msg.id = id;
 
     rpc_call_handle call_handle;
     uint8_t *req_buf;
@@ -124,89 +122,8 @@ psa_status_t packedc_crypto_client::destroy_key(psa_key_handle_t handle)
     return psa_status;
 }
 
-psa_status_t packedc_crypto_client::open_key(psa_key_id_t id, psa_key_handle_t *handle)
-{
-    psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
-    struct ts_crypto_open_key_in req_msg;
-    size_t req_len = sizeof(ts_crypto_open_key_in);
-
-    req_msg.id = id;
-
-    rpc_call_handle call_handle;
-    uint8_t *req_buf;
-
-    call_handle = rpc_caller_begin(m_caller, &req_buf, req_len);
-
-    if (call_handle) {
-
-        uint8_t *resp_buf;
-        size_t resp_len;
-        int opstatus;
-
-        memcpy(req_buf, &req_msg, req_len);
-
-        m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
-                    TS_CRYPTO_OPCODE_OPEN_KEY, &opstatus, &resp_buf, &resp_len);
-
-        if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) {
-
-            psa_status = opstatus;
-
-            if (psa_status == PSA_SUCCESS) {
-
-                if (resp_len >= sizeof(ts_crypto_open_key_out)) {
-
-                    struct ts_crypto_open_key_out resp_msg;
-                    memcpy(&resp_msg, resp_buf, sizeof(ts_crypto_open_key_out));
-                    *handle = resp_msg.handle;
-                }
-                else {
-                    /* Failed to decode response message */
-                    psa_status = PSA_ERROR_GENERIC_ERROR;
-                }
-            }
-        }
-
-        rpc_caller_end(m_caller, call_handle);
-    }
-
-    return psa_status;
-}
-
-psa_status_t packedc_crypto_client::close_key(psa_key_handle_t handle)
-{
-    psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
-    struct ts_crypto_close_key_in req_msg;
-    size_t req_len = sizeof(ts_crypto_close_key_in);
-
-    req_msg.handle = handle;
-
-    rpc_call_handle call_handle;
-    uint8_t *req_buf;
-
-    call_handle = rpc_caller_begin(m_caller, &req_buf, req_len);
-
-    if (call_handle) {
-
-        uint8_t *resp_buf;
-        size_t resp_len;
-        int opstatus;
-
-        memcpy(req_buf, &req_msg, req_len);
-
-        m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
-            TS_CRYPTO_OPCODE_CLOSE_KEY, &opstatus, &resp_buf, &resp_len);
-
-        if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
-
-        rpc_caller_end(m_caller, call_handle);
-    }
-
-    return psa_status;
-}
-
 psa_status_t packedc_crypto_client::import_key(const psa_key_attributes_t *attributes,
-                        const uint8_t *data, size_t data_length, psa_key_handle_t *handle)
+                        const uint8_t *data, size_t data_length, psa_key_id_t *id)
 {
     psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
     struct ts_crypto_import_key_in req_msg;
@@ -246,11 +163,11 @@ psa_status_t packedc_crypto_client::import_key(const psa_key_attributes_t *attri
 
             if (psa_status == PSA_SUCCESS) {
 
-                if (resp_len >= sizeof(ts_crypto_open_key_out)) {
+                if (resp_len >= sizeof(ts_crypto_import_key_out)) {
 
                     struct ts_crypto_import_key_out resp_msg;
                     memcpy(&resp_msg, resp_buf, sizeof(ts_crypto_import_key_out));
-                    *handle = resp_msg.handle;
+                    *id = resp_msg.id;
                 }
                 else {
                     /* Failed to decode response message */
@@ -265,7 +182,7 @@ psa_status_t packedc_crypto_client::import_key(const psa_key_attributes_t *attri
     return psa_status;
 }
 
-psa_status_t packedc_crypto_client::export_key(psa_key_handle_t handle,
+psa_status_t packedc_crypto_client::export_key(psa_key_id_t id,
                         uint8_t *data, size_t data_size,
                         size_t *data_length)
 {
@@ -273,7 +190,7 @@ psa_status_t packedc_crypto_client::export_key(psa_key_handle_t handle,
     struct ts_crypto_export_key_in req_msg;
     size_t req_len = sizeof(ts_crypto_export_key_in);
 
-    req_msg.handle = handle;
+    req_msg.id = id;
 
     *data_length = 0; /* For failure case */
 
@@ -328,14 +245,14 @@ psa_status_t packedc_crypto_client::export_key(psa_key_handle_t handle,
     return psa_status;
 }
 
-psa_status_t packedc_crypto_client::export_public_key(psa_key_handle_t handle,
+psa_status_t packedc_crypto_client::export_public_key(psa_key_id_t id,
                                 uint8_t *data, size_t data_size, size_t *data_length)
 {
     psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
     struct ts_crypto_export_public_key_in req_msg;
     size_t req_len = sizeof(ts_crypto_export_public_key_in);
 
-    req_msg.handle = handle;
+    req_msg.id = id;
 
     *data_length = 0; /* For failure case */
 
@@ -390,7 +307,7 @@ psa_status_t packedc_crypto_client::export_public_key(psa_key_handle_t handle,
     return psa_status;
 }
 
-psa_status_t packedc_crypto_client::sign_hash(psa_key_handle_t handle, psa_algorithm_t alg,
+psa_status_t packedc_crypto_client::sign_hash(psa_key_id_t id, psa_algorithm_t alg,
                             const uint8_t *hash, size_t hash_length,
                             uint8_t *signature, size_t signature_size, size_t *signature_length)
 {
@@ -401,7 +318,7 @@ psa_status_t packedc_crypto_client::sign_hash(psa_key_handle_t handle, psa_algor
 
     *signature_length = 0;  /* For failure case */
 
-    req_msg.handle = handle;
+    req_msg.id = id;
     req_msg.alg = alg;
 
     struct tlv_record hash_record;
@@ -465,7 +382,7 @@ psa_status_t packedc_crypto_client::sign_hash(psa_key_handle_t handle, psa_algor
 }
 
 
-psa_status_t packedc_crypto_client::verify_hash(psa_key_handle_t handle, psa_algorithm_t alg,
+psa_status_t packedc_crypto_client::verify_hash(psa_key_id_t id, psa_algorithm_t alg,
                         const uint8_t *hash, size_t hash_length,
                         const uint8_t *signature, size_t signature_length)
 {
@@ -474,7 +391,7 @@ psa_status_t packedc_crypto_client::verify_hash(psa_key_handle_t handle, psa_alg
     size_t req_fixed_len = sizeof(ts_crypto_verify_hash_in);
     size_t req_len = req_fixed_len + tlv_required_space(hash_length) + tlv_required_space(signature_length);
 
-    req_msg.handle = handle;
+    req_msg.id = id;
     req_msg.alg = alg;
 
     struct tlv_record hash_record;
@@ -516,7 +433,7 @@ psa_status_t packedc_crypto_client::verify_hash(psa_key_handle_t handle, psa_alg
     return psa_status;
 }
 
-psa_status_t packedc_crypto_client::asymmetric_encrypt(psa_key_handle_t handle, psa_algorithm_t alg,
+psa_status_t packedc_crypto_client::asymmetric_encrypt(psa_key_id_t id, psa_algorithm_t alg,
                         const uint8_t *input, size_t input_length,
                         const uint8_t *salt, size_t salt_length,
                         uint8_t *output, size_t output_size, size_t *output_length)
@@ -528,7 +445,7 @@ psa_status_t packedc_crypto_client::asymmetric_encrypt(psa_key_handle_t handle, 
 
     *output_length = 0;  /* For failure case */
 
-    req_msg.handle = handle;
+    req_msg.id = id;
     req_msg.alg = alg;
 
     struct tlv_record plaintext_record;
@@ -597,7 +514,7 @@ psa_status_t packedc_crypto_client::asymmetric_encrypt(psa_key_handle_t handle, 
     return psa_status;
 }
 
-psa_status_t packedc_crypto_client::asymmetric_decrypt(psa_key_handle_t handle, psa_algorithm_t alg,
+psa_status_t packedc_crypto_client::asymmetric_decrypt(psa_key_id_t id, psa_algorithm_t alg,
                         const uint8_t *input, size_t input_length,
                         const uint8_t *salt, size_t salt_length,
                         uint8_t *output, size_t output_size, size_t *output_length)
@@ -609,7 +526,7 @@ psa_status_t packedc_crypto_client::asymmetric_decrypt(psa_key_handle_t handle, 
 
     *output_length = 0;  /* For failure case */
 
-    req_msg.handle = handle;
+    req_msg.id = id;
     req_msg.alg = alg;
 
     struct tlv_record ciphertext_record;

@@ -11,14 +11,12 @@
 #include <protocols/service/crypto/packed-c/key_attributes.h>
 #include <protocols/service/crypto/packed-c/asymmetric_decrypt.h>
 #include <protocols/service/crypto/packed-c/asymmetric_encrypt.h>
-#include <protocols/service/crypto/packed-c/close_key.h>
 #include <protocols/service/crypto/packed-c/destroy_key.h>
 #include <protocols/service/crypto/packed-c/export_key.h>
 #include <protocols/service/crypto/packed-c/export_public_key.h>
 #include <protocols/service/crypto/packed-c/generate_key.h>
 #include <protocols/service/crypto/packed-c/generate_random.h>
 #include <protocols/service/crypto/packed-c/import_key.h>
-#include <protocols/service/crypto/packed-c/open_key.h>
 #include <protocols/service/crypto/packed-c/sign_hash.h>
 #include <protocols/service/crypto/packed-c/verify_hash.h>
 #include "packedc_crypto_provider_serializer.h"
@@ -53,13 +51,13 @@ static rpc_status_t deserialize_generate_key_req(const struct call_param_buf *re
 }
 
 static rpc_status_t serialize_generate_key_resp(struct call_param_buf *resp_buf,
-                                            psa_key_handle_t handle)
+                                            psa_key_id_t id)
 {
     rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
     struct ts_crypto_generate_key_out resp_msg;
     size_t fixed_len = sizeof(struct ts_crypto_generate_key_out);
 
-    resp_msg.handle = handle;
+    resp_msg.id = id;
 
     if (fixed_len <= resp_buf->size) {
 
@@ -73,28 +71,11 @@ static rpc_status_t serialize_generate_key_resp(struct call_param_buf *resp_buf,
 
 /* Operation: destroy_key */
 static rpc_status_t deserialize_destroy_key_req(const struct call_param_buf *req_buf,
-                                            psa_key_handle_t *handle)
+                                            psa_key_id_t *id)
 {
     rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
     struct ts_crypto_destroy_key_in recv_msg;
     size_t expected_fixed_len = sizeof(struct ts_crypto_destroy_key_in);
-
-    if (expected_fixed_len <= req_buf->data_len) {
-
-        memcpy(&recv_msg, req_buf->data, expected_fixed_len);
-        *handle = recv_msg.handle;
-        rpc_status = TS_RPC_CALL_ACCEPTED;
-    }
-
-    return rpc_status;
-}
-
-/* Operation: open_key */
-static rpc_status_t deserialize_open_key_req(const struct call_param_buf *req_buf, psa_key_id_t *id)
-{
-    rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
-    struct ts_crypto_open_key_in recv_msg;
-    size_t expected_fixed_len = sizeof(struct ts_crypto_open_key_in);
 
     if (expected_fixed_len <= req_buf->data_len) {
 
@@ -106,46 +87,9 @@ static rpc_status_t deserialize_open_key_req(const struct call_param_buf *req_bu
     return rpc_status;
 }
 
-static rpc_status_t serialize_open_key_resp(struct call_param_buf *resp_buf,
-                                psa_key_handle_t handle)
-{
-    rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
-    struct ts_crypto_open_key_out resp_msg;
-    size_t fixed_len = sizeof(struct ts_crypto_open_key_out);
-
-    resp_msg.handle = handle;
-
-    if (fixed_len <= resp_buf->size) {
-
-        memcpy(resp_buf->data, &resp_msg, fixed_len);
-        resp_buf->data_len = fixed_len;
-        rpc_status = TS_RPC_CALL_ACCEPTED;
-    }
-
-    return rpc_status;
-}
-
-/* Operation: close_key */
-static rpc_status_t deserialize_close_key_req(const struct call_param_buf *req_buf,
-                                psa_key_handle_t *handle)
-{
-    rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
-    struct ts_crypto_close_key_in recv_msg;
-    size_t expected_fixed_len = sizeof(struct ts_crypto_close_key_in);
-
-    if (expected_fixed_len <= req_buf->data_len) {
-
-        memcpy(&recv_msg, req_buf->data, expected_fixed_len);
-        *handle = recv_msg.handle;
-        rpc_status = TS_RPC_CALL_ACCEPTED;
-    }
-
-    return rpc_status;
-}
-
 /* Operation: export_key */
 static rpc_status_t deserialize_export_key_req(const struct call_param_buf *req_buf,
-                                            psa_key_handle_t *handle)
+                                            psa_key_id_t *id)
 {
     rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
     struct ts_crypto_export_key_in recv_msg;
@@ -154,7 +98,7 @@ static rpc_status_t deserialize_export_key_req(const struct call_param_buf *req_
     if (expected_fixed_len <= req_buf->data_len) {
 
         memcpy(&recv_msg, req_buf->data, expected_fixed_len);
-        *handle = recv_msg.handle;
+        *id = recv_msg.id;
         rpc_status = TS_RPC_CALL_ACCEPTED;
     }
 
@@ -185,7 +129,7 @@ static rpc_status_t serialize_export_key_resp(struct call_param_buf *resp_buf,
 
 /* Operation: export_public_key */
 static rpc_status_t deserialize_export_public_key_req(const struct call_param_buf *req_buf,
-                                                psa_key_handle_t *handle)
+                                                psa_key_id_t *id)
 {
     rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
     struct ts_crypto_export_public_key_in recv_msg;
@@ -194,7 +138,7 @@ static rpc_status_t deserialize_export_public_key_req(const struct call_param_bu
     if (expected_fixed_len <= req_buf->data_len) {
 
         memcpy(&recv_msg, req_buf->data, expected_fixed_len);
-        *handle = recv_msg.handle;
+        *id = recv_msg.id;
         rpc_status = TS_RPC_CALL_ACCEPTED;
     }
 
@@ -267,13 +211,13 @@ static rpc_status_t deserialize_import_key_req(const struct call_param_buf *req_
 }
 
 static rpc_status_t serialize_import_key_resp(struct call_param_buf *resp_buf,
-                                        psa_key_handle_t handle)
+                                        psa_key_id_t id)
 {
     rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
     struct ts_crypto_import_key_out resp_msg;
     size_t fixed_len = sizeof(struct ts_crypto_import_key_out);
 
-    resp_msg.handle = handle;
+    resp_msg.id = id;
 
     if (fixed_len <= resp_buf->size) {
 
@@ -287,7 +231,7 @@ static rpc_status_t serialize_import_key_resp(struct call_param_buf *resp_buf,
 
 /* Operation: sign_hash */
 static rpc_status_t deserialize_sign_hash_req(const struct call_param_buf *req_buf,
-                            psa_key_handle_t *handle, psa_algorithm_t *alg,
+                            psa_key_id_t *id, psa_algorithm_t *alg,
                             uint8_t *hash, size_t *hash_len)
 {
     rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
@@ -303,7 +247,7 @@ static rpc_status_t deserialize_sign_hash_req(const struct call_param_buf *req_b
 
         memcpy(&recv_msg, req_buf->data, expected_fixed_len);
 
-        *handle = recv_msg.handle;
+        *id = recv_msg.id;
         *alg = recv_msg.alg;
 
         tlv_const_iterator_begin(&req_iter,
@@ -355,7 +299,7 @@ static rpc_status_t serialize_sign_hash_resp(struct call_param_buf *resp_buf,
 
 /* Operation: verify_hash */
 static rpc_status_t deserialize_verify_hash_req(const struct call_param_buf *req_buf,
-                                psa_key_handle_t *handle, psa_algorithm_t *alg,
+                                psa_key_id_t *id, psa_algorithm_t *alg,
                                 uint8_t *hash, size_t *hash_len,
                                 uint8_t *sig, size_t *sig_len)
 {
@@ -372,7 +316,7 @@ static rpc_status_t deserialize_verify_hash_req(const struct call_param_buf *req
 
         memcpy(&recv_msg, req_buf->data, expected_fixed_len);
 
-        *handle = recv_msg.handle;
+        *id = recv_msg.id;
         *alg = recv_msg.alg;
 
         tlv_const_iterator_begin(&req_iter,
@@ -419,7 +363,7 @@ static rpc_status_t deserialize_verify_hash_req(const struct call_param_buf *req
 
 /* Operation: asymmetric_decrypt */
 static rpc_status_t deserialize_asymmetric_decrypt_req(const struct call_param_buf *req_buf,
-                                psa_key_handle_t *handle, psa_algorithm_t *alg,
+                                psa_key_id_t *id, psa_algorithm_t *alg,
                                 uint8_t *ciphertext, size_t *ciphertext_len,
                                 uint8_t *salt, size_t *salt_len)
 {
@@ -436,7 +380,7 @@ static rpc_status_t deserialize_asymmetric_decrypt_req(const struct call_param_b
 
         memcpy(&recv_msg, req_buf->data, expected_fixed_len);
 
-        *handle = recv_msg.handle;
+        *id = recv_msg.id;
         *alg = recv_msg.alg;
 
         tlv_const_iterator_begin(&req_iter,
@@ -505,7 +449,7 @@ static rpc_status_t serialize_asymmetric_decrypt_resp(struct call_param_buf *res
 
 /* Operation: asymmetric_encrypt */
 static rpc_status_t deserialize_asymmetric_encrypt_req(const struct call_param_buf *req_buf,
-                                    psa_key_handle_t *handle, psa_algorithm_t *alg,
+                                    psa_key_id_t *id, psa_algorithm_t *alg,
                                     uint8_t *plaintext, size_t *plaintext_len,
                                     uint8_t *salt, size_t *salt_len)
 {
@@ -522,7 +466,7 @@ static rpc_status_t deserialize_asymmetric_encrypt_req(const struct call_param_b
 
         memcpy(&recv_msg, req_buf->data, expected_fixed_len);
 
-        *handle = recv_msg.handle;
+        *id = recv_msg.id;
         *alg = recv_msg.alg;
 
         tlv_const_iterator_begin(&req_iter,
@@ -637,9 +581,6 @@ const struct crypto_provider_serializer *packedc_crypto_provider_serializer_inst
         deserialize_generate_key_req,
         serialize_generate_key_resp,
         deserialize_destroy_key_req,
-        deserialize_open_key_req,
-        serialize_open_key_resp,
-        deserialize_close_key_req,
         deserialize_export_key_req,
         serialize_export_key_resp,
         deserialize_export_public_key_req,

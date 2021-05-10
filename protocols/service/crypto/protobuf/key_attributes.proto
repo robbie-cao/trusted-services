@@ -8,8 +8,6 @@ package ts_crypto;
 
 /* Key types */
 enum KeyType {
-  option allow_alias = true;
-
   KEY_TYPE_NONE                   = 0x0000;
   KEY_TYPE_RAW_DATA               = 0x1001;
   KEY_TYPE_HMAC                   = 0x1100;
@@ -21,79 +19,60 @@ enum KeyType {
   KEY_TYPE_CHACHA20               = 0x2004;
   KEY_TYPE_RSA_PUBLIC_KEY         = 0x4001;
   KEY_TYPE_RSA_KEY_PAIR           = 0x7001;
-  KEY_TYPE_ECC_PUBLIC_KEY_BASE    = 0x4100;
-  KEY_TYPE_ECC_KEY_PAIR_BASE      = 0x7100;
-  KEY_TYPE_ECC_CURVE_MASK         = 0x00ff;
-  KEY_TYPE_DH_PUBLIC_KEY_BASE     = 0x4200;
-  KEY_TYPE_DH_KEY_PAIR_BASE       = 0x7200;
-  KEY_TYPE_DH_GROUP_MASK          = 0x00ff;
 }
 
 /* ECC curves for use with ECC Key types */
 enum EccCurve {
-  ECC_CURVE_NONE                  = 0x00;
-  ECC_CURVE_SECP_K1               = 0x17;
-  ECC_CURVE_SECP_R1               = 0x12;
-  ECC_CURVE_SECP_R2               = 0x1b;
-  ECC_CURVE_SECT_K1               = 0x27;
-  ECC_CURVE_SECT_R1               = 0x22;
-  ECC_CURVE_SECT_R2               = 0x2b;
-  ECC_CURVE_BRAINPOOL_P_R1        = 0x30;
-  ECC_CURVE_MONTGOMERY            = 0x41;
+  ECC_FAMILY_NONE                 = 0x00;
+  ECC_FAMILY_SECP_K1              = 0x17;
+  ECC_FAMILY_SECP_R1              = 0x12;
+  ECC_FAMILY_SECP_R2              = 0x1b;
+  ECC_FAMILY_SECT_K1              = 0x27;
+  ECC_FAMILY_SECT_R1              = 0x22;
+  ECC_FAMILY_SECT_R2              = 0x2b;
+  ECC_FAMILY_BRAINPOOL_P_R1       = 0x30;
+  ECC_FAMILY_MONTGOMERY           = 0x41;
 }
 
 /* Diffie-Hellman groups for use with DH key types */
 enum DhGroup {
-  DH_GROUP_NONE                   = 0x00;
-  DH_GROUP_RFC7919                = 0x03;
+  DH_FAMILY_NONE                  = 0x00;
+  DH_FAMILY_RFC7919               = 0x03;
 }
 
 /* Crypto algorithms */
 enum Alg {
   ALG_NONE                        = 0x00000000;
-  ALG_HASH_MASK                   = 0x000000ff;
-  ALG_MD2                         = 0x01000001;
-  ALG_MD4                         = 0x01000002;
-  ALG_MD5                         = 0x01000003;
-  ALG_RIPEMD160                   = 0x01000004;
-  ALG_SHA_1                       = 0x01000005;
-  ALG_SHA_224                     = 0x01000008;
-  ALG_SHA_256                     = 0x01000009;
-  ALG_SHA_384                     = 0x0100000a;
-  ALG_SHA_512                     = 0x0100000b;
-  ALG_SHA_512_224                 = 0x0100000c;
-  ALG_SHA_512_256                 = 0x0100000d;
-  ALG_SHA3_224                    = 0x01000010;
-  ALG_SHA3_256                    = 0x01000011;
-  ALG_SHA3_384                    = 0x01000012;
-  ALG_SHA3_512                    = 0x01000013;
-  ALG_CBC_MAC                     = 0x02c00001;
-  ALG_CMAC                        = 0x02c00002;
-  ALG_ARC4                        = 0x04800001;
-  ALG_CHACHA20                    = 0x04800005;
-  ALG_CTR                         = 0x04c00001;
-  ALG_CFB                         = 0x04c00002;
-  ALG_OFB                         = 0x04c00003;
-  ALG_XTS                         = 0x044000ff;
-  ALG_CBC_NO_PADDING              = 0x04600100;
-  ALG_CBC_PKCS7                   = 0x04600101;
-  ALG_AEAD_FROM_BLOCK_FLAG        = 0x00400000;
-  ALG_CCM                         = 0x06401001;
-  ALG_GCM                         = 0x06401002;
-  ALG_CHACHA20_POLY1305           = 0x06001005;
-  ALG_RSA_PKCS1V15_SIGN_BASE      = 0x10020000;
-  ALG_RSA_PSS_BASE                = 0x10030000;
-  ALG_ECDSA_BASE                  = 0x10060000;
-  ALG_DETERMINISTIC_ECDSA_BASE    = 0x10070000;
-  ALG_RSA_PKCS1V15_CRYPT          = 0x12020000;
-  ALG_RSA_OAEP_BASE               = 0x12030000;
-  ALG_HKDF_BASE                   = 0x20000100;
-  ALG_TLS12_PRF_BASE              = 0x20000200;
-  ALG_TLS12_PSK_TO_MS_BASE        = 0x20000300;
-  ALG_KEY_DERIVATION_MASK         = 0x0803ffff;
-  ALG_KEY_AGREEMENT_MASK          = 0x10fc0000;
-  ALG_FFDH                        = 0x30100000;
-  ALG_ECDH                        = 0x30200000;
+  ALG_MD2                         = 0x02000001;
+  ALG_MD4                         = 0x02000002;
+  ALG_MD5                         = 0x02000003;
+  ALG_RIPEMD160                   = 0x02000004;
+  ALG_SHA_1                       = 0x02000005;
+  ALG_SHA_224                     = 0x02000008;
+  ALG_SHA_256                     = 0x02000009;
+  ALG_SHA_384                     = 0x0200000a;
+  ALG_SHA_512                     = 0x0200000b;
+  ALG_SHA_512_224                 = 0x0200000c;
+  ALG_SHA_512_256                 = 0x0200000d;
+  ALG_SHA3_224                    = 0x02000010;
+  ALG_SHA3_256                    = 0x02000011;
+  ALG_SHA3_384                    = 0x02000012;
+  ALG_SHA3_512                    = 0x02000013;
+  ALG_CBC_MAC                     = 0x03c00100;
+  ALG_CMAC                        = 0x03c00200;
+  ALG_STREAM_CIPHER               = 0x04800100;
+  ALG_CTR                         = 0x04c01000;
+  ALG_CFB                         = 0x04c01100;
+  ALG_OFB                         = 0x04c01200;
+  ALG_XTS                         = 0x0440ff00;
+  ALG_CBC_NO_PADDING              = 0x04404000;
+  ALG_CBC_PKCS7                   = 0x04404100;
+  ALG_CCM                         = 0x05500100;
+  ALG_GCM                         = 0x05500200;
+  ALG_CHACHA20_POLY1305           = 0x05100500;
+  ALG_RSA_PKCS1V15_CRYPT          = 0x07000200;
+  ALG_FFDH                        = 0x09010000;
+  ALG_ECDH                        = 0x09020000;
 }
 
 /* Key lifetime */
@@ -109,9 +88,9 @@ enum KeyUsage {
   KEY_USAGE_COPY                  = 0x00000002;
   KEY_USAGE_ENCRYPT               = 0x00000100;
   KEY_USAGE_DECRYPT               = 0x00000200;
-  KEY_USAGE_SIGN_HASH             = 0x00000400;
-  KEY_USAGE_VERIFY_HASH           = 0x00000800;
-  KEY_USAGE_DERIVE                = 0x00001000;
+  KEY_USAGE_SIGN_HASH             = 0x00001000;
+  KEY_USAGE_VERIFY_HASH           = 0x00002000;
+  KEY_USAGE_DERIVE                = 0x00004000;
 }
 
 /* Key policy to define what key can be used for */

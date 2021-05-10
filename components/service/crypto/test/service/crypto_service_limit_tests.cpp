@@ -51,7 +51,7 @@ TEST_GROUP(CryptoServiceLimitTests)
         m_crypto_service_context = NULL;
     }
 
-    psa_status_t generateVolatileEccKeyPair(std::vector<psa_key_handle_t> &key_handles)
+    psa_status_t generateVolatileEccKeyPair(std::vector<psa_key_id_t> &key_ids)
     {
         psa_status_t status;
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -59,20 +59,20 @@ TEST_GROUP(CryptoServiceLimitTests)
         psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_VOLATILE);
         psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH);
         psa_set_key_algorithm(&attributes, PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256));
-        psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP_R1));
+        psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
         psa_set_key_bits(&attributes, 521);
 
-        psa_key_handle_t key_handle;
-        status = m_crypto_client->generate_key(&attributes, &key_handle);
+        psa_key_id_t key_id;
+        status = m_crypto_client->generate_key(&attributes, &key_id);
 
         psa_reset_key_attributes(&attributes);
 
-        if (status == PSA_SUCCESS) key_handles.push_back(key_handle);
+        if (status == PSA_SUCCESS) key_ids.push_back(key_id);
 
         return status;
     }
 
-    psa_status_t generateVolatileRsaKeyPair(std::vector<psa_key_handle_t> &key_handles)
+    psa_status_t generateVolatileRsaKeyPair(std::vector<psa_key_id_t> &key_ids)
     {
         psa_status_t status;
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -83,24 +83,24 @@ TEST_GROUP(CryptoServiceLimitTests)
         psa_set_key_type(&attributes, PSA_KEY_TYPE_RSA_KEY_PAIR);
         psa_set_key_bits(&attributes, 512);
 
-        psa_key_handle_t key_handle;
-        status = m_crypto_client->generate_key(&attributes, &key_handle);
+        psa_key_id_t key_id;
+        status = m_crypto_client->generate_key(&attributes, &key_id);
 
         psa_reset_key_attributes(&attributes);
 
-        if (status == PSA_SUCCESS) key_handles.push_back(key_handle);
+        if (status == PSA_SUCCESS) key_ids.push_back(key_id);
 
         return status;
     }
 
-    psa_status_t destroyKeys(const std::vector<psa_key_handle_t> &key_handles)
+    psa_status_t destroyKeys(const std::vector<psa_key_id_t> &key_ids)
     {
         psa_status_t status = PSA_SUCCESS;
         size_t key_index = 0;
 
-        while ((key_index < key_handles.size()) && (status == PSA_SUCCESS)) {
+        while ((key_index < key_ids.size()) && (status == PSA_SUCCESS)) {
 
-            status = m_crypto_client->destroy_key(key_handles[key_index]);
+            status = m_crypto_client->destroy_key(key_ids[key_index]);
             ++key_index;
         }
 
@@ -123,13 +123,13 @@ TEST(CryptoServiceLimitTests, volatileEccKeyPairLimit)
 {
     size_t expected_limit = MAX_KEY_SLOTS;
     size_t actual_limit = 0;
-    std::vector<psa_key_handle_t> key_handles;
+    std::vector<psa_key_id_t> key_ids;
     psa_status_t generate_status = PSA_SUCCESS;
     psa_status_t destroy_status;
 
     while (actual_limit < expected_limit) {
 
-        generate_status = generateVolatileEccKeyPair(key_handles);
+        generate_status = generateVolatileEccKeyPair(key_ids);
 
         if (generate_status == PSA_SUCCESS)
             ++actual_limit;
@@ -137,7 +137,7 @@ TEST(CryptoServiceLimitTests, volatileEccKeyPairLimit)
             break;
     }
 
-    destroy_status = destroyKeys(key_handles);
+    destroy_status = destroyKeys(key_ids);
 
     CHECK_EQUAL(PSA_SUCCESS, generate_status);
     CHECK_EQUAL(PSA_SUCCESS, destroy_status);
@@ -148,13 +148,13 @@ TEST(CryptoServiceLimitTests, volatileRsaKeyPairLimit)
 {
     size_t expected_limit = MAX_KEY_SLOTS;
     size_t actual_limit = 0;
-    std::vector<psa_key_handle_t> key_handles;
+    std::vector<psa_key_id_t> key_ids;
     psa_status_t generate_status = PSA_SUCCESS;
     psa_status_t destroy_status;
 
     while (actual_limit < expected_limit) {
 
-        generate_status = generateVolatileRsaKeyPair(key_handles);
+        generate_status = generateVolatileRsaKeyPair(key_ids);
 
         if (generate_status == PSA_SUCCESS)
             ++actual_limit;
@@ -162,7 +162,7 @@ TEST(CryptoServiceLimitTests, volatileRsaKeyPairLimit)
             break;
     }
 
-    destroy_status = destroyKeys(key_handles);
+    destroy_status = destroyKeys(key_ids);
 
     CHECK_EQUAL(PSA_SUCCESS, generate_status);
     CHECK_EQUAL(PSA_SUCCESS, destroy_status);

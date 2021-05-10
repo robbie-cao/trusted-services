@@ -56,8 +56,8 @@ include(${TS_ROOT}/external/nanopb/nanopb.cmake)
 target_link_libraries(ts-service-test PRIVATE nanopb::protobuf-nanopb-static)
 protobuf_generate_all(TGT "ts-service-test" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protocols")
 
-# Mbedcrypto
-include(${TS_ROOT}/external/mbed-crypto/mbedcrypto.cmake)
+# Mbed TLS provides libmbedcrypto
+include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(ts-service-test PRIVATE mbedcrypto)
 
 #-------------------------------------------------------------------------------

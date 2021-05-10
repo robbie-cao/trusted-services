@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -21,11 +21,11 @@ target_include_directories(${TGT}
 # provider.  This configuration includes enabling the use of the PSA ITS API
 # for persistent key storage which is realised by the its client adapter
 # for the secure storage service.
-set(MBEDCRYPTO_CONFIG_FILE
-	"${CMAKE_CURRENT_LIST_DIR}/config_mbed_crypto.h"
-	CACHE STRING "Configuration file for mbedcrypto" FORCE)
+set(MBEDTLS_USER_CONFIG_FILE
+	"${CMAKE_CURRENT_LIST_DIR}/config_mbedtls_user.h"
+	CACHE STRING "Configuration file for Mbed TLS" FORCE)
 
-set(MBEDCRYPTO_EXTRA_INCLUDES
+set(MBEDTLS_EXTRA_INCLUDES
 	"${TS_ROOT}/components/service/common"
 	"${TS_ROOT}/components/service/secure_storage/client"
-	CACHE STRING "PSA ITS for mbedcrypto" FORCE)
+	CACHE STRING "PSA ITS for Mbed TLS" FORCE)

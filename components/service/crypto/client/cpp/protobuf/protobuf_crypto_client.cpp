@@ -14,8 +14,6 @@
 #include <service/crypto/protobuf/generate_key.pb.h>
 #include <service/crypto/protobuf/destroy_key.pb.h>
 #include <service/crypto/protobuf/import_key.pb.h>
-#include <service/crypto/protobuf/open_key.pb.h>
-#include <service/crypto/protobuf/close_key.pb.h>
 #include <service/crypto/protobuf/export_key.pb.h>
 #include <service/crypto/protobuf/export_public_key.pb.h>
 #include <service/crypto/protobuf/sign_hash.pb.h>
@@ -43,7 +41,7 @@ protobuf_crypto_client::~protobuf_crypto_client()
 
 }
 
-psa_status_t protobuf_crypto_client::generate_key(const psa_key_attributes_t *attributes, psa_key_handle_t *handle)
+psa_status_t protobuf_crypto_client::generate_key(const psa_key_attributes_t *attributes, psa_key_id_t *id)
 {
     size_t req_len;
     psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
@@ -82,7 +80,7 @@ psa_status_t protobuf_crypto_client::generate_key(const psa_key_attributes_t *at
 
                     if (pb_decode(&istream, ts_crypto_GenerateKeyOut_fields, &resp_msg)) {
 
-                        *handle = resp_msg.handle;
+                        *id = resp_msg.id;
                     }
                     else {
                         /* Failed to decode response message */
@@ -98,13 +96,13 @@ psa_status_t protobuf_crypto_client::generate_key(const psa_key_attributes_t *at
     return psa_status;
 }
 
-psa_status_t protobuf_crypto_client::destroy_key(psa_key_handle_t handle)
+psa_status_t protobuf_crypto_client::destroy_key(psa_key_id_t id)
 {
     size_t req_len;
     psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
     ts_crypto_DestroyKeyIn req_msg = ts_crypto_DestroyKeyIn_init_default;
 
-    req_msg.handle = handle;
+    req_msg.id = id;
 
     if (pb_get_encoded_size(&req_len, ts_crypto_DestroyKeyIn_fields, &req_msg)) {
 
@@ -134,97 +132,8 @@ psa_status_t protobuf_crypto_client::destroy_key(psa_key_handle_t handle)
     return psa_status;
 }
 
-psa_status_t protobuf_crypto_client::open_key(psa_key_id_t id, psa_key_handle_t *handle)
-{
-    size_t req_len;
-    psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
-    ts_crypto_OpenKeyIn req_msg = ts_crypto_OpenKeyIn_init_default;
-    req_msg.id = id;
-
-	if (pb_get_encoded_size(&req_len, ts_crypto_OpenKeyIn_fields, &req_msg)) {
-
-        rpc_call_handle call_handle;
-        uint8_t *req_buf;
-
-        call_handle = rpc_caller_begin(m_caller, &req_buf, req_len);
-
-        if (call_handle) {
-
-            uint8_t *resp_buf;
-            size_t resp_len;
-            int opstatus;
-
-            pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
-            pb_encode(&ostream, ts_crypto_OpenKeyIn_fields, &req_msg);
-
-            m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
-                        ts_crypto_Opcode_OPEN_KEY, &opstatus, &resp_buf, &resp_len);
-
-            if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) {
-
-                psa_status = opstatus;
-
-                if (psa_status == PSA_SUCCESS) {
-
-                    ts_crypto_OpenKeyOut resp_msg = ts_crypto_OpenKeyOut_init_default;
-                    pb_istream_t istream = pb_istream_from_buffer(resp_buf, resp_len);
-
-                    if (pb_decode(&istream, ts_crypto_OpenKeyOut_fields, &resp_msg)) {
-
-                        *handle = resp_msg.handle;
-                    }
-                    else {
-                        /* Failed to decode response message */
-                        psa_status = PSA_ERROR_GENERIC_ERROR;
-                    }
-                }
-            }
-
-            rpc_caller_end(m_caller, call_handle);
-        }
-    }
-
-    return psa_status;
-}
-
-psa_status_t protobuf_crypto_client::close_key(psa_key_handle_t handle)
-{
-    size_t req_len;
-    psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
-    ts_crypto_CloseKeyIn req_msg = ts_crypto_CloseKeyIn_init_default;
-
-    req_msg.handle = handle;
-
-    if (pb_get_encoded_size(&req_len, ts_crypto_CloseKeyIn_fields, &req_msg)) {
-
-        rpc_call_handle call_handle;
-        uint8_t *req_buf;
-
-        call_handle = rpc_caller_begin(m_caller, &req_buf, req_len);
-
-        if (call_handle) {
-
-            uint8_t *resp_buf;
-            size_t resp_len;
-            int opstatus;
-
-            pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
-            pb_encode(&ostream, ts_crypto_CloseKeyIn_fields, &req_msg);
-
-            m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
-                ts_crypto_Opcode_CLOSE_KEY, &opstatus, &resp_buf, &resp_len);
-
-            if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
-
-            rpc_caller_end(m_caller, call_handle);
-        }
-    }
-
-    return psa_status;
-}
-
 psa_status_t protobuf_crypto_client::import_key(const psa_key_attributes_t *attributes,
-                        const uint8_t *data, size_t data_length, psa_key_handle_t *handle)
+                        const uint8_t *data, size_t data_length, psa_key_id_t *id)
 {
     size_t req_len;
     psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
@@ -265,7 +174,7 @@ psa_status_t protobuf_crypto_client::import_key(const psa_key_attributes_t *attr
 
                     if (pb_decode(&istream, ts_crypto_ImportKeyOut_fields, &resp_msg)) {
 
-                        *handle = resp_msg.handle;
+                        *id = resp_msg.id;
                     }
                     else {
                         /* Failed to decode response message */
@@ -283,14 +192,14 @@ psa_status_t protobuf_crypto_client::import_key(const psa_key_attributes_t *attr
     return psa_status;
 }
 
-psa_status_t protobuf_crypto_client::export_key(psa_key_handle_t handle,
+psa_status_t protobuf_crypto_client::export_key(psa_key_id_t id,
                         uint8_t *data, size_t data_size,
                         size_t *data_length)
 {
     size_t req_len;
     psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
     ts_crypto_ExportKeyIn req_msg = ts_crypto_ExportKeyIn_init_default;
-    req_msg.handle = handle;
+    req_msg.id = id;
 
     *data_length = 0; /* For failure case */
 
@@ -360,13 +269,13 @@ psa_status_t protobuf_crypto_client::export_key(psa_key_handle_t handle,
     return psa_status;
 }
 
-psa_status_t protobuf_crypto_client::export_public_key(psa_key_handle_t handle,
+psa_status_t protobuf_crypto_client::export_public_key(psa_key_id_t id,
                                 uint8_t *data, size_t data_size, size_t *data_length)
 {
     size_t req_len;
     psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
     ts_crypto_ExportPublicKeyIn req_msg = ts_crypto_ExportPublicKeyIn_init_default;
-    req_msg.handle = handle;
+    req_msg.id = id;
 
     *data_length = 0; /* For failure case */
 
@@ -436,7 +345,7 @@ psa_status_t protobuf_crypto_client::export_public_key(psa_key_handle_t handle,
     return psa_status;
 }
 
-psa_status_t protobuf_crypto_client::sign_hash(psa_key_handle_t handle, psa_algorithm_t alg,
+psa_status_t protobuf_crypto_client::sign_hash(psa_key_id_t id, psa_algorithm_t alg,
                             const uint8_t *hash, size_t hash_length,
                             uint8_t *signature, size_t signature_size, size_t *signature_length)
 {
@@ -447,7 +356,7 @@ psa_status_t protobuf_crypto_client::sign_hash(psa_key_handle_t handle, psa_algo
 
     *signature_length = 0;  /* For failure case */
 
-    req_msg.handle = handle;
+    req_msg.id = id;
     req_msg.alg = alg;
 	req_msg.hash = pb_out_byte_array(hash_byte_array);
 
@@ -513,7 +422,7 @@ psa_status_t protobuf_crypto_client::sign_hash(psa_key_handle_t handle, psa_algo
 }
 
 
-psa_status_t protobuf_crypto_client::verify_hash(psa_key_handle_t handle, psa_algorithm_t alg,
+psa_status_t protobuf_crypto_client::verify_hash(psa_key_id_t id, psa_algorithm_t alg,
                         const uint8_t *hash, size_t hash_length,
                         const uint8_t *signature, size_t signature_length)
 {
@@ -523,7 +432,7 @@ psa_status_t protobuf_crypto_client::verify_hash(psa_key_handle_t handle, psa_al
     psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
     ts_crypto_VerifyHashIn req_msg = ts_crypto_VerifyHashIn_init_default;
 
-    req_msg.handle = handle;
+    req_msg.id = id;
     req_msg.alg = alg;
 	req_msg.hash = pb_out_byte_array(hash_byte_array);
     req_msg.signature = pb_out_byte_array(sig_byte_array);
@@ -559,7 +468,7 @@ psa_status_t protobuf_crypto_client::verify_hash(psa_key_handle_t handle, psa_al
     return psa_status;
 }
 
-psa_status_t protobuf_crypto_client::asymmetric_encrypt(psa_key_handle_t handle, psa_algorithm_t alg,
+psa_status_t protobuf_crypto_client::asymmetric_encrypt(psa_key_id_t id, psa_algorithm_t alg,
                         const uint8_t *input, size_t input_length,
                         const uint8_t *salt, size_t salt_length,
                         uint8_t *output, size_t output_size, size_t *output_length)
@@ -572,7 +481,7 @@ psa_status_t protobuf_crypto_client::asymmetric_encrypt(psa_key_handle_t handle,
 
     *output_length = 0;  /* For failure case */
 
-    req_msg.handle = handle;
+    req_msg.id = id;
     req_msg.alg = alg;
 	req_msg.plaintext = pb_out_byte_array(plaintext_byte_array);
     req_msg.salt = pb_out_byte_array(salt_byte_array);
@@ -639,7 +548,7 @@ psa_status_t protobuf_crypto_client::asymmetric_encrypt(psa_key_handle_t handle,
     return psa_status;
 }
 
-psa_status_t protobuf_crypto_client::asymmetric_decrypt(psa_key_handle_t handle, psa_algorithm_t alg,
+psa_status_t protobuf_crypto_client::asymmetric_decrypt(psa_key_id_t id, psa_algorithm_t alg,
                         const uint8_t *input, size_t input_length,
                         const uint8_t *salt, size_t salt_length,
                         uint8_t *output, size_t output_size, size_t *output_length)
@@ -652,7 +561,7 @@ psa_status_t protobuf_crypto_client::asymmetric_decrypt(psa_key_handle_t handle,
 
     *output_length = 0;  /* For failure case */
 
-    req_msg.handle = handle;
+    req_msg.id = id;
     req_msg.alg = alg;
 	req_msg.ciphertext = pb_out_byte_array(ciphertext_byte_array);
     req_msg.salt = pb_out_byte_array(salt_byte_array);

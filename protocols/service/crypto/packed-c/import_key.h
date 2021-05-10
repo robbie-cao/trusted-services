@@ -24,7 +24,7 @@ enum
 /* Mandatory fixed sized output parameters */
 struct __attribute__ ((__packed__)) ts_crypto_import_key_out
 {
-  uint32_t handle;
+  uint32_t id;
 };
 
 #endif /* TS_CRYPTO_IMPORT_KEY_H */

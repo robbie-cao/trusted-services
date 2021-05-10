@@ -11,7 +11,7 @@
 /* Mandatory fixed sized input parameters */
 struct __attribute__ ((__packed__)) ts_crypto_destroy_key_in
 {
-  uint32_t handle;
+  uint32_t id;
 };
 
 #endif /* TS_CRYPTO_DESTROY_KEY_H */

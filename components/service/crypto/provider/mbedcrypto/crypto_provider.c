@@ -16,8 +16,6 @@
 static rpc_status_t nop_handler(void *context, struct call_req* req);
 static rpc_status_t generate_key_handler(void *context, struct call_req* req);
 static rpc_status_t destroy_key_handler(void *context, struct call_req* req);
-static rpc_status_t open_key_handler(void *context, struct call_req* req);
-static rpc_status_t close_key_handler(void *context, struct call_req* req);
 static rpc_status_t export_key_handler(void *context, struct call_req* req);
 static rpc_status_t export_public_key_handler(void *context, struct call_req* req);
 static rpc_status_t import_key_handler(void *context, struct call_req* req);
@@ -32,8 +30,6 @@ static const struct service_handler handler_table[] = {
     {TS_CRYPTO_OPCODE_NOP,                  nop_handler},
     {TS_CRYPTO_OPCODE_GENERATE_KEY,         generate_key_handler},
     {TS_CRYPTO_OPCODE_DESTROY_KEY,          destroy_key_handler},
-    {TS_CRYPTO_OPCODE_OPEN_KEY,             open_key_handler},
-    {TS_CRYPTO_OPCODE_CLOSE_KEY,            close_key_handler},
     {TS_CRYPTO_OPCODE_EXPORT_KEY,           export_key_handler},
     {TS_CRYPTO_OPCODE_EXPORT_PUBLIC_KEY,    export_public_key_handler},
     {TS_CRYPTO_OPCODE_IMPORT_KEY,           import_key_handler},
@@ -126,14 +122,14 @@ static rpc_status_t generate_key_handler(void *context, struct call_req* req)
     if (rpc_status == TS_RPC_CALL_ACCEPTED) {
 
         psa_status_t psa_status;
-        psa_key_handle_t handle;
+        psa_key_id_t id;
 
-        psa_status = psa_generate_key(&attributes, &handle);
+        psa_status = psa_generate_key(&attributes, &id);
 
         if (psa_status == PSA_SUCCESS) {
 
             struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
-            rpc_status = serializer->serialize_generate_key_resp(resp_buf, handle);
+            rpc_status = serializer->serialize_generate_key_resp(resp_buf, id);
         }
 
         call_req_set_opstatus(req, psa_status);
@@ -150,68 +146,16 @@ static rpc_status_t destroy_key_handler(void *context, struct call_req* req)
     struct call_param_buf *req_buf = call_req_get_req_buf(req);
     const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
 
-    psa_key_handle_t handle;
-
-    if (serializer)
-        rpc_status = serializer->deserialize_destroy_key_req(req_buf, &handle);
-
-    if (rpc_status == TS_RPC_CALL_ACCEPTED) {
-
-        psa_status_t psa_status;
-
-        psa_status = psa_destroy_key(handle);
-        call_req_set_opstatus(req, psa_status);
-    }
-
-    return rpc_status;
-}
-
-static rpc_status_t open_key_handler(void *context, struct call_req* req)
-{
-    rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-    struct call_param_buf *req_buf = call_req_get_req_buf(req);
-    const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
-
     psa_key_id_t id;
 
     if (serializer)
-        rpc_status = serializer->deserialize_open_key_req(req_buf, &id);
-
-    if (rpc_status == TS_RPC_CALL_ACCEPTED) {
-
-        psa_status_t psa_status;
-        psa_key_handle_t handle;
-
-        psa_status = psa_open_key(id, &handle);
-
-        if (psa_status == PSA_SUCCESS) {
-
-            struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
-            rpc_status = serializer->serialize_open_key_resp(resp_buf, handle);
-        }
-
-        call_req_set_opstatus(req, psa_status);
-    }
-
-    return rpc_status;
-}
-
-static rpc_status_t close_key_handler(void *context, struct call_req* req)
-{
-    rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-    struct call_param_buf *req_buf = call_req_get_req_buf(req);
-    const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
-
-    psa_key_handle_t handle;
-
-    if (serializer)
-        rpc_status = serializer->deserialize_close_key_req(req_buf, &handle);
+        rpc_status = serializer->deserialize_destroy_key_req(req_buf, &id);
 
     if (rpc_status == TS_RPC_CALL_ACCEPTED) {
 
         psa_status_t psa_status;
 
-        psa_status = psa_close_key(handle);
+        psa_status = psa_destroy_key(id);
         call_req_set_opstatus(req, psa_status);
     }
 
@@ -224,21 +168,21 @@ static rpc_status_t export_key_handler(void *context, struct call_req* req)
     struct call_param_buf *req_buf = call_req_get_req_buf(req);
     const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
 
-    psa_key_handle_t handle;
+    psa_key_id_t id;
 
     if (serializer)
-        rpc_status = serializer->deserialize_export_key_req(req_buf, &handle);
+        rpc_status = serializer->deserialize_export_key_req(req_buf, &id);
 
     if (rpc_status == TS_RPC_CALL_ACCEPTED) {
 
         psa_status_t psa_status;
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-        psa_status = psa_get_key_attributes(handle, &attributes);
+        psa_status = psa_get_key_attributes(id, &attributes);
 
         if (psa_status == PSA_SUCCESS) {
 
-            size_t max_export_size = PSA_KEY_EXPORT_MAX_SIZE(
+            size_t max_export_size = PSA_EXPORT_KEY_OUTPUT_SIZE(
                 psa_get_key_type(&attributes),
                 psa_get_key_bits(&attributes));
 
@@ -247,7 +191,7 @@ static rpc_status_t export_key_handler(void *context, struct call_req* req)
             if (key_buffer) {
 
                 size_t export_size;
-                psa_status = psa_export_key(handle, key_buffer, max_export_size, &export_size);
+                psa_status = psa_export_key(id, key_buffer, max_export_size, &export_size);
 
                 if (psa_status == PSA_SUCCESS) {
 
@@ -276,21 +220,21 @@ static rpc_status_t export_public_key_handler(void *context, struct call_req* re
     struct call_param_buf *req_buf = call_req_get_req_buf(req);
     const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
 
-    psa_key_handle_t handle;
+    psa_key_id_t id;
 
     if (serializer)
-        rpc_status = serializer->deserialize_export_public_key_req(req_buf, &handle);
+        rpc_status = serializer->deserialize_export_public_key_req(req_buf, &id);
 
     if (rpc_status == TS_RPC_CALL_ACCEPTED) {
 
         psa_status_t psa_status;
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-        psa_status = psa_get_key_attributes(handle, &attributes);
+        psa_status = psa_get_key_attributes(id, &attributes);
 
         if (psa_status == PSA_SUCCESS) {
 
-            size_t max_export_size = PSA_KEY_EXPORT_MAX_SIZE(
+            size_t max_export_size = PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(
                 PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(psa_get_key_type(&attributes)),
                 psa_get_key_bits(&attributes));
 
@@ -299,7 +243,7 @@ static rpc_status_t export_public_key_handler(void *context, struct call_req* re
             if (key_buffer) {
 
                 size_t export_size;
-                psa_status = psa_export_public_key(handle, key_buffer, max_export_size, &export_size);
+                psa_status = psa_export_public_key(id, key_buffer, max_export_size, &export_size);
 
                 if (psa_status == PSA_SUCCESS) {
 
@@ -341,14 +285,14 @@ static rpc_status_t import_key_handler(void *context, struct call_req* req)
             if (rpc_status == TS_RPC_CALL_ACCEPTED) {
 
                 psa_status_t psa_status;
-                psa_key_handle_t handle;
+                psa_key_id_t id;
 
-                psa_status = psa_import_key(&attributes, key_buffer, key_data_len, &handle);
+                psa_status = psa_import_key(&attributes, key_buffer, key_data_len, &id);
 
                 if (psa_status == PSA_SUCCESS) {
 
                     struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
-                    rpc_status = serializer->serialize_import_key_resp(resp_buf, handle);
+                    rpc_status = serializer->serialize_import_key_resp(resp_buf, id);
                 }
 
                 call_req_set_opstatus(req, psa_status);
@@ -372,13 +316,13 @@ static rpc_status_t sign_hash_handler(void *context, struct call_req* req)
     struct call_param_buf *req_buf = call_req_get_req_buf(req);
     const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
 
-    psa_key_handle_t handle;
+    psa_key_id_t id;
     psa_algorithm_t alg;
     size_t hash_len = PSA_HASH_MAX_SIZE;
     uint8_t hash_buffer[PSA_HASH_MAX_SIZE];
 
     if (serializer)
-        rpc_status = serializer->deserialize_sign_hash_req(req_buf, &handle, &alg, hash_buffer, &hash_len);
+        rpc_status = serializer->deserialize_sign_hash_req(req_buf, &id, &alg, hash_buffer, &hash_len);
 
     if (rpc_status == TS_RPC_CALL_ACCEPTED) {
 
@@ -386,7 +330,7 @@ static rpc_status_t sign_hash_handler(void *context, struct call_req* req)
         size_t sig_len;
         uint8_t sig_buffer[PSA_SIGNATURE_MAX_SIZE];
 
-        psa_status = psa_sign_hash(handle, alg,
+        psa_status = psa_sign_hash(id, alg,
                     hash_buffer, hash_len,
                     sig_buffer, sizeof(sig_buffer), &sig_len);
 
@@ -408,7 +352,7 @@ static rpc_status_t verify_hash_handler(void *context, struct call_req* req)
     struct call_param_buf *req_buf = call_req_get_req_buf(req);
     const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
 
-    psa_key_handle_t handle;
+    psa_key_id_t id;
     psa_algorithm_t alg;
     size_t hash_len = PSA_HASH_MAX_SIZE;
     uint8_t hash_buffer[PSA_HASH_MAX_SIZE];
@@ -416,7 +360,7 @@ static rpc_status_t verify_hash_handler(void *context, struct call_req* req)
     uint8_t sig_buffer[PSA_SIGNATURE_MAX_SIZE];
 
     if (serializer)
-        rpc_status = serializer->deserialize_verify_hash_req(req_buf, &handle, &alg,
+        rpc_status = serializer->deserialize_verify_hash_req(req_buf, &id, &alg,
                                             hash_buffer, &hash_len,
                                             sig_buffer, &sig_len);
 
@@ -424,7 +368,7 @@ static rpc_status_t verify_hash_handler(void *context, struct call_req* req)
 
         psa_status_t psa_status;
 
-        psa_status = psa_verify_hash(handle, alg,
+        psa_status = psa_verify_hash(id, alg,
                     hash_buffer, hash_len,
                     sig_buffer, sig_len);
 
@@ -444,7 +388,7 @@ static rpc_status_t asymmetric_decrypt_handler(void *context, struct call_req* r
 
         size_t max_param_size = serializer->max_deserialised_parameter_size(req_buf);
 
-        psa_key_handle_t handle;
+        psa_key_id_t id;
         psa_algorithm_t alg;
         size_t ciphertext_len = max_param_size;
         uint8_t *ciphertext_buffer = malloc(ciphertext_len);
@@ -454,7 +398,7 @@ static rpc_status_t asymmetric_decrypt_handler(void *context, struct call_req* r
         if (ciphertext_buffer && salt_buffer) {
 
             rpc_status = serializer->deserialize_asymmetric_decrypt_req(req_buf,
-                                                    &handle, &alg,
+                                                    &id, &alg,
                                                     ciphertext_buffer, &ciphertext_len,
                                                     salt_buffer, &salt_len);
 
@@ -463,7 +407,7 @@ static rpc_status_t asymmetric_decrypt_handler(void *context, struct call_req* r
                 psa_status_t psa_status;
                 psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-                psa_status = psa_get_key_attributes(handle, &attributes);
+                psa_status = psa_get_key_attributes(id, &attributes);
 
                 if (psa_status == PSA_SUCCESS) {
 
@@ -477,7 +421,7 @@ static rpc_status_t asymmetric_decrypt_handler(void *context, struct call_req* r
 
                     if (plaintext_buffer) {
 
-                        psa_status = psa_asymmetric_decrypt(handle, alg,
+                        psa_status = psa_asymmetric_decrypt(id, alg,
                                     ciphertext_buffer, ciphertext_len,
                                     salt_buffer, salt_len,
                                     plaintext_buffer, max_decrypt_size, &plaintext_len);
@@ -523,7 +467,7 @@ static rpc_status_t asymmetric_encrypt_handler(void *context, struct call_req* r
 
         size_t max_param_size = serializer->max_deserialised_parameter_size(req_buf);
 
-        psa_key_handle_t handle;
+        psa_key_id_t id;
         psa_algorithm_t alg;
         size_t plaintext_len = max_param_size;
         uint8_t *plaintext_buffer = malloc(plaintext_len);
@@ -533,7 +477,7 @@ static rpc_status_t asymmetric_encrypt_handler(void *context, struct call_req* r
         if (plaintext_buffer && salt_buffer) {
 
             rpc_status = serializer->deserialize_asymmetric_encrypt_req(req_buf,
-                                                    &handle, &alg,
+                                                    &id, &alg,
                                                     plaintext_buffer, &plaintext_len,
                                                     salt_buffer, &salt_len);
 
@@ -542,7 +486,7 @@ static rpc_status_t asymmetric_encrypt_handler(void *context, struct call_req* r
                 psa_status_t psa_status;
                 psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-                psa_status = psa_get_key_attributes(handle, &attributes);
+                psa_status = psa_get_key_attributes(id, &attributes);
 
                 if (psa_status == PSA_SUCCESS) {
 
@@ -556,7 +500,7 @@ static rpc_status_t asymmetric_encrypt_handler(void *context, struct call_req* r
 
                     if (ciphertext_buffer) {
 
-                        psa_status = psa_asymmetric_encrypt(handle, alg,
+                        psa_status = psa_asymmetric_encrypt(id, alg,
                                     plaintext_buffer, plaintext_len,
                                     salt_buffer, salt_len,
                                     ciphertext_buffer, max_encrypt_size, &ciphertext_len);

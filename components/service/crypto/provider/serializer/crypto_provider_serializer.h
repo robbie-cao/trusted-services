@@ -31,33 +31,22 @@ struct crypto_provider_serializer {
                                         psa_key_attributes_t *attributes);
 
     rpc_status_t (*serialize_generate_key_resp)(struct call_param_buf *resp_buf,
-                                        psa_key_handle_t handle);
+                                        psa_key_id_t id);
 
     /* Operation: destroy_key */
     rpc_status_t (*deserialize_destroy_key_req)(const struct call_param_buf *req_buf,
-                                        psa_key_handle_t *handle);
-
-    /* Operation: open_key */
-    rpc_status_t (*deserialize_open_key_req)(const struct call_param_buf *req_buf,
                                         psa_key_id_t *id);
-
-    rpc_status_t (*serialize_open_key_resp)(struct call_param_buf *resp_buf,
-                                        psa_key_handle_t handle);
-
-    /* Operation: close_key */
-    rpc_status_t (*deserialize_close_key_req)(const struct call_param_buf *req_buf,
-                                        psa_key_handle_t *handle);
 
     /* Operation: export_key */
     rpc_status_t (*deserialize_export_key_req)(const struct call_param_buf *req_buf,
-                                        psa_key_handle_t *handle);
+                                        psa_key_id_t *id);
 
     rpc_status_t (*serialize_export_key_resp)(struct call_param_buf *resp_buf,
                                         const uint8_t *data, size_t data_len);
 
     /* Operation: export_public_key */
     rpc_status_t (*deserialize_export_public_key_req)(const struct call_param_buf *req_buf,
-                                        psa_key_handle_t *handle);
+                                        psa_key_id_t *id);
 
     rpc_status_t (*serialize_export_public_key_resp)(struct call_param_buf *resp_buf,
                                         const uint8_t *data, size_t data_len);
@@ -68,11 +57,11 @@ struct crypto_provider_serializer {
                                         uint8_t *data, size_t *data_len);
 
     rpc_status_t (*serialize_import_key_resp)(struct call_param_buf *resp_buf,
-                                        psa_key_handle_t handle);
+                                        psa_key_id_t id);
 
     /* Operation: sign_hash */
     rpc_status_t (*deserialize_sign_hash_req)(const struct call_param_buf *req_buf,
-                                        psa_key_handle_t *handle, psa_algorithm_t *alg,
+                                        psa_key_id_t *id, psa_algorithm_t *alg,
                                         uint8_t *hash, size_t *hash_len);
 
     rpc_status_t (*serialize_sign_hash_resp)(struct call_param_buf *resp_buf,
@@ -80,13 +69,13 @@ struct crypto_provider_serializer {
 
     /* Operation: verify_hash */
     rpc_status_t (*deserialize_verify_hash_req)(const struct call_param_buf *req_buf,
-                                        psa_key_handle_t *handle, psa_algorithm_t *alg,
+                                        psa_key_id_t *id, psa_algorithm_t *alg,
                                         uint8_t *hash, size_t *hash_len,
                                         uint8_t *sig, size_t *sig_len);
 
     /* Operation: asymmetric_decrypt */
     rpc_status_t (*deserialize_asymmetric_decrypt_req)(const struct call_param_buf *req_buf,
-                                        psa_key_handle_t *handle, psa_algorithm_t *alg,
+                                        psa_key_id_t *id, psa_algorithm_t *alg,
                                         uint8_t *ciphertext, size_t *ciphertext_len,
                                         uint8_t *salt, size_t *salt_len);
 
@@ -95,7 +84,7 @@ struct crypto_provider_serializer {
 
     /* Operation: asymmetric_encrypt */
     rpc_status_t (*deserialize_asymmetric_encrypt_req)(const struct call_param_buf *req_buf,
-                                        psa_key_handle_t *handle, psa_algorithm_t *alg,
+                                        psa_key_id_t *id, psa_algorithm_t *alg,
                                         uint8_t *plaintext, size_t *plaintext_len,
                                         uint8_t *salt, size_t *salt_len);
 
