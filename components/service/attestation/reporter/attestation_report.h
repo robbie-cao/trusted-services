@@ -21,7 +21,7 @@ extern "C" {
  *  Using the view of the security state of the device provided by
  *  the claims_register, a signed attestation report is created.  On
  *  success, a buffer is allocated for the serialized report.  The buffer
- *  must be freed by calling attestation_reporter_destroy().
+ *  must be freed by calling attestation_report_destroy().
  *
  * \param[in] client_id             The requesting client id
  * \param[in] auth_challenge_data   The auth challenge from the requester

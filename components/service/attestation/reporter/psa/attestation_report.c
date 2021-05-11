@@ -6,8 +6,8 @@
 
 /**
  * An attestation reporter that creates PSA compliant attestation
- * reports.  The report content is specified by theh PSA Attestation
- * specification.  Reports are serialized usingg CBOR and signed using
+ * reports.  The report content is specified by the PSA Attestation
+ * specification.  Reports are serialized using CBOR and signed using
  * COSE.
  */
 

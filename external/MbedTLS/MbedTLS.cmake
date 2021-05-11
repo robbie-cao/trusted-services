@@ -45,6 +45,9 @@ endif()
 #Configure Mbed TLS to build only mbedcrypto lib
 execute_process(COMMAND ${Python3_EXECUTABLE} scripts/config.py crypto WORKING_DIRECTORY ${mbedtls_SOURCE_DIR})
 
+# Advertise Mbed TLS as the provider of the psa crypto API
+set(PSA_CRYPTO_API_INCLUDE "${MBEDTLS_INSTALL_PATH}/include" CACHE STRING "PSA Crypto API include path")
+
 #Configure the library
 if(NOT CMAKE_CROSSCOMPILING)
 	execute_process(COMMAND

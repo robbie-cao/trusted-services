@@ -104,6 +104,10 @@ target_link_libraries(component-test PRIVATE mbedcrypto)
 include(${TS_ROOT}/external/qcbor/qcbor.cmake)
 target_link_libraries(component-test PRIVATE qcbor)
 
+# t_cose
+include(${TS_ROOT}/external/t_cose/t_cose.cmake)
+target_link_libraries(component-test PRIVATE t_cose)
+
 #-------------------------------------------------------------------------------
 #  Define install content.
 #
