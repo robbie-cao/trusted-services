@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -20,7 +20,9 @@ void __noreturn optee_sp_entry(uintptr_t a0, uintptr_t a1, uintptr_t a2,
 
 void optee_sp_log_puts(const char *str)
 {
-	(void)str;
+	struct ffa_params resp;
+
+	ffa_svc(0xdeadbeef, (uintptr_t)str, 0, 0, 0, 0, 0, 0, &resp);
 }
 
 void __noreturn optee_sp_panic(void)
