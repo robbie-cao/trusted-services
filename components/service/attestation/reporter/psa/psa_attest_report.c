@@ -13,9 +13,10 @@
 
 #include <stdlib.h>
 #include <psa/error.h>
-#include <service/attestation/reporter/attestation_report.h>
+#include <service/attestation/reporter/attest_report.h>
 #include <service/attestation/claims/claims_register.h>
-#include "report_serializer.h"
+#include "eat_serializer.h"
+#include "eat_signer.h"
 
 /* Local defines */
 #define MAX_DEVICE_CLAIMS       (50)
@@ -26,7 +27,7 @@ static void add_client_id_claim(struct claim_vector *v, int32_t client_id);
 static void add_no_sw_claim(struct claim_vector *v);
 
 
-int attestation_report_create(int32_t client_id,
+int attest_report_create(psa_key_handle_t key_handle, int32_t client_id,
     const uint8_t *auth_challenge_data, size_t auth_challenge_len,
     const uint8_t **report, size_t *report_len)
 {
@@ -52,16 +53,27 @@ int attestation_report_create(int32_t client_id,
     /* And if there aren't any sw claims, indicate in report */
     if (!sw_claims.size) add_no_sw_claim(&device_claims);
 
-    /* Serialize the collated claims to create the final report */
-    status = serialize_report(&device_claims, &sw_claims, report, report_len);
+    /* Serialize and sign the collated claims to create the final EAT token */
+    const uint8_t *unsigned_token = NULL;
+    size_t unsigned_token_len = 0;
+    status = eat_serialize(&device_claims, &sw_claims,
+                    &unsigned_token, &unsigned_token_len);
 
+    if (status == PSA_SUCCESS) {
+        status = eat_sign(key_handle,
+                    unsigned_token, unsigned_token_len,
+                    report, report_len);
+    }
+
+    /* Free resource used */
+    free((void*)unsigned_token);
     claim_vector_deinit(&device_claims);
     claim_vector_deinit(&sw_claims);
 
     return status;
 }
 
-void attestation_report_destroy(const uint8_t *report)
+void attest_report_destroy(const uint8_t *report)
 {
     free((void*)report);
 }

@@ -77,6 +77,11 @@ TEST(CryptoServicePackedcTests, signAndVerifyHash)
     m_scenarios->signAndVerifyHash();
 }
 
+TEST(CryptoServicePackedcTests, signAndVerifyEat)
+{
+    m_scenarios->signAndVerifyEat();
+}
+
 TEST(CryptoServicePackedcTests, asymEncryptDecrypt)
 {
     m_scenarios->asymEncryptDecrypt();

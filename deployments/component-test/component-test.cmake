@@ -47,6 +47,7 @@ add_components(
 		"components/service/attestation/claims/sources/event_log/mock"
 		"components/service/attestation/claims/sources/event_log/test"
 		"components/service/attestation/reporter/psa"
+		"components/service/attestation/key_mngr"
 		"components/service/attestation/test/component"
 		"components/service/crypto/client/cpp"
 		"components/service/crypto/client/cpp/protobuf"

@@ -11,7 +11,7 @@
 #include <psa/error.h>
 #include <protocols/service/attestation/packed-c/eat.h>
 #include <service/attestation/claims/claim.h>
-#include "report_serializer.h"
+#include "eat_serializer.h"
 
 static bool alloc_encode_buffer(const struct claim_vector *device_claims,
     const struct claim_vector *sw_claims, UsefulBuf *encode_buffer);
@@ -20,9 +20,9 @@ static void encode_claim(QCBOREncodeContext *encode_ctx, const struct claim *cla
 static int eat_label(enum claim_subject_id subject_id);
 static int qcbor_to_psa_status(QCBORError qcbor_err);
 
-int serialize_report(const struct claim_vector *device_claims,
+int eat_serialize(const struct claim_vector *device_claims,
     const struct claim_vector *sw_claims,
-    const uint8_t **report, size_t *report_len)
+    const uint8_t **token, size_t *token_len)
 {
     UsefulBuf encode_buffer;
 
@@ -54,21 +54,21 @@ int serialize_report(const struct claim_vector *device_claims,
 
     QCBOREncode_CloseMap(&encode_ctx);
 
-    /* Finalize the encoding to create the CBOR serialized report */
+    /* Finalize the encoding to create the CBOR serialized token */
     UsefulBufC encoded_cbor;
     QCBORError qcbor_error;
     qcbor_error = QCBOREncode_Finish(&encode_ctx, &encoded_cbor);
 
     if (qcbor_error == QCBOR_SUCCESS) {
 
-        *report = encoded_cbor.ptr;
-        *report_len = encoded_cbor.len;
+        *token = encoded_cbor.ptr;
+        *token_len = encoded_cbor.len;
     }
     else {
 
         free(encode_buffer.ptr);
-        *report = NULL;
-        *report_len = 0;
+        *token = NULL;
+        *token_len = 0;
     }
 
     return qcbor_to_psa_status(qcbor_error);

@@ -21,6 +21,7 @@ public:
     void asymEncryptDecrypt();
     void asymEncryptDecryptWithSalt();
     void signAndVerifyHash();
+    void signAndVerifyEat();
     void exportAndImportKeyPair();
     void exportPublicKey();
     void generatePersistentKeys();

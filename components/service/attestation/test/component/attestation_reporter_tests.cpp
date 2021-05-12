@@ -6,16 +6,17 @@
 
 #include <psa/error.h>
 #include <qcbor/qcbor_spiffy_decode.h>
+#include <t_cose/t_cose_sign1_verify.h>
 #include <service/attestation/claims/claims_register.h>
 #include <service/attestation/claims/sources/event_log/event_log_claim_source.h>
 #include <service/attestation/claims/sources/event_log/mock/mock_event_log.h>
 #include <service/attestation/claims/sources/preloaded/preloaded_claim_source.h>
-#include <service/attestation/reporter/attestation_report.h>
+#include <service/attestation/reporter/attest_report.h>
+#include <service/attestation/key_mngr/attest_key_mngr.h>
 #include <protocols/service/attestation/packed-c/eat.h>
 #include <CppUTest/TestHarness.h>
+#include <psa/crypto.h>
 #include "report_dump.h"
-
-#include <stdio.h>
 
 TEST_GROUP(AttestationReporterTests)
 {
@@ -25,6 +26,9 @@ TEST_GROUP(AttestationReporterTests)
 
         report = NULL;
         report_len;
+
+        psa_crypto_init();
+        attest_key_mngr_init();
 
         /* The set of registered claim_sources determines the content
          * of a generated attestation source.  The set and type of
@@ -40,8 +44,9 @@ TEST_GROUP(AttestationReporterTests)
 
     void teardown()
     {
-        attestation_report_destroy(report);
+        attest_report_destroy(report);
         claims_register_deinit();
+        attest_key_mngr_deinit();
     }
 
     struct event_log_claim_source event_log_claim_source;
@@ -60,26 +65,45 @@ TEST(AttestationReporterTests, createReport)
         17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32
     };
 
+    /* Retrieve the IAK handle */
+    psa_key_handle_t iak_handle;
+    status = attest_key_mngr_get_iak_handle(&iak_handle);
+    LONGS_EQUAL(PSA_SUCCESS, status);
+
     /* Create a report */
-    status = attestation_report_create(client_id,
+    status = attest_report_create(iak_handle, client_id,
         auth_challenge, sizeof(auth_challenge),
         &report, &report_len);
 
     /* Expect the operation to succeed and a non-zero length
      * report created.
      */
-    UNSIGNED_LONGS_EQUAL(PSA_SUCCESS, status);
+    LONGS_EQUAL(PSA_SUCCESS, status);
     CHECK_TRUE(report);
     CHECK_TRUE(report_len);
 
+    /* Verify the signature */
+    struct t_cose_sign1_verify_ctx verify_ctx;
+    struct t_cose_key key_pair;
+
+    key_pair.k.key_handle = iak_handle;
+    key_pair.crypto_lib = T_COSE_CRYPTO_LIB_PSA;
+    UsefulBufC signed_cose;
+    UsefulBufC report_body;
+
+    signed_cose.ptr = report;
+    signed_cose.len = report_len;
+
+    t_cose_sign1_verify_init(&verify_ctx, 0);
+    t_cose_sign1_set_verification_key(&verify_ctx, key_pair);
+
+    status = t_cose_sign1_verify(&verify_ctx, signed_cose, &report_body, NULL);
+    LONGS_EQUAL(T_COSE_SUCCESS, status);
+
     /* Check the report contents */
     QCBORDecodeContext decode_ctx;
-    UsefulBufC report_buf;
 
-    report_buf.ptr = report;
-    report_buf.len = report_len;
-
-    QCBORDecode_Init(&decode_ctx, report_buf, QCBOR_DECODE_MODE_NORMAL);
+    QCBORDecode_Init(&decode_ctx, report_body, QCBOR_DECODE_MODE_NORMAL);
     QCBORDecode_EnterMap(&decode_ctx, NULL);
 
     /* Check client id */
@@ -87,8 +111,8 @@ TEST(AttestationReporterTests, createReport)
     QCBORDecode_GetInt64InMapN(&decode_ctx,
         EAT_ARM_PSA_CLAIM_ID_CLIENT_ID, &decoded_client_id);
 
-    UNSIGNED_LONGS_EQUAL(QCBOR_SUCCESS, QCBORDecode_GetError(&decode_ctx));
-    UNSIGNED_LONGS_EQUAL(client_id, decoded_client_id);
+    LONGS_EQUAL(QCBOR_SUCCESS, QCBORDecode_GetError(&decode_ctx));
+    LONGS_EQUAL(client_id, decoded_client_id);
 
     /* Check the auth challenge */
     UsefulBufC auth_challenge_buf;
@@ -97,7 +121,7 @@ TEST(AttestationReporterTests, createReport)
     QCBORDecode_GetByteStringInMapN(&decode_ctx,
         EAT_ARM_PSA_CLAIM_ID_CHALLENGE, &auth_challenge_buf);
 
-    UNSIGNED_LONGS_EQUAL(QCBOR_SUCCESS, QCBORDecode_GetError(&decode_ctx));
+    LONGS_EQUAL(QCBOR_SUCCESS, QCBORDecode_GetError(&decode_ctx));
     CHECK_TRUE(auth_challenge_buf.ptr);
     UNSIGNED_LONGS_EQUAL(sizeof(auth_challenge), auth_challenge_buf.len);
     MEMCMP_EQUAL(auth_challenge, auth_challenge_buf.ptr, sizeof(auth_challenge));
@@ -105,12 +129,12 @@ TEST(AttestationReporterTests, createReport)
     /* Shouldn't expect to see the 'NO_SW_COMPONENTS' claim */
     int64_t no_sw = 0;
     QCBORDecode_GetInt64InMapN(&decode_ctx, EAT_ARM_PSA_CLAIM_ID_NO_SW_COMPONENTS, &no_sw);
-    UNSIGNED_LONGS_EQUAL(QCBOR_ERR_LABEL_NOT_FOUND, QCBORDecode_GetAndResetError(&decode_ctx));
+    LONGS_EQUAL(QCBOR_ERR_LABEL_NOT_FOUND, QCBORDecode_GetAndResetError(&decode_ctx));
     CHECK_FALSE(no_sw);
 
     /* Check the sw components */
     QCBORDecode_EnterArrayFromMapN(&decode_ctx, EAT_ARM_PSA_CLAIM_ID_SW_COMPONENTS);
-    UNSIGNED_LONGS_EQUAL(QCBOR_SUCCESS, QCBORDecode_GetError(&decode_ctx));
+    LONGS_EQUAL(QCBOR_SUCCESS, QCBORDecode_GetError(&decode_ctx));
 
     /* Iterate over all array members */
     size_t sw_component_count = 0;
@@ -129,7 +153,7 @@ TEST(AttestationReporterTests, createReport)
             /* Check measurement id */
             QCBORDecode_GetByteStringInMapN(&decode_ctx,
                     EAT_SW_COMPONENT_CLAIM_ID_MEASUREMENT_TYPE, &property);
-            UNSIGNED_LONGS_EQUAL(QCBOR_SUCCESS, QCBORDecode_GetError(&decode_ctx));
+            LONGS_EQUAL(QCBOR_SUCCESS, QCBORDecode_GetError(&decode_ctx));
             CHECK_TRUE(property.ptr);
             CHECK_TRUE(property.len);
             MEMCMP_EQUAL(measurement->id, property.ptr, property.len);
@@ -137,7 +161,7 @@ TEST(AttestationReporterTests, createReport)
             /* Check measurement digest */
             QCBORDecode_GetByteStringInMapN(&decode_ctx,
                     EAT_SW_COMPONENT_CLAIM_ID_MEASUREMENT_VALUE, &property);
-            UNSIGNED_LONGS_EQUAL(QCBOR_SUCCESS, QCBORDecode_GetError(&decode_ctx));
+            LONGS_EQUAL(QCBOR_SUCCESS, QCBORDecode_GetError(&decode_ctx));
             CHECK_TRUE(property.ptr);
             CHECK_TRUE(property.len);
             MEMCMP_EQUAL(measurement->digest, property.ptr, property.len);
@@ -153,10 +177,10 @@ TEST(AttestationReporterTests, createReport)
     }
 
     QCBORDecode_ExitArray(&decode_ctx);
-    UNSIGNED_LONGS_EQUAL(QCBOR_SUCCESS, QCBORDecode_GetError(&decode_ctx));
+    LONGS_EQUAL(QCBOR_SUCCESS, QCBORDecode_GetError(&decode_ctx));
 
     QCBORError qcbor_error;
     QCBORDecode_ExitMap(&decode_ctx);
     qcbor_error = QCBORDecode_Finish(&decode_ctx);
-    UNSIGNED_LONGS_EQUAL(QCBOR_SUCCESS, qcbor_error);
+    LONGS_EQUAL(QCBOR_SUCCESS, qcbor_error);
 }

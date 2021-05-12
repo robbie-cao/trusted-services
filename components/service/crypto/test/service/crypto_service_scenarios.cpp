@@ -215,6 +215,58 @@ void crypto_service_scenarios::signAndVerifyHash()
     CHECK_EQUAL(PSA_SUCCESS, status);
 }
 
+void crypto_service_scenarios::signAndVerifyEat()
+{
+    /* Sign and verify a hash using EAT key type and algorithm */
+    psa_status_t status;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_id_t key_id;
+
+    psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_VOLATILE);
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH);
+
+    psa_set_key_algorithm(&attributes, PSA_ALG_ECDSA(PSA_ALG_SHA_256));
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP256R1));
+    psa_set_key_bits(&attributes, 256);
+
+    /* Generate a key */
+    status = m_crypto_client->generate_key(&attributes, &key_id);
+    CHECK_EQUAL(PSA_SUCCESS, status);
+
+    psa_reset_key_attributes(&attributes);
+
+    /* Sign a hash */
+    uint8_t hash[64];
+    uint8_t signature[PSA_SIGNATURE_MAX_SIZE];
+    size_t signature_length;
+
+    memset(hash, 0x71, sizeof(hash));
+
+    status = m_crypto_client->sign_hash(key_id,
+        PSA_ALG_ECDSA(PSA_ALG_SHA_256), hash, sizeof(hash),
+        signature, sizeof(signature), &signature_length);
+
+    CHECK_EQUAL(PSA_SUCCESS, status);
+    CHECK(signature_length > 0);
+
+    /* Verify the signature */
+    status = m_crypto_client->verify_hash(key_id,
+        PSA_ALG_ECDSA(PSA_ALG_SHA_256), hash, sizeof(hash),
+        signature, signature_length);
+    CHECK_EQUAL(PSA_SUCCESS, status);
+
+    /* Change the hash and expect verify to fail */
+    hash[0] = 0x72;
+    status = m_crypto_client->verify_hash(key_id,
+        PSA_ALG_ECDSA(PSA_ALG_SHA_256), hash, sizeof(hash),
+        signature, signature_length);
+    CHECK_EQUAL(PSA_ERROR_INVALID_SIGNATURE, status);
+
+    /* Remove the key */
+    status = m_crypto_client->destroy_key(key_id);
+    CHECK_EQUAL(PSA_SUCCESS, status);
+}
+
 void crypto_service_scenarios::asymEncryptDecrypt()
 {
     psa_status_t status;
