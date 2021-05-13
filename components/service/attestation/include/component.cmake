@@ -8,6 +8,7 @@ if (NOT DEFINED TGT)
 	message(FATAL_ERROR "mandatory parameter TGT is not defined.")
 endif()
 
-target_sources(${TGT} PRIVATE
-	"${CMAKE_CURRENT_LIST_DIR}/attestation_reporter_tests.cpp"
+target_include_directories(${TGT}
+	 PRIVATE
+		"${CMAKE_CURRENT_LIST_DIR}"
 	)

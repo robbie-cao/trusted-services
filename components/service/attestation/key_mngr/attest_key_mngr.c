@@ -8,9 +8,6 @@
 #include <psa/crypto.h>
 #include "attest_key_mngr.h"
 
-/* todo - need strategy for assigning key IDs */
-#define IAK_KEY_ID          0x2000
-
 /**
  * The singleton attest_key_mngr instance.
  */
@@ -55,16 +52,20 @@ static psa_status_t generate_iak(psa_key_id_t key_id, psa_key_handle_t *iak_hand
     return status;
 }
 
-void attest_key_mngr_init(void)
+void attest_key_mngr_init(psa_key_id_t iak_id)
 {
     instance.is_iak_open = false;
-    instance.iak_id = IAK_KEY_ID;
+    instance.iak_id = iak_id;
     instance.iak_handle = -1;
 }
 
 void attest_key_mngr_deinit(void)
 {
+    if (instance.is_iak_open && !instance.iak_id) {
 
+        psa_destroy_key(instance.iak_handle);
+        instance.is_iak_open = false;
+    }
 }
 
 psa_status_t attest_key_mngr_get_iak_handle(psa_key_handle_t *iak_handle)
@@ -73,20 +74,25 @@ psa_status_t attest_key_mngr_get_iak_handle(psa_key_handle_t *iak_handle)
 
     if (!instance.is_iak_open) {
 
-        status = psa_open_key(instance.iak_id, &instance.iak_handle);
+        if (instance.iak_id) {
 
-        if (status == PSA_ERROR_STORAGE_FAILURE) {
-
-            /* Accommodate deployments with no persistent storage
-             * to support testing.  In this case, a volatile key
-             * is generated, indicated by an invalid key id.
+            /* A valid key id has been specified so treat as a persistent key
+             * that will normally already exist.
              */
-            instance.iak_id = 0;
+            status = psa_open_key(instance.iak_id, &instance.iak_handle);
+
+            if (status != PSA_SUCCESS) {
+
+                /* First run and no key has been provisioned */
+                status = generate_iak(instance.iak_id, &instance.iak_handle);
+            }
         }
+        else {
 
-        if (status != PSA_SUCCESS) {
-
-            /* First run and no key has been provisioned */
+            /* An invalid key id has been specified which indicates that a
+             * volatile key should be generated.  This is option is intended
+             * for test purposes only.
+             */
             status = generate_iak(instance.iak_id, &instance.iak_handle);
         }
 

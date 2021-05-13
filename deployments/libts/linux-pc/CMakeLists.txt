@@ -31,6 +31,7 @@ add_components(
 	COMPONENTS
 		"components/rpc/direct"
 		"components/common/tlv"
+		"components/common/endian"
 		"components/service/common/include"
 		"components/service/common/serializer/protobuf"
 		"components/service/common/provider"
@@ -39,6 +40,16 @@ add_components(
 		"components/service/locator/standalone/services/internal-trusted-storage"
 		"components/service/locator/standalone/services/protected-storage"
 		"components/service/locator/standalone/services/test-runner"
+		"components/service/locator/standalone/services/attestation"
+		"components/service/attestation/include"
+		"components/service/attestation/claims"
+		"components/service/attestation/claims/sources/preloaded"
+		"components/service/attestation/claims/sources/event_log"
+		"components/service/attestation/claims/sources/event_log/mock"
+		"components/service/attestation/reporter/psa"
+		"components/service/attestation/key_mngr"
+		"components/service/attestation/provider"
+		"components/service/attestation/provider/serializer/packed-c"
 		"components/service/crypto/provider/mbedcrypto"
 		"components/service/crypto/provider/mbedcrypto/trng_adapter/linux"
 		"components/service/crypto/provider/serializer/protobuf"
@@ -79,6 +90,14 @@ protobuf_generate_all(TGT "ts" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protoco
 # Mbed TLS provides libmbedcrypto
 include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(ts PRIVATE mbedcrypto)
+
+# Qcbor
+include(${TS_ROOT}/external/qcbor/qcbor.cmake)
+target_link_libraries(ts PRIVATE qcbor)
+
+# t_cose
+include(${TS_ROOT}/external/t_cose/t_cose.cmake)
+target_link_libraries(ts PRIVATE t_cose)
 
 #-------------------------------------------------------------------------------
 #  Test executable (libts-test) for testing libts static library

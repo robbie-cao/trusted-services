@@ -12,7 +12,9 @@
  */
 
 #include <stdlib.h>
+#include <stdbool.h>
 #include <psa/error.h>
+#include <psa/initial_attestation.h>
 #include <service/attestation/reporter/attest_report.h>
 #include <service/attestation/claims/claims_register.h>
 #include "eat_serializer.h"
@@ -22,6 +24,7 @@
 #define MAX_DEVICE_CLAIMS       (50)
 #define MAX_SW_CLAIMS           (50)
 
+static bool validate_challenge(size_t len);
 static void add_auth_challenge_claim(struct claim_vector *v, const uint8_t *data, size_t len);
 static void add_client_id_claim(struct claim_vector *v, int32_t client_id);
 static void add_no_sw_claim(struct claim_vector *v);
@@ -37,6 +40,8 @@ int attest_report_create(psa_key_handle_t key_handle, int32_t client_id,
 
     *report = NULL;
     *report_len = 0;
+
+    if (!validate_challenge(auth_challenge_len)) return PSA_ERROR_INVALID_ARGUMENT;
 
     claim_vector_init(&device_claims, MAX_DEVICE_CLAIMS);
     claim_vector_init(&sw_claims, MAX_SW_CLAIMS);
@@ -76,6 +81,15 @@ int attest_report_create(psa_key_handle_t key_handle, int32_t client_id,
 void attest_report_destroy(const uint8_t *report)
 {
     free((void*)report);
+}
+
+static bool validate_challenge(size_t len)
+{
+    /* Only allow specific challenge lengths */
+    return
+        (len == PSA_INITIAL_ATTEST_CHALLENGE_SIZE_32) ||
+        (len == PSA_INITIAL_ATTEST_CHALLENGE_SIZE_48) ||
+        (len == PSA_INITIAL_ATTEST_CHALLENGE_SIZE_64);
 }
 
 static void add_auth_challenge_claim(struct claim_vector *v, const uint8_t *data, size_t len)

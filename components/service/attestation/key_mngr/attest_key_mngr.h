@@ -9,6 +9,9 @@
 
 #include <psa/crypto.h>
 
+/* Key ID for a volatile IAK (for test) */
+#define ATTEST_KEY_MNGR_VOLATILE_IAK            (0)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,8 +28,15 @@ extern "C" {
 
 /**
  * \brief Initialize the attest_key_mngr
+ *
+ * Initializes the attest_key_mngr.  The provided key id should
+ * be used as the identifier for the IAK.  If a key ID of zero
+ * is passed, a volatile IAK will be generated.  This is useful
+ * for test purposes.
+ *
+ * \param[in] iak_id    The key id for the IAK
  */
-void attest_key_mngr_init(void);
+void attest_key_mngr_init(psa_key_id_t iak_id);
 
 /**
  * \brief De-initialize the attest_key_mngr

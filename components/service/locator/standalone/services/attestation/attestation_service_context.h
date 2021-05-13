@@ -1,0 +1,31 @@
+/*
+ * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#ifndef STANDALONE_ATTESTATION_SERVICE_CONTEXT_H
+#define STANDALONE_ATTESTATION_SERVICE_CONTEXT_H
+
+#include <service/locator/standalone/standalone_service_context.h>
+#include <rpc/direct/direct_caller.h>
+#include <service/attestation/provider/attest_provider.h>
+#include <service/attestation/claims/sources/event_log/event_log_claim_source.h>
+
+
+class attestation_service_context : public standalone_service_context
+{
+public:
+    attestation_service_context(const char *sn);
+    virtual ~attestation_service_context();
+
+private:
+
+    void do_init();
+    void do_deinit();
+
+    struct attest_provider m_attest_provider;
+    struct event_log_claim_source m_event_log_claim_source;
+};
+
+#endif /* STANDALONE_ATTESTATION_SERVICE_CONTEXT_H */

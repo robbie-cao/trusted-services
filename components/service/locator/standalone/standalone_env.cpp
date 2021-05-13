@@ -9,6 +9,7 @@
 #include <service/locator/standalone/services/internal-trusted-storage/its_service_context.h>
 #include <service/locator/standalone/services/protected-storage/ps_service_context.h>
 #include <service/locator/standalone/services/test-runner/test_runner_service_context.h>
+#include <service/locator/standalone/services/attestation/attestation_service_context.h>
 #include "standalone_location_strategy.h"
 #include "standalone_service_registry.h"
 
@@ -25,6 +26,9 @@ void service_locator_envinit(void)
 
     static test_runner_service_context test_runner_context("sn:trustedfirmware.org:test-runner:0");
     standalone_service_registry::instance()->regsiter_service_instance(&test_runner_context);
+
+    static attestation_service_context attestation_context("sn:trustedfirmware.org:attestation:0");
+    standalone_service_registry::instance()->regsiter_service_instance(&attestation_context);
 
     service_locator_register_strategy(standalone_location_strategy());
 }

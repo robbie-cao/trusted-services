@@ -13,10 +13,10 @@
 #include <service/attestation/claims/sources/preloaded/preloaded_claim_source.h>
 #include <service/attestation/reporter/attest_report.h>
 #include <service/attestation/key_mngr/attest_key_mngr.h>
+#include <service/attestation/test/common/report_dump.h>
 #include <protocols/service/attestation/packed-c/eat.h>
 #include <CppUTest/TestHarness.h>
 #include <psa/crypto.h>
-#include "report_dump.h"
 
 TEST_GROUP(AttestationReporterTests)
 {
@@ -28,7 +28,7 @@ TEST_GROUP(AttestationReporterTests)
         report_len;
 
         psa_crypto_init();
-        attest_key_mngr_init();
+        attest_key_mngr_init(ATTEST_KEY_MNGR_VOLATILE_IAK);
 
         /* The set of registered claim_sources determines the content
          * of a generated attestation source.  The set and type of

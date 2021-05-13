@@ -80,6 +80,9 @@ add_components(
     COMPONENTS
         "components/service/test_runner/client/cpp"
 		"components/service/test_runner/test/service"
+		"components/service/attestation/include"
+		"components/service/attestation/client/psa"
+		"components/service/attestation/test/service"
 )
 
 #-------------------------------------------------------------------------------
