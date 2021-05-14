@@ -60,6 +60,7 @@ if (NOT LibClang_LIBRARY_DIRS)
 	message(STATUS "Setting LibClang_LIBRARY_DIRS based on common directories list")
 
 	set(LIBCLANG_COMMON_PATHS
+		/usr/lib/llvm-10/lib
 		/usr/lib/llvm-9/lib
 		/usr/lib/llvm-8/lib
 		/usr/lib/llvm-7/lib
