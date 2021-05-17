@@ -8,6 +8,8 @@
 #include <protocols/rpc/common/packed-c/status.h>
 #include <protocols/service/attestation/packed-c/get_token.h>
 #include <protocols/service/attestation/packed-c/get_token_size.h>
+#include <protocols/service/attestation/packed-c/export_iak_public_key.h>
+#include <protocols/service/attestation/packed-c/import_iak.h>
 #include "packedc_attest_provider_serializer.h"
 
 
@@ -94,6 +96,55 @@ static rpc_status_t serialize_get_token_size_resp(struct call_param_buf *resp_bu
     return rpc_status;
 }
 
+/* Operation: export_iak_public_key */
+static rpc_status_t serialize_export_iak_public_key_resp(struct call_param_buf *resp_buf,
+    const uint8_t *data, size_t data_len)
+{
+    rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
+    struct tlv_iterator resp_iter;
+
+    struct tlv_record key_record;
+    key_record.tag = TS_ATTESTATION_EXPORT_IAK_PUBLIC_KEY_OUT_TAG_DATA;
+    key_record.length = data_len;
+    key_record.value = data;
+
+    tlv_iterator_begin(&resp_iter, resp_buf->data, resp_buf->size);
+
+    if (tlv_encode(&resp_iter, &key_record)) {
+
+        resp_buf->data_len = tlv_required_space(data_len);
+        rpc_status = TS_RPC_CALL_ACCEPTED;
+    }
+
+    return rpc_status;
+}
+
+/* Operation: import_iak */
+static rpc_status_t deserialize_import_iak_req(const struct call_param_buf *req_buf,
+    uint8_t *data, size_t *data_len)
+{
+    rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
+    struct tlv_const_iterator req_iter;
+    struct tlv_record decoded_record;
+    size_t out_buf_size = *data_len;
+
+    *data_len = 0;
+
+    tlv_const_iterator_begin(&req_iter, (uint8_t*)req_buf->data, req_buf->data_len);
+
+    if (tlv_find_decode(&req_iter, TS_ATTESTATION_IMPORT_IAK_IN_TAG_DATA, &decoded_record)) {
+
+        if (decoded_record.length <= out_buf_size) {
+
+            memcpy(data, decoded_record.value, decoded_record.length);
+            *data_len = decoded_record.length;
+            rpc_status = TS_RPC_CALL_ACCEPTED;
+        }
+    }
+
+    return rpc_status;
+}
+
 /* Singleton method to provide access to the serializer instance */
 const struct attest_provider_serializer *packedc_attest_provider_serializer_instance(void)
 {
@@ -101,7 +152,9 @@ const struct attest_provider_serializer *packedc_attest_provider_serializer_inst
         deserialize_get_token_req,
         serialize_get_token_resp,
         deserialize_get_token_size_req,
-        serialize_get_token_size_resp
+        serialize_get_token_size_resp,
+        serialize_export_iak_public_key_resp,
+        deserialize_import_iak_req
     };
 
     return &instance;

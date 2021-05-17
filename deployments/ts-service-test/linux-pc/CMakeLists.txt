@@ -82,6 +82,7 @@ add_components(
 		"components/service/test_runner/test/service"
 		"components/service/attestation/include"
 		"components/service/attestation/client/psa"
+		"components/service/attestation/client/provision"
 		"components/service/attestation/test/service"
 )
 

@@ -9,6 +9,5 @@ if (NOT DEFINED TGT)
 endif()
 
 target_sources(${TGT} PRIVATE
-	"${CMAKE_CURRENT_LIST_DIR}/attestation_service_tests.cpp"
-	"${CMAKE_CURRENT_LIST_DIR}/attestation_provisioning_tests.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/attest_provision_client.c"
 	)

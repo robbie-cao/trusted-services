@@ -46,6 +46,9 @@ void attest_key_mngr_deinit(void);
 /**
  * \brief Get the IAK key handle
  *
+ *  If an IAK doesn't exist, one will be generated.  This supports the
+ *  generate-on-first-run strategy.
+ *
  * \param[out] iak_handle  The returned key handle
  * \return Status
  */
@@ -62,6 +65,23 @@ psa_status_t attest_key_mngr_get_iak_handle(psa_key_handle_t *iak_handle);
  */
 psa_status_t attest_key_mngr_export_iak_public_key(uint8_t *data,
                                 size_t data_size, size_t *data_length);
+
+/**
+ * \brief Return maximum size of an IAK key-pair
+ *
+ * \return Maximum size
+ */
+size_t attest_key_mngr_max_iak_key_size(void);
+
+/**
+ * \brief Import the IAK key-pair
+ *
+ * \param[in]  data  The key data
+  * \param[out] data_length  Length in bytes of the key-pair
+ *
+ * \return Status
+ */
+psa_status_t attest_key_mngr_import_iak(const uint8_t *data, size_t data_length);
 
 #ifdef __cplusplus
 } /* extern "C" */

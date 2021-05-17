@@ -53,6 +53,7 @@ add_components(
 		"components/service/attestation/provider"
 		"components/service/attestation/provider/serializer/packed-c"
 		"components/service/attestation/client/psa"
+		"components/service/attestation/client/provision"
 		"components/service/attestation/test/common"
 		"components/service/attestation/test/component"
 		"components/service/attestation/test/service"

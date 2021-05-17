@@ -33,6 +33,14 @@ struct attest_provider_serializer {
 
     rpc_status_t (*serialize_get_token_size_resp)(struct call_param_buf *resp_buf,
         size_t token_size);
+
+    /* Operation: export_iak_public_key */
+    rpc_status_t (*serialize_export_iak_public_key_resp)(struct call_param_buf *resp_buf,
+                                        const uint8_t *data, size_t data_len);
+
+    /* Operation: import_iak */
+    rpc_status_t (*deserialize_import_iak_req)(const struct call_param_buf *req_buf,
+                                        uint8_t *data, size_t *data_len);
 };
 
 #endif /* ATTEST_PROVIDER_SERIALIZER_H */

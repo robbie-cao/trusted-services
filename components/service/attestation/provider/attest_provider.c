@@ -15,11 +15,15 @@
 /* Service request handlers */
 static rpc_status_t get_token_handler(void *context, struct call_req* req);
 static rpc_status_t get_token_size_handler(void *context, struct call_req* req);
+static rpc_status_t export_iak_public_key_handler(void *context, struct call_req* req);
+static rpc_status_t import_iak_handler(void *context, struct call_req* req);
 
 /* Handler mapping table for service */
 static const struct service_handler handler_table[] = {
-    {TS_ATTESTATION_OPCODE_GET_TOKEN,          get_token_handler},
-    {TS_ATTESTATION_OPCODE_GET_TOKEN_SIZE,     get_token_size_handler}
+    {TS_ATTESTATION_OPCODE_GET_TOKEN,               get_token_handler},
+    {TS_ATTESTATION_OPCODE_GET_TOKEN_SIZE,          get_token_size_handler},
+    {TS_ATTESTATION_OPCODE_EXPORT_IAK_PUBLIC_KEY,   export_iak_public_key_handler},
+    {TS_ATTESTATION_OPCODE_IMPORT_IAK,              import_iak_handler}
 };
 
 struct rpc_interface *attest_provider_init(struct attest_provider *context, psa_key_id_t iak_id)
@@ -151,6 +155,79 @@ static rpc_status_t get_token_size_handler(void *context, struct call_req* req)
         }
 
         call_req_set_opstatus(req, opstatus);
+    }
+
+    return rpc_status;
+}
+
+static rpc_status_t export_iak_public_key_handler(void *context, struct call_req* req)
+{
+    rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
+    struct call_param_buf *req_buf = call_req_get_req_buf(req);
+    const struct attest_provider_serializer *serializer = get_attest_serializer(context, req);
+
+    if (serializer) {
+
+        size_t max_key_size = attest_key_mngr_max_iak_key_size();
+
+        uint8_t *key_buffer = malloc(max_key_size);
+
+        if (key_buffer) {
+
+            int opstatus;
+            size_t export_size;
+            opstatus =
+                attest_key_mngr_export_iak_public_key(key_buffer, max_key_size, &export_size);
+
+            if (opstatus == PSA_SUCCESS) {
+
+                struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+                rpc_status =
+                    serializer->serialize_export_iak_public_key_resp(resp_buf,
+                        key_buffer, export_size);
+            }
+
+            free(key_buffer);
+            call_req_set_opstatus(req, opstatus);
+        }
+        else {
+            /* Failed to allocate key buffer */
+            rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
+        }
+    }
+
+    return rpc_status;
+}
+
+static rpc_status_t import_iak_handler(void *context, struct call_req* req)
+{
+    rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
+    struct call_param_buf *req_buf = call_req_get_req_buf(req);
+    const struct attest_provider_serializer *serializer = get_attest_serializer(context, req);
+
+    if (serializer) {
+
+        size_t key_data_len = attest_key_mngr_max_iak_key_size();
+        uint8_t *key_buffer = malloc(key_data_len);
+
+        if (key_buffer) {
+
+            rpc_status =
+                serializer->deserialize_import_iak_req(req_buf, key_buffer, &key_data_len);
+
+            if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+
+                int opstatus;
+                opstatus = attest_key_mngr_import_iak(key_buffer, key_data_len);
+                call_req_set_opstatus(req, opstatus);
+            }
+
+            free(key_buffer);
+        }
+        else {
+
+            rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
+        }
     }
 
     return rpc_status;

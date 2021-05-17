@@ -6,6 +6,13 @@
 #ifndef TS_ATTESTATION_GET_TOKEN_H
 #define TS_ATTESTATION_GET_TOKEN_H
 
+/**
+ * Parameter definitions for the GET_TOKEN operation.
+ *
+ * Fetches a signed attestation token to allow device
+ * state to be remotely verified.
+ */
+
 /* Variable length input parameter tags */
 enum
 {

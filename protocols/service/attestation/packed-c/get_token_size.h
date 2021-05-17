@@ -8,6 +8,13 @@
 
 #include <stdint.h>
 
+/**
+ * Parameter definitions for the GET_TOKEN_SIZE operation.
+ *
+ * Returns the expected size of an attestation token when
+ * a challenge of the specified length is presented.
+ */
+
 /* Mandatory fixed sized input parameters */
 struct __attribute__ ((__packed__)) ts_attestation_get_token_size_in
 {
