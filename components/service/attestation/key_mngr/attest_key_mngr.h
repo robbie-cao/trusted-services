@@ -67,11 +67,18 @@ psa_status_t attest_key_mngr_export_iak_public_key(uint8_t *data,
                                 size_t data_size, size_t *data_length);
 
 /**
- * \brief Return maximum size of an IAK key-pair
+ * \brief Return maximum size of an exported IAK public key
  *
- * \return Maximum size
+ * \return Maximum export size
  */
-size_t attest_key_mngr_max_iak_key_size(void);
+size_t attest_key_mngr_max_iak_export_size(void);
+
+/**
+ * \brief Return maximum size of an imported IAK key
+ *
+ * \return Maximum import size
+ */
+size_t attest_key_mngr_max_iak_import_size(void);
 
 /**
  * \brief Import the IAK key-pair

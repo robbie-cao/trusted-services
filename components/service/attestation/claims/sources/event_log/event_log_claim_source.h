@@ -17,8 +17,10 @@ extern "C" {
 #endif
 
 /**
- * A claim source for accessing a TCG event log, stored as
- * a contiguous array of bytes.
+ * A claim source for accessing a TCG event log, stored in a buffer.
+ * Use this claim source in deployments where the bootloader has peformed
+ * boot measurements and recorded them in an event log.  Additional
+ * claims such as the boot seed may also be recorded in the event log.
  */
 struct event_log_claim_source
 {

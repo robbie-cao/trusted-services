@@ -168,7 +168,7 @@ static rpc_status_t export_iak_public_key_handler(void *context, struct call_req
 
     if (serializer) {
 
-        size_t max_key_size = attest_key_mngr_max_iak_key_size();
+        size_t max_key_size = attest_key_mngr_max_iak_export_size();
 
         uint8_t *key_buffer = malloc(max_key_size);
 
@@ -207,7 +207,7 @@ static rpc_status_t import_iak_handler(void *context, struct call_req* req)
 
     if (serializer) {
 
-        size_t key_data_len = attest_key_mngr_max_iak_key_size();
+        size_t key_data_len = attest_key_mngr_max_iak_import_size();
         uint8_t *key_buffer = malloc(key_data_len);
 
         if (key_buffer) {

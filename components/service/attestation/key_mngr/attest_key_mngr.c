@@ -131,12 +131,17 @@ psa_status_t attest_key_mngr_export_iak_public_key(uint8_t *data,
     return status;
 }
 
-size_t attest_key_mngr_max_iak_key_size(void)
+size_t attest_key_mngr_max_iak_export_size(void)
 {
     return PSA_KEY_EXPORT_MAX_SIZE(
         PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP256R1)),
             IAK_KEY_BITS);
 }
+
+size_t attest_key_mngr_max_iak_import_size(void)
+{
+    return PSA_BITS_TO_BYTES(IAK_KEY_BITS);
+ }
 
 psa_status_t attest_key_mngr_import_iak(const uint8_t *data, size_t data_length)
 {

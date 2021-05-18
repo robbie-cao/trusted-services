@@ -5,18 +5,22 @@
  */
 
 #include <psa/error.h>
+#include <psa/crypto.h>
+#include <psa/lifecycle.h>
 #include <qcbor/qcbor_spiffy_decode.h>
 #include <t_cose/t_cose_sign1_verify.h>
 #include <service/attestation/claims/claims_register.h>
 #include <service/attestation/claims/sources/event_log/event_log_claim_source.h>
 #include <service/attestation/claims/sources/event_log/mock/mock_event_log.h>
-#include <service/attestation/claims/sources/preloaded/preloaded_claim_source.h>
+#include <service/attestation/claims/sources/boot_seed_generator/boot_seed_generator.h>
+#include <service/attestation/claims/sources/null_lifecycle/null_lifecycle_claim_source.h>
+#include <service/attestation/claims/sources/instance_id/instance_id_claim_source.h>
 #include <service/attestation/reporter/attest_report.h>
 #include <service/attestation/key_mngr/attest_key_mngr.h>
 #include <service/attestation/test/common/report_dump.h>
 #include <protocols/service/attestation/packed-c/eat.h>
 #include <CppUTest/TestHarness.h>
-#include <psa/crypto.h>
+
 
 TEST_GROUP(AttestationReporterTests)
 {
@@ -36,10 +40,22 @@ TEST_GROUP(AttestationReporterTests)
          */
         claims_register_init();
 
-        /* Boot measurement source */
+        /* Boot measurement claim source */
         claim_source = event_log_claim_source_init(&event_log_claim_source,
             mock_event_log_start(), mock_event_log_size());
         claims_register_add_claim_source(CLAIM_CATEGORY_BOOT_MEASUREMENT, claim_source);
+
+        /* Boot seed claim source */
+        claim_source = boot_seed_generator_init(&boot_seed_claim_source);
+        claims_register_add_claim_source(CLAIM_CATEGORY_DEVICE, claim_source);
+
+        /* Lifecycle state claim source */
+        claim_source = null_lifecycle_claim_source_init(&lifecycle_claim_source);
+        claims_register_add_claim_source(CLAIM_CATEGORY_DEVICE, claim_source);
+
+        /* Instance ID claim source */
+        claim_source = instance_id_claim_source_init(&instance_id_claim_source);
+        claims_register_add_claim_source(CLAIM_CATEGORY_DEVICE, claim_source);
     }
 
     void teardown()
@@ -50,6 +66,9 @@ TEST_GROUP(AttestationReporterTests)
     }
 
     struct event_log_claim_source event_log_claim_source;
+    struct boot_seed_generator boot_seed_claim_source;
+    struct null_lifecycle_claim_source lifecycle_claim_source;
+    struct instance_id_claim_source instance_id_claim_source;
     const uint8_t *report;
     size_t report_len;
 };
@@ -125,6 +144,36 @@ TEST(AttestationReporterTests, createReport)
     CHECK_TRUE(auth_challenge_buf.ptr);
     UNSIGNED_LONGS_EQUAL(sizeof(auth_challenge), auth_challenge_buf.len);
     MEMCMP_EQUAL(auth_challenge, auth_challenge_buf.ptr, sizeof(auth_challenge));
+
+    /* Check the boot seed */
+    UsefulBufC boot_seed_buf;
+    boot_seed_buf.ptr = NULL;
+    boot_seed_buf.len = 0;
+    QCBORDecode_GetByteStringInMapN(&decode_ctx,
+        EAT_ARM_PSA_CLAIM_ID_BOOT_SEED, &boot_seed_buf);
+
+    LONGS_EQUAL(QCBOR_SUCCESS, QCBORDecode_GetError(&decode_ctx));
+    CHECK_TRUE(boot_seed_buf.ptr);
+    UNSIGNED_LONGS_EQUAL(sizeof(boot_seed_claim_source.boot_seed), boot_seed_buf.len);
+
+    /* Check the lifecycle state */
+    int64_t decoded_lifecycle_state = 0;
+    QCBORDecode_GetInt64InMapN(&decode_ctx,
+        EAT_ARM_PSA_CLAIM_ID_SECURITY_LIFECYCLE, &decoded_lifecycle_state);
+
+    LONGS_EQUAL(QCBOR_SUCCESS, QCBORDecode_GetError(&decode_ctx));
+    LONGS_EQUAL(PSA_LIFECYCLE_UNKNOWN, decoded_lifecycle_state);
+
+    /* Check the instance ID */
+    UsefulBufC instance_id_buf;
+    instance_id_buf.ptr = NULL;
+    instance_id_buf.len = 0;
+    QCBORDecode_GetByteStringInMapN(&decode_ctx,
+        EAT_ARM_PSA_CLAIM_ID_INSTANCE_ID, &instance_id_buf);
+
+    LONGS_EQUAL(QCBOR_SUCCESS, QCBORDecode_GetError(&decode_ctx));
+    CHECK_TRUE(instance_id_buf.ptr);
+    UNSIGNED_LONGS_EQUAL(sizeof(instance_id_claim_source.instance_id), instance_id_buf.len);
 
     /* Shouldn't expect to see the 'NO_SW_COMPONENTS' claim */
     int64_t no_sw = 0;

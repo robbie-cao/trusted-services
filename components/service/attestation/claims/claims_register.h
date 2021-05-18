@@ -55,8 +55,8 @@ void claims_register_add_claim_source(uint32_t category_map,
  * Used by a report generator to obtain claims that correspond to
  * a particular category.
  *
-  * \param[in] category  Claim category
- * \param[out] result   Qualifying claims are added the result claim_vector
+ * \param[in] category  Claim category
+ * \param[out] result   Qualifying claims are added to the result claim_vector
  */
 void claims_register_query_by_category(enum claim_category category,
                                 struct claim_vector *result);

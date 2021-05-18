@@ -13,7 +13,10 @@
 attestation_service_context::attestation_service_context(const char *sn) :
     standalone_service_context(sn),
     m_attest_provider(),
-    m_event_log_claim_source()
+    m_event_log_claim_source(),
+    m_boot_seed_claim_source(),
+    m_lifecycle_claim_source(),
+    m_instance_id_claim_source()
 {
 
 }
@@ -36,10 +39,22 @@ void attestation_service_context::do_init()
      */
     claims_register_init();
 
-    /* Boot measurement source - uses mock event log */
+    /* Boot measurement claim source - uses mock event log */
     claim_source = event_log_claim_source_init(&m_event_log_claim_source,
         mock_event_log_start(), mock_event_log_size());
     claims_register_add_claim_source(CLAIM_CATEGORY_BOOT_MEASUREMENT, claim_source);
+
+    /* Boot seed claim source */
+    claim_source = boot_seed_generator_init(&m_boot_seed_claim_source);
+    claims_register_add_claim_source(CLAIM_CATEGORY_DEVICE, claim_source);
+
+    /* Lifecycle state claim source */
+    claim_source = null_lifecycle_claim_source_init(&m_lifecycle_claim_source);
+    claims_register_add_claim_source(CLAIM_CATEGORY_DEVICE, claim_source);
+
+    /* Instance ID claim source */
+    claim_source = instance_id_claim_source_init(&m_instance_id_claim_source);
+    claims_register_add_claim_source(CLAIM_CATEGORY_DEVICE, claim_source);
 
     /* Initialize the attestation service provider */
     struct rpc_interface *attest_ep =
