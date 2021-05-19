@@ -78,12 +78,8 @@ add_components(
 	TARGET "ts-service-test"
 	BASE_DIR ${TS_ROOT}
     COMPONENTS
-        "components/service/test_runner/client/cpp"
+		"components/service/test_runner/client/cpp"
 		"components/service/test_runner/test/service"
-		"components/service/attestation/include"
-		"components/service/attestation/client/psa"
-		"components/service/attestation/client/provision"
-		"components/service/attestation/test/service"
 )
 
 #-------------------------------------------------------------------------------

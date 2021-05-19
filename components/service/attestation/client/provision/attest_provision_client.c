@@ -146,3 +146,31 @@ psa_status_t attest_provision_import_iak(
     return psa_status;
 
 }
+
+psa_status_t attest_provision_iak_exists(void)
+{
+    psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
+    rpc_call_handle call_handle;
+    uint8_t *req_buf;
+
+    call_handle = rpc_caller_begin(instance.caller, &req_buf, 0);
+
+    if (call_handle) {
+
+        uint8_t *resp_buf;
+        size_t resp_len;
+        int opstatus;
+
+        instance.rpc_status = rpc_caller_invoke(instance.caller, call_handle,
+            TS_ATTESTATION_OPCODE_IAK_EXISTS, &opstatus, &resp_buf, &resp_len);
+
+        if (instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+
+            psa_status = opstatus;
+        }
+
+        rpc_caller_end(instance.caller, call_handle);
+    }
+
+    return psa_status;
+}

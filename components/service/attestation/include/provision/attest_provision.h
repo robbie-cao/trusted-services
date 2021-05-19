@@ -62,6 +62,14 @@ psa_status_t attest_provision_import_iak(
     const uint8_t *data,
     size_t data_length);
 
+/**
+ * \brief Check if IAK exists
+ *
+ * Checks the provisioned state of a device.
+ *
+ * \return Returns PSA_SUCCESS if IAK exists, PSA_ERROR_DOES_NOT_EXIST if not
+ */
+psa_status_t attest_provision_iak_exists(void);
 
 #ifdef __cplusplus
 }

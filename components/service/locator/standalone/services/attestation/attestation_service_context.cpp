@@ -9,6 +9,7 @@
 #include <service/attestation/claims/claims_register.h>
 #include <service/attestation/claims/sources/event_log/event_log_claim_source.h>
 #include <service/attestation/claims/sources/event_log/mock/mock_event_log.h>
+#include <psa/crypto.h>
 
 attestation_service_context::attestation_service_context(const char *sn) :
     standalone_service_context(sn),
@@ -29,6 +30,12 @@ attestation_service_context::~attestation_service_context()
 void attestation_service_context::do_init()
 {
     struct claim_source *claim_source;
+
+    /* For the standalone attestation service deployment, the
+     * mbedcrypto library is used directly.  Note that psa_crypto_init()
+     * is allowed to be called multiple times.
+     */
+    psa_crypto_init();
 
     /**
      * Initialize and register claims sources to define the view of

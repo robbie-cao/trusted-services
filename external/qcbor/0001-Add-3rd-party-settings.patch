@@ -1,0 +1,28 @@
+From daaecfc924678cfd1000c87827bb5b8d4653c8e9 Mon Sep 17 00:00:00 2001
+From: Julian Hall <julian.hall@arm.com>
+Date: Mon, 5 Jul 2021 05:21:00 +0000
+Subject: [PATCH 1/2] Add 3rd party settings
+
+Introduce a way to allow defining include paths and macro
+definitions externally.
+---
+ CMakeLists.txt | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8a5bcd0..4e4756d 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -8,6 +8,9 @@ set(CMAKE_C_FLAGS "-pedantic -Wall -O3 -ffunction-sections")
+ 
+ include_directories(inc)
+ 
++include_directories(${thirdparty_inc})
++add_definitions(${thirdparty_def})
++
+ set(SOURCE
+ 	src/ieee754.c
+ 	src/qcbor_decode.c
+-- 
+2.17.1
+

@@ -176,3 +176,17 @@ psa_status_t attest_key_mngr_import_iak(const uint8_t *data, size_t data_length)
 
     return status;
 }
+
+bool attest_key_mngr_iak_exists(void)
+{
+    if (!instance.is_iak_open && instance.iak_id) {
+
+        /* A persistent key ID is specified so the key might
+         * exist but has not been opened yet.
+         */
+        psa_status_t status = psa_open_key(instance.iak_id, &instance.iak_handle);
+        instance.is_iak_open = (status == PSA_SUCCESS);
+    }
+
+    return instance.is_iak_open;
+}

@@ -103,12 +103,16 @@ TEST(AttestationProvisioningTests, selfGeneratedIak)
 TEST(AttestationProvisioningTests, provisionedIak)
 {
     /* Verify that the provisioning flow where an IAK is generated externally
-     * and imported during manufacture.
+     * and imported during manufacture.  Note that the initial import is only
+     * expected to be successful for a fresh device.
      */
-    psa_status_t status;
+    psa_status_t status = attest_provision_iak_exists();
 
-    status = attest_provision_import_iak(ref_iak_priv_key, sizeof(ref_iak_priv_key));
-    LONGS_EQUAL(PSA_SUCCESS, status);
+    if (status == PSA_ERROR_DOES_NOT_EXIST) {
+
+        status = attest_provision_import_iak(ref_iak_priv_key, sizeof(ref_iak_priv_key));
+        LONGS_EQUAL(PSA_SUCCESS, status);
+    }
 
     /* Attempting to import again should be forbidden */
     status = attest_provision_import_iak(ref_iak_priv_key, sizeof(ref_iak_priv_key));

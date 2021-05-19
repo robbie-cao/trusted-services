@@ -17,13 +17,15 @@ static rpc_status_t get_token_handler(void *context, struct call_req* req);
 static rpc_status_t get_token_size_handler(void *context, struct call_req* req);
 static rpc_status_t export_iak_public_key_handler(void *context, struct call_req* req);
 static rpc_status_t import_iak_handler(void *context, struct call_req* req);
+static rpc_status_t iak_exists_handler(void *context, struct call_req* req);
 
 /* Handler mapping table for service */
 static const struct service_handler handler_table[] = {
     {TS_ATTESTATION_OPCODE_GET_TOKEN,               get_token_handler},
     {TS_ATTESTATION_OPCODE_GET_TOKEN_SIZE,          get_token_size_handler},
     {TS_ATTESTATION_OPCODE_EXPORT_IAK_PUBLIC_KEY,   export_iak_public_key_handler},
-    {TS_ATTESTATION_OPCODE_IMPORT_IAK,              import_iak_handler}
+    {TS_ATTESTATION_OPCODE_IMPORT_IAK,              import_iak_handler},
+    {TS_ATTESTATION_OPCODE_IAK_EXISTS,              iak_exists_handler}
 };
 
 struct rpc_interface *attest_provider_init(struct attest_provider *context, psa_key_id_t iak_id)
@@ -231,4 +233,18 @@ static rpc_status_t import_iak_handler(void *context, struct call_req* req)
     }
 
     return rpc_status;
+}
+
+static rpc_status_t iak_exists_handler(void *context, struct call_req* req)
+{
+    int opstatus = PSA_ERROR_DOES_NOT_EXIST;
+
+    if (attest_key_mngr_iak_exists()) {
+
+       opstatus = PSA_SUCCESS;
+    }
+
+    call_req_set_opstatus(req, opstatus);
+
+    return TS_RPC_CALL_ACCEPTED;
 }

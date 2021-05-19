@@ -7,6 +7,8 @@
 #ifndef ATTEST_KEY_MNGR_H
 #define ATTEST_KEY_MNGR_H
 
+#include <stdbool.h>
+#include <stddef.h>
 #include <psa/crypto.h>
 
 /* Key ID for a volatile IAK (for test) */
@@ -57,6 +59,8 @@ psa_status_t attest_key_mngr_get_iak_handle(psa_key_handle_t *iak_handle);
 /**
  * \brief Export the IAK public key
  *
+ *  Like the above method, if no IAK exists, one will be generated.
+ *
  * \param[out] data  Buffer for key data
  * \param[in]  data_size Size of buffer
  * \param[out] data_length  Length in bytes of key
@@ -65,6 +69,23 @@ psa_status_t attest_key_mngr_get_iak_handle(psa_key_handle_t *iak_handle);
  */
 psa_status_t attest_key_mngr_export_iak_public_key(uint8_t *data,
                                 size_t data_size, size_t *data_length);
+
+/**
+ * \brief Import the IAK key-pair
+ *
+ * \param[in]  data  The key data
+ * \param[out] data_length  Length in bytes of the key-pair
+ *
+ * \return Status
+ */
+psa_status_t attest_key_mngr_import_iak(const uint8_t *data, size_t data_length);
+
+/**
+ * \brief Check if the IAK exists
+ *
+ * \return True if IAK exist
+ */
+bool attest_key_mngr_iak_exists(void);
 
 /**
  * \brief Return maximum size of an exported IAK public key
@@ -80,15 +101,6 @@ size_t attest_key_mngr_max_iak_export_size(void);
  */
 size_t attest_key_mngr_max_iak_import_size(void);
 
-/**
- * \brief Import the IAK key-pair
- *
- * \param[in]  data  The key data
-  * \param[out] data_length  Length in bytes of the key-pair
- *
- * \return Status
- */
-psa_status_t attest_key_mngr_import_iak(const uint8_t *data, size_t data_length);
 
 #ifdef __cplusplus
 } /* extern "C" */

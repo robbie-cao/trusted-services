@@ -26,6 +26,11 @@ FetchContent_Declare(
 	GIT_REPOSITORY ${QCBOR_URL}
 	GIT_TAG ${QCBOR_REFSPEC}
 	GIT_SHALLOW TRUE
+
+	PATCH_COMMAND git stash
+		COMMAND git branch -f bf-patch
+		COMMAND git am ${CMAKE_CURRENT_LIST_DIR}/0001-Add-3rd-party-settings.patch ${CMAKE_CURRENT_LIST_DIR}/0002-Add-install-definition.patch
+		COMMAND git reset bf-patch
 )
 
 # FetchContent_GetProperties exports qcbor_SOURCE_DIR and qcbor_BINARY_DIR variables
@@ -35,11 +40,18 @@ if(NOT qcbor_POPULATED)
 	FetchContent_Populate(qcbor)
 endif()
 
+# Determine floating point configuration
+if (TS_NO_FLOAT_HW)
+	set(_thirdparty_def -DQCBOR_DISABLE_FLOAT_HW_USE)
+endif()
+
 # Configure the qcbor library
 execute_process(COMMAND
 ${CMAKE_COMMAND}
 	-DCMAKE_TOOLCHAIN_FILE=${TS_EXTERNAL_LIB_TOOLCHAIN_FILE}
 	-GUnix\ Makefiles
+	-Dthirdparty_def=${_thirdparty_def}
+	-DCMAKE_INSTALL_PREFIX=${QCBOR_INSTALL_PATH}
 	${qcbor_SOURCE_DIR}
 WORKING_DIRECTORY
 	${qcbor_BINARY_DIR}
@@ -54,7 +66,15 @@ if (_exec_error)
 	message(FATAL_ERROR "Build step of qcbor failed with ${_exec_error}.")
 endif()
 
+execute_process(COMMAND
+		${CMAKE_COMMAND} --install ${qcbor_BINARY_DIR}
+		RESULT_VARIABLE _exec_error
+	)
+if (_exec_error)
+	message(FATAL_ERROR "Build step of qcbor failed with ${_exec_error}.")
+endif()
+
 # Create an imported target to have clean abstraction in the build-system.
 add_library(qcbor STATIC IMPORTED)
-set_property(TARGET qcbor PROPERTY IMPORTED_LOCATION "${qcbor_BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}qcbor${CMAKE_STATIC_LIBRARY_SUFFIX}")
-set_property(TARGET qcbor PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${qcbor_SOURCE_DIR}/inc")
+set_property(TARGET qcbor PROPERTY IMPORTED_LOCATION "${QCBOR_INSTALL_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}qcbor${CMAKE_STATIC_LIBRARY_SUFFIX}")
+set_property(TARGET qcbor PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${QCBOR_INSTALL_PATH}/include")
