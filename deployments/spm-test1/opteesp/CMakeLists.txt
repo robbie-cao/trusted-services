@@ -1,0 +1,32 @@
+#-------------------------------------------------------------------------------
+# Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+#-------------------------------------------------------------------------------
+cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
+set(TS_PLATFORM "arm/fvp/fvp_base_revc-2xaemv8a" CACHE STRING "Target platform location.")
+include(../../deployment.cmake REQUIRED)
+include(${TS_ROOT}/environments/opteesp/env.cmake)
+
+project(trusted-services LANGUAGES C ASM)
+add_executable(spm-test1)
+
+set(SP_UUID_CANON "5c9edbc3-7b3a-4367-9f83-7c191ae86a37")
+set(SP_NUMBER 1)
+include(${TS_ROOT}/components/service/spm_test/spm_test.cmake)
+#-------------------------------------------------------------------------------
+#  Components that are spm-test specific to deployment in the opteesp
+#  environment.
+#-------------------------------------------------------------------------------
+add_components(TARGET "spm-test${SP_NUMBER}"
+	BASE_DIR ${TS_ROOT}
+	COMPONENTS
+		"components/common/fdt"
+		"components/common/trace"
+		"components/common/utils"
+		"components/config/loader/sp"
+		"components/messaging/ffa/libsp"
+		"environments/opteesp"
+)
+
