@@ -18,7 +18,7 @@ if(NOT DEFINED LINUX_FFA_USER_SHIM_DIR)
 	else()
 		set(LINUX_FFA_USER_SHIM_URL "https://git.gitlab.arm.com/linux-arm/linux-trusted-services.git"
 				CACHE STRING "Linux FF-A user space shim repository URL")
-		set(LINUX_FFA_USER_SHIM_REFSPEC "main"
+		set(LINUX_FFA_USER_SHIM_REFSPEC "v1.0.0"
 				CACHE STRING "Linux FF-A user space shim git refspec")
 
 		find_program(GIT_COMMAND "git")
