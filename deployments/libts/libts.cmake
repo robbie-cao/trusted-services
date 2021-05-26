@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -10,6 +10,17 @@
 #  different environments.  libts provides a client interface for locating
 #  service instances and establishing RPC sessions for using services.
 #-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+#  Common API version implemented by all libts deployments
+#-------------------------------------------------------------------------------
+version_semver_read(FILE "${CMAKE_CURRENT_LIST_DIR}/version.txt"
+					MAJOR _major MINOR _minor PATCH _patch)
+set_target_properties(ts PROPERTIES VERSION "${_major}.${_minor}.${_patch}")
+set_target_properties(ts PROPERTIES SOVERSION "${_major}")
+unset(_major)
+unset(_minor)
+unset(_patch)
 
 #-------------------------------------------------------------------------------
 #  Components that are common accross all deployments
