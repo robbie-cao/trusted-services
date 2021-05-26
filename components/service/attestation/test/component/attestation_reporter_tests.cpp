@@ -16,8 +16,8 @@
 #include <service/attestation/claims/sources/null_lifecycle/null_lifecycle_claim_source.h>
 #include <service/attestation/claims/sources/instance_id/instance_id_claim_source.h>
 #include <service/attestation/reporter/attest_report.h>
+#include <service/attestation/reporter/dump/raw/raw_report_dump.h>
 #include <service/attestation/key_mngr/attest_key_mngr.h>
-#include <service/attestation/test/common/report_dump.h>
 #include <protocols/service/attestation/packed-c/eat.h>
 #include <CppUTest/TestHarness.h>
 
@@ -200,7 +200,7 @@ TEST(AttestationReporterTests, createReport)
                 mock_event_Log_measurement(sw_component_count);
 
             /* Check measurement id */
-            QCBORDecode_GetByteStringInMapN(&decode_ctx,
+             QCBORDecode_GetTextStringInMapN(&decode_ctx,
                     EAT_SW_COMPONENT_CLAIM_ID_MEASUREMENT_TYPE, &property);
             LONGS_EQUAL(QCBOR_SUCCESS, QCBORDecode_GetError(&decode_ctx));
             CHECK_TRUE(property.ptr);

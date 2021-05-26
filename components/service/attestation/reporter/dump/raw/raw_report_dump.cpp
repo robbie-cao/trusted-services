@@ -5,9 +5,9 @@
  */
 
 #include <stdio.h>
-#include "report_dump.h"
+#include "raw_report_dump.h"
 
-void report_dump(const uint8_t *report, size_t len)
+void raw_report_dump(const uint8_t *report, size_t len)
 {
     size_t bytes_in_row = 0;
     size_t byte_count = 0;

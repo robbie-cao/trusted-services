@@ -86,7 +86,7 @@ struct byte_string_claim_variant
  */
 struct measurement_claim_variant
 {
-    struct byte_string_claim_variant id;
+    struct text_string_claim_variant id;
     struct byte_string_claim_variant digest;
 };
 

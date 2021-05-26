@@ -54,9 +54,8 @@ TEST(TcgEventLogTests, interateBootMeasurements)
                     mock_event_Log_measurement(measurement_count);
 
             /* Check extracted values are as expected */
-            MEMCMP_EQUAL(expected->id,
-                    sw_component_claim.variant.measurement.id.bytes,
-                    sw_component_claim.variant.measurement.id.len);
+            STRCMP_EQUAL(expected->id,
+                    sw_component_claim.variant.measurement.id.string);
             MEMCMP_EQUAL(expected->digest,
                     sw_component_claim.variant.measurement.digest.bytes,
                     sw_component_claim.variant.measurement.digest.len);

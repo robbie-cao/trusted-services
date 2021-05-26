@@ -113,10 +113,10 @@ static void encode_claim(QCBOREncodeContext *encode_ctx, const struct claim *cla
         {
             UsefulBufC byte_string;
             QCBOREncode_OpenMap(encode_ctx);
-            byte_string.ptr = claim->variant.measurement.id.bytes;
-            byte_string.len = claim->variant.measurement.id.len;
-            QCBOREncode_AddBytesToMapN(encode_ctx,
-                EAT_SW_COMPONENT_CLAIM_ID_MEASUREMENT_TYPE, byte_string);
+            QCBOREncode_AddSZStringToMapN(encode_ctx,
+                EAT_SW_COMPONENT_CLAIM_ID_MEASUREMENT_TYPE,
+                claim->variant.measurement.id.string);
+
             byte_string.ptr = claim->variant.measurement.digest.bytes;
             byte_string.len = claim->variant.measurement.digest.len;
             QCBOREncode_AddBytesToMapN(encode_ctx,

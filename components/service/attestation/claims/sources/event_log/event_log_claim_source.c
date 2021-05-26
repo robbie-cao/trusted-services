@@ -253,8 +253,7 @@ static void tcg_event2_extract_measurement_id(const void *event_data,
                                     struct measurement_claim_variant *measurement,
                                     const void *limit)
 {
-    measurement->id.len = 0;
-    measurement->id.bytes = NULL;
+    measurement->id.string = NULL;
 
     if (((const uint8_t*)limit - sizeof(event2_data_t)) >= (const uint8_t*)event_data) {
 
@@ -262,8 +261,7 @@ static void tcg_event2_extract_measurement_id(const void *event_data,
 
         if (id_size) {
 
-            measurement->id.len = id_size;
-            measurement->id.bytes = (const uint8_t*)event_data + offsetof(event2_data_t, event);
+            measurement->id.string = (const uint8_t*)event_data + offsetof(event2_data_t, event);
         }
     }
 }

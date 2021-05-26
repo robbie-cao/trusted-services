@@ -83,3 +83,13 @@ data:
       params:
             - "-GUnix Makefiles"
             - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
+    - name: "platform-inspect-arm-linux"
+      src: "$TS_ROOT/deployments/platform-inspect/arm-linux"
+      os_id : "GNU/Linux"
+      params:
+          - "-GUnix Makefiles"
+    - name: "platform-inspect-pc-linux"
+      src: "$TS_ROOT/deployments/platform-inspect/linux-pc"
+      os_id : "GNU/Linux"
+      params:
+          - "-GUnix Makefiles"
