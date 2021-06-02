@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define KERNEL_MOD_REQ_VER_MAJOR 3
+#define KERNEL_MOD_REQ_VER_MAJOR 4
 #define KERNEL_MOD_REQ_VER_MINOR 0
 #define KERNEL_MOD_REQ_VER_PATCH 0
 
@@ -163,7 +163,10 @@ size_t ffarpc_caller_discover(const struct ffarpc_caller *s, const struct uuid_c
 int ffarpc_caller_open(struct ffarpc_caller *s, uint16_t dest_partition_id, uint16_t dest_iface_id)
 {
 	int ioctl_status = -1;
-	struct ffa_ioctl_shm_desc shm_desc = {.dst_id = dest_partition_id};
+	struct ffa_ioctl_shm_desc shm_desc = {
+		.dst_id = dest_partition_id,
+		.size = s->shared_mem_required_size,
+		};
 
 	if (s->device_path) {
 
