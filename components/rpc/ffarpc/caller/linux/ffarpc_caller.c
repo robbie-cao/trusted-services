@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define KERNEL_MOD_REQ_VER_MAJOR 2
+#define KERNEL_MOD_REQ_VER_MAJOR 3
 #define KERNEL_MOD_REQ_VER_MINOR 0
 #define KERNEL_MOD_REQ_VER_PATCH 0
 
@@ -343,7 +343,7 @@ static int kernel_write_req_buf(struct ffarpc_caller *s) {
 
 	req_descr.buf_ptr = (uintptr_t)s->req_buf;
 	req_descr.buf_len = s->req_len;
-	req_descr.dst_id = s->dest_partition_id;
+	req_descr.handle = s->shared_mem_handle;
 	ioctl_status = ioctl(s->fd, FFA_IOC_SHM_WRITE, &req_descr);
 
 	return ioctl_status;
@@ -357,7 +357,7 @@ static int kernel_read_resp_buf(struct ffarpc_caller *s) {
 
 	resp_descr.buf_ptr = (uintptr_t)s->resp_buf;
 	resp_descr.buf_len = s->resp_len;
-	resp_descr.dst_id = s->dest_partition_id;
+	resp_descr.handle = s->shared_mem_handle;
 	ioctl_status = ioctl(s->fd, FFA_IOC_SHM_READ, &resp_descr);
 
 	return ioctl_status;
