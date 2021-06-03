@@ -31,8 +31,6 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	struct ffa_direct_msg req_msg;
 
 	/* Boot */
-	(void) init_info;
-
 	if (sp_init(&own_id) != 0) goto fatal_error;
 
 	config_ramstore_init();
@@ -42,7 +40,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	test_runner_iface = test_runner_provider_init(&test_runner_provider);
 
 	test_runner_provider_register_serializer(&test_runner_provider,
-            TS_RPC_ENCODING_PACKED_C, packedc_test_runner_provider_serializer_instance());
+			TS_RPC_ENCODING_PACKED_C, packedc_test_runner_provider_serializer_instance());
 
 	env_test_register_tests(&test_runner_provider);
 

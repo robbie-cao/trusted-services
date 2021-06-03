@@ -23,7 +23,6 @@
 
 
 /* Temporary dependencies */
-#include <service/attestation/claims/sources/event_log/mock/mock_event_log.h>
 #include <psa/crypto.h>
 
 
@@ -43,9 +42,9 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	/* Claim source objects */
 	struct claim_source *claim_source;
 	struct event_log_claim_source event_log_claim_source;
-    struct boot_seed_generator boot_seed_claim_source;
-    struct null_lifecycle_claim_source lifecycle_claim_source;
-    struct instance_id_claim_source instance_id_claim_source;
+	struct boot_seed_generator boot_seed_claim_source;
+	struct null_lifecycle_claim_source lifecycle_claim_source;
+	struct instance_id_claim_source instance_id_claim_source;
 
 	/*********************************************************
 	 * Boot phase
@@ -57,35 +56,34 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 
 	/**
 	 * Register claim sources for deployment
-     */
+	 */
 	claims_register_init();
 
-    /* Boot measurement claim source - uses mock event log */
-    claim_source = event_log_claim_source_init(&event_log_claim_source,
-        mock_event_log_start(), mock_event_log_size());
-    claims_register_add_claim_source(CLAIM_CATEGORY_BOOT_MEASUREMENT, claim_source);
+	/* Boot measurement claim source */
+	claim_source = event_log_claim_source_init_from_config(&event_log_claim_source);
+	claims_register_add_claim_source(CLAIM_CATEGORY_BOOT_MEASUREMENT, claim_source);
 
-    /* Boot seed claim source */
-    claim_source = boot_seed_generator_init(&boot_seed_claim_source);
-    claims_register_add_claim_source(CLAIM_CATEGORY_DEVICE, claim_source);
+	/* Boot seed claim source */
+	claim_source = boot_seed_generator_init(&boot_seed_claim_source);
+	claims_register_add_claim_source(CLAIM_CATEGORY_DEVICE, claim_source);
 
-    /* Lifecycle state claim source */
-    claim_source = null_lifecycle_claim_source_init(&lifecycle_claim_source);
-    claims_register_add_claim_source(CLAIM_CATEGORY_DEVICE, claim_source);
+	/* Lifecycle state claim source */
+	claim_source = null_lifecycle_claim_source_init(&lifecycle_claim_source);
+	claims_register_add_claim_source(CLAIM_CATEGORY_DEVICE, claim_source);
 
-    /* Instance ID claim source */
-    claim_source = instance_id_claim_source_init(&instance_id_claim_source);
-    claims_register_add_claim_source(CLAIM_CATEGORY_DEVICE, claim_source);
+	/* Instance ID claim source */
+	claim_source = instance_id_claim_source_init(&instance_id_claim_source);
+	claims_register_add_claim_source(CLAIM_CATEGORY_DEVICE, claim_source);
 
 	/**
 	 * Initialize the service provider
-     */
+	 */
  	psa_crypto_init(); /* temporary */
 
-    attest_iface = attest_provider_init(&attest_provider, ATTEST_KEY_MNGR_VOLATILE_IAK);
+	attest_iface = attest_provider_init(&attest_provider, ATTEST_KEY_MNGR_VOLATILE_IAK);
 
-    attest_provider_register_serializer(&attest_provider,
-        TS_RPC_ENCODING_PACKED_C, packedc_attest_provider_serializer_instance());
+	attest_provider_register_serializer(&attest_provider,
+		TS_RPC_ENCODING_PACKED_C, packedc_attest_provider_serializer_instance());
 
 	ffa_call_ep_init(&ffarpc_call_ep, attest_iface);
 

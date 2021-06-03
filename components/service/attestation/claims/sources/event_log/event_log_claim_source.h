@@ -24,14 +24,17 @@ extern "C" {
  */
 struct event_log_claim_source
 {
-    struct claim_source base;
+	struct claim_source base;
 
-    const uint8_t *event_log;
-    size_t event_log_len;
+	const uint8_t *event_log;
+	size_t event_log_len;
 };
 
 /**
- * \brief Initializes a event_log_claim_source.
+ * \brief Initializes a event_log_claim_source from buffer.
+ *
+ * Initializes an event_log_claim_source, taking the provided buffer
+ * containing the TCG event log data.
  *
  * \param[in] instance      The event_log_claim_source instance to initialze
  * \param[in] event_log     Pointer to the event log.
@@ -40,8 +43,20 @@ struct event_log_claim_source
  * \return The initialize base claim_source structure
  */
 struct claim_source *event_log_claim_source_init(struct event_log_claim_source *instance,
-                                const uint8_t *event_log, size_t event_log_len);
+	const uint8_t *event_log, size_t event_log_len);
 
+/**
+ * \brief Initializes a event_log_claim_source from config store
+ *
+ * Initializes an event_log_claim_source using an event log configuration object
+ * obtained from the config store.
+ *
+ * \param[in] instance      The event_log_claim_source instance to initialze
+ *
+ * \return The initialize base claim_source structure
+ */
+struct claim_source *event_log_claim_source_init_from_config(
+	struct event_log_claim_source *instance);
 
 #ifdef __cplusplus
 } /* extern "C" */

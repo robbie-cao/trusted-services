@@ -6,7 +6,8 @@
 #include <mbedtls/entropy.h>
 #include <platform/interface/trng.h>
 #include <service/crypto/provider/mbedcrypto/trng_adapter/trng_adapter.h>
-#include <config/interface/platform_config.h>
+#include <config/interface/config_store.h>
+#include <psa/error.h>
 #include <stddef.h>
 
 /*
@@ -18,33 +19,36 @@ static struct platform_trng_driver driver = {0};
 
 int trng_adapter_init(int instance)
 {
-    int status;
-    struct device_region *device_region;
+	int status = PSA_STATUS_HARDWARE_FAILURE;
+	struct device_region device_region;
 
-    device_region = platform_config_device_query("trng", instance);
-    status = platform_trng_create(&driver, device_region);
-    platform_config_device_query_free(device_region);
+	if (config_store_query(CONFIG_CLASSIFIER_DEVICE_REGION,
+		"trng", instance,
+		&device_region, sizeof(device_region))) {
 
-    return status;
+		status = platform_trng_create(&driver, &device_region);
+	}
+
+	return status;
 }
 
 void trng_adapter_deinit()
 {
-    platform_trng_destroy(&driver);
+	platform_trng_destroy(&driver);
 
-    driver.iface = NULL;
-    driver.context = NULL;
+	driver.iface = NULL;
+	driver.context = NULL;
 }
 
 int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t *olen)
 {
-    int status = MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
-    *olen = 0;
+	int status = MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
+	*olen = 0;
 
-    if (driver.iface) {
+	if (driver.iface) {
 
-        status = driver.iface->poll(driver.context, output, len, olen);
-    }
+		status = driver.iface->poll(driver.context, output, len, olen);
+	}
 
-    return status;
+	return status;
 }

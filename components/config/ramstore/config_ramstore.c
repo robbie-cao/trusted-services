@@ -5,7 +5,7 @@
  */
 
 #include "config_ramstore.h"
-#include <config/interface/platform_config.h>
+#include <config/interface/config_store.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
@@ -15,16 +15,25 @@
  */
 struct config_container
 {
+	enum config_classifier classifier;
+	char name[32];
+	unsigned int instance;
 	size_t size;
 	struct config_container *next;
 };
 
-static struct config_container *config_container_create(const void *data, size_t size)
+static struct config_container *config_container_create(enum config_classifier classifier,
+	const char *name, unsigned int instance,
+	const void *data, size_t size)
 {
 	struct config_container *container = malloc(sizeof(struct config_container) + size);
 
 	if (container) {
 
+		container->classifier = classifier;
+		strncpy(container->name, name, sizeof(container->name));
+		container->name[sizeof(container->name) - 1] = '\0';
+		container->instance = instance;
 		container->size = size;
 		container->next = NULL;
 
@@ -49,56 +58,61 @@ static const void *config_container_data(const struct config_container *containe
  */
 static struct config_ramstore
 {
-	struct config_container *device_region_list;
+	struct config_container *object_list;
 } ramstore = {0};
 
 
 void config_ramstore_init(void)
 {
-	ramstore.device_region_list = NULL;
+
 }
 
 void config_ramstore_deinit(void)
 {
-	while (ramstore.device_region_list) {
+	while (ramstore.object_list) {
 
-		struct config_container *next = ramstore.device_region_list->next;
-		free(ramstore.device_region_list);
-		ramstore.device_region_list = next;
+		struct config_container *next = ramstore.object_list->next;
+		free(ramstore.object_list);
+		ramstore.object_list = next;
 	}
 }
 
-int platform_config_device_add(const struct device_region *device_region)
+bool config_store_add(enum config_classifier classifier,
+	const char *name,
+	unsigned int instance,
+	const void *data,
+	size_t data_len)
 {
 	struct config_container *container;
 
-	container = config_container_create(device_region, sizeof(struct device_region));
-	if (!container) return -1;
+	container = config_container_create(classifier, name, instance, data, data_len);
+	if (!container) return false;
 
-	container->next = ramstore.device_region_list;
-	ramstore.device_region_list = container;
+	container->next = ramstore.object_list;
+	ramstore.object_list = container;
 
-	return 0;
+	return true;
 }
 
-struct device_region *platform_config_device_query(const char *dev_class,
-                                                    int dev_instance)
+bool config_store_query(enum config_classifier classifier,
+	const char *name,
+	unsigned int instance,
+	void *data,
+	size_t data_buf_size)
 {
-	struct device_region *result = NULL;
-	const struct config_container *container = ramstore.device_region_list;
+	bool success = false;
+	const struct config_container *container = ramstore.object_list;
 
 	while (container) {
 
-		const struct device_region *candidate;
-		candidate = (const struct device_region*)config_container_data(container);
+		if ((container->classifier == classifier) &&
+			(strcmp(container->name, name) == 0) &&
+			(container->instance == instance)) {
 
-		if ((candidate->dev_instance == dev_instance) &&
-			(strcmp(candidate->dev_class, dev_class) == 0)) {
+			if (data_buf_size == container->size) {
 
-			result = malloc(container->size);
-			if (result) {
-
-				memcpy(result, candidate, container->size);
+				memcpy(data, config_container_data(container), container->size);
+				success = true;
 			}
 
 			break;
@@ -107,23 +121,18 @@ struct device_region *platform_config_device_query(const char *dev_class,
 		container = container->next;
 	}
 
-	return result;
+	return success;
 }
 
-void platform_config_device_query_free(struct device_region *device_region)
-{
-	free(device_region);
-}
-
-unsigned int platform_config_device_region_count(void)
+unsigned int config_store_count(enum config_classifier classifier)
 {
 	unsigned int count = 0;
 
-	const struct config_container *container = ramstore.device_region_list;
+	const struct config_container *container = ramstore.object_list;
 
 	while (container) {
 
-		++count;
+		if (container->classifier == classifier) ++count;
 		container = container->next;
 	}
 

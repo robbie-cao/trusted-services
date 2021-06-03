@@ -5,91 +5,110 @@
  */
 
 #include <cstring>
+#include <config/interface/config_store.h>
 #include <config/ramstore/config_ramstore.h>
+#include <config/interface/config_blob.h>
+#include <platform/interface/device_region.h>
 #include <CppUTest/TestHarness.h>
 
 TEST_GROUP(ConfigRamstoreTests)
 {
-    void setup()
-    {
-        config_ramstore_init();
-    }
+	void setup()
+	{
+		config_ramstore_init();
+	}
 
-    void teardown()
-    {
-        config_ramstore_deinit();
-    }
+	void teardown()
+	{
+		config_ramstore_deinit();
+	}
 };
 
 TEST(ConfigRamstoreTests, checkEmptyConfig)
 {
-    /* Expect queries to an empty store to return gracefully */
-    struct device_region *query_result = platform_config_device_query("flash", 0);
-    CHECK(!query_result);
+	struct config_blob blob;
 
-    /* Expect freeing a null pointer to be harmless */
-    platform_config_device_query_free(query_result);
+	/* Expect queries to an empty store to return gracefully */
+	bool query_result = config_store_query(CONFIG_CLASSIFIER_BLOB, "flash", 0,
+		&blob, sizeof(blob));
+
+	CHECK_FALSE(query_result);
+	UNSIGNED_LONGS_EQUAL(0, config_store_count(CONFIG_CLASSIFIER_DEVICE_REGION));
+	UNSIGNED_LONGS_EQUAL(0, config_store_count(CONFIG_CLASSIFIER_MEMORY_REGION));
+	UNSIGNED_LONGS_EQUAL(0, config_store_count(CONFIG_CLASSIFIER_BLOB));
 }
 
 TEST(ConfigRamstoreTests, checkSingleConfig)
 {
-    struct device_region config;
+	struct device_region config;
 
-    /* This would be external configuration, obtained say from device tree */
-    strcpy(config.dev_class, "fs");
-    config.dev_instance = 2;
-    config.base_addr = (uintptr_t)0x0f000010;
-    config.io_region_size = 0x100;
+	/* This would be external configuration, obtained say from device tree */
+	strcpy(config.dev_class, "fs");
+	config.dev_instance = 2;
+	config.base_addr = (uintptr_t)0x0f000010;
+	config.io_region_size = 0x100;
 
-    /* Add the configuration object */
-    int status = platform_config_device_add(&config);
-    CHECK_EQUAL(0, status);
+	/* Add the configuration object */
+	bool success = config_store_add(CONFIG_CLASSIFIER_DEVICE_REGION,
+		config.dev_class, config.dev_instance,
+		&config, sizeof(config));
 
-    /* Expect query find the config object */
-    struct device_region *query_result = platform_config_device_query(config.dev_class, config.dev_instance);
-    CHECK(query_result);
-    CHECK(strcmp(config.dev_class, query_result->dev_class) == 0);
-    CHECK_EQUAL(config.dev_instance, query_result->dev_instance);
-    CHECK_EQUAL(config.base_addr, query_result->base_addr);
-    CHECK_EQUAL(config.io_region_size, query_result->io_region_size);
+	CHECK_TRUE(success);
 
-    platform_config_device_query_free(query_result);
+	/* Expect query find the config object */
+	struct device_region query_result;
+	 success = config_store_query(CONFIG_CLASSIFIER_DEVICE_REGION,
+		config.dev_class, config.dev_instance,
+		&query_result, sizeof(query_result));
+
+	CHECK_TRUE(success);
+	STRCMP_EQUAL(config.dev_class, query_result.dev_class);
+	UNSIGNED_LONGS_EQUAL(config.dev_instance, query_result.dev_instance);
+	UNSIGNED_LONGS_EQUAL(config.base_addr, query_result.base_addr);
+	UNSIGNED_LONGS_EQUAL(config.io_region_size, query_result.io_region_size);
 }
 
 TEST(ConfigRamstoreTests, checkMultipleConfig)
 {
-    int status;
+	int status;
 
-    /* Add first config object */
-    struct device_region config1;
+	/* Add first config object */
+	struct device_region config1;
 
-    strcpy(config1.dev_class, "flash");
-    config1.dev_instance = 0;
-    config1.base_addr = (uintptr_t)0x0f000010;
-    config1.io_region_size = 0x100;
+	strcpy(config1.dev_class, "flash");
+	config1.dev_instance = 0;
+	config1.base_addr = (uintptr_t)0x0f000010;
+	config1.io_region_size = 0x100;
 
-    status = platform_config_device_add(&config1);
-    CHECK_EQUAL(0, status);
+	bool success = config_store_add(CONFIG_CLASSIFIER_DEVICE_REGION,
+		config1.dev_class, config1.dev_instance,
+		&config1, sizeof(config1));
 
-    /* Add second config object */
-    struct device_region config2;
+	CHECK_TRUE(success);
 
-    strcpy(config2.dev_class, "flash");
-    config2.dev_instance = 1;
-    config2.base_addr = (uintptr_t)0x0f000010;
-    config2.io_region_size = 0x100;
+	/* Add second config object */
+	struct config_blob config2;
 
-    status = platform_config_device_add(&config2);
-    CHECK_EQUAL(0, status);
+	uint8_t config2_data[100];
+	config2.data = config2_data;
+	config2.data_len = sizeof(config2_data);
 
-    CHECK_EQUAL(2, platform_config_device_region_count());
+	success = config_store_add(CONFIG_CLASSIFIER_BLOB,
+		"a_config_blob", 0,
+		&config2, sizeof(config2));
 
-    /* Expect queries for both objects to work */
-    struct device_region *query1_result = platform_config_device_query(config1.dev_class, config1.dev_instance);
-    CHECK(query1_result);
+	CHECK_TRUE(success);
+	UNSIGNED_LONGS_EQUAL(1, config_store_count(CONFIG_CLASSIFIER_DEVICE_REGION));
+	UNSIGNED_LONGS_EQUAL(1, config_store_count(CONFIG_CLASSIFIER_BLOB));
 
-    struct device_region *query2_result = platform_config_device_query(config2.dev_class, config2.dev_instance);
-    CHECK(query2_result);
+	/* Expect queries for both objects to work */
+	struct device_region query1_result;
+	CHECK_TRUE(config_store_query(CONFIG_CLASSIFIER_DEVICE_REGION,
+		config1.dev_class, config1.dev_instance,
+		&query1_result, sizeof(query1_result)));
 
-    platform_config_device_query_free(query2_result);
+	struct config_blob query2_result;
+	CHECK_TRUE(config_store_query(CONFIG_CLASSIFIER_BLOB,
+		"a_config_blob", 0,
+		&query2_result, sizeof(query2_result)));
 }

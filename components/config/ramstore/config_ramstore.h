@@ -13,10 +13,6 @@
 #ifndef CONFIG_RAMSTORE_H
 #define CONFIG_RAMSTORE_H
 
-#include <stddef.h>
-#include <platform/interface/device_region.h>
-#include <config/interface/platform_config.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif

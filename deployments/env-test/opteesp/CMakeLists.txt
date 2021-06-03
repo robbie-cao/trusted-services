@@ -16,8 +16,8 @@ include(../../deployment.cmake REQUIRED)
 #-------------------------------------------------------------------------------
 include(${TS_ROOT}/environments/opteesp/env.cmake)
 project(trusted-services LANGUAGES C ASM)
-add_executable(env_test)
-target_include_directories(env_test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
+add_executable(env-test)
+target_include_directories(env-test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID "33c75baf-ac6a-4fe4-8ac7-e9909bee2d17")
 
 
@@ -25,14 +25,14 @@ set(SP_UUID "33c75baf-ac6a-4fe4-8ac7-e9909bee2d17")
 set(SP_DEV_KIT_INC_DIR ${CMAKE_CURRENT_LIST_DIR})
 list(APPEND CMAKE_MODULE_PATH "${TS_ROOT}/external/Spdevkit")
 find_package(Spdevkit REQUIRED)
-sp_dev_kit_configure_linking(TARGET env_test DEFINES ARM64=1)
-target_link_libraries(env_test PRIVATE ${SP_DEV_KIT_LIBRARIES})
+sp_dev_kit_configure_linking(TARGET env-test DEFINES ARM64=1)
+target_link_libraries(env-test PRIVATE ${SP_DEV_KIT_LIBRARIES})
 
 #-------------------------------------------------------------------------------
-#  Components that are env_testecific to deployment in the opteesp
+#  Components that are env-test specific to deployment in the opteesp
 #  environment.
 #-------------------------------------------------------------------------------
-add_components(TARGET "env_test"
+add_components(TARGET "env-test"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/config/loader/sp"
@@ -44,7 +44,7 @@ add_components(TARGET "env_test"
 
 #-------------------------------------------------------------------------------
 #  Extend with components that are common across all deployments of
-#  env_test
+#  env-test
 #
 #-------------------------------------------------------------------------------
 include(../env_test.cmake REQUIRED)
@@ -52,7 +52,7 @@ include(../env_test.cmake REQUIRED)
 #-------------------------------------------------------------------------------
 #  Deployment specific source files
 #-------------------------------------------------------------------------------
-target_sources(env_test PRIVATE
+target_sources(env-test PRIVATE
 	env_test.c
 	env_test_tests.c
 )
@@ -64,26 +64,26 @@ target_sources(env_test PRIVATE
 # temporarily force platform - remove when external builder updated
 set(TS_PLATFORM "arm/fvp/fvp_base_revc-2xaemv8a" CACHE STRING "Overridden" FORCE)
 
-add_platform(TARGET "env_test")
+add_platform(TARGET "env-test")
 
 if(CMAKE_CROSSCOMPILING)
-	target_link_libraries(env_test PRIVATE stdc++ gcc m)
+	target_link_libraries(env-test PRIVATE stdc++ gcc m)
 endif()
 
 #################################################################
 
-target_compile_definitions(env_test PRIVATE
+target_compile_definitions(env-test PRIVATE
 	ARM64=1
 )
 
-target_include_directories(env_test PRIVATE
+target_include_directories(env-test PRIVATE
 	${TS_ROOT}
 	${TS_ROOT}/components
 	${TS_ROOT}/deployments/env-test/opteesp
 )
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
-	target_compile_options(env_test PRIVATE
+	target_compile_options(env-test PRIVATE
 		-fdiagnostics-show-option
 		-fpic
 		-gdwarf-2
@@ -94,7 +94,7 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	)
 
 	# Options for GCC that control linking
-	target_link_options(env_test PRIVATE
+	target_link_options(env-test PRIVATE
 		-e __sp_entry
 		-fno-lto
 		-nostdlib
@@ -102,25 +102,30 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 		-zmax-page-size=4096
 	)
 	# Options directly for LD, these are not understood by GCC
-	target_link_options(env_test PRIVATE
+	target_link_options(env-test PRIVATE
 		-Wl,--as-needed
 		-Wl,--sort-section=alignment
 		# -Wl,--dynamic-list ${CMAKE_CURRENT_LIST_DIR}/dyn_list
 	)
 endif()
 
-compiler_generate_stripped_elf(TARGET env_test NAME "${SP_UUID}.stripped.elf" RES STRIPPED_ELF)
+compiler_generate_stripped_elf(TARGET env-test NAME "${SP_UUID}.stripped.elf" RES STRIPPED_ELF)
 
 ######################################## install
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "location to install build output to." FORCE)
 endif()
 #TODO: api headers
-install(TARGETS env_test
-			PUBLIC_HEADER DESTINATION include
-			RUNTIME DESTINATION bin
+
+install(TARGETS env-test
+			PUBLIC_HEADER DESTINATION ${TS_ENV}/include
+			RUNTIME DESTINATION ${TS_ENV}/bin
 		)
-install(FILES ${STRIPPED_ELF} DESTINATION bin)
+install(FILES ${STRIPPED_ELF} DESTINATION ${TS_ENV}/bin)
+
+get_property(_PROTO_FILES TARGET env-test PROPERTY PROTOBUF_FILES)
+install(FILES ${_PROTO_FILES} DESTINATION ${TS_ENV}/lib/protobuf)
+
 
 set(EXPORT_SP_NAME "env-test")
 set(EXPORT_SP_UUID ${SP_UUID})

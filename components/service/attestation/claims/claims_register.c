@@ -39,7 +39,7 @@ void claims_register_deinit(void)
 void claims_register_add_claim_source(uint32_t category_map,
                                 struct claim_source *source)
 {
-    if (instance.num_sources < CLAIMS_REGISTER_MAX_CLAIM_SOURCES) {
+    if (source && (instance.num_sources < CLAIMS_REGISTER_MAX_CLAIM_SOURCES)) {
 
         source->category_map = category_map;
 

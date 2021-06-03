@@ -32,6 +32,7 @@ add_components(
 		"components/rpc/direct"
 		"components/common/tlv"
 		"components/common/endian"
+		"components/config/ramstore"
 		"components/service/common/include"
 		"components/service/common/serializer/protobuf"
 		"components/service/common/provider"

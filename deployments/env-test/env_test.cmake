@@ -16,7 +16,7 @@
 #
 #-------------------------------------------------------------------------------
 add_components(
-	TARGET "env_test"
+	TARGET "env-test"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 	"components/common/tlv"
@@ -45,4 +45,4 @@ add_components(
 
 # Mbed TLS provides libmbedcrypto
 include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
-target_link_libraries(env_test PRIVATE mbedcrypto)
+target_link_libraries(env-test PRIVATE mbedcrypto)
