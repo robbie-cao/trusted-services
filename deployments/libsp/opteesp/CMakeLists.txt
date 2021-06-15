@@ -38,6 +38,7 @@ add_components(TARGET "sp"
 	COMPONENTS
 		components/messaging/ffa/libsp
 		components/common/utils
+		environments/opteesp
 )
 
 target_compile_definitions("sp" PRIVATE
@@ -47,11 +48,10 @@ target_compile_definitions("sp" PRIVATE
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	target_compile_options("sp" PRIVATE
 		-fdiagnostics-show-option
-		-fpic
 		-gdwarf-2
 		-mstrict-align
 		-O0
-		-std=gnu99
+		-std=c99
 	)
 endif()
 

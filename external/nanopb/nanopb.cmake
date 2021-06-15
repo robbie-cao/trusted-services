@@ -58,6 +58,14 @@ if(NOT nanopb_POPULATED)
 endif()
 
 #### Build the runtime and the generator.
+
+# Pass extra include paths to nanopb build uning CFLAGS if needed
+if (NOT "${NANOPB_EXTERNAL_INCLUDE_PATHS}" STREQUAL "")
+	string(REPLACE ";" "-I " NANOPB_EXTERNAL_INCLUDE_PATHS "${NANOPB_EXTERNAL_INCLUDE_PATHS}")
+	set(_SAVED_CFLAGS $ENV{CFLAGS})
+	set(ENV{CFLAGS} "$ENV{CFLAGS} -I ${NANOPB_EXTERNAL_INCLUDE_PATHS}")
+endif()
+
 if( NOT CMAKE_CROSSCOMPILING)
 	execute_process(COMMAND
 		${CMAKE_COMMAND}
@@ -93,6 +101,12 @@ else()
 				${nanopb_BINARY_DIR}
 			RESULT_VARIABLE _exec_error
 	)
+endif()
+
+if (NOT "${NANOPB_EXTERNAL_INCLUDE_PATHS}" STREQUAL "")
+	set($ENV{CFLAGS} ${_SAVED_CFLAGS})
+	unset(_SAVED_CFLAGS)
+	unset(NANOPB_EXTERNAL_INCLUDE_PATHS)
 endif()
 
 if (_exec_error)

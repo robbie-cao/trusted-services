@@ -46,16 +46,26 @@ if (TS_NO_FLOAT_HW)
 endif()
 
 # Configure the qcbor library
+if (NOT "${QCBOR_EXTERNAL_INCLUDE_PATHS}" STREQUAL "")
+	string(REPLACE ";" "\\;" QCBOR_EXTERNAL_INCLUDE_PATHS "${QCBOR_EXTERNAL_INCLUDE_PATHS}")
+	set(QCBOR_EXTRA_OPTION -Dthirdparty_inc=${QCBOR_EXTERNAL_INCLUDE_PATHS})
+	unset(QCBOR_EXTERNAL_INCLUDE_PATHS)
+else()
+	set(QCBOR_EXTRA_OPTION "")
+endif()
+
 execute_process(COMMAND
-${CMAKE_COMMAND}
-	-DCMAKE_TOOLCHAIN_FILE=${TS_EXTERNAL_LIB_TOOLCHAIN_FILE}
-	-GUnix\ Makefiles
-	-Dthirdparty_def=${_thirdparty_def}
-	-DCMAKE_INSTALL_PREFIX=${QCBOR_INSTALL_PATH}
-	${qcbor_SOURCE_DIR}
-WORKING_DIRECTORY
-	${qcbor_BINARY_DIR}
+	${CMAKE_COMMAND}
+		-DCMAKE_TOOLCHAIN_FILE=${TS_EXTERNAL_LIB_TOOLCHAIN_FILE}
+		-GUnix\ Makefiles
+		-Dthirdparty_def=${_thirdparty_def}
+		-DCMAKE_INSTALL_PREFIX=${QCBOR_INSTALL_PATH}
+		${QCBOR_EXTRA_OPTION}
+		${qcbor_SOURCE_DIR}
+	WORKING_DIRECTORY
+		${qcbor_BINARY_DIR}
 )
+unset(QCBOR_EXTRA_OPTION)
 
 # Build the library
 execute_process(COMMAND

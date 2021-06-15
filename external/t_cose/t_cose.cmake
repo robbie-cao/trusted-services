@@ -46,6 +46,11 @@ set(_ext_inc_paths
 	${_qcbor_inc}
 	${PSA_CRYPTO_API_INCLUDE})
 
+if (NOT TCOSE_EXTERNAL_INCLUDE_PATHS STREQUAL "")
+	list(APPEND _ext_inc_paths  "${TCOSE_EXTERNAL_INCLUDE_PATHS}")
+	unset(TCOSE_EXTERNAL_INCLUDE_PATHS)
+endif()
+
 string(REPLACE ";" "\\;" _ext_inc_paths "${_ext_inc_paths}")
 
 # Configure the t_cose library

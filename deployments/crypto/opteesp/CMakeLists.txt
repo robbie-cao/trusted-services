@@ -81,11 +81,15 @@ add_platform(TARGET "crypto-sp")
 #-------------------------------------------------------------------------------
 
 # Nanopb
+list(APPEND NANOPB_EXTERNAL_INCLUDE_PATHS ${SP_DEV_KIT_INCLUDE_DIR})
 include(../../../external/nanopb/nanopb.cmake)
 target_link_libraries(crypto-sp PRIVATE nanopb::protobuf-nanopb-static)
 protobuf_generate_all(TGT "crypto-sp" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protocols")
 
 # Mbed TLS provides libmbedcrypto
+list(APPEND MBEDTLS_EXTRA_INCLUDES ${SP_DEV_KIT_INCLUDE_DIR})
+set(MBEDTLS_EXTRA_INCLUDES ${MBEDTLS_EXTRA_INCLUDES}
+	CACHE STRING "PSA ITS for Mbed TLS" FORCE)
 include(../../../external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(crypto-sp PRIVATE mbedcrypto)
 
@@ -108,19 +112,14 @@ target_include_directories(crypto-sp PRIVATE
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	target_compile_options(crypto-sp PRIVATE
 		-fdiagnostics-show-option
-		-fpic
 		-gdwarf-2
 		-mstrict-align
 		-O0
-		-std=gnu99
+		-std=c99
 	)
 
 	# Options for GCC that control linking
 	target_link_options(crypto-sp PRIVATE
-		-e __sp_entry
-		-fno-lto
-		-nostdlib
-		-pie
 		-zmax-page-size=4096
 	)
 	# Options directly for LD, these are not understood by GCC

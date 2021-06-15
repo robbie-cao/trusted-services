@@ -20,3 +20,19 @@ set(CMAKE_POSITION_INDEPENDENT_CODE True)
 #set(CMAKE_EXE_LINKER_FLAGS_INIT --specs=nosys.specs)
 
 include($ENV{TS_ROOT}/tools/cmake/compiler/GCC.cmake REQUIRED)
+
+# Set mandatory compiler and linker flags for this environment:
+#   - This environment uses a libc implementation from SPDEV-KIT. Disable standard
+#     include search paths, startup files and default libraries.
+string(APPEND CMAKE_C_FLAGS_INIT " -nostartfiles -nodefaultlibs -nostdinc -I ${CMAKE_CURRENT_LIST_DIR}/include")
+#   - Compile position independent code
+string(APPEND CMAKE_C_FLAGS_INIT " -fpic")
+#   -set entry point
+#   -disable link time optimization
+#   -link position independent executable
+string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " -e __sp_entry -fno-lto -pie")
+
+#   -link libgcc with full PATH to work around disabled linker search paths.
+gcc_get_lib_location("libgcc.a" _TMP_VAR)
+string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " ${_TMP_VAR} ")
+unset(_TMP_VAR)

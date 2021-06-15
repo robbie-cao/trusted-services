@@ -85,20 +85,15 @@ target_include_directories(env-test PRIVATE
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	target_compile_options(env-test PRIVATE
 		-fdiagnostics-show-option
-		-fpic
 		-gdwarf-2
 		-mstrict-align
 		-O0
-		$<$<COMPILE_LANGUAGE:C>:-std=gnu99>
+		$<$<COMPILE_LANGUAGE:C>:-std=c99>
 		$<$<COMPILE_LANGUAGE:CXX>:-fno-use-cxa-atexit>
 	)
 
 	# Options for GCC that control linking
 	target_link_options(env-test PRIVATE
-		-e __sp_entry
-		-fno-lto
-		-nostdlib
-		-pie
 		-zmax-page-size=4096
 	)
 	# Options directly for LD, these are not understood by GCC

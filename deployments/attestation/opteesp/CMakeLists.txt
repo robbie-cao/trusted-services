@@ -85,16 +85,19 @@ add_platform(TARGET "attestation")
 set(MBEDTLS_USER_CONFIG_FILE
 	"${TS_ROOT}/components/service/crypto/client/cpp/config_mbedtls_user.h"
 	CACHE STRING "Configuration file for mbedcrypto")
+list(APPEND MBEDTLS_EXTRA_INCLUDES ${SP_DEV_KIT_INCLUDE_DIR})
 
 # Mbed TLS provides libmbedcrypto
 include(../../../external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(attestation PRIVATE mbedcrypto)
 
 # Qcbor
+set (QCBOR_EXTERNAL_INCLUDE_PATHS ${SP_DEV_KIT_INCLUDE_DIR})
 include(${TS_ROOT}/external/qcbor/qcbor.cmake)
 target_link_libraries(attestation PRIVATE qcbor)
 
 # t_cose
+set (TCOSE_EXTERNAL_INCLUDE_PATHS ${SP_DEV_KIT_INCLUDE_DIR})
 include(${TS_ROOT}/external/t_cose/t_cose.cmake)
 target_link_libraries(attestation PRIVATE t_cose)
 
@@ -117,19 +120,14 @@ target_include_directories(attestation PRIVATE
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	target_compile_options(attestation PRIVATE
 		-fdiagnostics-show-option
-		-fpic
 		-gdwarf-2
 		-mstrict-align
 		-O0
-		-std=gnu99
+		-std=c99
 	)
 
 	# Options for GCC that control linking
 	target_link_options(attestation PRIVATE
-		-e __sp_entry
-		-fno-lto
-		-nostdlib
-		-pie
 		-zmax-page-size=4096
 	)
 	# Options directly for LD, these are not understood by GCC

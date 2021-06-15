@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2019-2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2019-2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -21,7 +21,7 @@ Compiler abstraction for GCC
 include_guard(DIRECTORY)
 
 if(NOT CROSS_COMPILE AND NOT DEFINED ENV{CROSS_COMPILE})
-	message(FATAL_ERROR "'CROSS_COMPILE' is not defined. Set if to the gcc pferix triplet, ie. cmake <..>-DCROSS_COMPILE=aarch64-elf-")
+	message(FATAL_ERROR "'CROSS_COMPILE' is not defined. Set it to the gcc pferix triplet, ie. cmake <..>-DCROSS_COMPILE=aarch64-elf-")
 endif()
 
 set(CROSS_COMPILE $ENV{CROSS_COMPILE} CACHE STRING "Prefix of the cross-compiler commands")
@@ -155,8 +155,8 @@ function(compiler_set_linker_script)
 	add_custom_target("${_MY_PARAMS_TARGET}_ld" DEPENDS "${_dst}")
 	add_dependencies("${_MY_PARAMS_TARGET}" "${_MY_PARAMS_TARGET}_ld")
 
-	group_add(NAME "${_MY_PARAMS_TARGET}_linker_script" TYPE CONFIG KEY "LINK_DEPENDS" VAL "${_dst}")
-	group_add(NAME "${_MY_PARAMS_TARGET}_linker_script" TYPE LDFLAG KEY "-Wl,--script" VAL "${_dst}")
+	target_link_options(${_MY_PARAMS_TARGET} PRIVATE "-Wl,--script")
+	set_target_properties(${_MY_PARAMS_TARGET} PROPERTIES LINK_DEPENDS "${_dst}")
 endfunction()
 
 #[===[.rst:
@@ -237,4 +237,47 @@ function(compiler_generate_stripped_elf)
 	if (MY_RES)
 		set(${MY_RES} $<TARGET_FILE_DIR:${MY_TARGET}>/${MY_NAME} PARENT_SCOPE)
 	endif()
+endfunction()
+
+#[===[.rst:
+.. cmake:command:: gcc_get_lib_location
+
+  .. code-block:: cmake
+
+    gcc_get_lib_location(TARGET foo NAME foo.stripped.elf RES var)
+
+  Query the location of a specific library part of the GCC binary release. Can
+  be used to find built in libraryes like libgcc.a when i.w. -nostdlib option
+  is used.
+
+  Inputs:
+
+  ``LIBRARY_NAME``
+    Name of the library to search for.
+
+  Outputs:
+
+  ``RES``
+    Name of variable to store the full path of the library.
+
+#]===]
+function(gcc_get_lib_location)
+	set(options)
+	set(oneValueArgs LIBRARY_NAME RES)
+	set(multiValueArgs)
+	cmake_parse_arguments(MY "${options}" "${oneValueArgs}"
+						"${multiValueArgs}" ${ARGN} )
+	execute_process(
+		COMMAND ${CMAKE_C_COMPILER} "--print-file-name=${MY_LIBRARY_NAME}"
+		OUTPUT_VARIABLE _RES
+		RESULT_VARIABLE _GCC_ERROR_CODE
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+
+	if(_GCC_ERROR_CODE GREATER 0)
+		message(WARNING "GCC (${CMAKE_C_COMPILER}) invocation failed, can not determine location of library ${MY_LIBRARY_NAME}.")
+		set(_RES "${LIBRARY_NAME}-NOTFOUND")
+	endif()
+
+	set(${MY_RES} ${_RES} PARENT_SCOPE)
 endfunction()

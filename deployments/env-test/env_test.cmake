@@ -44,5 +44,8 @@ add_components(
 #-------------------------------------------------------------------------------
 
 # Mbed TLS provides libmbedcrypto
+list(APPEND MBEDTLS_EXTRA_INCLUDES ${SP_DEV_KIT_INCLUDE_DIR})
+set(MBEDTLS_EXTRA_INCLUDES ${MBEDTLS_EXTRA_INCLUDES}
+	CACHE STRING "PSA ITS for Mbed TLS" FORCE)
 include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(env-test PRIVATE mbedcrypto)

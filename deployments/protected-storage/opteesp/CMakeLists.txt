@@ -65,19 +65,14 @@ target_include_directories(protected-storage PRIVATE
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	target_compile_options(protected-storage PRIVATE
 		-fdiagnostics-show-option
-		-fpic
 		-gdwarf-2
 		-mstrict-align
 		-O0
-		-std=gnu99
+		-std=c99
 	)
 
 	# Options for GCC that control linking
 	target_link_options(protected-storage PRIVATE
-		-e __sp_entry
-		-fno-lto
-		-nostdlib
-		-pie
 		-zmax-page-size=4096
 	)
 	# Options directly for LD, these are not understood by GCC
