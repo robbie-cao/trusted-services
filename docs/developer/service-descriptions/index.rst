@@ -5,6 +5,7 @@ Service Descriptions
     :maxdepth: 1
     :caption: Contents:
 
+    attest-service-description
     crypto-service-description
     secure-storage-service-description
 
