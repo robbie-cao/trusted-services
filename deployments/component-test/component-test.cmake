@@ -67,6 +67,7 @@ add_components(
 		"components/service/crypto/provider/mbedcrypto"
 		"components/service/crypto/provider/serializer/protobuf"
 		"components/service/crypto/provider/serializer/packed-c"
+		"components/service/crypto/provider/mbedcrypto/test"
 		"components/service/crypto/test/unit"
 		"components/service/crypto/test/service"
 		"components/service/crypto/test/service/protobuf"

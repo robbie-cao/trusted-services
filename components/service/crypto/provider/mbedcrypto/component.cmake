@@ -10,6 +10,7 @@ endif()
 
 target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/crypto_provider.c"
+	"${CMAKE_CURRENT_LIST_DIR}/crypto_context_pool.c"
 	)
 
 target_include_directories(${TGT}

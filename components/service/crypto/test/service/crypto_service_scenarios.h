@@ -26,6 +26,7 @@ public:
     void exportPublicKey();
     void generatePersistentKeys();
     void generateVolatileKeys();
+    void calculateHash();
 
 private:
     crypto_client *m_crypto_client;

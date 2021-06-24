@@ -119,3 +119,21 @@ psa_status_t psa_crypto_api_client::generate_random(uint8_t *output, size_t outp
 
     return psa_status;
 }
+
+psa_status_t psa_crypto_api_client::hash_setup(uint32_t *op_handle,
+							psa_algorithm_t alg)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t psa_crypto_api_client::hash_update(uint32_t op_handle,
+							const uint8_t *input, size_t input_length)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t psa_crypto_api_client::hash_finish(uint32_t op_handle,
+							uint8_t *hash, size_t hash_size, size_t *hash_length)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
