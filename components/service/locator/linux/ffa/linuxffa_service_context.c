@@ -15,7 +15,7 @@ static void linuxffa_service_context_relinquish(void *context);
 
 
 struct linuxffa_service_context *linuxffa_service_context_create(const char *dev_path,
-                                                                uint16_t partition_id)
+    uint16_t partition_id, uint16_t iface_id)
 {
     struct linuxffa_service_context *new_context =
         (struct linuxffa_service_context*)malloc(sizeof(struct linuxffa_service_context));
@@ -23,6 +23,7 @@ struct linuxffa_service_context *linuxffa_service_context_create(const char *dev
     if (new_context) {
         new_context->ffa_dev_path = dev_path;
         new_context->partition_id = partition_id;
+        new_context->iface_id = iface_id;
 
         new_context->service_context.context = new_context;
         new_context->service_context.open = linuxffa_service_context_open;
@@ -37,13 +38,15 @@ static rpc_session_handle linuxffa_service_context_open(void *context, struct rp
 {
     struct linuxffa_service_context *this_context = (struct linuxffa_service_context*)context;
     rpc_session_handle session_handle = NULL;
-    struct ffarpc_caller *ffarpc_caller = (struct ffarpc_caller*)malloc(sizeof(struct ffarpc_caller));
+    struct ffarpc_caller *ffarpc_caller =
+        (struct ffarpc_caller*)malloc(sizeof(struct ffarpc_caller));
 
     if (ffarpc_caller) {
 
         int status;
         *caller = ffarpc_caller_init(ffarpc_caller, this_context->ffa_dev_path);
-        status = ffarpc_caller_open(ffarpc_caller, this_context->partition_id, 0);
+        status = ffarpc_caller_open(ffarpc_caller,
+            this_context->partition_id, this_context->iface_id);
 
 		if (status == 0) {
             /* Successfully opened session */

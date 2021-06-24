@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -23,13 +23,15 @@ struct linuxffa_service_context
     struct service_context service_context;
     const char *ffa_dev_path;
     uint16_t partition_id;
+    uint16_t iface_id;
 };
 
 /*
  * Factory method to create a service context associated with theh specified
- * partition id.
+ * partition id and RPC interface instance.
  */
-struct linuxffa_service_context *linuxffa_service_context_create(const char *dev_path, uint16_t partition_id);
+struct linuxffa_service_context *linuxffa_service_context_create(const char *dev_path,
+    uint16_t partition_id, uint16_t iface_id);
 
 #ifdef __cplusplus
 }
