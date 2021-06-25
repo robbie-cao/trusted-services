@@ -26,6 +26,7 @@ add_components(
 		"components/config/ramstore/test"
 		"components/rpc/common/caller"
 		"components/rpc/common/interface"
+		"components/rpc/common/demux"
 		"components/rpc/common/test/protocol"
 		"components/rpc/direct"
 		"components/rpc/dummy"

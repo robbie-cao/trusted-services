@@ -10,6 +10,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <rpc_status.h>
+#include <protocols/rpc/common/packed-c/status.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -120,7 +121,14 @@ struct rpc_interface
 static inline rpc_status_t rpc_interface_receive(struct rpc_interface *iface,
 					  struct call_req *req)
 {
-	return iface->receive(iface, req);
+	rpc_status_t rpc_status = TS_RPC_ERROR_INTERFACE_DOES_NOT_EXIST;
+
+	if (iface) {
+
+		rpc_status = iface->receive(iface, req);
+	}
+
+	return rpc_status;
 }
 
 #ifdef __cplusplus

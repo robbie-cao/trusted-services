@@ -25,7 +25,8 @@ enum
     TS_RPC_ERROR_NOT_READY                          = -7,
     TS_RPC_ERROR_INVALID_TRANSACTION                = -8,
     TS_RPC_ERROR_INTERNAL                           = -9,
-    TS_RPC_ERROR_INVALID_PARAMETER                  = -10
+    TS_RPC_ERROR_INVALID_PARAMETER                  = -10,
+    TS_RPC_ERROR_INTERFACE_DOES_NOT_EXIST           = -11
 };
 
 #endif /* PROTOCOLS_RPC_COMMON_STATUS_H */
