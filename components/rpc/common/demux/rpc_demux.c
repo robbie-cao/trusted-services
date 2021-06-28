@@ -16,7 +16,7 @@ static rpc_status_t receive(struct rpc_interface *rpc_iface, struct call_req *re
 
 	unsigned int iface_id = call_req_get_interface_id(req);
 
-	if ((iface_id < RPC_DEMUX_MAX_OUTPUTS) && context->outputs[iface_id]) {
+	if (iface_id < RPC_DEMUX_MAX_OUTPUTS) {
 
 		rpc_status = rpc_interface_receive(context->outputs[iface_id], req);
 	}
