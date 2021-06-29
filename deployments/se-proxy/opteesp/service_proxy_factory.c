@@ -8,7 +8,7 @@
 #include <rpc/common/endpoint/rpc_interface.h>
 #include <service/attestation/provider/attest_provider.h>
 #include <service/attestation/provider/serializer/packed-c/packedc_attest_provider_serializer.h>
-#include <service/crypto/provider/mbedcrypto/crypto_provider.h>
+#include <service/crypto/provider/crypto_provider.h>
 #include <service/crypto/provider/serializer/protobuf/pb_crypto_provider_serializer.h>
 #include <service/crypto/provider/serializer/packed-c/packedc_crypto_provider_serializer.h>
 #include <components/service/secure_storage/frontend/secure_storage_provider/secure_storage_provider.h>
@@ -20,6 +20,7 @@
 #include <service/attestation/claims/sources/null_lifecycle/null_lifecycle_claim_source.h>
 #include <service/attestation/claims/sources/instance_id/instance_id_claim_source.h>
 #include <service/secure_storage/backend/secure_flash_store/secure_flash_store.h>
+#include <service/crypto/backend/mbedcrypto/mbedcrypto_backend.h>
 
 
 /* A shared storage backend - should be removed when proxy backends are added */
@@ -70,18 +71,21 @@ struct rpc_interface *attest_proxy_create(void)
 
 struct rpc_interface *crypto_proxy_create(void)
 {
-	struct rpc_interface *crypto_iface;
+	struct rpc_interface *crypto_iface = NULL;
 
 	/* Static objects for proxy instance */
-	static struct mbed_crypto_provider crypto_provider;
+	static struct crypto_provider crypto_provider;
 
-	crypto_iface = mbed_crypto_provider_init(&crypto_provider, shared_storage_backend, 0);
+	if (mbedcrypto_backend_init(shared_storage_backend, 0) == PSA_SUCCESS) {
 
-	mbed_crypto_provider_register_serializer(&crypto_provider,
+		crypto_iface = crypto_provider_init(&crypto_provider);
+
+		crypto_provider_register_serializer(&crypto_provider,
 					TS_RPC_ENCODING_PROTOBUF, pb_crypto_provider_serializer_instance());
 
-	mbed_crypto_provider_register_serializer(&crypto_provider,
+		crypto_provider_register_serializer(&crypto_provider,
 					TS_RPC_ENCODING_PACKED_C, packedc_crypto_provider_serializer_instance());
+	}
 
 	return crypto_iface;
 }

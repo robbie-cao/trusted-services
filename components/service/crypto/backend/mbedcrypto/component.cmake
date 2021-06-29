@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -9,13 +9,7 @@ if (NOT DEFINED TGT)
 endif()
 
 target_sources(${TGT} PRIVATE
-	"${CMAKE_CURRENT_LIST_DIR}/crypto_provider.c"
-	"${CMAKE_CURRENT_LIST_DIR}/crypto_context_pool.c"
-	)
-
-target_include_directories(${TGT}
-	 PRIVATE
-		"${CMAKE_CURRENT_LIST_DIR}"
+	"${CMAKE_CURRENT_LIST_DIR}/mbedcrypto_backend.c"
 	)
 
 # Force use of the mbed crypto configuration required by the crypto service

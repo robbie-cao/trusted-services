@@ -5,7 +5,7 @@
  */
 #include <mbedtls/entropy.h>
 #include <mbedtls/entropy_poll.h>
-#include <service/crypto/provider/mbedcrypto/trng_adapter/trng_adapter.h>
+#include <service/crypto/backend/mbedcrypto/trng_adapter/trng_adapter.h>
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <errno.h>

@@ -57,7 +57,7 @@ add_components(TARGET "se-proxy"
 		"components/service/common/include"
 		"components/service/common/serializer/protobuf"
 		"components/service/common/provider"
-		"components/service/crypto/provider/mbedcrypto"
+		"components/service/crypto/provider"
 		"components/service/crypto/provider/serializer/protobuf"
 		"components/service/crypto/provider/serializer/packed-c"
 		"components/service/secure_storage/include"
@@ -80,7 +80,8 @@ add_components(TARGET "se-proxy"
 		"components/service/secure_storage/backend/secure_flash_store"
 		"components/service/secure_storage/backend/secure_flash_store/flash_fs"
 		"components/service/secure_storage/backend/secure_flash_store/flash"
-		"components/service/crypto/provider/mbedcrypto/trng_adapter/platform"
+		"components/service/crypto/backend/mbedcrypto"
+		"components/service/crypto/backend/mbedcrypto/trng_adapter/platform"
 )
 
 target_sources(se-proxy PRIVATE

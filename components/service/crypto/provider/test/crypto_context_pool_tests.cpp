@@ -5,7 +5,7 @@
  */
 
 #include <stdlib.h>
-#include <service/crypto/provider/mbedcrypto/crypto_context_pool.h>
+#include <service/crypto/provider/crypto_context_pool.h>
 #include <CppUTest/TestHarness.h>
 
 /*

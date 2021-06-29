@@ -6,9 +6,10 @@
 
 #include <rpc/ffarpc/endpoint/ffarpc_call_ep.h>
 #include <service/secure_storage/factory/storage_factory.h>
-#include <service/crypto/provider/mbedcrypto/crypto_provider.h>
+#include <service/crypto/provider/crypto_provider.h>
 #include <service/crypto/provider/serializer/protobuf/pb_crypto_provider_serializer.h>
 #include <service/crypto/provider/serializer/packed-c/packedc_crypto_provider_serializer.h>
+#include <service/crypto/backend/mbedcrypto/mbedcrypto_backend.h>
 #include <protocols/rpc/common/packed-c/status.h>
 #include <config/ramstore/config_ramstore.h>
 #include <config/loader/sp/sp_config_loader.h>
@@ -26,7 +27,7 @@ static int sp_init(uint16_t *own_sp_id);
 
 void __noreturn sp_main(struct ffa_init_info *init_info)
 {
-	struct mbed_crypto_provider crypto_provider;
+	struct crypto_provider crypto_provider;
 	struct ffa_call_ep ffarpc_call_ep;
 	struct rpc_interface *crypto_iface;
 	struct sp_msg req_msg = { 0 };
@@ -44,13 +45,18 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	if (!storage_backend) goto fatal_error;
 
 	/* Initialize the crypto service */
-	crypto_iface = mbed_crypto_provider_init(&crypto_provider, storage_backend, 0);
+	crypto_iface = NULL;
 
-	mbed_crypto_provider_register_serializer(&crypto_provider,
+    if (mbedcrypto_backend_init(storage_backend, 0) == PSA_SUCCESS) {
+
+        crypto_iface = crypto_provider_init(&crypto_provider);
+
+		crypto_provider_register_serializer(&crypto_provider,
                     TS_RPC_ENCODING_PROTOBUF, pb_crypto_provider_serializer_instance());
 
-	mbed_crypto_provider_register_serializer(&crypto_provider,
+		crypto_provider_register_serializer(&crypto_provider,
                     TS_RPC_ENCODING_PACKED_C, packedc_crypto_provider_serializer_instance());
+	}
 
 	ffa_call_ep_init(&ffarpc_call_ep, crypto_iface);
 

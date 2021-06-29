@@ -71,7 +71,7 @@ add_components(
 	TARGET "component-test"
 	BASE_DIR ${TS_ROOT}
     COMPONENTS
-        "components/service/crypto/provider/mbedcrypto/trng_adapter/linux"
+        "components/service/crypto/backend/mbedcrypto/trng_adapter/linux"
 )
 
 #-------------------------------------------------------------------------------

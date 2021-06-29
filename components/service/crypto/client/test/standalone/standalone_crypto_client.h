@@ -10,7 +10,7 @@
 #include <service/crypto/client/test/test_crypto_client.h>
 #include <rpc/direct/direct_caller.h>
 #include <rpc/dummy/dummy_caller.h>
-#include <service/crypto/provider/mbedcrypto/crypto_provider.h>
+#include <service/crypto/provider/crypto_provider.h>
 #include <service/secure_storage/frontend/secure_storage_provider/secure_storage_provider.h>
 #include <service/secure_storage/backend/secure_storage_client/secure_storage_client.h>
 
@@ -43,7 +43,7 @@ public:
 private:
     bool is_fault_supported(enum fault_code code) const;
 
-    struct mbed_crypto_provider m_crypto_provider;
+    struct crypto_provider m_crypto_provider;
     struct secure_storage_provider m_storage_provider;
     struct secure_storage_client m_storage_client;
     struct direct_caller m_crypto_caller;

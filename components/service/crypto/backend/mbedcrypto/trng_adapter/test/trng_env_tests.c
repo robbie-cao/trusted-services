@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <service/test_runner/provider/backend/simple_c/simple_c_test_runner.h>
-#include <service/crypto/provider/mbedcrypto/trng_adapter/trng_adapter.h>
+#include <service/crypto/backend/mbedcrypto/trng_adapter/trng_adapter.h>
 #include <string.h>
 #include <stddef.h>
 

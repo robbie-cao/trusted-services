@@ -5,7 +5,7 @@
  */
 #include <mbedtls/entropy.h>
 #include <platform/interface/trng.h>
-#include <service/crypto/provider/mbedcrypto/trng_adapter/trng_adapter.h>
+#include <service/crypto/backend/mbedcrypto/trng_adapter/trng_adapter.h>
 #include <config/interface/config_store.h>
 #include <psa/error.h>
 #include <stddef.h>

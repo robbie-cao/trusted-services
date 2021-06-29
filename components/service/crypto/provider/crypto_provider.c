@@ -6,9 +6,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <protocols/service/crypto/packed-c/opcodes.h>
-#include <service/crypto/provider/mbedcrypto/crypto_provider.h>
-#include <service/crypto/provider/mbedcrypto/trng_adapter/trng_adapter.h>
-#include <service/secure_storage/frontend/psa/its/its_frontend.h>
+#include <service/crypto/provider/crypto_provider.h>
 #include <protocols/rpc/common/packed-c/status.h>
 #include <psa/crypto.h>
 
@@ -46,46 +44,26 @@ static const struct service_handler handler_table[] = {
 	{TS_CRYPTO_OPCODE_HASH_FINISH,          hash_finish_handler}
 };
 
-struct rpc_interface *mbed_crypto_provider_init(struct mbed_crypto_provider *context,
-										struct storage_backend *storage_backend,
-										int trng_instance)
+struct rpc_interface *crypto_provider_init(struct crypto_provider *context)
 {
-	struct rpc_interface *rpc_interface = NULL;
-
 	crypto_context_pool_init(&context->context_pool);
-	trng_adapter_init(trng_instance);
 
-	/*
-	 * A storage provider is required for persistent key storage.  As this
-	 * is a mandatory feature of the crypto service, insist on a storage
-	 * provider being available.
-	 */
-	if (context && storage_backend) {
+	for (size_t encoding = 0; encoding < TS_RPC_ENCODING_LIMIT; ++encoding)
+		context->serializers[encoding] = NULL;
 
-		for (size_t encoding = 0; encoding < TS_RPC_ENCODING_LIMIT; ++encoding)
-			context->serializers[encoding] = NULL;
-
-		service_provider_init(&context->base_provider, context,
+	service_provider_init(&context->base_provider, context,
 					handler_table, sizeof(handler_table)/sizeof(struct service_handler));
 
-		if ((psa_its_frontend_init(storage_backend) == PSA_SUCCESS) &&
-			(psa_crypto_init() == PSA_SUCCESS)) {
-
-			rpc_interface = service_provider_get_rpc_interface(&context->base_provider);
-		}
-	}
-
-	return rpc_interface;
+	return service_provider_get_rpc_interface(&context->base_provider);
 }
 
-void mbed_crypto_provider_deinit(struct mbed_crypto_provider *context)
+void crypto_provider_deinit(struct crypto_provider *context)
 {
-	trng_adapter_deinit();
 	crypto_context_pool_deinit(&context->context_pool);
 }
 
-void mbed_crypto_provider_register_serializer(struct mbed_crypto_provider *context,
-						unsigned int encoding, const struct crypto_provider_serializer *serializer)
+void crypto_provider_register_serializer(struct crypto_provider *context,
+				unsigned int encoding, const struct crypto_provider_serializer *serializer)
 {
 	if (encoding < TS_RPC_ENCODING_LIMIT)
 		context->serializers[encoding] = serializer;
@@ -94,7 +72,7 @@ void mbed_crypto_provider_register_serializer(struct mbed_crypto_provider *conte
 static const struct crypto_provider_serializer* get_crypto_serializer(void *context,
 														const struct call_req *req)
 {
-	struct mbed_crypto_provider *this_instance = (struct mbed_crypto_provider*)context;
+	struct crypto_provider *this_instance = (struct crypto_provider*)context;
 	const struct crypto_provider_serializer* serializer = NULL;
 	unsigned int encoding = call_req_get_encoding(req);
 
@@ -593,7 +571,7 @@ static rpc_status_t hash_setup_handler(void *context, struct call_req* req)
 	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
 	struct call_param_buf *req_buf = call_req_get_req_buf(req);
 	const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
-	struct mbed_crypto_provider *this_instance = (struct mbed_crypto_provider*)context;
+	struct crypto_provider *this_instance = (struct crypto_provider*)context;
 
 	psa_algorithm_t alg;
 
@@ -643,7 +621,7 @@ static rpc_status_t hash_update_handler(void *context, struct call_req* req)
 	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
 	struct call_param_buf *req_buf = call_req_get_req_buf(req);
 	const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
-	struct mbed_crypto_provider *this_instance = (struct mbed_crypto_provider*)context;
+	struct crypto_provider *this_instance = (struct crypto_provider*)context;
 
 	uint32_t op_handle;
 	const uint8_t *data;
@@ -678,7 +656,7 @@ static rpc_status_t hash_finish_handler(void *context, struct call_req* req)
 	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
 	struct call_param_buf *req_buf = call_req_get_req_buf(req);
 	const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
-	struct mbed_crypto_provider *this_instance = (struct mbed_crypto_provider*)context;
+	struct crypto_provider *this_instance = (struct crypto_provider*)context;
 
 	uint32_t op_handle;
 
