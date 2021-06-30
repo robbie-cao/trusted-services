@@ -9,5 +9,5 @@ if (NOT DEFINED TGT)
 endif()
 
 target_sources(${TGT} PRIVATE
-	"${CMAKE_CURRENT_LIST_DIR}/attest_key_mngr.c"
+	"${CMAKE_CURRENT_LIST_DIR}/local_attest_report.c"
 	)

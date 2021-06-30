@@ -21,6 +21,7 @@
 #include <service/attestation/claims/sources/instance_id/instance_id_claim_source.h>
 #include <service/secure_storage/backend/secure_flash_store/secure_flash_store.h>
 #include <service/crypto/backend/mbedcrypto/mbedcrypto_backend.h>
+#include <service/attestation/key_mngr/local/local_attest_key_mngr.h>
 
 
 /* A shared storage backend - should be removed when proxy backends are added */
@@ -61,7 +62,8 @@ struct rpc_interface *attest_proxy_create(void)
 	claims_register_add_claim_source(CLAIM_CATEGORY_DEVICE, claim_source);
 
 	/* Initialize the service provider */
-	attest_iface = attest_provider_init(&attest_provider, ATTEST_KEY_MNGR_VOLATILE_IAK);
+	local_attest_key_mngr_init(LOCAL_ATTEST_KEY_MNGR_VOLATILE_IAK);
+	attest_iface = attest_provider_init(&attest_provider);
 
 	attest_provider_register_serializer(&attest_provider,
 		TS_RPC_ENCODING_PACKED_C, packedc_attest_provider_serializer_instance());

@@ -16,6 +16,7 @@
 #include <service/attestation/claims/sources/boot_seed_generator/boot_seed_generator.h>
 #include <service/attestation/claims/sources/null_lifecycle/null_lifecycle_claim_source.h>
 #include <service/attestation/claims/sources/instance_id/instance_id_claim_source.h>
+#include <service/attestation/key_mngr/local/local_attest_key_mngr.h>
 #include <ffa_api.h>
 #include <sp_api.h>
 #include <sp_rxtx.h>
@@ -80,7 +81,8 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	 */
  	psa_crypto_init(); /* temporary */
 
-	attest_iface = attest_provider_init(&attest_provider, ATTEST_KEY_MNGR_VOLATILE_IAK);
+	local_attest_key_mngr_init(LOCAL_ATTEST_KEY_MNGR_VOLATILE_IAK);
+	attest_iface = attest_provider_init(&attest_provider);
 
 	attest_provider_register_serializer(&attest_provider,
 		TS_RPC_ENCODING_PACKED_C, packedc_attest_provider_serializer_instance());

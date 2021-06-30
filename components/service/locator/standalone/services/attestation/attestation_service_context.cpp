@@ -9,6 +9,7 @@
 #include <service/attestation/claims/claims_register.h>
 #include <service/attestation/claims/sources/event_log/event_log_claim_source.h>
 #include <service/attestation/claims/sources/event_log/mock/mock_event_log.h>
+#include <service/attestation/key_mngr/local/local_attest_key_mngr.h>
 #include <config/ramstore/config_ramstore.h>
 #include <config/interface/config_store.h>
 #include <config/interface/config_blob.h>
@@ -80,8 +81,8 @@ void attestation_service_context::do_init()
 	claims_register_add_claim_source(CLAIM_CATEGORY_DEVICE, claim_source);
 
 	/* Initialize the attestation service provider */
-	struct rpc_interface *attest_ep =
-		attest_provider_init(&m_attest_provider, ATTEST_KEY_MNGR_VOLATILE_IAK);
+	local_attest_key_mngr_init(LOCAL_ATTEST_KEY_MNGR_VOLATILE_IAK);
+	struct rpc_interface *attest_ep = attest_provider_init(&m_attest_provider);
 
 	attest_provider_register_serializer(&m_attest_provider,
 		TS_RPC_ENCODING_PACKED_C, packedc_attest_provider_serializer_instance());
@@ -94,4 +95,5 @@ void attestation_service_context::do_deinit()
 	attest_provider_deinit(&m_attest_provider);
 	claims_register_deinit();
 	config_ramstore_deinit();
+	local_attest_key_mngr_deinit();
 }

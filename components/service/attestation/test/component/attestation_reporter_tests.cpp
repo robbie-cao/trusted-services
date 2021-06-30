@@ -18,6 +18,7 @@
 #include <service/attestation/reporter/attest_report.h>
 #include <service/attestation/reporter/dump/raw/raw_report_dump.h>
 #include <service/attestation/key_mngr/attest_key_mngr.h>
+#include <service/attestation/key_mngr/local/local_attest_key_mngr.h>
 #include <protocols/service/attestation/packed-c/eat.h>
 #include <CppUTest/TestHarness.h>
 
@@ -32,7 +33,7 @@ TEST_GROUP(AttestationReporterTests)
         report_len;
 
         psa_crypto_init();
-        attest_key_mngr_init(ATTEST_KEY_MNGR_VOLATILE_IAK);
+        local_attest_key_mngr_init(LOCAL_ATTEST_KEY_MNGR_VOLATILE_IAK);
 
         /* The set of registered claim_sources determines the content
          * of a generated attestation source.  The set and type of
@@ -62,7 +63,7 @@ TEST_GROUP(AttestationReporterTests)
     {
         attest_report_destroy(report);
         claims_register_deinit();
-        attest_key_mngr_deinit();
+        local_attest_key_mngr_deinit();
     }
 
     struct event_log_claim_source event_log_claim_source;
@@ -90,7 +91,7 @@ TEST(AttestationReporterTests, createReport)
     LONGS_EQUAL(PSA_SUCCESS, status);
 
     /* Create a report */
-    status = attest_report_create(iak_handle, client_id,
+    status = attest_report_create(client_id,
         auth_challenge, sizeof(auth_challenge),
         &report, &report_len);
 

@@ -5,10 +5,10 @@
  */
 
 /**
- * An attestation reporter that creates PSA compliant attestation
- * reports.  The report content is specified by the PSA Attestation
- * specification.  Reports are serialized using CBOR and signed using
- * COSE.
+ * An attestation reporter that creates attestation reports using claims
+ * collected from claim sources registered with the local claims regsiter.
+ * Reports are serialized using CBOR and signed using COSE in-line with
+ * EAT conventions.
  */
 
 #include <stdlib.h>
@@ -17,8 +17,9 @@
 #include <psa/initial_attestation.h>
 #include <service/attestation/reporter/attest_report.h>
 #include <service/attestation/claims/claims_register.h>
-#include "eat_serializer.h"
-#include "eat_signer.h"
+#include <service/attestation/reporter/eat/eat_serializer.h>
+#include <service/attestation/reporter/eat/eat_signer.h>
+#include <service/attestation/key_mngr/attest_key_mngr.h>
 
 /* Local defines */
 #define MAX_DEVICE_CLAIMS       (50)
@@ -30,18 +31,22 @@ static void add_client_id_claim(struct claim_vector *v, int32_t client_id);
 static void add_no_sw_claim(struct claim_vector *v);
 
 
-int attest_report_create(psa_key_handle_t key_handle, int32_t client_id,
+int attest_report_create(int32_t client_id,
     const uint8_t *auth_challenge_data, size_t auth_challenge_len,
     const uint8_t **report, size_t *report_len)
 {
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     struct claim_vector device_claims;
     struct claim_vector sw_claims;
+    psa_key_handle_t key_handle;
 
     *report = NULL;
     *report_len = 0;
 
     if (!validate_challenge(auth_challenge_len)) return PSA_ERROR_INVALID_ARGUMENT;
+
+    status = attest_key_mngr_get_iak_handle(&key_handle);
+    if (status != PSA_SUCCESS) return status;
 
     claim_vector_init(&device_claims, MAX_DEVICE_CLAIMS);
     claim_vector_init(&sw_claims, MAX_SW_CLAIMS);

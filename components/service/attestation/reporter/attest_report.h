@@ -10,7 +10,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <psa/crypto.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,12 +18,9 @@ extern "C" {
 /**
  * \brief Creates an attestation report
  *
- *  Using the view of the security state of the device provided by
- *  the claims_register, a signed attestation report is created.  On
- *  success, a buffer is allocated for the signed report.  The buffer
- *  must be freed by calling attest_report_destroy().
+ *  Common interface for creating an attestation report using the
+ *  backend reporter incuded in a deployment.
  *
- * \param[in] key_handle            Signing key handle
  * \param[in] client_id             The requesting client id
  * \param[in] auth_challenge_data   The auth challenge from the requester
  * \param[in] auth_challenge_len    The auth challenge from the requester
@@ -33,7 +29,7 @@ extern "C" {
  *
  * \return Operation status
  */
-int attest_report_create(psa_key_handle_t key_handle, int32_t client_id,
+int attest_report_create(int32_t client_id,
         const uint8_t *auth_challenge_data, size_t auth_challenge_len,
         const uint8_t **report, size_t *report_len);
 

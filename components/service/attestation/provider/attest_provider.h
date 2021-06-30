@@ -35,12 +35,10 @@ struct attest_provider
  * that should be associated with a suitable rpc endpoint.
  *
  * \param[in] context   The instance to initialize
- * \param[in] iak_id    The key ID for the IAK
  *
  * \return An rpc_interface or NULL on failure
  */
-struct rpc_interface *attest_provider_init(struct attest_provider *context,
-    psa_key_id_t iak_id);
+struct rpc_interface *attest_provider_init(struct attest_provider *context);
 
 /**
  * \brief Cleans up when the instance is no longer needed

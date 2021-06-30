@@ -6,12 +6,13 @@
 
 #include <stdbool.h>
 #include <psa/crypto.h>
-#include "attest_key_mngr.h"
+#include <service/attestation/key_mngr/attest_key_mngr.h>
+#include "local_attest_key_mngr.h"
 
 /**
- * The singleton attest_key_mngr instance.
+ * The singleton local_attest_key_mngr instance.
  */
-static struct attest_key_mngr
+static struct local_attest_key_mngr
 {
     bool is_iak_open;
     psa_key_id_t iak_id;
@@ -65,14 +66,14 @@ static psa_status_t generate_iak(psa_key_id_t key_id, psa_key_handle_t *iak_hand
     return status;
 }
 
-void attest_key_mngr_init(psa_key_id_t iak_id)
+void local_attest_key_mngr_init(psa_key_id_t iak_id)
 {
     instance.is_iak_open = false;
     instance.iak_id = iak_id;
     instance.iak_handle = -1;
 }
 
-void attest_key_mngr_deinit(void)
+void local_attest_key_mngr_deinit(void)
 {
     if (instance.is_iak_open && !instance.iak_id) {
 

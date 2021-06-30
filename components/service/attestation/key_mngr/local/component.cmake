@@ -9,7 +9,5 @@ if (NOT DEFINED TGT)
 endif()
 
 target_sources(${TGT} PRIVATE
-	"${CMAKE_CURRENT_LIST_DIR}/psa_attest_report.c"
-	"${CMAKE_CURRENT_LIST_DIR}/eat_serializer.c"
-	"${CMAKE_CURRENT_LIST_DIR}/eat_signer.c"
+	"${CMAKE_CURRENT_LIST_DIR}/local_attest_key_mngr.c"
 	)
