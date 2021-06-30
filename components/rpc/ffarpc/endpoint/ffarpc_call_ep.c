@@ -36,6 +36,38 @@ static void set_mgmt_resp_args(uint32_t *resp_args, uint32_t ifaceid_opcode,
 	set_resp_args(resp_args, ifaceid_opcode, 0, rpc_status, 0);
 }
 
+static int find_free_shm(struct ffa_call_ep *call_ep)
+{
+	int i;
+
+	if (!call_ep)
+		return -1;
+
+	for (i = 0; i < NUM_MAX_SESS; i++)
+		if (!call_ep->shmem_buf[i]) {
+			DMSG("shm slot %u allocated for %p", i, call_ep);
+			return i;
+		}
+
+	EMSG("shm slot allocation failed");
+	return -1;
+}
+
+static int find_shm(struct ffa_call_ep *call_ep, uint16_t source_id)
+{
+	int i;
+
+	if (!call_ep)
+		return -1;
+
+	for (i = 0; i < NUM_MAX_SESS; i++)
+		if (call_ep->src_id[i] == source_id)
+			return i;
+
+	EMSG("shm not found for source 0x%x", source_id);
+	return -1;
+}
+
 static void init_shmem_buf(struct ffa_call_ep *call_ep, uint16_t source_id,
 			   const uint32_t *req_args, uint32_t *resp_args)
 {
@@ -47,6 +79,12 @@ static void init_shmem_buf(struct ffa_call_ep *call_ep, uint16_t source_id,
 	uint32_t out_region_count = 1;
 	uint64_t handle = 0;
 	rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
+	int idx = find_free_shm(call_ep);
+
+	if (idx < 0) {
+		EMSG("shm init error");
+		goto out;
+	}
 
 	desc.sender_id = source_id;
 	desc.memory_type = sp_memory_type_not_specified;
@@ -60,66 +98,85 @@ static void init_shmem_buf(struct ffa_call_ep *call_ep, uint16_t source_id,
 				    &out_region_count, handle);
 
 	if (sp_res == SP_RESULT_OK) {
-		call_ep->shmem_buf = region.address;
-		call_ep->shmem_buf_handle = handle;
-		call_ep->shmem_buf_size = (size_t)req_args[FFA_CALL_ARGS_SHARE_MEM_SIZE];
+		call_ep->shmem_buf[idx] = region.address;
+		call_ep->shmem_buf_handle[idx] = handle;
+		call_ep->shmem_buf_size[idx] = (size_t)req_args[FFA_CALL_ARGS_SHARE_MEM_SIZE];
+		call_ep->src_id[idx] = source_id;
 		rpc_status = TS_RPC_CALL_ACCEPTED;
 	} else {
 		EMSG("memory retrieve error: %d", sp_res);
 	}
 
+out:
 	set_mgmt_resp_args(resp_args, req_args[FFA_CALL_ARGS_IFACE_ID_OPCODE], rpc_status);
 }
 
-static void deinit_shmem_buf(struct ffa_call_ep *call_ep, const uint32_t *req_args,
-			     uint32_t *resp_args)
+static void deinit_shmem_buf(struct ffa_call_ep *call_ep, uint16_t source_id,
+			     const uint32_t *req_args, uint32_t *resp_args)
 {
 	sp_result sp_res = SP_RESULT_INTERNAL_ERROR;
 	rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
-	uint64_t handle = call_ep->shmem_buf_handle;
+	uint64_t handle;
 	uint16_t endpoints[1] = { own_id };
 	uint32_t endpoint_cnt = 1;
 	struct sp_memory_transaction_flags flags = {
 		.zero_memory = false,
 		.operation_time_slicing = false,
 	};
+	int idx = find_shm(call_ep, source_id);
+
+	if (idx < 0) {
+		EMSG("shm deinit error");
+		goto out;
+	}
+
+	handle = call_ep->shmem_buf_handle[idx];
 
 	sp_res = sp_memory_relinquish(handle, endpoints, endpoint_cnt, &flags);
 	if (sp_res == SP_RESULT_OK) {
-		call_ep->shmem_buf = NULL;
-		call_ep->shmem_buf_handle = 0;
-		call_ep->shmem_buf_size = 0;
+		call_ep->shmem_buf[idx] = NULL;
+		call_ep->shmem_buf_handle[idx] = 0;
+		call_ep->shmem_buf_size[idx] = 0;
+		call_ep->src_id[idx] = 0xffff;
 		rpc_status = TS_RPC_CALL_ACCEPTED;
 	} else {
 		EMSG("memory relinquish error: %d", sp_res);
 	}
 
+out:
 	set_mgmt_resp_args(resp_args, req_args[FFA_CALL_ARGS_IFACE_ID_OPCODE], rpc_status);
 }
 
 static void handle_service_msg(struct ffa_call_ep *call_ep, uint16_t source_id,
 			       const uint32_t *req_args, uint32_t *resp_args)
 {
-	rpc_status_t rpc_status;
+	rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
 	struct call_req call_req;
 
 	uint32_t ifaceid_opcode = req_args[FFA_CALL_ARGS_IFACE_ID_OPCODE];
+	int idx = find_shm(call_ep, source_id);
+
+	if (idx < 0) {
+		EMSG("handle service msg error");
+		goto out;
+	}
 
 	call_req.caller_id = source_id;
 	call_req.interface_id = FFA_CALL_ARGS_EXTRACT_IFACE(ifaceid_opcode);
 	call_req.opcode = FFA_CALL_ARGS_EXTRACT_OPCODE(ifaceid_opcode);
 	call_req.encoding = req_args[FFA_CALL_ARGS_ENCODING];
 
-	call_req.req_buf.data = call_ep->shmem_buf;
+	call_req.req_buf.data = call_ep->shmem_buf[idx];
 	call_req.req_buf.data_len = req_args[FFA_CALL_ARGS_REQ_DATA_LEN];
-	call_req.req_buf.size = call_ep->shmem_buf_size;
+	call_req.req_buf.size = call_ep->shmem_buf_size[idx];
 
-	call_req.resp_buf.data = call_ep->shmem_buf;
+	call_req.resp_buf.data = call_ep->shmem_buf[idx];
 	call_req.resp_buf.data_len = 0;
-	call_req.resp_buf.size = call_ep->shmem_buf_size;
+	call_req.resp_buf.size = call_ep->shmem_buf_size[idx];
 
 	rpc_status = rpc_interface_receive(call_ep->iface, &call_req);
 
+out:
 	set_resp_args(resp_args,
 		      ifaceid_opcode,
 		      call_req.resp_buf.data_len,
@@ -133,18 +190,12 @@ static void handle_mgmt_msg(struct ffa_call_ep *call_ep, uint16_t source_id,
 	uint32_t ifaceid_opcode = req_args[FFA_CALL_ARGS_IFACE_ID_OPCODE];
 	uint32_t opcode = FFA_CALL_ARGS_EXTRACT_OPCODE(ifaceid_opcode);
 
-	/*
-	 * TODO: shouldn't this be used to keep track of multiple
-	 * shared buffers for different endpoints?
-	 */
-	(void)source_id;
-
 	switch (opcode) {
 	case FFA_CALL_OPCODE_SHARE_BUF:
 		init_shmem_buf(call_ep, source_id, req_args, resp_args);
 		break;
 	case FFA_CALL_OPCODE_UNSHARE_BUF:
-		deinit_shmem_buf(call_ep, req_args, resp_args);
+		deinit_shmem_buf(call_ep, source_id, req_args, resp_args);
 		break;
 	default:
 		set_mgmt_resp_args(resp_args, ifaceid_opcode, TS_RPC_ERROR_INVALID_OPCODE);
@@ -154,10 +205,16 @@ static void handle_mgmt_msg(struct ffa_call_ep *call_ep, uint16_t source_id,
 
 void ffa_call_ep_init(struct ffa_call_ep *ffa_call_ep, struct rpc_interface *iface)
 {
+	int i;
+
 	ffa_call_ep->iface = iface;
-	ffa_call_ep->shmem_buf_handle = 0;
-	ffa_call_ep->shmem_buf_size = 0;
-	ffa_call_ep->shmem_buf = NULL;
+
+	for (i = 0; i < NUM_MAX_SESS; i++) {
+		ffa_call_ep->shmem_buf_handle[i] = 0;
+		ffa_call_ep->shmem_buf_size[i] = 0;
+		ffa_call_ep->shmem_buf[i] = NULL;
+		ffa_call_ep->src_id[i] = 0xffff;
+	}
 }
 
 void ffa_call_ep_receive(struct ffa_call_ep *call_ep,
@@ -166,6 +223,7 @@ void ffa_call_ep_receive(struct ffa_call_ep *call_ep,
 {
 	const uint32_t *req_args = req_msg->args;
 	uint32_t *resp_args = resp_msg->args;
+	int idx;
 
 	uint16_t source_id = req_msg->source_id;
 	uint32_t ifaceid_opcode = req_args[FFA_CALL_ARGS_IFACE_ID_OPCODE];
@@ -179,9 +237,13 @@ void ffa_call_ep_receive(struct ffa_call_ep *call_ep,
 		 * rely on a buffer being shared from the requesting client.
 		 * If it hasn't been set-up, fail the request.
 		 */
-		if (call_ep->shmem_buf)
+		idx = find_shm(call_ep, source_id);
+
+		if (idx >= 0 && call_ep->shmem_buf[idx]) {
 			handle_service_msg(call_ep, source_id, req_args, resp_args);
-		else
+		} else {
+			EMSG("shared buffer not found or NULL");
 			set_mgmt_resp_args(resp_args, ifaceid_opcode, TS_RPC_ERROR_NOT_READY);
+		}
 	}
 }

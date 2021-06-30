@@ -16,11 +16,16 @@
 extern "C" {
 #endif
 
+#ifndef NUM_MAX_SESS
+#define NUM_MAX_SESS (16)
+#endif
+
 struct ffa_call_ep {
 	struct rpc_interface *iface;
-	unsigned long shmem_buf_handle;
-	volatile uint8_t *shmem_buf;
-	size_t shmem_buf_size;
+	unsigned long shmem_buf_handle[NUM_MAX_SESS];
+	volatile uint8_t *shmem_buf[NUM_MAX_SESS];
+	size_t shmem_buf_size[NUM_MAX_SESS];
+	uint16_t src_id[NUM_MAX_SESS];
  };
 
 void ffa_call_ep_init(struct ffa_call_ep *ffa_call_ep, struct rpc_interface *iface);
