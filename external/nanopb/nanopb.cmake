@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -209,11 +209,11 @@ function(protobuf_generate)
 	set(_nanopb_fake_file "nanopb_generate_ff_${PARAMS_TGT}")
 
 	if (NOT TARGET "${_nanopb_target}")
+		#Tell cmake the dependency (source) file is fake.
+		set_source_files_properties("${_nanopb_fake_file}" PROPERTIES SYMBOLIC "true")
 		#Create a custom target which depends on a "fake" file.
 		add_custom_target("${_nanopb_target}"
 							DEPENDS "${_nanopb_fake_file}")
-		#Tell cmake the dependency (source) file is fake.
-		set_source_files_properties("${_nanopb_fake_file}" PROPERTIES SYMBOLIC "true")
 		#Add a cutom command to the target to create output directory.
 		add_custom_command(OUTPUT "${_nanopb_fake_file}"
 			COMMAND ${CMAKE_COMMAND} -E make_directory ${_OUT_DIR_BASE}
@@ -225,8 +225,7 @@ function(protobuf_generate)
 	endif()
 
 	#Append a protobuf generator command to the nanopb_generate target.
-	add_custom_command(OUTPUT "${_nanopb_fake_file}" "${_OUT_C}" "${_OUT_H}"
-					   APPEND
+	add_custom_command(OUTPUT "${_OUT_C}" "${_OUT_H}"
 					   COMMAND ${Python3_EXECUTABLE} ${NANOPB_GENERATOR_PATH}
 						  -I ${PARAMS_BASE_DIR}
 						  -D ${_OUT_DIR_BASE}
