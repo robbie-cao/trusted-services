@@ -1,0 +1,68 @@
+diff --git a/api-tests/CMakeLists.txt b/api-tests/CMakeLists.txt
+index e0f1dbe..0d660ea 100644
+--- a/api-tests/CMakeLists.txt
++++ b/api-tests/CMakeLists.txt
+@@ -107,12 +107,14 @@ list(APPEND PSA_TOOLCHAIN_SUPPORT
+         GNUARM
+         ARMCLANG
+         HOST_GCC
+-	GCC_LINUX
++        GCC_LINUX
++        INHERIT
+ )
+ 
+ # list of supported CROSS_COMPILE toolchains
+ list(APPEND CROSS_COMPILE_TOOLCHAIN_SUPPORT
+         GNUARM
++        INHERIT
+ )
+ 
+ # list of suported CPU arch
+@@ -582,7 +584,7 @@ add_custom_target(
+ # Check for supported toolchain/s
+ if(${TOOLCHAIN} IN_LIST PSA_TOOLCHAIN_SUPPORT)
+ 	if (DEFINED CROSS_COMPILE)
+-	    if(${CROSS_COMPILE} AND NOT (${TOOLCHAIN} IN_LIST CROSS_COMPILE_TOOLCHAIN_SUPPORT))
++	    if(NOT (${TOOLCHAIN} IN_LIST CROSS_COMPILE_TOOLCHAIN_SUPPORT))
+                 message(FATAL_ERROR "[PSA] : Error: CROSS_COMPILE not supported for this toolchain, supported toolchain are : ${CROSS_COMPILE_TOOLCHAIN_SUPPORT}")
+             endif()
+ 	endif()
+diff --git a/api-tests/tools/cmake/compiler/INHERIT.cmake b/api-tests/tools/cmake/compiler/INHERIT.cmake
+new file mode 100644
+index 0000000..014d667
+--- /dev/null
++++ b/api-tests/tools/cmake/compiler/INHERIT.cmake
+@@ -0,0 +1,19 @@
++#/** @file
++# * Copyright (c) 2021, Arm Limited or its affiliates. All rights reserved.
++# * SPDX-License-Identifier : Apache-2.0
++# *
++# * Licensed under the Apache License, Version 2.0 (the "License");
++# * you may not use this file except in compliance with the License.
++# * You may obtain a copy of the License at
++# *
++# *  http://www.apache.org/licenses/LICENSE-2.0
++# *
++# * Unless required by applicable law or agreed to in writing, software
++# * distributed under the License is distributed on an "AS IS" BASIS,
++# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# * See the License for the specific language governing permissions and
++# * limitations under the License.
++#**/
++
++
++add_definitions(-DHOST_GCC_MISSING_CRYPTO_1_0=1)
+diff --git a/api-tests/tools/scripts/target_cfg/CMakeLists.txt b/api-tests/tools/scripts/target_cfg/CMakeLists.txt
+index 3210c5f..259eb9c 100644
+--- a/api-tests/tools/scripts/target_cfg/CMakeLists.txt
++++ b/api-tests/tools/scripts/target_cfg/CMakeLists.txt
+@@ -25,6 +25,9 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../../tools/cmake)
+ include("common/CMakeSettings")
+ include("common/Utils")
+ 
++# Causes toolchain to be re-evaluated
++unset(ENV{CC})
++
+ # Let the CMake look for C compiler
+ project(TargetConfigGen LANGUAGES C)
+ 
