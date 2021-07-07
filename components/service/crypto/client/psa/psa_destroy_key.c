@@ -18,6 +18,9 @@ psa_status_t psa_destroy_key(psa_key_id_t id)
     struct ts_crypto_destroy_key_in req_msg;
     size_t req_len = sizeof(struct ts_crypto_destroy_key_in);
 
+    if (psa_crypto_client_instance.init_status != PSA_SUCCESS)
+        return psa_crypto_client_instance.init_status;
+
     req_msg.id = id;
 
     rpc_call_handle call_handle;

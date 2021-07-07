@@ -24,6 +24,9 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
     size_t req_fixed_len = sizeof(struct ts_crypto_import_key_in);
     size_t req_len = req_fixed_len + tlv_required_space(data_length);
 
+    if (psa_crypto_client_instance.init_status != PSA_SUCCESS)
+        return psa_crypto_client_instance.init_status;
+
     psa_crypto_client_translate_key_attributes(&req_msg.attributes, attributes);
 
     struct tlv_record key_record;

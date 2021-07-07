@@ -25,6 +25,7 @@ struct psa_crypto_client
 {
     struct rpc_caller *caller;
     int rpc_status;
+    psa_status_t init_status;
 };
 
 extern struct psa_crypto_client psa_crypto_client_instance;

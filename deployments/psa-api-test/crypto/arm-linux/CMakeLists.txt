@@ -8,18 +8,17 @@ cmake_minimum_required(VERSION 3.16)
 include(../../../deployment.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
-#  The CMakeLists.txt for building the ts-arch-test deployment for linux-pc
+#  The CMakeLists.txt for building the psa-api-test deployment for arm-linux
 #
-#  Used for building and running psa arch tests in a native PC enviroment.
-#  Tests can be run by running the built executable called "ts-arch-test"
+#  Used for building and running psa arch tests on an Arm based Linux device
 #-------------------------------------------------------------------------------
-include(${TS_ROOT}/environments/linux-pc/env.cmake)
+include(${TS_ROOT}/environments/arm-linux/env.cmake)
 project(trusted-services LANGUAGES CXX C)
-add_executable(ts-arch-test)
-target_include_directories(ts-arch-test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
+add_executable(psa-api-test)
+target_include_directories(psa-api-test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 
 #-------------------------------------------------------------------------------
 #  Extend with components that are common across all deployments of
-#  ts-arch-test/crypto
+#  psa-api-test/crypto
 #-------------------------------------------------------------------------------
-include(../crypto-arch-test.cmake REQUIRED)
+include(../crypto-api-test.cmake REQUIRED)

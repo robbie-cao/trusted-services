@@ -7,19 +7,26 @@
 cmake_minimum_required(VERSION 3.16)
 include(../../../deployment.cmake REQUIRED)
 
+# Prevents symbols in the psa-api-test executable overriding symbols with
+# with same name in libts during dyanmic linking performed by the program
+# loader.  This avoid psa crypto api symbols provided by the mbedcrypto
+# library from being overridden by the same symbols in the psa-api-test
+# executable.
+set(CMAKE_C_VISIBILITY_PRESET hidden)
+
 #-------------------------------------------------------------------------------
-#  The CMakeLists.txt for building the ts-arch-test deployment for linux-pc
+#  The CMakeLists.txt for building the psa-api-test deployment for linux-pc
 #
 #  Used for building and running psa arch tests in a native PC enviroment.
-#  Tests can be run by running the built executable called "ts-arch-test"
+#  Tests can be run by running the built executable called "psa-api-test"
 #-------------------------------------------------------------------------------
 include(${TS_ROOT}/environments/linux-pc/env.cmake)
 project(trusted-services LANGUAGES CXX C)
-add_executable(ts-arch-test)
-target_include_directories(ts-arch-test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
+add_executable(psa-api-test)
+target_include_directories(psa-api-test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 
 #-------------------------------------------------------------------------------
 #  Extend with components that are common across all deployments of
-#  ts-arch-test/initial_attestation
+#  psa-api-test/crypto
 #-------------------------------------------------------------------------------
-include(../iat-arch-test.cmake REQUIRED)
+include(../crypto-api-test.cmake REQUIRED)

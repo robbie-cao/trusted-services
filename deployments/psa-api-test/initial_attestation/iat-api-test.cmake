@@ -9,12 +9,18 @@
 #  Define test suite to build.  Used by the psa_arch_tests external component
 #  to configure what test suite gets built.
 #-------------------------------------------------------------------------------
-set(TS_ARCH_TEST_SUITE CRYPTO CACHE STRING "Arch test suite")
+set(TS_ARCH_TEST_SUITE INITIAL_ATTESTATION CACHE STRING "Arch test suite")
 
 #-------------------------------------------------------------------------------
-#  Crypto specific components
+#  Add attestation specific components.
 #
 #-------------------------------------------------------------------------------
+add_components(
+	TARGET "psa-api-test"
+	BASE_DIR ${TS_ROOT}
+	COMPONENTS
+		"components/service/attestation/include"
+)
 
 # Configuration for mbedcrypto
 set(MBEDTLS_USER_CONFIG_FILE
@@ -23,13 +29,13 @@ set(MBEDTLS_USER_CONFIG_FILE
 
 # Mbed TLS provides libmbedcrypto
 include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
-target_link_libraries(ts-arch-test PRIVATE mbedcrypto)
+target_link_libraries(psa-api-test PRIVATE mbedcrypto)
 
 # Export psa crypto API
 list(APPEND PSA_ARCH_TESTS_EXTERNAL_INCLUDE_PATHS ${PSA_CRYPTO_API_INCLUDE})
 
 #-------------------------------------------------------------------------------
 #  Extend with components that are common across all deployments of
-#  ts-arch-test
+#  psa-api-test
 #-------------------------------------------------------------------------------
-include(../../ts-arch-test.cmake REQUIRED)
+include(../../psa-api-test.cmake REQUIRED)

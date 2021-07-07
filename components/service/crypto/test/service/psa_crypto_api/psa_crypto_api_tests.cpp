@@ -5,6 +5,7 @@
  */
 
 #include "psa_crypto_api_client.h"
+#include <psa/crypto.h>
 #include <service/crypto/client/psa/psa_crypto_client.h>
 #include <service/crypto/test/service/crypto_service_scenarios.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
@@ -34,6 +35,8 @@ TEST_GROUP(PsaCryptoApiTests)
         CHECK_TRUE(m_rpc_session_handle);
 
         psa_crypto_client_init(caller);
+        psa_crypto_init();
+
         m_scenarios = new crypto_service_scenarios(new psa_crypto_api_client());
     }
 

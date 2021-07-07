@@ -24,6 +24,9 @@ psa_status_t psa_sign_hash(psa_key_id_t id, psa_algorithm_t alg,
 
     *signature_length = 0;  /* For failure case */
 
+    if (psa_crypto_client_instance.init_status != PSA_SUCCESS)
+        return psa_crypto_client_instance.init_status;
+
     req_msg.id = id;
     req_msg.alg = alg;
 

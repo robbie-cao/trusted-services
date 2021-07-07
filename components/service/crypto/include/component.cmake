@@ -12,3 +12,6 @@ target_include_directories(${TGT}
 	 PRIVATE
 		"${CMAKE_CURRENT_LIST_DIR}"
 	)
+
+# Advertise this component as the provider of the PSA Crypto header files
+set(PSA_CRYPTO_API_INCLUDE "${CMAKE_CURRENT_LIST_DIR}" CACHE STRING "PSA Crypto API include path")

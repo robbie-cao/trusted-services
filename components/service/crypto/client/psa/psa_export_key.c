@@ -27,6 +27,9 @@ psa_status_t psa_export_key(psa_key_id_t id,
 
     *data_length = 0; /* For failure case */
 
+    if (psa_crypto_client_instance.init_status != PSA_SUCCESS)
+        return psa_crypto_client_instance.init_status;
+
     rpc_call_handle call_handle;
     uint8_t *req_buf;
 

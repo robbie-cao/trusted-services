@@ -24,6 +24,9 @@ psa_status_t psa_verify_hash(psa_key_id_t id, psa_algorithm_t alg,
     size_t req_len = req_fixed_len +
         tlv_required_space(hash_length) + tlv_required_space(signature_length);
 
+    if (psa_crypto_client_instance.init_status != PSA_SUCCESS)
+        return psa_crypto_client_instance.init_status;
+
     req_msg.id = id;
     req_msg.alg = alg;
 

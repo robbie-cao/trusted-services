@@ -18,6 +18,9 @@ psa_status_t psa_generate_random(uint8_t *output, size_t output_size)
     struct ts_crypto_generate_random_in req_msg;
     size_t req_len = sizeof(struct ts_crypto_generate_random_in);
 
+    if (psa_crypto_client_instance.init_status != PSA_SUCCESS)
+        return psa_crypto_client_instance.init_status;
+
     req_msg.size = output_size;
 
     rpc_call_handle call_handle;
