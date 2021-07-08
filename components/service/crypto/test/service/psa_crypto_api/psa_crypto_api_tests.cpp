@@ -94,6 +94,11 @@ TEST(PsaCryptoApiTests, asymEncryptDecryptWithSalt)
     m_scenarios->asymEncryptDecryptWithSalt();
 }
 
+TEST(PsaCryptoApiTests, calculateHash)
+{
+    m_scenarios->calculateHash();
+}
+
 TEST(PsaCryptoApiTests, generateRandomNumbers)
 {
     m_scenarios->generateRandomNumbers();

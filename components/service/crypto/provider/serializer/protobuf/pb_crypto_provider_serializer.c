@@ -232,6 +232,40 @@ static rpc_status_t serialize_import_key_resp(struct call_param_buf *resp_buf,
     return rpc_status;
 }
 
+/* Operation: copy_key */
+static rpc_status_t deserialize_copy_key_req(const struct call_param_buf *req_buf,
+                                    psa_key_attributes_t *attributes,
+                                    psa_key_id_t *source_id)
+{
+    return TS_RPC_ERROR_INVALID_REQ_BODY;
+}
+
+static rpc_status_t serialize_copy_key_resp(struct call_param_buf *resp_buf,
+                                    psa_key_id_t target_id)
+{
+    return TS_RPC_ERROR_INTERNAL;
+}
+
+/* Operation: purge_key */
+static rpc_status_t deserialize_purge_key_req(const struct call_param_buf *req_buf,
+                                    psa_key_id_t *id)
+{
+    return TS_RPC_ERROR_INVALID_REQ_BODY;
+}
+
+/* Operation: get_key_attributes */
+static rpc_status_t deserialize_get_key_attributes_req(const struct call_param_buf *req_buf,
+                                    psa_key_id_t *id)
+{
+    return TS_RPC_ERROR_INVALID_REQ_BODY;
+}
+
+static rpc_status_t serialize_get_key_attributes_resp(struct call_param_buf *resp_buf,
+                                    const psa_key_attributes_t *attributes)
+{
+    return TS_RPC_ERROR_INTERNAL;
+}
+
 /* Operation: sign_hash */
 static rpc_status_t deserialize_sign_hash_req(const struct call_param_buf *req_buf,
                             psa_key_id_t *id, psa_algorithm_t *alg,
@@ -515,6 +549,11 @@ const struct crypto_provider_serializer *pb_crypto_provider_serializer_instance(
         serialize_export_public_key_resp,
         deserialize_import_key_req,
         serialize_import_key_resp,
+        deserialize_copy_key_req,
+        serialize_copy_key_resp,
+        deserialize_purge_key_req,
+        deserialize_get_key_attributes_req,
+        serialize_get_key_attributes_resp,
         deserialize_sign_hash_req,
         serialize_sign_hash_resp,
         deserialize_verify_hash_req,

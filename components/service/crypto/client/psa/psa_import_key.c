@@ -27,7 +27,7 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
     if (psa_crypto_client_instance.init_status != PSA_SUCCESS)
         return psa_crypto_client_instance.init_status;
 
-    psa_crypto_client_translate_key_attributes(&req_msg.attributes, attributes);
+    psa_crypto_client_translate_key_attributes_to_proto(&req_msg.attributes, attributes);
 
     struct tlv_record key_record;
     key_record.tag = TS_CRYPTO_IMPORT_KEY_IN_TAG_DATA;

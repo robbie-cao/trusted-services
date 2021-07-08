@@ -25,6 +25,9 @@ static rpc_status_t generate_random_handler(void *context, struct call_req* req)
 static rpc_status_t hash_setup_handler(void *context, struct call_req* req);
 static rpc_status_t hash_update_handler(void *context, struct call_req* req);
 static rpc_status_t hash_finish_handler(void *context, struct call_req* req);
+static rpc_status_t copy_key_handler(void *context, struct call_req* req);
+static rpc_status_t purge_key_handler(void *context, struct call_req* req);
+static rpc_status_t get_key_attributes_handler(void *context, struct call_req* req);
 
 /* Handler mapping table for service */
 static const struct service_handler handler_table[] = {
@@ -41,7 +44,10 @@ static const struct service_handler handler_table[] = {
 	{TS_CRYPTO_OPCODE_GENERATE_RANDOM,      generate_random_handler},
 	{TS_CRYPTO_OPCODE_HASH_SETUP,           hash_setup_handler},
 	{TS_CRYPTO_OPCODE_HASH_UPDATE,          hash_update_handler},
-	{TS_CRYPTO_OPCODE_HASH_FINISH,          hash_finish_handler}
+	{TS_CRYPTO_OPCODE_HASH_FINISH,          hash_finish_handler},
+	{TS_CRYPTO_OPCODE_COPY_KEY,          	copy_key_handler},
+	{TS_CRYPTO_OPCODE_PURGE_KEY,          	purge_key_handler},
+	{TS_CRYPTO_OPCODE_GET_KEY_ATTRIBUTES, 	get_key_attributes_handler},
 };
 
 struct rpc_interface *crypto_provider_init(struct crypto_provider *context)
@@ -561,6 +567,88 @@ static rpc_status_t generate_random_handler(void *context, struct call_req* req)
 			/* Failed to allocate output buffer */
 			rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
 		}
+	}
+
+	return rpc_status;
+}
+
+static rpc_status_t copy_key_handler(void *context, struct call_req* req)
+{
+	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
+	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
+
+	psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+	psa_key_id_t source_key_id;
+
+	if (serializer)
+		rpc_status = serializer->deserialize_copy_key_req(req_buf, &attributes, &source_key_id);
+
+	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+
+		psa_key_id_t target_key_id;
+
+		psa_status_t psa_status = psa_copy_key(source_key_id, &attributes, &target_key_id);
+
+		if (psa_status == PSA_SUCCESS) {
+
+			struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+			rpc_status = serializer->serialize_copy_key_resp(resp_buf, target_key_id);
+		}
+
+		call_req_set_opstatus(req, psa_status);
+	}
+
+	psa_reset_key_attributes(&attributes);
+
+	return rpc_status;
+}
+
+static rpc_status_t purge_key_handler(void *context, struct call_req* req)
+{
+	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
+	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
+
+	psa_key_id_t id;
+
+	if (serializer)
+		rpc_status = serializer->deserialize_purge_key_req(req_buf, &id);
+
+	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+
+		psa_status_t psa_status = psa_purge_key(id);
+		call_req_set_opstatus(req, psa_status);
+	}
+
+	return rpc_status;
+}
+
+static rpc_status_t get_key_attributes_handler(void *context, struct call_req* req)
+{
+	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
+	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
+
+	psa_key_id_t id;
+
+	if (serializer)
+		rpc_status = serializer->deserialize_get_key_attributes_req(req_buf, &id);
+
+	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+
+		psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+		psa_status_t psa_status = psa_get_key_attributes(id, &attributes);
+
+		if (psa_status == PSA_SUCCESS) {
+
+			struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+			rpc_status = serializer->serialize_get_key_attributes_resp(resp_buf, &attributes);
+		}
+
+		psa_reset_key_attributes(&attributes);
+		call_req_set_opstatus(req, psa_status);
 	}
 
 	return rpc_status;

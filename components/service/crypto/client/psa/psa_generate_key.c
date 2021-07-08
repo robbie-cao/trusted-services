@@ -24,7 +24,7 @@ psa_status_t psa_generate_key(const psa_key_attributes_t *attributes, psa_key_id
     if (psa_crypto_client_instance.init_status != PSA_SUCCESS)
         return psa_crypto_client_instance.init_status;
 
-    psa_crypto_client_translate_key_attributes(&req_msg.attributes, attributes);
+    psa_crypto_client_translate_key_attributes_to_proto(&req_msg.attributes, attributes);
 
     rpc_call_handle call_handle;
     uint8_t *req_buf;

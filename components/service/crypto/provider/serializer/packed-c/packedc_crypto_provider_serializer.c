@@ -17,6 +17,9 @@
 #include <protocols/service/crypto/packed-c/generate_key.h>
 #include <protocols/service/crypto/packed-c/generate_random.h>
 #include <protocols/service/crypto/packed-c/import_key.h>
+#include <protocols/service/crypto/packed-c/copy_key.h>
+#include <protocols/service/crypto/packed-c/purge_key.h>
+#include <protocols/service/crypto/packed-c/get_key_attributes.h>
 #include <protocols/service/crypto/packed-c/sign_hash.h>
 #include <protocols/service/crypto/packed-c/verify_hash.h>
 #include <protocols/service/crypto/packed-c/hash.h>
@@ -44,7 +47,9 @@ static rpc_status_t deserialize_generate_key_req(const struct call_param_buf *re
     if (expected_fixed_len <= req_buf->data_len) {
 
         memcpy(&recv_msg, req_buf->data, expected_fixed_len);
-        packedc_crypto_provider_translate_key_attributes(attributes, &recv_msg.attributes);
+        packedc_crypto_provider_translate_key_attributes_from_proto(attributes,
+            &recv_msg.attributes);
+
         rpc_status = TS_RPC_CALL_ACCEPTED;
     }
 
@@ -184,7 +189,8 @@ static rpc_status_t deserialize_import_key_req(const struct call_param_buf *req_
         rpc_status = TS_RPC_CALL_ACCEPTED;
 
         memcpy(&recv_msg, req_buf->data, expected_fixed_len);
-        packedc_crypto_provider_translate_key_attributes(attributes, &recv_msg.attributes);
+        packedc_crypto_provider_translate_key_attributes_from_proto(attributes,
+            &recv_msg.attributes);
 
         tlv_const_iterator_begin(&req_iter,
             (uint8_t*)req_buf->data + expected_fixed_len,
@@ -219,6 +225,103 @@ static rpc_status_t serialize_import_key_resp(struct call_param_buf *resp_buf,
     size_t fixed_len = sizeof(struct ts_crypto_import_key_out);
 
     resp_msg.id = id;
+
+    if (fixed_len <= resp_buf->size) {
+
+        memcpy(resp_buf->data, &resp_msg, fixed_len);
+        resp_buf->data_len = fixed_len;
+        rpc_status = TS_RPC_CALL_ACCEPTED;
+    }
+
+    return rpc_status;
+}
+
+/* Operation: copy_key */
+static rpc_status_t deserialize_copy_key_req(const struct call_param_buf *req_buf,
+                                        psa_key_attributes_t *attributes,
+                                        psa_key_id_t *source_id)
+{
+    rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
+    struct ts_crypto_copy_key_in recv_msg;
+    size_t expected_fixed_len = sizeof(struct ts_crypto_copy_key_in);
+
+    if (expected_fixed_len <= req_buf->data_len) {
+
+        rpc_status = TS_RPC_CALL_ACCEPTED;
+
+        memcpy(&recv_msg, req_buf->data, expected_fixed_len);
+        packedc_crypto_provider_translate_key_attributes_from_proto(attributes,
+            &recv_msg.attributes);
+
+        *source_id = recv_msg.source_key_id;
+    }
+
+    return rpc_status;
+}
+
+static rpc_status_t serialize_copy_key_resp(struct call_param_buf *resp_buf,
+                                        psa_key_id_t target_id)
+{
+    rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
+    struct ts_crypto_copy_key_out resp_msg;
+    size_t fixed_len = sizeof(struct ts_crypto_copy_key_out);
+
+    resp_msg.target_key_id = target_id;
+
+    if (fixed_len <= resp_buf->size) {
+
+        memcpy(resp_buf->data, &resp_msg, fixed_len);
+        resp_buf->data_len = fixed_len;
+        rpc_status = TS_RPC_CALL_ACCEPTED;
+    }
+
+    return rpc_status;
+}
+
+/* Operation: purge_key */
+static rpc_status_t deserialize_purge_key_req(const struct call_param_buf *req_buf,
+                                        psa_key_id_t *id)
+{
+    rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
+    struct ts_crypto_purge_key_in recv_msg;
+    size_t expected_fixed_len = sizeof(struct ts_crypto_purge_key_in);
+
+    if (expected_fixed_len <= req_buf->data_len) {
+
+        memcpy(&recv_msg, req_buf->data, expected_fixed_len);
+        *id = recv_msg.id;
+        rpc_status = TS_RPC_CALL_ACCEPTED;
+    }
+
+    return rpc_status;
+}
+
+/* Operation: get_key_attributes */
+static rpc_status_t deserialize_get_key_attributes_req(const struct call_param_buf *req_buf,
+                                        psa_key_id_t *id)
+{
+    rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
+    struct ts_crypto_get_key_attributes_in recv_msg;
+    size_t expected_fixed_len = sizeof(struct ts_crypto_get_key_attributes_in);
+
+    if (expected_fixed_len <= req_buf->data_len) {
+
+        memcpy(&recv_msg, req_buf->data, expected_fixed_len);
+        *id = recv_msg.id;
+        rpc_status = TS_RPC_CALL_ACCEPTED;
+    }
+
+    return rpc_status;
+}
+
+static rpc_status_t serialize_get_key_attributes_resp(struct call_param_buf *resp_buf,
+                                        const psa_key_attributes_t *attributes)
+{
+    rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
+    struct ts_crypto_get_key_attributes_out resp_msg;
+    size_t fixed_len = sizeof(struct ts_crypto_get_key_attributes_out);
+
+    packedc_crypto_provider_translate_key_attributes_to_proto(&resp_msg.attributes, attributes);
 
     if (fixed_len <= resp_buf->size) {
 
@@ -704,6 +807,11 @@ const struct crypto_provider_serializer *packedc_crypto_provider_serializer_inst
         serialize_export_public_key_resp,
         deserialize_import_key_req,
         serialize_import_key_resp,
+        deserialize_copy_key_req,
+        serialize_copy_key_resp,
+        deserialize_purge_key_req,
+        deserialize_get_key_attributes_req,
+        serialize_get_key_attributes_resp,
         deserialize_sign_hash_req,
         serialize_sign_hash_resp,
         deserialize_verify_hash_req,
