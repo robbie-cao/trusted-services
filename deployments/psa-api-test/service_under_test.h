@@ -7,6 +7,8 @@
 #ifndef SERVICE_UNDER_TEST_H
 #define SERVICE_UNDER_TEST_H
 
+#include <rpc/common/logging/logging_caller.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -17,7 +19,7 @@ extern "C" {
  * associate an RPC Caller with the singleton PSA API client used by
  * the API tests.
  */
-int locate_service_under_test(void);
+int locate_service_under_test(struct logging_caller *call_logger);
 
 /**
  * Reliquish the RPC session when the test run is complete.

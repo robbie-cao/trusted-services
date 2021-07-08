@@ -28,6 +28,8 @@ add_components(
 	COMPONENTS
 		"components/common/tlv"
 		"components/service/common/include"
+		"components/rpc/common/caller"
+		"components/rpc/common/logging"
 )
 
 target_sources(psa-api-test PRIVATE

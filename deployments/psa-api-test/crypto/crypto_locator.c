@@ -14,8 +14,7 @@
 static rpc_session_handle session_handle = NULL;
 static struct service_context *crypto_service_context = NULL;
 
-
-int locate_service_under_test(void)
+int locate_service_under_test(struct logging_caller *call_logger)
 {
 	int status = -1;
 
@@ -33,7 +32,15 @@ int locate_service_under_test(void)
 
 			if (session_handle) {
 
-				psa_crypto_client_init(caller);
+				if (call_logger) {
+
+					psa_crypto_client_init(logging_caller_attach(call_logger, caller));
+				}
+				else {
+
+					psa_crypto_client_init(caller);
+				}
+
 				status = 0;
 			}
 			else {
