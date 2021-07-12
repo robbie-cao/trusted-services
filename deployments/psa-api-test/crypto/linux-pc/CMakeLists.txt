@@ -6,13 +6,7 @@
 #-------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.16)
 include(../../../deployment.cmake REQUIRED)
-
-# Prevents symbols in the psa-api-test executable overriding symbols with
-# with same name in libts during dyanmic linking performed by the program
-# loader.  This avoid psa crypto api symbols provided by the mbedcrypto
-# library from being overridden by the same symbols in the psa-api-test
-# executable.
-set(CMAKE_C_VISIBILITY_PRESET hidden)
+include(../../psa-api-test-config.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
 #  The CMakeLists.txt for building the psa-api-test deployment for linux-pc

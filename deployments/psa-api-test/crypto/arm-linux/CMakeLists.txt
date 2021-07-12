@@ -6,6 +6,7 @@
 #-------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.16)
 include(../../../deployment.cmake REQUIRED)
+include(../../psa-api-test-config.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
 #  The CMakeLists.txt for building the psa-api-test deployment for arm-linux
