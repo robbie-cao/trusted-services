@@ -21,6 +21,9 @@ psa_status_t psa_copy_key(psa_key_id_t source_key,
 	struct ts_crypto_copy_key_in req_msg;
 	size_t req_len = sizeof(struct ts_crypto_copy_key_in);
 
+	/* Set default outputs for failure case */
+	*target_key = 0;
+
 	if (psa_crypto_client_instance.init_status != PSA_SUCCESS)
 		return psa_crypto_client_instance.init_status;
 

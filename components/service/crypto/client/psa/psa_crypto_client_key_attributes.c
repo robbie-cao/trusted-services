@@ -35,10 +35,10 @@ void psa_crypto_client_translate_key_attributes_from_proto(
 
 /*
  * The key attributes structure used on the client API doesn't
- * contain an dynamically allocated members so resetting it is
- * a nop.
+ * contain an dynamically allocated members so resetting it just
+ * requires the structure to be set to its initial value.
  */
 void psa_reset_key_attributes(psa_key_attributes_t *attributes)
 {
-	/* Nothing to free for client structure */
+	*attributes = psa_key_attributes_init();
 }
