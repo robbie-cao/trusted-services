@@ -77,10 +77,13 @@ endif()
 
 # Create targets for generated libraries
 add_library(test_combine STATIC IMPORTED)
-set_property(TARGET test_combine PROPERTY IMPORTED_LOCATION "${psa-arch-tests_BINARY_DIR}/dev_apis/crypto/test_combine${CMAKE_STATIC_LIBRARY_SUFFIX}")
+set_property(TARGET test_combine PROPERTY IMPORTED_LOCATION
+	"${psa-arch-tests_BINARY_DIR}/dev_apis/${TS_ARCH_TEST_BUILD_SUBDIR}/test_combine${CMAKE_STATIC_LIBRARY_SUFFIX}")
 
 add_library(val_nspe STATIC IMPORTED)
-set_property(TARGET val_nspe PROPERTY IMPORTED_LOCATION "${psa-arch-tests_BINARY_DIR}/val/val_nspe${CMAKE_STATIC_LIBRARY_SUFFIX}")
+set_property(TARGET val_nspe PROPERTY IMPORTED_LOCATION
+	"${psa-arch-tests_BINARY_DIR}/val/val_nspe${CMAKE_STATIC_LIBRARY_SUFFIX}")
 
 add_library(pal_nspe STATIC IMPORTED)
-set_property(TARGET pal_nspe PROPERTY IMPORTED_LOCATION "${psa-arch-tests_BINARY_DIR}/platform/pal_nspe${CMAKE_STATIC_LIBRARY_SUFFIX}")
+set_property(TARGET pal_nspe PROPERTY IMPORTED_LOCATION
+	"${psa-arch-tests_BINARY_DIR}/platform/pal_nspe${CMAKE_STATIC_LIBRARY_SUFFIX}")

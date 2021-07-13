@@ -12,3 +12,6 @@ target_include_directories(${TGT}
 	 PRIVATE
 		"${CMAKE_CURRENT_LIST_DIR}"
 	)
+
+# Advertise this component as the provider of the PSA Attestation header files
+set(PSA_ATTESTATION_API_INCLUDE "${CMAKE_CURRENT_LIST_DIR}" CACHE STRING "PSA Attestation API include path")

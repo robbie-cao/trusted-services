@@ -20,7 +20,13 @@ add_components(
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/service/attestation/include"
+		"components/service/attestation/client/psa"
 )
+
+#-------------------------------------------------------------------------------
+#  Add external components used specifically for attestation tests
+#
+#-------------------------------------------------------------------------------
 
 # Configuration for mbedcrypto
 set(MBEDTLS_USER_CONFIG_FILE
@@ -31,8 +37,13 @@ set(MBEDTLS_USER_CONFIG_FILE
 include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(psa-api-test PRIVATE mbedcrypto)
 
-# Export psa crypto API
+#-------------------------------------------------------------------------------
+#  Advertise PSA API include paths to PSA Arch tests
+#
+#-------------------------------------------------------------------------------
 list(APPEND PSA_ARCH_TESTS_EXTERNAL_INCLUDE_PATHS ${PSA_CRYPTO_API_INCLUDE})
+list(APPEND PSA_ARCH_TESTS_EXTERNAL_INCLUDE_PATHS ${PSA_ATTESTATION_API_INCLUDE})
+list(APPEND PSA_ARCH_TESTS_EXTERNAL_INCLUDE_PATHS ${PSA_COMMON_INCLUDE})
 
 #-------------------------------------------------------------------------------
 #  Extend with components that are common across all deployments of

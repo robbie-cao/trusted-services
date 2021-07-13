@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -12,3 +12,6 @@ target_include_directories(${TGT}
 	 PRIVATE
 		"${CMAKE_CURRENT_LIST_DIR}"
 	)
+
+# Advertise this component as the provider of common PSA header files
+set(PSA_COMMON_INCLUDE "${CMAKE_CURRENT_LIST_DIR}" CACHE STRING "PSA common include path")
