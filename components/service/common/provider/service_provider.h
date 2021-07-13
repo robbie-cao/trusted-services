@@ -59,6 +59,21 @@ void service_provider_init(struct service_provider *sp, void *context,
 				 	const struct service_handler *handlers,
 				 	size_t num_handlers);
 
+/*
+ * Extend the core set of operations provided by a service provider by
+ * adding a sub provider that will add a capability.  This facility
+ * allows a deployment to customize the set of operations
+ * supported to meet requirements by only extending the core service
+ * provider if needed.
+ */
+void service_provider_extend(struct service_provider *context,
+                    struct service_provider *sub_provider);
+
+/*
+ * Link a successor to this service provider to extend the chain of responsibility
+ * to allow call handling to be delegated to different components.  Used to support
+ * modular configuration of service capabilities.
+ */
 static inline void service_provider_link_successor(struct service_provider *sp,
 					struct rpc_interface *successor)
 {

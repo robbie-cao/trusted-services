@@ -46,6 +46,12 @@ void crypto_provider_deinit(struct crypto_provider *context);
 void crypto_provider_register_serializer(struct crypto_provider *context,
                     unsigned int encoding, const struct crypto_provider_serializer *serializer);
 
+/*
+ * Extend the core set of operations provided by the crypto provider.
+ */
+void crypto_provider_extend(struct crypto_provider *context,
+                    struct service_provider *sub_provider);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

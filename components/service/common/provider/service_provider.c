@@ -64,3 +64,10 @@ void service_provider_init(struct service_provider *sp, void *context,
 
 	sp->successor = NULL;
 }
+
+void service_provider_extend(struct service_provider *context,
+                    struct service_provider *sub_provider)
+{
+	sub_provider->successor = context->successor;
+	context->successor = &sub_provider->iface;
+}

@@ -75,6 +75,12 @@ void crypto_provider_register_serializer(struct crypto_provider *context,
 		context->serializers[encoding] = serializer;
 }
 
+void crypto_provider_extend(struct crypto_provider *context,
+                    struct service_provider *sub_provider)
+{
+	service_provider_extend(&context->base_provider, sub_provider);
+}
+
 static const struct crypto_provider_serializer* get_crypto_serializer(void *context,
 														const struct call_req *req)
 {
