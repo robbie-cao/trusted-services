@@ -11,7 +11,6 @@
 #include <service/common/provider/service_provider.h>
 #include <service/crypto/provider/serializer/crypto_provider_serializer.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
-#include "crypto_context_pool.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,7 +19,6 @@ extern "C" {
 struct crypto_provider
 {
     struct service_provider base_provider;
-    struct crypto_context_pool context_pool;
     const struct crypto_provider_serializer *serializers[TS_RPC_ENCODING_LIMIT];
 };
 

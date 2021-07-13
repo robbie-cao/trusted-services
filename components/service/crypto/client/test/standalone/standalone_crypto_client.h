@@ -43,7 +43,7 @@ public:
 private:
     bool is_fault_supported(enum fault_code code) const;
 
-    struct crypto_provider m_crypto_provider;
+    struct crypto_provider *m_crypto_provider;
     struct secure_storage_provider m_storage_provider;
     struct secure_storage_client m_storage_client;
     struct direct_caller m_crypto_caller;

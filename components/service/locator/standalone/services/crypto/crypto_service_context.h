@@ -24,7 +24,7 @@ private:
     void do_init();
     void do_deinit();
 
-    struct crypto_provider m_crypto_provider;
+    struct crypto_provider *m_crypto_provider;
     struct secure_storage_client m_storage_client;
     struct null_store m_null_store;
     struct service_context *m_storage_service_context;

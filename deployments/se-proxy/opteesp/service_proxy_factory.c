@@ -8,9 +8,7 @@
 #include <rpc/common/endpoint/rpc_interface.h>
 #include <service/attestation/provider/attest_provider.h>
 #include <service/attestation/provider/serializer/packed-c/packedc_attest_provider_serializer.h>
-#include <service/crypto/provider/crypto_provider.h>
-#include <service/crypto/provider/serializer/protobuf/pb_crypto_provider_serializer.h>
-#include <service/crypto/provider/serializer/packed-c/packedc_crypto_provider_serializer.h>
+#include <service/crypto/factory/crypto_provider_factory.h>
 #include <components/service/secure_storage/frontend/secure_storage_provider/secure_storage_provider.h>
 
 /* Not needed once proxy backends added */
@@ -74,19 +72,12 @@ struct rpc_interface *attest_proxy_create(void)
 struct rpc_interface *crypto_proxy_create(void)
 {
 	struct rpc_interface *crypto_iface = NULL;
-
-	/* Static objects for proxy instance */
-	static struct crypto_provider crypto_provider;
+	struct crypto_provider *crypto_provider;
 
 	if (mbedcrypto_backend_init(shared_storage_backend, 0) == PSA_SUCCESS) {
 
-		crypto_iface = crypto_provider_init(&crypto_provider);
-
-		crypto_provider_register_serializer(&crypto_provider,
-					TS_RPC_ENCODING_PROTOBUF, pb_crypto_provider_serializer_instance());
-
-		crypto_provider_register_serializer(&crypto_provider,
-					TS_RPC_ENCODING_PACKED_C, packedc_crypto_provider_serializer_instance());
+		crypto_provider = crypto_provider_factory_create();
+		crypto_iface = service_provider_get_rpc_interface(&crypto_provider->base_provider);
 	}
 
 	return crypto_iface;

@@ -5,13 +5,12 @@
  */
 
 #include "crypto_service_context.h"
-#include <service/crypto/provider/serializer/protobuf/pb_crypto_provider_serializer.h>
-#include <service/crypto/provider/serializer/packed-c/packedc_crypto_provider_serializer.h>
+#include <service/crypto/factory/crypto_provider_factory.h>
 #include <service/crypto/backend/mbedcrypto/mbedcrypto_backend.h>
 
 crypto_service_context::crypto_service_context(const char *sn) :
     standalone_service_context(sn),
-    m_crypto_provider(),
+    m_crypto_provider(NULL),
     m_storage_client(),
     m_null_store(),
     m_storage_service_context(NULL),
@@ -59,20 +58,15 @@ void crypto_service_context::do_init()
     }
 
     /* Initialise the crypto service provider */
-    struct rpc_interface *crypto_ep = NULL;
+    struct rpc_interface *crypto_iface = NULL;
 
     if (mbedcrypto_backend_init(storage_backend, 0) == PSA_SUCCESS) {
 
-        crypto_ep = crypto_provider_init(&m_crypto_provider);
-
-        crypto_provider_register_serializer(&m_crypto_provider,
-                        TS_RPC_ENCODING_PROTOBUF, pb_crypto_provider_serializer_instance());
-
-        crypto_provider_register_serializer(&m_crypto_provider,
-                        TS_RPC_ENCODING_PACKED_C, packedc_crypto_provider_serializer_instance());
+        m_crypto_provider = crypto_provider_factory_create();
+        crypto_iface = service_provider_get_rpc_interface(&m_crypto_provider->base_provider);
     }
 
-    standalone_service_context::set_rpc_interface(crypto_ep);
+    standalone_service_context::set_rpc_interface(crypto_iface);
 }
 
 void crypto_service_context::do_deinit()
@@ -87,7 +81,7 @@ void crypto_service_context::do_deinit()
         m_storage_service_context = NULL;
     }
 
-    crypto_provider_deinit(&m_crypto_provider);
+    crypto_provider_factory_destroy(m_crypto_provider);
     secure_storage_client_deinit(&m_storage_client);
     null_store_deinit(&m_null_store);
 }

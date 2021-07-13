@@ -22,9 +22,6 @@ static rpc_status_t verify_hash_handler(void *context, struct call_req* req);
 static rpc_status_t asymmetric_decrypt_handler(void *context, struct call_req* req);
 static rpc_status_t asymmetric_encrypt_handler(void *context, struct call_req* req);
 static rpc_status_t generate_random_handler(void *context, struct call_req* req);
-static rpc_status_t hash_setup_handler(void *context, struct call_req* req);
-static rpc_status_t hash_update_handler(void *context, struct call_req* req);
-static rpc_status_t hash_finish_handler(void *context, struct call_req* req);
 static rpc_status_t copy_key_handler(void *context, struct call_req* req);
 static rpc_status_t purge_key_handler(void *context, struct call_req* req);
 static rpc_status_t get_key_attributes_handler(void *context, struct call_req* req);
@@ -42,9 +39,6 @@ static const struct service_handler handler_table[] = {
 	{TS_CRYPTO_OPCODE_ASYMMETRIC_DECRYPT,   asymmetric_decrypt_handler},
 	{TS_CRYPTO_OPCODE_ASYMMETRIC_ENCRYPT,   asymmetric_encrypt_handler},
 	{TS_CRYPTO_OPCODE_GENERATE_RANDOM,      generate_random_handler},
-	{TS_CRYPTO_OPCODE_HASH_SETUP,           hash_setup_handler},
-	{TS_CRYPTO_OPCODE_HASH_UPDATE,          hash_update_handler},
-	{TS_CRYPTO_OPCODE_HASH_FINISH,          hash_finish_handler},
 	{TS_CRYPTO_OPCODE_COPY_KEY,          	copy_key_handler},
 	{TS_CRYPTO_OPCODE_PURGE_KEY,          	purge_key_handler},
 	{TS_CRYPTO_OPCODE_GET_KEY_ATTRIBUTES, 	get_key_attributes_handler},
@@ -52,8 +46,6 @@ static const struct service_handler handler_table[] = {
 
 struct rpc_interface *crypto_provider_init(struct crypto_provider *context)
 {
-	crypto_context_pool_init(&context->context_pool);
-
 	for (size_t encoding = 0; encoding < TS_RPC_ENCODING_LIMIT; ++encoding)
 		context->serializers[encoding] = NULL;
 
@@ -65,7 +57,7 @@ struct rpc_interface *crypto_provider_init(struct crypto_provider *context)
 
 void crypto_provider_deinit(struct crypto_provider *context)
 {
-	crypto_context_pool_deinit(&context->context_pool);
+
 }
 
 void crypto_provider_register_serializer(struct crypto_provider *context,
@@ -657,137 +649,6 @@ static rpc_status_t get_key_attributes_handler(void *context, struct call_req* r
 
 		psa_reset_key_attributes(&attributes);
 		call_req_set_opstatus(req, psa_status);
-	}
-
-	return rpc_status;
-}
-
-static rpc_status_t hash_setup_handler(void *context, struct call_req* req)
-{
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
-	const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
-	struct crypto_provider *this_instance = (struct crypto_provider*)context;
-
-	psa_algorithm_t alg;
-
-	if (serializer)
-		rpc_status = serializer->deserialize_hash_setup_req(req_buf, &alg);
-
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
-
-		uint32_t op_handle;
-
-		struct crypto_context *crypto_context =
-			crypto_context_pool_alloc(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_HASH, call_req_get_caller_id(req),
-				&op_handle);
-
-		if (crypto_context) {
-
-			psa_status_t psa_status;
-
-			crypto_context->op.hash = psa_hash_operation_init();
-			psa_status = psa_hash_setup(&crypto_context->op.hash, alg);
-
-			if (psa_status == PSA_SUCCESS) {
-
-				struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
-				rpc_status = serializer->serialize_hash_setup_resp(resp_buf, op_handle);
-			}
-
-			if ((psa_status != PSA_SUCCESS) || (rpc_status != TS_RPC_CALL_ACCEPTED)) {
-
-				crypto_context_pool_free(&this_instance->context_pool, crypto_context);
-			}
-
-			call_req_set_opstatus(req, psa_status);
-		}
-		else {
-			/* Failed to allocate crypto context for transaction */
-			rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
-		}
-	}
-
-	return rpc_status;
-}
-
-static rpc_status_t hash_update_handler(void *context, struct call_req* req)
-{
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
-	const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
-	struct crypto_provider *this_instance = (struct crypto_provider*)context;
-
-	uint32_t op_handle;
-	const uint8_t *data;
-	size_t data_len;
-
-	if (serializer)
-		rpc_status = serializer->deserialize_hash_update_req(req_buf, &op_handle, &data, &data_len);
-
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
-
-		struct crypto_context *crypto_context =
-			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_HASH, call_req_get_caller_id(req),
-				op_handle);
-
-		if (crypto_context) {
-
-			psa_status_t psa_status = psa_hash_update(&crypto_context->op.hash, data, data_len);
-			call_req_set_opstatus(req, psa_status);
-		}
-		else {
-			/* Requested context doesn't exist */
-			rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
-		}
-	}
-
-	return rpc_status;
-}
-
-static rpc_status_t hash_finish_handler(void *context, struct call_req* req)
-{
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
-	const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
-	struct crypto_provider *this_instance = (struct crypto_provider*)context;
-
-	uint32_t op_handle;
-
-	if (serializer)
-		rpc_status = serializer->deserialize_hash_finish_req(req_buf, &op_handle);
-
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
-
-		struct crypto_context *crypto_context =
-			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_HASH, call_req_get_caller_id(req),
-				op_handle);
-
-		if (crypto_context) {
-
-			psa_status_t psa_status;
-			size_t hash_len;
-			uint8_t hash[PSA_HASH_MAX_SIZE];
-
-			psa_status = psa_hash_finish(&crypto_context->op.hash, hash, sizeof(hash), &hash_len);
-
-			if (psa_status == PSA_SUCCESS) {
-
-				struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
-				rpc_status = serializer->serialize_hash_finish_resp(resp_buf, hash, hash_len);
-			}
-
-			crypto_context_pool_free(&this_instance->context_pool, crypto_context);
-
-			call_req_set_opstatus(req, psa_status);
-		}
-		else {
-			/* Requested context doesn't exist */
-			rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
-		}
 	}
 
 	return rpc_status;

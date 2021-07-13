@@ -5,16 +5,13 @@
  */
 
 #include "standalone_crypto_client.h"
-#include <protocols/rpc/common/packed-c/status.h>
-#include <protocols/service/psa/packed-c/status.h>
-#include <service/crypto/provider/serializer/protobuf/pb_crypto_provider_serializer.h>
-#include <service/crypto/provider/serializer/packed-c/packedc_crypto_provider_serializer.h>
+#include <service/crypto/factory/crypto_provider_factory.h>
 #include <service/crypto/backend/mbedcrypto/mbedcrypto_backend.h>
 #include <service/secure_storage/backend/secure_flash_store/secure_flash_store.h>
 
 standalone_crypto_client::standalone_crypto_client() :
     test_crypto_client(),
-    m_crypto_provider(),
+    m_crypto_provider(NULL),
     m_storage_provider(),
     m_storage_client(),
     m_crypto_caller(),
@@ -56,22 +53,17 @@ bool standalone_crypto_client::init()
                         TS_RPC_CALL_ACCEPTED, PSA_ERROR_STORAGE_FAILURE);
         }
 
-        struct rpc_interface *crypto_ep = NULL;
+        struct rpc_interface *crypto_iface = NULL;
         struct storage_backend *client_storage_backend =
             secure_storage_client_init(&m_storage_client, storage_caller);
 
         if (mbedcrypto_backend_init(client_storage_backend, 0) == PSA_SUCCESS) {
 
-            crypto_ep = crypto_provider_init(&m_crypto_provider);
-
-            crypto_provider_register_serializer(&m_crypto_provider,
-                    TS_RPC_ENCODING_PROTOBUF, pb_crypto_provider_serializer_instance());
-
-            crypto_provider_register_serializer(&m_crypto_provider,
-                    TS_RPC_ENCODING_PACKED_C, packedc_crypto_provider_serializer_instance());
+            m_crypto_provider = crypto_provider_factory_create();
+            crypto_iface = service_provider_get_rpc_interface(&m_crypto_provider->base_provider);
         }
 
-        struct rpc_caller *crypto_caller = direct_caller_init_default(&m_crypto_caller, crypto_ep);
+        struct rpc_caller *crypto_caller = direct_caller_init_default(&m_crypto_caller, crypto_iface);
         rpc_caller_set_encoding_scheme(crypto_caller, TS_RPC_ENCODING_PROTOBUF);
 
         crypto_client::set_caller(crypto_caller);
@@ -86,7 +78,7 @@ bool standalone_crypto_client::deinit()
 
     if (should_do) {
 
-        crypto_provider_deinit(&m_crypto_provider);
+        crypto_provider_factory_destroy(m_crypto_provider);
         secure_storage_provider_deinit(&m_storage_provider);
         secure_storage_client_deinit(&m_storage_client);
 
