@@ -45,7 +45,6 @@ static rpc_status_t serialize_hash_setup_resp(struct call_param_buf *resp_buf,
 	}
 
 	return rpc_status;
-
 }
 
 /* Operation: hash_update */
@@ -126,6 +125,99 @@ static rpc_status_t serialize_hash_finish_resp(struct call_param_buf *resp_buf,
 	return rpc_status;
 }
 
+/* Operation: hash_abort */
+static rpc_status_t deserialize_hash_abort_req(const struct call_param_buf *req_buf,
+	uint32_t *op_handle)
+{
+	rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
+	struct ts_crypto_hash_abort_in recv_msg;
+	size_t expected_fixed_len = sizeof(struct ts_crypto_hash_abort_in);
+
+	if (expected_fixed_len <= req_buf->data_len) {
+
+		memcpy(&recv_msg, req_buf->data, expected_fixed_len);
+		*op_handle = recv_msg.op_handle;
+		rpc_status = TS_RPC_CALL_ACCEPTED;
+	}
+
+	return rpc_status;
+}
+
+/* Operation: hash_verify */
+static rpc_status_t deserialize_hash_verify_req(const struct call_param_buf *req_buf,
+	uint32_t *op_handle,
+	const uint8_t **hash, size_t *hash_len)
+{
+	rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
+	struct ts_crypto_hash_verify_in recv_msg;
+	size_t expected_fixed_len = sizeof(struct ts_crypto_hash_verify_in);
+
+	if (expected_fixed_len <= req_buf->data_len) {
+
+		struct tlv_const_iterator req_iter;
+		struct tlv_record decoded_record;
+
+		rpc_status = TS_RPC_CALL_ACCEPTED;
+
+		memcpy(&recv_msg, req_buf->data, expected_fixed_len);
+
+		*op_handle = recv_msg.op_handle;
+
+		tlv_const_iterator_begin(&req_iter,
+			(uint8_t*)req_buf->data + expected_fixed_len,
+			req_buf->data_len - expected_fixed_len);
+
+		if (tlv_find_decode(&req_iter, TS_CRYPTO_HASH_VERIFY_IN_TAG_HASH, &decoded_record)) {
+
+			*hash = decoded_record.value;
+			*hash_len = decoded_record.length;
+		}
+		else {
+			/* Default to a zero length data */
+			*hash_len = 0;
+		}
+	}
+
+	return rpc_status;
+}
+
+/* Operation: hash_clone */
+static rpc_status_t deserialize_hash_clone_req(const struct call_param_buf *req_buf,
+	uint32_t *source_op_handle)
+{
+	rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
+	struct ts_crypto_hash_clone_in recv_msg;
+	size_t expected_fixed_len = sizeof(struct ts_crypto_hash_clone_in);
+
+	if (expected_fixed_len <= req_buf->data_len) {
+
+		memcpy(&recv_msg, req_buf->data, expected_fixed_len);
+		*source_op_handle = recv_msg.source_op_handle;
+		rpc_status = TS_RPC_CALL_ACCEPTED;
+	}
+
+	return rpc_status;
+}
+
+static rpc_status_t serialize_hash_clone_resp(struct call_param_buf *resp_buf,
+	uint32_t target_op_handle)
+{
+	rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
+	struct ts_crypto_hash_clone_out resp_msg;
+	size_t fixed_len = sizeof(struct ts_crypto_hash_clone_out);
+
+	resp_msg.target_op_handle = target_op_handle;
+
+	if (fixed_len <= resp_buf->size) {
+
+		memcpy(resp_buf->data, &resp_msg, fixed_len);
+		resp_buf->data_len = fixed_len;
+		rpc_status = TS_RPC_CALL_ACCEPTED;
+	}
+
+	return rpc_status;
+}
+
 /* Singleton method to provide access to the serializer instance */
 const struct hash_provider_serializer *packedc_hash_provider_serializer_instance(void)
 {
@@ -134,7 +226,11 @@ const struct hash_provider_serializer *packedc_hash_provider_serializer_instance
 		serialize_hash_setup_resp,
 		deserialize_hash_update_req,
 		deserialize_hash_finish_req,
-		serialize_hash_finish_resp
+		serialize_hash_finish_resp,
+		deserialize_hash_abort_req,
+		deserialize_hash_verify_req,
+		deserialize_hash_clone_req,
+		serialize_hash_clone_resp
 	};
 
 	return &instance;

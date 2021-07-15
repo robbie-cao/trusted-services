@@ -35,6 +35,22 @@ struct hash_provider_serializer {
 
 	rpc_status_t (*serialize_hash_finish_resp)(struct call_param_buf *resp_buf,
 		const uint8_t *hash, size_t hash_len);
+
+	/* Operation: hash_abort */
+	rpc_status_t (*deserialize_hash_abort_req)(const struct call_param_buf *req_buf,
+		uint32_t *op_handle);
+
+	/* Operation: hash_verify */
+	rpc_status_t (*deserialize_hash_verify_req)(const struct call_param_buf *req_buf,
+		uint32_t *op_handle,
+		const uint8_t **hash, size_t *hash_len);
+
+	/* Operation: hash_clone */
+	rpc_status_t (*deserialize_hash_clone_req)(const struct call_param_buf *req_buf,
+		uint32_t *source_op_handle);
+
+	rpc_status_t (*serialize_hash_clone_resp)(struct call_param_buf *resp_buf,
+		uint32_t target_op_handle);
 };
 
 #endif /* HASH_PROVIDER_SERIALIZER_H */

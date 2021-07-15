@@ -14,12 +14,18 @@
 static rpc_status_t hash_setup_handler(void *context, struct call_req* req);
 static rpc_status_t hash_update_handler(void *context, struct call_req* req);
 static rpc_status_t hash_finish_handler(void *context, struct call_req* req);
+static rpc_status_t hash_abort_handler(void *context, struct call_req* req);
+static rpc_status_t hash_verify_handler(void *context, struct call_req* req);
+static rpc_status_t hash_clone_handler(void *context, struct call_req* req);
 
 /* Handler mapping table for service */
 static const struct service_handler handler_table[] = {
 	{TS_CRYPTO_OPCODE_HASH_SETUP,           hash_setup_handler},
 	{TS_CRYPTO_OPCODE_HASH_UPDATE,          hash_update_handler},
-	{TS_CRYPTO_OPCODE_HASH_FINISH,          hash_finish_handler}
+	{TS_CRYPTO_OPCODE_HASH_FINISH,          hash_finish_handler},
+	{TS_CRYPTO_OPCODE_HASH_ABORT,          	hash_abort_handler},
+	{TS_CRYPTO_OPCODE_HASH_VERIFY,          hash_verify_handler},
+	{TS_CRYPTO_OPCODE_HASH_CLONE,          	hash_clone_handler}
 };
 
 void hash_provider_init(struct hash_provider *context)
@@ -123,6 +129,8 @@ static rpc_status_t hash_update_handler(void *context, struct call_req* req)
 
 	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
 
+		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
+
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
 				CRYPTO_CONTEXT_OP_ID_HASH, call_req_get_caller_id(req),
@@ -130,13 +138,10 @@ static rpc_status_t hash_update_handler(void *context, struct call_req* req)
 
 		if (crypto_context) {
 
-			psa_status_t psa_status = psa_hash_update(&crypto_context->op.hash, data, data_len);
-			call_req_set_opstatus(req, psa_status);
+			psa_status = psa_hash_update(&crypto_context->op.hash, data, data_len);
 		}
-		else {
-			/* Requested context doesn't exist */
-			rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
-		}
+
+		call_req_set_opstatus(req, psa_status);
 	}
 
 	return rpc_status;
@@ -156,6 +161,8 @@ static rpc_status_t hash_finish_handler(void *context, struct call_req* req)
 
 	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
 
+		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
+
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
 				CRYPTO_CONTEXT_OP_ID_HASH, call_req_get_caller_id(req),
@@ -163,7 +170,6 @@ static rpc_status_t hash_finish_handler(void *context, struct call_req* req)
 
 		if (crypto_context) {
 
-			psa_status_t psa_status;
 			size_t hash_len;
 			uint8_t hash[PSA_HASH_MAX_SIZE];
 
@@ -176,13 +182,130 @@ static rpc_status_t hash_finish_handler(void *context, struct call_req* req)
 			}
 
 			crypto_context_pool_free(&this_instance->context_pool, crypto_context);
+		}
 
-			call_req_set_opstatus(req, psa_status);
+		call_req_set_opstatus(req, psa_status);
+	}
+
+	return rpc_status;
+}
+
+static rpc_status_t hash_abort_handler(void *context, struct call_req* req)
+{
+	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
+	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	const struct hash_provider_serializer *serializer = get_serializer(context, req);
+	struct hash_provider *this_instance = (struct hash_provider*)context;
+
+	uint32_t op_handle;
+
+	if (serializer)
+		rpc_status = serializer->deserialize_hash_abort_req(req_buf, &op_handle);
+
+	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+
+		/* Return success if operation is no longer active and
+		 * doesn't need aborting.
+		 */
+		psa_status_t psa_status = PSA_SUCCESS;
+
+		struct crypto_context *crypto_context =
+			crypto_context_pool_find(&this_instance->context_pool,
+				CRYPTO_CONTEXT_OP_ID_HASH, call_req_get_caller_id(req),
+				op_handle);
+
+		if (crypto_context) {
+
+			psa_status = psa_hash_abort(&crypto_context->op.hash);
+			crypto_context_pool_free(&this_instance->context_pool, crypto_context);
 		}
-		else {
-			/* Requested context doesn't exist */
-			rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
+
+		call_req_set_opstatus(req, psa_status);
+	}
+
+	return rpc_status;
+}
+
+static rpc_status_t hash_verify_handler(void *context, struct call_req* req)
+{
+	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
+	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	const struct hash_provider_serializer *serializer = get_serializer(context, req);
+	struct hash_provider *this_instance = (struct hash_provider*)context;
+
+	uint32_t op_handle;
+	const uint8_t *hash;
+	size_t hash_len;
+
+	if (serializer)
+		rpc_status = serializer->deserialize_hash_verify_req(req_buf, &op_handle, &hash, &hash_len);
+
+	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+
+		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
+
+		struct crypto_context *crypto_context =
+			crypto_context_pool_find(&this_instance->context_pool,
+				CRYPTO_CONTEXT_OP_ID_HASH, call_req_get_caller_id(req),
+				op_handle);
+
+		if (crypto_context) {
+
+			psa_status = psa_hash_verify(&crypto_context->op.hash, hash, hash_len);
 		}
+
+		call_req_set_opstatus(req, psa_status);
+	}
+
+	return rpc_status;
+}
+
+static rpc_status_t hash_clone_handler(void *context, struct call_req* req)
+{
+	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
+	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	const struct hash_provider_serializer *serializer = get_serializer(context, req);
+	struct hash_provider *this_instance = (struct hash_provider*)context;
+
+	uint32_t source_op_handle;
+
+	if (serializer)
+		rpc_status = serializer->deserialize_hash_clone_req(req_buf, &source_op_handle);
+
+	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+
+		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
+
+		struct crypto_context *source_crypto_context =
+			crypto_context_pool_find(&this_instance->context_pool,
+				CRYPTO_CONTEXT_OP_ID_HASH, call_req_get_caller_id(req),
+				source_op_handle);
+
+		if (source_crypto_context) {
+
+			uint32_t target_op_handle;
+
+			struct crypto_context *target_crypto_context = crypto_context_pool_alloc(
+				&this_instance->context_pool,
+				CRYPTO_CONTEXT_OP_ID_HASH, call_req_get_caller_id(req),
+				&target_op_handle);
+
+			if (target_crypto_context) {
+
+				target_crypto_context->op.hash = psa_hash_operation_init();
+
+				psa_status = psa_hash_clone(&source_crypto_context->op.hash,
+					&target_crypto_context->op.hash);
+
+				if (psa_status == PSA_SUCCESS) {
+
+					struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+					rpc_status = serializer->serialize_hash_clone_resp(resp_buf, target_op_handle);
+				}
+			}
+		}
+
+		call_req_set_opstatus(req, psa_status);
 	}
 
 	return rpc_status;
