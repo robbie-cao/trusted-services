@@ -11,6 +11,8 @@
 #include <service/crypto/provider/serializer/packed-c/packedc_crypto_provider_serializer.h>
 #include <service/crypto/provider/extension/hash/hash_provider.h>
 #include <service/crypto/provider/extension/hash/serializer/packed-c/packedc_hash_provider_serializer.h>
+#include <service/crypto/provider/extension/cipher/cipher_provider.h>
+#include <service/crypto/provider/extension/cipher/serializer/packed-c/packedc_cipher_provider_serializer.h>
 
 /**
  * A crypto provider factory that constucts a full-featured
@@ -23,6 +25,7 @@ static struct default_crypto_provider
 {
 	struct crypto_provider crypto_provider;
 	struct hash_provider hash_provider;
+	struct cipher_provider cipher_provider;
 
 } instance;
 
@@ -45,6 +48,14 @@ struct crypto_provider *crypto_provider_factory_create(void)
 
 	crypto_provider_extend(&instance.crypto_provider, &instance.hash_provider.base_provider);
 
+	/* Extend with symmetric cipher operations */
+	cipher_provider_init(&instance.cipher_provider);
+
+	cipher_provider_register_serializer(&instance.cipher_provider,
+		TS_RPC_ENCODING_PACKED_C, packedc_cipher_provider_serializer_instance());
+
+	crypto_provider_extend(&instance.crypto_provider, &instance.cipher_provider.base_provider);
+
 	return &instance.crypto_provider;
 }
 
@@ -58,4 +69,5 @@ void crypto_provider_factory_destroy(struct crypto_provider *provider)
 	(void)provider;
 	crypto_provider_deinit(&instance.crypto_provider);
 	hash_provider_deinit(&instance.hash_provider);
+	cipher_provider_deinit(&instance.cipher_provider);
 }
