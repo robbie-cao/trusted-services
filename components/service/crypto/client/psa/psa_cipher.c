@@ -372,3 +372,25 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation)
 
 	return psa_status;
 }
+
+psa_status_t psa_cipher_encrypt(psa_key_id_t key,
+	psa_algorithm_t alg,
+	const uint8_t *input,
+	size_t input_length,
+	uint8_t *output,
+	size_t output_size,
+	size_t *output_length)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t psa_cipher_decrypt(psa_key_id_t key,
+	psa_algorithm_t alg,
+	const uint8_t *input,
+	size_t input_length,
+	uint8_t *output,
+	size_t output_size,
+	size_t *output_length)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
