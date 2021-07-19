@@ -1,12 +1,12 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #ifndef FFA_RPC_SP_CALL_ARGS_H_
 #define FFA_RPC_SP_CALL_ARGS_H_
 
-#include "components/rpc/ffarpc/endpoint/ffarpc_call_args.h"
+#include "ffarpc_call_args.h"
 
 /*
  * sp_msg args is shifted by one compared to ffa_direct_msg because the first

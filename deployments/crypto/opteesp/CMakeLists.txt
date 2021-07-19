@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -36,7 +36,7 @@ add_components(TARGET "crypto-sp"
 		"components/config/ramstore"
 		"components/config/loader/sp"
 		"components/messaging/ffa/libsp"
-		"components/rpc/ffarpc/endpoint"
+		"components/rpc/ffarpc/endpoint/sp"
 		"components/rpc/ffarpc/caller/sp"
 		"components/rpc/common/caller"
 		"components/rpc/common/interface"

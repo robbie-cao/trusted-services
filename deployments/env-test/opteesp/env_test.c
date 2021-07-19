@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #include <rpc/ffarpc/caller/sp/ffarpc_caller.h>
-#include <rpc/ffarpc/endpoint/ffarpc_call_ep.h>
+#include <rpc/ffarpc/endpoint/sp/ffarpc_call_ep.h>
 #include <service/test_runner/provider/test_runner_provider.h>
 #include <service/test_runner/provider/serializer/packed-c/packedc_test_runner_provider_serializer.h>
 #include <protocols/rpc/common/packed-c/status.h>

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 
-#include <rpc/ffarpc/endpoint/ffarpc_call_ep.h>
+#include <rpc/ffarpc/endpoint/sp/ffarpc_call_ep.h>
 #include <service/secure_storage/factory/storage_factory.h>
 #include <service/crypto/factory/crypto_provider_factory.h>
 #include <service/crypto/backend/mbedcrypto/mbedcrypto_backend.h>

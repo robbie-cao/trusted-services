@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -7,7 +7,7 @@
 #include "sp.h"
 #include <ffa_api.h>
 #include <components/rpc/common/endpoint/rpc_interface.h>
-#include <components/rpc/ffarpc/endpoint/ffarpc_call_ep.h>
+#include <components/rpc/ffarpc/endpoint/sp/ffarpc_call_ep.h>
 #include <components/service/secure_storage/factory/storage_factory.h>
 #include <components/service/secure_storage/frontend/secure_storage_provider/secure_storage_provider.h>
 #include <sp_api.h>

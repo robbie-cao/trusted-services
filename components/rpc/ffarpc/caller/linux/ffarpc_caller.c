@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #include "ffarpc_caller.h"
 #include <arm_ffa_user.h>
-#include <rpc/ffarpc/endpoint/ffarpc_call_args.h>
-#include <rpc/ffarpc/endpoint/ffarpc_call_ops.h>
+#include <rpc/ffarpc/common/ffarpc_call_args.h>
+#include <rpc/ffarpc/common/ffarpc_call_ops.h>
 #include <protocols/rpc/common/packed-c/status.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>

@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -26,7 +26,7 @@ add_components(TARGET "internal-trusted-storage"
 		components/common/trace
 		components/common/utils
 		components/messaging/ffa/libsp
-		components/rpc/ffarpc/endpoint
+		components/rpc/ffarpc/endpoint/sp
 		components/rpc/common/interface
 		components/service/common/include
 		components/service/common/provider

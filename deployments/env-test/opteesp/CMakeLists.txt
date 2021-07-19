@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -35,7 +35,7 @@ add_components(TARGET "env-test"
 		"components/common/utils"
 		"components/config/loader/sp"
 		"components/messaging/ffa/libsp"
-		"components/rpc/ffarpc/endpoint"
+		"components/rpc/ffarpc/endpoint/sp"
 		"components/config/test/sp"
 		"environments/opteesp"
 )
