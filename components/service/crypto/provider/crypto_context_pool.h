@@ -34,7 +34,8 @@ enum crypto_context_op_id
 	CRYPTO_CONTEXT_OP_ID_NONE,
 	CRYPTO_CONTEXT_OP_ID_HASH,
 	CRYPTO_CONTEXT_OP_ID_MAC,
-	CRYPTO_CONTEXT_OP_ID_CIPHER
+	CRYPTO_CONTEXT_OP_ID_CIPHER,
+	CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION
 };
 
 /**
@@ -50,9 +51,10 @@ struct crypto_context
 
 	union context_variant
 	{
-		struct psa_hash_operation_s hash;
-		struct psa_mac_operation_s mac;
-		struct psa_cipher_operation_s cipher;
+		psa_hash_operation_t hash;
+		psa_mac_operation_t mac;
+		psa_cipher_operation_t cipher;
+		psa_key_derivation_operation_t key_derivation;
 	} op;
 };
 

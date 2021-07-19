@@ -9,11 +9,9 @@
 #include <stdint.h>
 
 /**
- * Hash operations on arbitrary sized data involve three operations,
- * a setup, called once, an update called 1..* times and a finish
- * to finalise theh hash operation.
+ * Protocol definitions for hash operations
+ * using the packed-c serialization.
  */
-
 
 /****************************************
  * hash_setup operation definition

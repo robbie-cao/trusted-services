@@ -9,12 +9,9 @@
 #include <stdint.h>
 
 /**
- * Cipher operations on arbitrary sized data involve three operations,
- * a setup, called once, an update called 1..* times and a finish
- * to finalise theh hash operation.  Operations may be aborted
- * using the abort operation.
+ * Protocol definitions for symmetric cipher operations
+ * using the packed-c serialization.
  */
-
 
 /****************************************
  * cipher_setup operation definition (encrypt or decrypt)

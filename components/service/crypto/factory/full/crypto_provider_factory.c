@@ -13,6 +13,8 @@
 #include <service/crypto/provider/extension/hash/serializer/packed-c/packedc_hash_provider_serializer.h>
 #include <service/crypto/provider/extension/cipher/cipher_provider.h>
 #include <service/crypto/provider/extension/cipher/serializer/packed-c/packedc_cipher_provider_serializer.h>
+#include <service/crypto/provider/extension/key_derivation/key_derivation_provider.h>
+#include <service/crypto/provider/extension/key_derivation/serializer/packed-c/packedc_key_derivation_provider_serializer.h>
 
 /**
  * A crypto provider factory that constucts a full-featured
@@ -26,35 +28,46 @@ static struct default_crypto_provider
 	struct crypto_provider crypto_provider;
 	struct hash_provider hash_provider;
 	struct cipher_provider cipher_provider;
+	struct key_derivation_provider key_derivation_provider;
 
 } instance;
 
 struct crypto_provider *crypto_provider_factory_create(void)
 {
-	/* Initialize the base crypto provider */
+	/* Initialize the base crypto provider -----------------------*/
 	crypto_provider_init(&instance.crypto_provider);
 
 	crypto_provider_register_serializer(&instance.crypto_provider,
 		TS_RPC_ENCODING_PROTOBUF, pb_crypto_provider_serializer_instance());
-
 	crypto_provider_register_serializer(&instance.crypto_provider,
 		TS_RPC_ENCODING_PACKED_C, packedc_crypto_provider_serializer_instance());
 
-	/* Extend with hash operations */
+	/* Extend with hash operations ---------------------------------*/
 	hash_provider_init(&instance.hash_provider);
 
 	hash_provider_register_serializer(&instance.hash_provider,
 		TS_RPC_ENCODING_PACKED_C, packedc_hash_provider_serializer_instance());
 
-	crypto_provider_extend(&instance.crypto_provider, &instance.hash_provider.base_provider);
+	crypto_provider_extend(&instance.crypto_provider,
+		&instance.hash_provider.base_provider);
 
-	/* Extend with symmetric cipher operations */
+	/* Extend with symmetric cipher operations --------------------*/
 	cipher_provider_init(&instance.cipher_provider);
 
 	cipher_provider_register_serializer(&instance.cipher_provider,
 		TS_RPC_ENCODING_PACKED_C, packedc_cipher_provider_serializer_instance());
 
-	crypto_provider_extend(&instance.crypto_provider, &instance.cipher_provider.base_provider);
+	crypto_provider_extend(&instance.crypto_provider,
+		&instance.cipher_provider.base_provider);
+
+	/* Extend with key derivation operations ----------------------*/
+	key_derivation_provider_init(&instance.key_derivation_provider);
+
+	key_derivation_provider_register_serializer(&instance.key_derivation_provider,
+		TS_RPC_ENCODING_PACKED_C, packedc_key_derivation_provider_serializer_instance());
+
+	crypto_provider_extend(&instance.crypto_provider,
+		&instance.key_derivation_provider.base_provider);
 
 	return &instance.crypto_provider;
 }
