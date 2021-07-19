@@ -4,7 +4,7 @@
  */
 
 #include <rpc/ffarpc/caller/sp/ffarpc_caller.h>
-#include <rpc/ffarpc/endpoint/ffarpc_call_ep.h>
+#include <rpc/ffarpc/endpoint/sp/ffarpc_call_ep.h>
 #include <service/test_runner/provider/test_runner_provider.h>
 #include <service/test_runner/provider/serializer/packed-c/packedc_test_runner_provider_serializer.h>
 #include <protocols/rpc/common/packed-c/status.h>

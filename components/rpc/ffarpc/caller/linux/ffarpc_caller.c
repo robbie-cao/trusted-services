@@ -6,8 +6,8 @@
 
 #include "ffarpc_caller.h"
 #include <arm_ffa_user.h>
-#include <rpc/ffarpc/endpoint/ffarpc_call_args.h>
-#include <rpc/ffarpc/endpoint/ffarpc_call_ops.h>
+#include <rpc/ffarpc/common/ffarpc_call_args.h>
+#include <rpc/ffarpc/common/ffarpc_call_ops.h>
 #include <protocols/rpc/common/packed-c/status.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>

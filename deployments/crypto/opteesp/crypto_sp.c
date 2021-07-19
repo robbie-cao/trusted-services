@@ -4,7 +4,7 @@
  */
 
 
-#include <rpc/ffarpc/endpoint/ffarpc_call_ep.h>
+#include <rpc/ffarpc/endpoint/sp/ffarpc_call_ep.h>
 #include <service/secure_storage/factory/storage_factory.h>
 #include <service/crypto/provider/mbedcrypto/crypto_provider.h>
 #include <service/crypto/provider/serializer/protobuf/pb_crypto_provider_serializer.h>

@@ -32,7 +32,7 @@ add_components(TARGET "internal-trusted-storage"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		components/messaging/ffa/libsp
-		components/rpc/ffarpc/endpoint
+		components/rpc/ffarpc/endpoint/sp
 		components/rpc/common/interface
 		components/service/common/include
 		components/service/common/provider

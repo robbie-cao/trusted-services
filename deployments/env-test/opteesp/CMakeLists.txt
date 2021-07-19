@@ -37,7 +37,7 @@ add_components(TARGET "env-test"
 	COMPONENTS
 		"components/config/loader/sp"
 		"components/messaging/ffa/libsp"
-		"components/rpc/ffarpc/endpoint"
+		"components/rpc/ffarpc/endpoint/sp"
 		"components/config/test/sp"
 		"environments/opteesp"
 )
