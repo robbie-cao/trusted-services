@@ -15,26 +15,31 @@
 #include <service/crypto/provider/extension/cipher/serializer/packed-c/packedc_cipher_provider_serializer.h>
 #include <service/crypto/provider/extension/key_derivation/key_derivation_provider.h>
 #include <service/crypto/provider/extension/key_derivation/serializer/packed-c/packedc_key_derivation_provider_serializer.h>
+#include <service/crypto/provider/extension/mac/mac_provider.h>
+#include <service/crypto/provider/extension/mac/serializer/packed-c/packedc_mac_provider_serializer.h>
 
 /**
- * A crypto provider factory that constucts a full-featured
- * crypto provider that is extended to support the full set of crypto
- * operations.  This factory is only capable of constructing
- * a single service provider instance.
+ * A crypto provider factory that constucts a crypto provider
+ * that is extended to support the full set of crypto operations.
+ * This factory is only capable of constructing a single service
+ * provider instance.
  */
 
-static struct default_crypto_provider
+static struct full_crypto_provider
 {
 	struct crypto_provider crypto_provider;
 	struct hash_provider hash_provider;
 	struct cipher_provider cipher_provider;
 	struct key_derivation_provider key_derivation_provider;
+	struct mac_provider mac_provider;
 
 } instance;
 
 struct crypto_provider *crypto_provider_factory_create(void)
 {
-	/* Initialize the base crypto provider -----------------------*/
+	/**
+	 * Initialize the base crypto provider
+	 */
 	crypto_provider_init(&instance.crypto_provider);
 
 	crypto_provider_register_serializer(&instance.crypto_provider,
@@ -42,7 +47,9 @@ struct crypto_provider *crypto_provider_factory_create(void)
 	crypto_provider_register_serializer(&instance.crypto_provider,
 		TS_RPC_ENCODING_PACKED_C, packedc_crypto_provider_serializer_instance());
 
-	/* Extend with hash operations ---------------------------------*/
+	/**
+	 * Extend with hash operations
+	 */
 	hash_provider_init(&instance.hash_provider);
 
 	hash_provider_register_serializer(&instance.hash_provider,
@@ -51,7 +58,9 @@ struct crypto_provider *crypto_provider_factory_create(void)
 	crypto_provider_extend(&instance.crypto_provider,
 		&instance.hash_provider.base_provider);
 
-	/* Extend with symmetric cipher operations --------------------*/
+	/**
+	 *  Extend with symmetric cipher operations
+	 * */
 	cipher_provider_init(&instance.cipher_provider);
 
 	cipher_provider_register_serializer(&instance.cipher_provider,
@@ -60,7 +69,9 @@ struct crypto_provider *crypto_provider_factory_create(void)
 	crypto_provider_extend(&instance.crypto_provider,
 		&instance.cipher_provider.base_provider);
 
-	/* Extend with key derivation operations ----------------------*/
+	/**
+	 *  Extend with key derivation operations
+	 */
 	key_derivation_provider_init(&instance.key_derivation_provider);
 
 	key_derivation_provider_register_serializer(&instance.key_derivation_provider,
@@ -68,6 +79,17 @@ struct crypto_provider *crypto_provider_factory_create(void)
 
 	crypto_provider_extend(&instance.crypto_provider,
 		&instance.key_derivation_provider.base_provider);
+
+	/**
+	 * Extend with mac operations
+	 */
+	mac_provider_init(&instance.mac_provider);
+
+	mac_provider_register_serializer(&instance.mac_provider,
+		TS_RPC_ENCODING_PACKED_C, packedc_mac_provider_serializer_instance());
+
+	crypto_provider_extend(&instance.crypto_provider,
+		&instance.mac_provider.base_provider);
 
 	return &instance.crypto_provider;
 }
@@ -83,4 +105,6 @@ void crypto_provider_factory_destroy(struct crypto_provider *provider)
 	crypto_provider_deinit(&instance.crypto_provider);
 	hash_provider_deinit(&instance.hash_provider);
 	cipher_provider_deinit(&instance.cipher_provider);
+	key_derivation_provider_deinit(&instance.key_derivation_provider);
+	mac_provider_deinit(&instance.mac_provider);
 }

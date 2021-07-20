@@ -18,7 +18,7 @@ extern "C" {
 #endif
 
 /**
- * A service provider that can be used to add key_derivation operations to the base
+ * A service provider that can be used to add key_derivation operations to the core
  * crypto provider.
  */
 struct key_derivation_provider

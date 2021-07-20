@@ -18,7 +18,7 @@ extern "C" {
 #endif
 
 /**
- * A service provider that can be used to add symmetric cipher operations to the base
+ * A service provider that can be used to add symmetric cipher operations to the core
  * crypto provider.
  */
 struct cipher_provider

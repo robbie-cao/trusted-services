@@ -75,6 +75,8 @@ add_components(
 		"components/service/crypto/provider/extension/cipher/serializer/packed-c"
 		"components/service/crypto/provider/extension/key_derivation"
 		"components/service/crypto/provider/extension/key_derivation/serializer/packed-c"
+		"components/service/crypto/provider/extension/mac"
+		"components/service/crypto/provider/extension/mac/serializer/packed-c"
 		"components/service/crypto/provider/test"
 		"components/service/crypto/backend/mbedcrypto"
 		"components/service/crypto/factory/full"
