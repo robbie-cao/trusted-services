@@ -15,7 +15,6 @@ enum KeyType {
   KEY_TYPE_AES                    = 0x2400;
   KEY_TYPE_DES                    = 0x2301;
   KEY_TYPE_CAMELLIA               = 0x2403;
-  KEY_TYPE_ARC4                   = 0x2002;
   KEY_TYPE_CHACHA20               = 0x2004;
   KEY_TYPE_RSA_PUBLIC_KEY         = 0x4001;
   KEY_TYPE_RSA_KEY_PAIR           = 0x7001;
@@ -43,8 +42,6 @@ enum DhGroup {
 /* Crypto algorithms */
 enum Alg {
   ALG_NONE                        = 0x00000000;
-  ALG_MD2                         = 0x02000001;
-  ALG_MD4                         = 0x02000002;
   ALG_MD5                         = 0x02000003;
   ALG_RIPEMD160                   = 0x02000004;
   ALG_SHA_1                       = 0x02000005;

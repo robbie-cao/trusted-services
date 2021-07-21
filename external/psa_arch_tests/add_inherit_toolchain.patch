@@ -29,7 +29,7 @@ index e0f1dbe..0d660ea 100644
  	endif()
 diff --git a/api-tests/tools/cmake/compiler/INHERIT.cmake b/api-tests/tools/cmake/compiler/INHERIT.cmake
 new file mode 100644
-index 0000000..014d667
+index 0000000..b2570c8
 --- /dev/null
 +++ b/api-tests/tools/cmake/compiler/INHERIT.cmake
 @@ -0,0 +1,19 @@
@@ -50,8 +50,8 @@ index 0000000..014d667
 +# * limitations under the License.
 +#**/
 +
-+
-+add_definitions(-DHOST_GCC_MISSING_CRYPTO_1_0=1)
++# Add any external definitions from the parent build
++add_definitions(${ARCH_TEST_EXTERNAL_DEFS})
 diff --git a/api-tests/tools/scripts/target_cfg/CMakeLists.txt b/api-tests/tools/scripts/target_cfg/CMakeLists.txt
 index 3210c5f..259eb9c 100644
 --- a/api-tests/tools/scripts/target_cfg/CMakeLists.txt

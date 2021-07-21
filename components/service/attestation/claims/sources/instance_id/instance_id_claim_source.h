@@ -14,7 +14,7 @@
 
 /* Instance ID defines */
 #define INSTANCE_ID_HASH_ALG        PSA_ALG_SHA_256
-#define INSTANCE_ID_HASH_LEN        PSA_HASH_SIZE(INSTANCE_ID_HASH_ALG)
+#define INSTANCE_ID_HASH_LEN        PSA_HASH_LENGTH(INSTANCE_ID_HASH_ALG)
 
 #ifdef __cplusplus
 extern "C" {

@@ -38,7 +38,7 @@ static void set_iak_attributes(psa_key_attributes_t *attributes, psa_key_id_t ke
     psa_set_key_usage_flags(attributes, PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH);
 
     psa_set_key_algorithm(attributes, PSA_ALG_ECDSA(PSA_ALG_SHA_256));
-    psa_set_key_type(attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP256R1));
+    psa_set_key_type(attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
     psa_set_key_bits(attributes, IAK_KEY_BITS);
 }
 
@@ -134,8 +134,8 @@ psa_status_t attest_key_mngr_export_iak_public_key(uint8_t *data,
 
 size_t attest_key_mngr_max_iak_export_size(void)
 {
-    return PSA_KEY_EXPORT_MAX_SIZE(
-        PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP256R1)),
+    return PSA_EXPORT_KEY_OUTPUT_SIZE(
+        PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1)),
             IAK_KEY_BITS);
 }
 

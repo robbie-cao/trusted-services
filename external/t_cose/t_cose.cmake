@@ -37,6 +37,7 @@ FetchContent_Declare(
 
 	PATCH_COMMAND git stash
 		COMMAND git am ${CMAKE_CURRENT_LIST_DIR}/0001-add-install-definition.patch
+		COMMAND git apply ${CMAKE_CURRENT_LIST_DIR}/0002-add-tls3_0_0-compatibility.patch
 		COMMAND git reset HEAD~1
 
 )

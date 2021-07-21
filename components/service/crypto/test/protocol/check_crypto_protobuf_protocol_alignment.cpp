@@ -27,7 +27,6 @@ TEST(CryptoProtocolProtobufChecks, checkKeyType)
     CHECK_EQUAL(PSA_KEY_TYPE_AES, ts_crypto_KeyType_KEY_TYPE_AES);
     CHECK_EQUAL(PSA_KEY_TYPE_DES, ts_crypto_KeyType_KEY_TYPE_DES);
     CHECK_EQUAL(PSA_KEY_TYPE_CAMELLIA, ts_crypto_KeyType_KEY_TYPE_CAMELLIA);
-    CHECK_EQUAL(PSA_KEY_TYPE_ARC4, ts_crypto_KeyType_KEY_TYPE_ARC4);
     CHECK_EQUAL(PSA_KEY_TYPE_CHACHA20, ts_crypto_KeyType_KEY_TYPE_CHACHA20);
     CHECK_EQUAL(PSA_KEY_TYPE_RSA_PUBLIC_KEY, ts_crypto_KeyType_KEY_TYPE_RSA_PUBLIC_KEY);
     CHECK_EQUAL(PSA_KEY_TYPE_RSA_KEY_PAIR, ts_crypto_KeyType_KEY_TYPE_RSA_KEY_PAIR);
@@ -61,8 +60,6 @@ TEST(CryptoProtocolProtobufChecks, checkAlg)
     /*
      * Crypto algorithms
      */
-    CHECK_EQUAL(PSA_ALG_MD2, ts_crypto_Alg_ALG_MD2);
-    CHECK_EQUAL(PSA_ALG_MD4, ts_crypto_Alg_ALG_MD4);
     CHECK_EQUAL(PSA_ALG_MD5, ts_crypto_Alg_ALG_MD5);
     CHECK_EQUAL(PSA_ALG_RIPEMD160, ts_crypto_Alg_ALG_RIPEMD160);
     CHECK_EQUAL(PSA_ALG_SHA_1, ts_crypto_Alg_ALG_SHA_1);

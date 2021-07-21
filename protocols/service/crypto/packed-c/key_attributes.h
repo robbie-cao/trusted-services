@@ -16,7 +16,6 @@
 #define TS_CRYPTO_KEY_TYPE_AES                    (0x2400)
 #define TS_CRYPTO_KEY_TYPE_DES                    (0x2301)
 #define TS_CRYPTO_KEY_TYPE_CAMELLIA               (0x2403)
-#define TS_CRYPTO_KEY_TYPE_ARC4                   (0x2002)
 #define TS_CRYPTO_KEY_TYPE_CHACHA20               (0x2004)
 #define TS_CRYPTO_KEY_TYPE_RSA_PUBLIC_KEY         (0x4001)
 #define TS_CRYPTO_KEY_TYPE_RSA_KEY_PAIR           (0x7001)
@@ -38,8 +37,6 @@
 
 /* Crypto algorithms */
 #define TS_CRYPTO_ALG_NONE                        (0x00000000)
-#define TS_CRYPTO_ALG_MD2                         (0x02000001)
-#define TS_CRYPTO_ALG_MD4                         (0x02000002)
 #define TS_CRYPTO_ALG_MD5                         (0x02000003)
 #define TS_CRYPTO_ALG_RIPEMD160                   (0x02000004)
 #define TS_CRYPTO_ALG_SHA_1                       (0x02000005)

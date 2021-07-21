@@ -12,6 +12,14 @@
 set(TS_ARCH_TEST_SUITE CRYPTO CACHE STRING "Arch test suite")
 
 #-------------------------------------------------------------------------------
+#  Extend the arch test build configuration to include tests missing from the
+#  default configuration.
+#-------------------------------------------------------------------------------
+#set(TS_ARCH_TEST_EXTERNAL_DEFS
+#	-DCRYPTO_1_0
+#	CACHE STRING "Arch test external defines")
+
+#-------------------------------------------------------------------------------
 #  The arch test build system puts its build output under a test suite specific
 #  subdirectory.  The subdirectory name is different from the test suite name
 #  so an additional define is needed to obtain the built library.
