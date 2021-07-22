@@ -16,3 +16,4 @@ set(CMAKE_C_FLAGS_INIT "-fdiagnostics-show-option -gdwarf-2 -mstrict-align -O0 -
 set(CMAKE_CXX_FLAGS_INIT "-fdiagnostics-show-option -gdwarf-2 -mstrict-align -O0 -DARM64=1")
 
 include($ENV{TS_ROOT}/tools/cmake/compiler/GCC.cmake REQUIRED)
+include($ENV{TS_ROOT}/tools/cmake/compiler/config_iface.cmake REQUIRED)

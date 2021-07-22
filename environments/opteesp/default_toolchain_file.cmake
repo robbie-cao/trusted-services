@@ -20,7 +20,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE True)
 #set(CMAKE_EXE_LINKER_FLAGS_INIT --specs=nosys.specs)
 
 include($ENV{TS_ROOT}/tools/cmake/compiler/GCC.cmake REQUIRED)
-
+include($ENV{TS_ROOT}/tools/cmake/compiler/config_iface.cmake REQUIRED)
 # Set mandatory compiler and linker flags for this environment:
 #   - This environment uses a libc implementation from SPDEV-KIT. Disable standard
 #     include search paths, startup files and default libraries.
