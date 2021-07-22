@@ -14,7 +14,7 @@ if(NOT DEFINED PROCESSOR_COUNT)
 endif()
 
 set(MBEDTLS_URL "https://github.com/ARMmbed/mbedtls.git" CACHE STRING "Mbed TLS repository URL")
-set(MBEDTLS_REFSPEC "mbedtls-2.26.0" CACHE STRING "Mbed TLS git refspec")
+set(MBEDTLS_REFSPEC "mbedtls-3.0.0" CACHE STRING "Mbed TLS git refspec")
 set(MBEDTLS_INSTALL_PATH "${CMAKE_CURRENT_BINARY_DIR}/mbedtls_install" CACHE PATH "Mbed TLS installation directory")
 set(MBEDTLS_PACKAGE_PATH "${MBEDTLS_INSTALL_PATH}/lib/mbedtls/cmake" CACHE PATH "Mbed TLS CMake package directory")
 

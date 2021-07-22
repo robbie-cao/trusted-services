@@ -71,7 +71,7 @@ void crypto_service_scenarios::generatePersistentKeys()
 	psa_key_id_t key_id;
 	psa_set_key_id(&attributes, 0);
 	status = m_crypto_client->generate_key(&attributes, &key_id);
-	CHECK_EQUAL(PSA_ERROR_INVALID_HANDLE, status);
+	CHECK_EQUAL(PSA_ERROR_INVALID_ARGUMENT, status);
 
 	/* Generate first key */
 	psa_key_id_t key_id_1;
