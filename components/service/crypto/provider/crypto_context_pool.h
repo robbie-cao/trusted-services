@@ -35,6 +35,7 @@ enum crypto_context_op_id
 	CRYPTO_CONTEXT_OP_ID_HASH,
 	CRYPTO_CONTEXT_OP_ID_MAC,
 	CRYPTO_CONTEXT_OP_ID_CIPHER,
+	CRYPTO_CONTEXT_OP_ID_AEAD,
 	CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION
 };
 
@@ -54,6 +55,7 @@ struct crypto_context
 		psa_hash_operation_t hash;
 		psa_mac_operation_t mac;
 		psa_cipher_operation_t cipher;
+		psa_aead_operation_t aead;
 		psa_key_derivation_operation_t key_derivation;
 	} op;
 };
