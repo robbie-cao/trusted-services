@@ -1841,6 +1841,26 @@
 
 /** Whether the key may be used to sign a message.
  *
+ * This flag allows the key to be used for a MAC calculation operation or for
+ * an asymmetric message signature operation, if otherwise permitted by the
+ * key’s type and policy.
+ *
+ * For a key pair, this concerns the private key.
+ */
+#define PSA_KEY_USAGE_SIGN_MESSAGE              ((psa_key_usage_t)0x00000400)
+
+/** Whether the key may be used to verify a message.
+ *
+ * This flag allows the key to be used for a MAC verification operation or for
+ * an asymmetric message signature verification operation, if otherwise
+ * permitted by the key’s type and policy.
+ *
+ * For a key pair, this concerns the public key.
+ */
+#define PSA_KEY_USAGE_VERIFY_MESSAGE            ((psa_key_usage_t)0x00000800)
+
+/** Whether the key may be used to sign a message.
+ *
  * This flag allows the key to be used for a MAC calculation operation
  * or for an asymmetric signature operation,
  * if otherwise permitted by the key's type and policy.
@@ -1862,6 +1882,21 @@
 /** Whether the key may be used to derive other keys.
  */
 #define PSA_KEY_USAGE_DERIVE                    ((psa_key_usage_t)0x00004000)
+
+/** Whether the key may be used to verify the result of a key derivation,
+ * including password hashing.
+ *
+ * This flag allows the key to be used:
+ *
+ * This flag allows the key to be used in a key derivation operation, if
+ * otherwise permitted by by the key's type and policy.
+ *
+ * If this flag is present on all keys used in calls to
+ * psa_key_derivation_input_key() for a key derivation operation, then it
+ * permits calling psa_key_derivation_verify_bytes() or
+ * psa_key_derivation_verify_key() at the end of the operation.
+ */
+#define PSA_KEY_USAGE_VERIFY_DERIVATION         ((psa_key_usage_t)0x00008000)
 
 /**@}*/
 

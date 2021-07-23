@@ -252,17 +252,22 @@ static rpc_status_t key_derivation_input_key_handler(void *context, struct call_
 
 	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
 
-		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
+		psa_status_t psa_status = PSA_ERROR_INVALID_HANDLE;
 
-		struct crypto_context *crypto_context =
-			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, call_req_get_caller_id(req),
-				op_handle);
+		if (key_id) {
 
-		if (crypto_context) {
+			psa_status = PSA_ERROR_BAD_STATE;
 
-			psa_status = psa_key_derivation_input_key(&crypto_context->op.key_derivation,
-				step, key_id);
+			struct crypto_context *crypto_context =
+				crypto_context_pool_find(&this_instance->context_pool,
+					CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, call_req_get_caller_id(req),
+					op_handle);
+
+			if (crypto_context) {
+
+				psa_status = psa_key_derivation_input_key(&crypto_context->op.key_derivation,
+					step, key_id);
+			}
 		}
 
 		call_req_set_opstatus(req, psa_status);

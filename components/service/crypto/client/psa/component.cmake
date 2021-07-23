@@ -29,4 +29,6 @@ target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/psa_key_derivation.c"
 	"${CMAKE_CURRENT_LIST_DIR}/psa_cipher.c"
 	"${CMAKE_CURRENT_LIST_DIR}/psa_aead.c"
+	"${CMAKE_CURRENT_LIST_DIR}/psa_sign_message.c"
+	"${CMAKE_CURRENT_LIST_DIR}/psa_verify_message.c"
 	)

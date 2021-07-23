@@ -310,6 +310,21 @@ psa_status_t psa_hash_clone(const psa_hash_operation_t *source_operation,
 	return psa_status;
 }
 
+psa_status_t psa_hash_suspend(psa_hash_operation_t *operation,
+                              uint8_t *hash_state,
+                              size_t hash_state_size,
+                              size_t *hash_state_length)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t psa_hash_resume(psa_hash_operation_t *operation,
+                             const uint8_t *hash_state,
+                             size_t hash_state_length)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
 psa_status_t psa_hash_compare(psa_algorithm_t alg,
 	const uint8_t *input,
 	size_t input_length,
