@@ -21,7 +21,8 @@ attestation_service_context::attestation_service_context(const char *sn) :
 	m_event_log_claim_source(),
 	m_boot_seed_claim_source(),
 	m_lifecycle_claim_source(),
-	m_instance_id_claim_source()
+	m_instance_id_claim_source(),
+	m_implementation_id_claim_source()
 {
 
 }
@@ -78,6 +79,11 @@ void attestation_service_context::do_init()
 
 	/* Instance ID claim source */
 	claim_source = instance_id_claim_source_init(&m_instance_id_claim_source);
+	claims_register_add_claim_source(CLAIM_CATEGORY_DEVICE, claim_source);
+
+	/* Implementation ID claim source */
+	claim_source = implementation_id_claim_source_init(&m_implementation_id_claim_source,
+		"trustedfirmware.org.ts.standalone");
 	claims_register_add_claim_source(CLAIM_CATEGORY_DEVICE, claim_source);
 
 	/* Initialize the attestation service provider */

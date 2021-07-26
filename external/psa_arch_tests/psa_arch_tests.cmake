@@ -32,6 +32,8 @@ FetchContent_Declare(
 	GIT_REPOSITORY ${PSA_ARCH_TESTS_URL}
 	GIT_TAG ${PSA_ARCH_TESTS_REFSPEC}
 	GIT_SHALLOW TRUE
+	PATCH_COMMAND git stash
+		COMMAND git apply ${CMAKE_CURRENT_LIST_DIR}/modify_attest_config.patch
 )
 
 # FetchContent_GetProperties exports psa-arch-tests_SOURCE_DIR and psa-arch-tests_BINARY_DIR variables

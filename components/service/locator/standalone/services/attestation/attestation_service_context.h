@@ -14,6 +14,7 @@
 #include <service/attestation/claims/sources/boot_seed_generator/boot_seed_generator.h>
 #include <service/attestation/claims/sources/null_lifecycle/null_lifecycle_claim_source.h>
 #include <service/attestation/claims/sources/instance_id/instance_id_claim_source.h>
+#include <service/attestation/claims/sources/implementation_id/implementation_id_claim_source.h>
 
 class attestation_service_context : public standalone_service_context
 {
@@ -31,6 +32,7 @@ private:
     struct boot_seed_generator m_boot_seed_claim_source;
     struct null_lifecycle_claim_source m_lifecycle_claim_source;
     struct instance_id_claim_source m_instance_id_claim_source;
+    struct implementation_id_claim_source m_implementation_id_claim_source;
 };
 
 #endif /* STANDALONE_ATTESTATION_SERVICE_CONTEXT_H */

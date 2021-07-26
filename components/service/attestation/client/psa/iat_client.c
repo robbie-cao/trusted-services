@@ -53,6 +53,8 @@ psa_status_t psa_initial_attest_get_token(
     psa_status_t psa_status = PSA_ERROR_INVALID_ARGUMENT;
     size_t req_len = tlv_required_space(challenge_size);
 
+    if (!token_buf || !token_buf_size) return PSA_ERROR_INVALID_ARGUMENT;
+
     struct tlv_record challenge_record;
     challenge_record.tag = TS_ATTESTATION_GET_TOKEN_IN_TAG_AUTH_CHALLENGE;
     challenge_record.length = challenge_size;

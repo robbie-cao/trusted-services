@@ -17,8 +17,6 @@
 #include <qcbor/qcbor_spiffy_decode.h>
 #include <t_cose/t_cose_sign1_verify.h>
 
-#define IAK_KEY_BITS    (256)
-
 static bool fetch_and_verify(std::vector<uint8_t> &report, std::string &error_msg);
 static bool fetch_iak_public_key(psa_key_handle_t &iak_handle, std::string &error_msg);
 static bool verify_token(std::vector<uint8_t> &report, const uint8_t *token, size_t token_len,
@@ -108,10 +106,7 @@ static bool fetch_and_verify(std::vector<uint8_t> &report, std::string &error_ms
 static bool fetch_iak_public_key(psa_key_handle_t &iak_handle, std::string &error_msg)
 {
     size_t iak_pub_key_len = 0;
-    uint8_t iak_pub_key_buf[PSA_KEY_EXPORT_MAX_SIZE(
-        PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(
-            PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP256R1)),
-            IAK_KEY_BITS)];
+    uint8_t iak_pub_key_buf[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
 
     int status = attest_provision_export_iak_public_key(iak_pub_key_buf,
         sizeof(iak_pub_key_buf), &iak_pub_key_len);
@@ -124,8 +119,8 @@ static bool fetch_iak_public_key(psa_key_handle_t &iak_handle, std::string &erro
         psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_VERIFY_HASH);
 
         psa_set_key_algorithm(&attributes, PSA_ALG_ECDSA(PSA_ALG_SHA_256));
-        psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_CURVE_SECP256R1));
-        psa_set_key_bits(&attributes, IAK_KEY_BITS);
+        psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_SECP_R1));
+        psa_set_key_bits(&attributes, 256);
 
         status = psa_import_key(&attributes, iak_pub_key_buf, iak_pub_key_len, &iak_handle);
 

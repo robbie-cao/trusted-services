@@ -1,0 +1,13 @@
+diff --git a/api-tests/platform/targets/tgt_dev_apis_linux/nspe/pal_config.h b/api-tests/platform/targets/tgt_dev_apis_linux/nspe/pal_config.h
+index 6112ba7..1cdf581 100755
+--- a/api-tests/platform/targets/tgt_dev_apis_linux/nspe/pal_config.h
++++ b/api-tests/platform/targets/tgt_dev_apis_linux/nspe/pal_config.h
+@@ -60,7 +60,7 @@ typedef uint32_t            cfg_id_t;
+ #define CRYPTO_VERSION_BETA3
+ 
+ /* Use hardcoded public key */
+-#define PLATFORM_OVERRIDE_ATTEST_PK
++//#define PLATFORM_OVERRIDE_ATTEST_PK
+ 
+ /*
+  * Include of PSA defined Header files

@@ -52,6 +52,11 @@ data:
       os_id : "GNU/Linux"
       params:
             - "-GUnix Makefiles"
+    - name: "psa-api-test-initial_attestation-arm-linux"
+      src: "$TS_ROOT/deployments/psa-api-test/initial_attestation/arm-linux"
+      os_id : "GNU/Linux"
+      params:
+            - "-GUnix Makefiles"
     - name: "psa-api-test-protected_storage-pc-linux"
       src: "$TS_ROOT/deployments/psa-api-test/protected_storage/linux-pc"
       os_id : "GNU/Linux"

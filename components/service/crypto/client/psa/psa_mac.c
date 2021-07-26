@@ -284,3 +284,14 @@ psa_status_t psa_mac_verify(psa_key_id_t key,
 {
 	return PSA_ERROR_NOT_SUPPORTED;
 }
+
+psa_status_t psa_mac_compute(psa_key_id_t key,
+	psa_algorithm_t alg,
+	const uint8_t *input,
+	size_t input_length,
+	uint8_t *mac,
+	size_t mac_size,
+	size_t *mac_length)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}

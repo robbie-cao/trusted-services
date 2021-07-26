@@ -8,6 +8,7 @@
 #include <string.h>
 #include "attest_provision_client.h"
 #include <common/tlv/tlv.h>
+#include <psa/initial_attestation.h>
 #include <provision/attest_provision.h>
 #include <protocols/service/attestation/packed-c/export_iak_public_key.h>
 #include <protocols/service/attestation/packed-c/import_iak.h>
@@ -173,4 +174,21 @@ psa_status_t attest_provision_iak_exists(void)
     }
 
     return psa_status;
+}
+
+psa_status_t tfm_initial_attest_get_public_key(
+    uint8_t *public_key,
+    size_t public_key_buf_size,
+    size_t *public_key_len,
+    psa_ecc_family_t *elliptic_curve_type)
+{
+    /* Wrapper to provide compatibility with psa arch tests that assume a TF-M
+     * based device under test.
+     */
+    *elliptic_curve_type = PSA_ECC_FAMILY_SECP_R1;
+
+    psa_status_t status = attest_provision_export_iak_public_key(public_key,
+        public_key_buf_size, public_key_len);
+
+    return status;
 }

@@ -48,6 +48,7 @@ add_components(
 		"components/service/attestation/claims/sources/boot_seed_generator"
 		"components/service/attestation/claims/sources/null_lifecycle"
 		"components/service/attestation/claims/sources/instance_id"
+		"components/service/attestation/claims/sources/implementation_id"
 		"components/service/attestation/claims/sources/event_log"
 		"components/service/attestation/claims/sources/event_log/mock"
 		"components/service/attestation/claims/sources/event_log/test"
