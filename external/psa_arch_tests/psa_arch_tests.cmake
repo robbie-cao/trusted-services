@@ -14,7 +14,7 @@ if(NOT DEFINED PROCESSOR_COUNT)
 endif()
 
 set(PSA_ARCH_TESTS_URL "https://github.com/ARM-software/psa-arch-tests.git" CACHE STRING "psa-arch-tests repository URL")
-set(PSA_ARCH_TESTS_REFSPEC "dfb944c8e9e3874d3958a456c5d1299646d99b50" CACHE STRING "psa-arch-tests git refspec")
+set(PSA_ARCH_TESTS_REFSPEC "master" CACHE STRING "psa-arch-tests git refspec")
 set(PSA_ARCH_TESTS_INSTALL_PATH "${CMAKE_CURRENT_BINARY_DIR}/psa-arch-tests_install" CACHE PATH "psa-arch-tests installation directory")
 set(PSA_ARCH_TESTS_PACKAGE_PATH "${PSA_ARCH_TESTS_INSTALL_PATH}/libpsa-arch-tests/cmake" CACHE PATH "psa-arch-tests CMake package directory")
 

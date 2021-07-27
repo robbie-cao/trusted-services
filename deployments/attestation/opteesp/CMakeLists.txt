@@ -64,6 +64,11 @@ add_components(TARGET "attestation"
 		"components/service/attestation/key_mngr/local"
 		"components/service/attestation/provider"
 		"components/service/attestation/provider/serializer/packed-c"
+		"components/service/crypto/backend/mbedcrypto"
+		"components/service/crypto/backend/mbedcrypto/trng_adapter/platform"
+		"components/service/secure_storage/include"
+		"components/service/secure_storage/frontend/psa/its"
+		"components/service/secure_storage/backend/mock_store"
 		"protocols/rpc/common/packed-c"
 		"environments/opteesp"
 )
@@ -76,17 +81,17 @@ target_sources(attestation PRIVATE
 #  Use the selected platform to provide drivers needed by the deployment
 #
 #-------------------------------------------------------------------------------
+# temporarily force platform - with this change, the build interface to
+# an external builder such as a Yocto recipe is unchanged.  Should remove
+# once the build interface is published.
+set(TS_PLATFORM "arm/fvp/fvp_base_revc-2xaemv8a" CACHE STRING "Overridden" FORCE)
+
 add_platform(TARGET "attestation")
 
 #-------------------------------------------------------------------------------
 #  Components used from external projects
 #
 #-------------------------------------------------------------------------------
-
-# Temporary dependency on mbedcrypto
-set(MBEDTLS_USER_CONFIG_FILE
-	"${TS_ROOT}/components/service/crypto/client/cpp/config_mbedtls_user.h"
-	CACHE STRING "Configuration file for mbedcrypto")
 list(APPEND MBEDTLS_EXTRA_INCLUDES ${SP_DEV_KIT_INCLUDE_DIR})
 
 # Mbed TLS provides libmbedcrypto

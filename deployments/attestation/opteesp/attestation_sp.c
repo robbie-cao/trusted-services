@@ -17,6 +17,8 @@
 #include <service/attestation/claims/sources/null_lifecycle/null_lifecycle_claim_source.h>
 #include <service/attestation/claims/sources/instance_id/instance_id_claim_source.h>
 #include <service/attestation/key_mngr/local/local_attest_key_mngr.h>
+#include <service/crypto/backend/mbedcrypto/mbedcrypto_backend.h>
+#include <service/secure_storage/backend/mock_store/mock_store.h>
 #include <ffa_api.h>
 #include <sp_api.h>
 #include <sp_rxtx.h>
@@ -56,6 +58,12 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	sp_config_load(init_info);
 
 	/**
+	 * Initialize the mbedcrypto - to be replaced by crypto client
+	 */
+	struct mock_store key_store;
+	mbedcrypto_backend_init(mock_store_init(&key_store), 0);
+
+	/**
 	 * Register claim sources for deployment
 	 */
 	claims_register_init();
@@ -79,8 +87,6 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	/**
 	 * Initialize the service provider
 	 */
- 	psa_crypto_init(); /* temporary */
-
 	local_attest_key_mngr_init(LOCAL_ATTEST_KEY_MNGR_VOLATILE_IAK);
 	attest_iface = attest_provider_init(&attest_provider);
 
