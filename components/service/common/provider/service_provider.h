@@ -47,6 +47,8 @@ struct service_provider {
 	struct rpc_interface iface;
 	const struct service_handler *handlers;
 	size_t num_handlers;
+	uint32_t opcode_range_lo;
+	uint32_t opcode_range_hi;
 	struct rpc_interface *successor;
 };
 

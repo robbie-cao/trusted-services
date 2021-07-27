@@ -12,9 +12,11 @@ static const struct service_handler *find_handler(const struct service_provider 
 							  uint32_t opcode)
 {
 	const struct service_handler *handler = NULL;
-	size_t index = 0;
 
-	if (sp->num_handlers) {
+	if ((opcode >= sp->opcode_range_lo) && (opcode <= sp->opcode_range_hi)) {
+
+		size_t index = 0;
+
 		while (index < sp->num_handlers) {
 			if (service_handler_get_opcode(&sp->handlers[index]) == opcode) {
 				handler = &sp->handlers[index];
@@ -25,6 +27,28 @@ static const struct service_handler *find_handler(const struct service_provider 
 	}
 
 	return handler;
+}
+
+static void set_opcode_range(struct service_provider *sp)
+{
+	uint32_t lo = UINT32_MAX;
+	uint32_t hi = 0;
+
+	/* Determine opcode range so that this service may be skipped
+	 * without having to iterate over all handlers.  This reduces
+	 * the time to find a qualifying handler when multiple service
+	 * providers are chained.
+	 */
+	for (size_t index = 0; index < sp->num_handlers; index++) {
+
+		uint32_t opcode = service_handler_get_opcode(&sp->handlers[index]);
+
+		if (opcode < lo) lo = opcode;
+		if (opcode > hi) hi = opcode;
+	}
+
+	sp->opcode_range_lo = lo;
+	sp->opcode_range_hi = hi;
 }
 
 static rpc_status_t receive(struct rpc_interface *rpc_iface, struct call_req *req)
@@ -63,6 +87,8 @@ void service_provider_init(struct service_provider *sp, void *context,
 	sp->num_handlers = num_handlers;
 
 	sp->successor = NULL;
+
+	set_opcode_range(sp);
 }
 
 void service_provider_extend(struct service_provider *context,
