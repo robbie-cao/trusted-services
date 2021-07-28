@@ -11,7 +11,6 @@
  */
 
 /* Core operations */
-#define TS_CRYPTO_OPCODE_NOP                    (0x0000)
 #define TS_CRYPTO_OPCODE_BASE                   (0x0100)
 #define TS_CRYPTO_OPCODE_GENERATE_KEY           (TS_CRYPTO_OPCODE_BASE + 1)
 #define TS_CRYPTO_OPCODE_DESTROY_KEY            (TS_CRYPTO_OPCODE_BASE + 2)

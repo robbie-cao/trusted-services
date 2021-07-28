@@ -43,6 +43,8 @@ add_components(
 		"components/service/locator/standalone/services/protected-storage"
 		"components/service/locator/standalone/services/test-runner"
 		"components/service/locator/standalone/services/attestation"
+		"components/service/discovery/provider"
+		"components/service/discovery/provider/serializer/packed-c"
 		"components/service/attestation/include"
 		"components/service/attestation/claims"
 		"components/service/attestation/claims/sources/boot_seed_generator"

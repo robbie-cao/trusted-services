@@ -11,7 +11,6 @@
 #include <psa/crypto.h>
 
 /* Service request handlers */
-static rpc_status_t nop_handler(void *context, struct call_req* req);
 static rpc_status_t generate_key_handler(void *context, struct call_req* req);
 static rpc_status_t destroy_key_handler(void *context, struct call_req* req);
 static rpc_status_t export_key_handler(void *context, struct call_req* req);
@@ -28,7 +27,6 @@ static rpc_status_t get_key_attributes_handler(void *context, struct call_req* r
 
 /* Handler mapping table for service */
 static const struct service_handler handler_table[] = {
-	{TS_CRYPTO_OPCODE_NOP,                  nop_handler},
 	{TS_CRYPTO_OPCODE_GENERATE_KEY,         generate_key_handler},
 	{TS_CRYPTO_OPCODE_DESTROY_KEY,          destroy_key_handler},
 	{TS_CRYPTO_OPCODE_EXPORT_KEY,           export_key_handler},
@@ -83,18 +81,6 @@ static const struct crypto_provider_serializer* get_crypto_serializer(void *cont
 	if (encoding < TS_RPC_ENCODING_LIMIT) serializer = this_instance->serializers[encoding];
 
 	return serializer;
-}
-
-static rpc_status_t nop_handler(void *context, struct call_req* req)
-{
-	/* Responds to a request by returning success */
-	rpc_status_t rpc_status = TS_RPC_CALL_ACCEPTED;
-	psa_status_t psa_status = PSA_SUCCESS;
-
-	(void)context;
-	call_req_set_opstatus(req, psa_status);
-
-	return rpc_status;
 }
 
 static rpc_status_t generate_key_handler(void *context, struct call_req* req)
