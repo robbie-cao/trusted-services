@@ -9,6 +9,7 @@
 #include "iat_client.h"
 #include <common/tlv/tlv.h>
 #include <psa/initial_attestation.h>
+#include <service/common/client/service_client.h>
 #include <protocols/service/attestation/packed-c/get_token.h>
 #include <protocols/service/attestation/packed-c/get_token_size.h>
 #include <protocols/service/attestation/packed-c/opcodes.h>
@@ -17,28 +18,19 @@
 /**
  * @brief      The singleton psa_iat_client instance
  *
- * The psa attestation C API assumes a single backend service provider.  This
- * structure defines the state used by the psa_iat_client that communicates
- * with a remote provider using the provided rpc caller.
+ * The psa attestation C API assumes a single backend service provider.
  */
-static struct psa_iat_client
-{
-    struct rpc_caller *caller;
-    int rpc_status;
-} instance;
+static struct service_client instance;
 
 
 psa_status_t psa_iat_client_init(struct rpc_caller *caller)
 {
-	instance.caller = caller;
-	instance.rpc_status = TS_RPC_CALL_ACCEPTED;
-
-	return PSA_SUCCESS;
+	return service_client_init(&instance, caller);
 }
 
 void psa_iat_client_deinit(void)
 {
-	instance.caller = NULL;
+	service_client_deinit(&instance);
 }
 
 int psa_iat_client_rpc_status(void)

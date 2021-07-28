@@ -27,7 +27,7 @@ psa_status_t psa_key_derivation_setup(
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -37,11 +37,11 @@ psa_status_t psa_key_derivation_setup(
 
 		memcpy(req_buf, &req_msg, req_len);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_KEY_DERIVATION_SETUP, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 			psa_status = opstatus;
 
@@ -60,7 +60,7 @@ psa_status_t psa_key_derivation_setup(
 			}
 		}
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -79,7 +79,7 @@ psa_status_t psa_key_derivation_get_capacity(
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -89,11 +89,11 @@ psa_status_t psa_key_derivation_get_capacity(
 
 		memcpy(req_buf, &req_msg, req_len);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_KEY_DERIVATION_GET_CAPACITY, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 			psa_status = opstatus;
 
@@ -112,7 +112,7 @@ psa_status_t psa_key_derivation_get_capacity(
 			}
 		}
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -132,7 +132,7 @@ psa_status_t psa_key_derivation_set_capacity(
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -142,13 +142,13 @@ psa_status_t psa_key_derivation_set_capacity(
 
 		memcpy(req_buf, &req_msg, req_len);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_KEY_DERIVATION_SET_CAPACITY, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -178,7 +178,7 @@ psa_status_t psa_key_derivation_input_bytes(
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -192,13 +192,13 @@ psa_status_t psa_key_derivation_input_bytes(
 		tlv_iterator_begin(&req_iter, &req_buf[req_fixed_len], req_len - req_fixed_len);
 		tlv_encode(&req_iter, &data_record);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_KEY_DERIVATION_INPUT_BYTES, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -220,7 +220,7 @@ psa_status_t psa_key_derivation_input_key(
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -230,13 +230,13 @@ psa_status_t psa_key_derivation_input_key(
 
 		memcpy(req_buf, &req_msg, req_len);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_KEY_DERIVATION_INPUT_KEY, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -258,7 +258,7 @@ psa_status_t psa_key_derivation_output_bytes(
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -268,11 +268,11 @@ psa_status_t psa_key_derivation_output_bytes(
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_KEY_DERIVATION_OUTPUT_BYTES, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 			psa_status = opstatus;
 
@@ -301,7 +301,7 @@ psa_status_t psa_key_derivation_output_bytes(
 			}
 		}
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -325,7 +325,7 @@ psa_status_t psa_key_derivation_output_key(
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -335,11 +335,11 @@ psa_status_t psa_key_derivation_output_key(
 
 		memcpy(req_buf, &req_msg, req_len);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_KEY_DERIVATION_OUTPUT_KEY, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 			psa_status = opstatus;
 
@@ -359,7 +359,7 @@ psa_status_t psa_key_derivation_output_key(
 			}
 		}
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -378,7 +378,7 @@ psa_status_t psa_key_derivation_abort(
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -388,13 +388,13 @@ psa_status_t psa_key_derivation_abort(
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_KEY_DERIVATION_ABORT, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -426,7 +426,7 @@ psa_status_t psa_key_derivation_key_agreement(
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -440,13 +440,13 @@ psa_status_t psa_key_derivation_key_agreement(
 		tlv_iterator_begin(&req_iter, &req_buf[req_fixed_len], req_len - req_fixed_len);
 		tlv_encode(&req_iter, &data_record);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_KEY_DERIVATION_KEY_AGREEMENT, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -478,7 +478,7 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -492,11 +492,11 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
 		tlv_iterator_begin(&req_iter, &req_buf[req_fixed_len], req_len - req_fixed_len);
 		tlv_encode(&req_iter, &data_record);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_KEY_DERIVATION_RAW_KEY_AGREEMENT, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 			psa_status = opstatus;
 
@@ -526,7 +526,7 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
 			}
 		}
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;

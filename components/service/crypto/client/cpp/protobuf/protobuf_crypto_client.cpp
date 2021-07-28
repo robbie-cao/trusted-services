@@ -56,7 +56,7 @@ psa_status_t protobuf_crypto_client::generate_key(const psa_key_attributes_t *at
 		rpc_call_handle call_handle;
 		uint8_t *req_buf;
 
-		call_handle = rpc_caller_begin(m_caller, &req_buf, req_len);
+		call_handle = rpc_caller_begin(m_client.caller, &req_buf, req_len);
 
 		if (call_handle) {
 
@@ -67,10 +67,10 @@ psa_status_t protobuf_crypto_client::generate_key(const psa_key_attributes_t *at
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_GenerateKeyIn_fields, &req_msg);
 
-			m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
+			m_client.rpc_status = rpc_caller_invoke(m_client.caller, call_handle,
 				ts_crypto_Opcode_GENERATE_KEY, &opstatus, &resp_buf, &resp_len);
 
-			if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) {
+			if (m_client.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 				psa_status = opstatus;
 
@@ -90,7 +90,7 @@ psa_status_t protobuf_crypto_client::generate_key(const psa_key_attributes_t *at
 				}
 			}
 
-			rpc_caller_end(m_caller, call_handle);
+			rpc_caller_end(m_client.caller, call_handle);
 		}
 	}
 
@@ -110,7 +110,7 @@ psa_status_t protobuf_crypto_client::destroy_key(psa_key_id_t id)
 		rpc_call_handle call_handle;
 		uint8_t *req_buf;
 
-		call_handle = rpc_caller_begin(m_caller, &req_buf, req_len);
+		call_handle = rpc_caller_begin(m_client.caller, &req_buf, req_len);
 
 		if (call_handle) {
 
@@ -121,12 +121,12 @@ psa_status_t protobuf_crypto_client::destroy_key(psa_key_id_t id)
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_DestroyKeyIn_fields, &req_msg);
 
-			m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
+			m_client.rpc_status = rpc_caller_invoke(m_client.caller, call_handle,
 				ts_crypto_Opcode_DESTROY_KEY, &opstatus, &resp_buf, &resp_len);
 
-			if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+			if (m_client.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
 
-			rpc_caller_end(m_caller, call_handle);
+			rpc_caller_end(m_client.caller, call_handle);
 		}
 	}
 
@@ -151,7 +151,7 @@ psa_status_t protobuf_crypto_client::import_key(const psa_key_attributes_t *attr
 		rpc_call_handle call_handle;
 		uint8_t *req_buf;
 
-		call_handle = rpc_caller_begin(m_caller, &req_buf, req_len);
+		call_handle = rpc_caller_begin(m_client.caller, &req_buf, req_len);
 
 		if (call_handle) {
 
@@ -162,10 +162,10 @@ psa_status_t protobuf_crypto_client::import_key(const psa_key_attributes_t *attr
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_ImportKeyIn_fields, &req_msg);
 
-			m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
+			m_client.rpc_status = rpc_caller_invoke(m_client.caller, call_handle,
 				ts_crypto_Opcode_IMPORT_KEY, &opstatus, &resp_buf, &resp_len);
 
-			if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) {
+			if (m_client.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 				psa_status = opstatus;
 
@@ -185,7 +185,7 @@ psa_status_t protobuf_crypto_client::import_key(const psa_key_attributes_t *attr
 				}
 			}
 
-			rpc_caller_end(m_caller, call_handle);
+			rpc_caller_end(m_client.caller, call_handle);
 		}
 	}
 
@@ -210,7 +210,7 @@ psa_status_t protobuf_crypto_client::export_key(psa_key_id_t id,
 		rpc_call_handle call_handle;
 		uint8_t *req_buf;
 
-		call_handle = rpc_caller_begin(m_caller, &req_buf, req_len);
+		call_handle = rpc_caller_begin(m_client.caller, &req_buf, req_len);
 
 		if (call_handle) {
 
@@ -221,10 +221,10 @@ psa_status_t protobuf_crypto_client::export_key(psa_key_id_t id,
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_ExportKeyIn_fields, &req_msg);
 
-			m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
+			m_client.rpc_status = rpc_caller_invoke(m_client.caller, call_handle,
 				ts_crypto_Opcode_EXPORT_KEY, &opstatus, &resp_buf, &resp_len);
 
-			if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) {
+			if (m_client.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 				psa_status = opstatus;
 
@@ -264,7 +264,7 @@ psa_status_t protobuf_crypto_client::export_key(psa_key_id_t id,
 				}
 			}
 
-			rpc_caller_end(m_caller, call_handle);
+			rpc_caller_end(m_client.caller, call_handle);
 		}
 	}
 
@@ -286,7 +286,7 @@ psa_status_t protobuf_crypto_client::export_public_key(psa_key_id_t id,
 		rpc_call_handle call_handle;
 		uint8_t *req_buf;
 
-		call_handle = rpc_caller_begin(m_caller, &req_buf, req_len);
+		call_handle = rpc_caller_begin(m_client.caller, &req_buf, req_len);
 
 		if (call_handle) {
 
@@ -297,10 +297,10 @@ psa_status_t protobuf_crypto_client::export_public_key(psa_key_id_t id,
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_ExportPublicKeyIn_fields, &req_msg);
 
-			m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
+			m_client.rpc_status = rpc_caller_invoke(m_client.caller, call_handle,
 				ts_crypto_Opcode_EXPORT_PUBLIC_KEY, &opstatus, &resp_buf, &resp_len);
 
-			if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) {
+			if (m_client.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 				psa_status = opstatus;
 
@@ -341,7 +341,7 @@ psa_status_t protobuf_crypto_client::export_public_key(psa_key_id_t id,
 				}
 			}
 
-			rpc_caller_end(m_caller, call_handle);
+			rpc_caller_end(m_client.caller, call_handle);
 		}
 	}
 
@@ -369,7 +369,7 @@ psa_status_t protobuf_crypto_client::sign_hash(psa_key_id_t id, psa_algorithm_t 
 		rpc_call_handle call_handle;
 		uint8_t *req_buf;
 
-		call_handle = rpc_caller_begin(m_caller, &req_buf, req_len);
+		call_handle = rpc_caller_begin(m_client.caller, &req_buf, req_len);
 
 		if (call_handle) {
 
@@ -380,10 +380,10 @@ psa_status_t protobuf_crypto_client::sign_hash(psa_key_id_t id, psa_algorithm_t 
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_SignHashIn_fields, &req_msg);
 
-			m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
+			m_client.rpc_status = rpc_caller_invoke(m_client.caller, call_handle,
 						ts_crypto_Opcode_SIGN_HASH, &opstatus, &resp_buf, &resp_len);
 
-			if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) {
+			if (m_client.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 				psa_status = opstatus;
 
@@ -418,7 +418,7 @@ psa_status_t protobuf_crypto_client::sign_hash(psa_key_id_t id, psa_algorithm_t 
 				}
 			}
 
-			rpc_caller_end(m_caller, call_handle);
+			rpc_caller_end(m_client.caller, call_handle);
 		}
 	}
 
@@ -450,7 +450,7 @@ psa_status_t protobuf_crypto_client::verify_hash(psa_key_id_t id, psa_algorithm_
 		rpc_call_handle call_handle;
 		uint8_t *req_buf;
 
-		call_handle = rpc_caller_begin(m_caller, &req_buf, req_len);
+		call_handle = rpc_caller_begin(m_client.caller, &req_buf, req_len);
 
 		if (call_handle) {
 
@@ -461,12 +461,12 @@ psa_status_t protobuf_crypto_client::verify_hash(psa_key_id_t id, psa_algorithm_
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_VerifyHashIn_fields, &req_msg);
 
-			m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
+			m_client.rpc_status = rpc_caller_invoke(m_client.caller, call_handle,
 						ts_crypto_Opcode_VERIFY_HASH, &opstatus, &resp_buf, &resp_len);
 
-			if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+			if (m_client.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
 
-			rpc_caller_end(m_caller, call_handle);
+			rpc_caller_end(m_client.caller, call_handle);
 		}
 	}
 
@@ -501,7 +501,7 @@ psa_status_t protobuf_crypto_client::asymmetric_encrypt(psa_key_id_t id, psa_alg
 		rpc_call_handle call_handle;
 		uint8_t *req_buf;
 
-		call_handle = rpc_caller_begin(m_caller, &req_buf, req_len);
+		call_handle = rpc_caller_begin(m_client.caller, &req_buf, req_len);
 
 		if (call_handle) {
 
@@ -512,10 +512,10 @@ psa_status_t protobuf_crypto_client::asymmetric_encrypt(psa_key_id_t id, psa_alg
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_AsymmetricEncryptIn_fields, &req_msg);
 
-			m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
+			m_client.rpc_status = rpc_caller_invoke(m_client.caller, call_handle,
 						ts_crypto_Opcode_ASYMMETRIC_ENCRYPT, &opstatus, &resp_buf, &resp_len);
 
-			if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) {
+			if (m_client.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 				psa_status = opstatus;
 
@@ -550,7 +550,7 @@ psa_status_t protobuf_crypto_client::asymmetric_encrypt(psa_key_id_t id, psa_alg
 				}
 			}
 
-			rpc_caller_end(m_caller, call_handle);
+			rpc_caller_end(m_client.caller, call_handle);
 		}
 	}
 
@@ -585,7 +585,7 @@ psa_status_t protobuf_crypto_client::asymmetric_decrypt(psa_key_id_t id, psa_alg
 		rpc_call_handle call_handle;
 		uint8_t *req_buf;
 
-		call_handle = rpc_caller_begin(m_caller, &req_buf, req_len);
+		call_handle = rpc_caller_begin(m_client.caller, &req_buf, req_len);
 
 		if (call_handle) {
 
@@ -596,10 +596,10 @@ psa_status_t protobuf_crypto_client::asymmetric_decrypt(psa_key_id_t id, psa_alg
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_AsymmetricDecryptIn_fields, &req_msg);
 
-			m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
+			m_client.rpc_status = rpc_caller_invoke(m_client.caller, call_handle,
 						ts_crypto_Opcode_ASYMMETRIC_DECRYPT, &opstatus, &resp_buf, &resp_len);
 
-			if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) {
+			if (m_client.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 				psa_status = opstatus;
 
@@ -622,19 +622,19 @@ psa_status_t protobuf_crypto_client::asymmetric_decrypt(psa_key_id_t id, psa_alg
 						}
 						else {
 							/* Provided buffer is too small */
-							m_err_rpc_status = PSA_ERROR_BUFFER_TOO_SMALL;
+							m_client.rpc_status = PSA_ERROR_BUFFER_TOO_SMALL;
 						}
 					}
 					else {
 						/* Failed to decode response message */
-						m_err_rpc_status = PSA_ERROR_GENERIC_ERROR;
+						m_client.rpc_status = PSA_ERROR_GENERIC_ERROR;
 					}
 
 					::free(plaintext_byte_array);
 				}
 			}
 
-			rpc_caller_end(m_caller, call_handle);
+			rpc_caller_end(m_client.caller, call_handle);
 		}
 	}
 
@@ -657,7 +657,7 @@ psa_status_t protobuf_crypto_client::generate_random(uint8_t *output, size_t out
 		rpc_call_handle call_handle;
 		uint8_t *req_buf;
 
-		call_handle = rpc_caller_begin(m_caller, &req_buf, req_len);
+		call_handle = rpc_caller_begin(m_client.caller, &req_buf, req_len);
 
 		if (call_handle) {
 
@@ -668,10 +668,10 @@ psa_status_t protobuf_crypto_client::generate_random(uint8_t *output, size_t out
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_GenerateRandomIn_fields, &req_msg);
 
-			m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
+			m_client.rpc_status = rpc_caller_invoke(m_client.caller, call_handle,
 					ts_crypto_Opcode_GENERATE_RANDOM, &opstatus, &resp_buf, &resp_len);
 
-			if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) {
+			if (m_client.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 				psa_status = opstatus;
 
@@ -703,7 +703,7 @@ psa_status_t protobuf_crypto_client::generate_random(uint8_t *output, size_t out
 				}
 			}
 
-			rpc_caller_end(m_caller, call_handle);
+			rpc_caller_end(m_client.caller, call_handle);
 		}
 	}
 

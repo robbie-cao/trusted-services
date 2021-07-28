@@ -58,7 +58,7 @@ static psa_status_t common_aead_setup(psa_aead_operation_t *operation,
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -68,11 +68,11 @@ static psa_status_t common_aead_setup(psa_aead_operation_t *operation,
 
 		memcpy(req_buf, &req_msg, req_len);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				opcode, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 			psa_status = opstatus;
 
@@ -91,7 +91,7 @@ static psa_status_t common_aead_setup(psa_aead_operation_t *operation,
 			}
 		}
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -127,7 +127,7 @@ psa_status_t psa_aead_generate_nonce(psa_aead_operation_t *operation,
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -137,11 +137,11 @@ psa_status_t psa_aead_generate_nonce(psa_aead_operation_t *operation,
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_AEAD_GENERATE_NONCE, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 			psa_status = opstatus;
 
@@ -171,7 +171,7 @@ psa_status_t psa_aead_generate_nonce(psa_aead_operation_t *operation,
 			}
 		}
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -198,7 +198,7 @@ psa_status_t psa_aead_set_nonce(psa_aead_operation_t *operation,
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -212,13 +212,13 @@ psa_status_t psa_aead_set_nonce(psa_aead_operation_t *operation,
 		tlv_iterator_begin(&req_iter, &req_buf[req_fixed_len], req_len - req_fixed_len);
 		tlv_encode(&req_iter, &data_record);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_AEAD_SET_NONCE, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -240,7 +240,7 @@ psa_status_t psa_aead_set_lengths(psa_aead_operation_t *operation,
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -250,13 +250,13 @@ psa_status_t psa_aead_set_lengths(psa_aead_operation_t *operation,
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_AEAD_SET_LENGTHS, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -283,7 +283,7 @@ psa_status_t psa_aead_update_ad(psa_aead_operation_t *operation,
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -297,13 +297,13 @@ psa_status_t psa_aead_update_ad(psa_aead_operation_t *operation,
 		tlv_iterator_begin(&req_iter, &req_buf[req_fixed_len], req_len - req_fixed_len);
 		tlv_encode(&req_iter, &data_record);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_AEAD_UPDATE_AD, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -334,7 +334,7 @@ psa_status_t psa_aead_update(psa_aead_operation_t *operation,
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -348,11 +348,11 @@ psa_status_t psa_aead_update(psa_aead_operation_t *operation,
 		tlv_iterator_begin(&req_iter, &req_buf[req_fixed_len], req_len - req_fixed_len);
 		tlv_encode(&req_iter, &data_record);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_AEAD_UPDATE, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 			psa_status = opstatus;
 
@@ -382,7 +382,7 @@ psa_status_t psa_aead_update(psa_aead_operation_t *operation,
 			}
 		}
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -408,7 +408,7 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -418,11 +418,11 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_AEAD_FINISH, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 			psa_status = opstatus;
 
@@ -470,7 +470,7 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
 			}
 		}
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -501,7 +501,7 @@ psa_status_t psa_aead_verify(psa_aead_operation_t *operation,
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -515,11 +515,11 @@ psa_status_t psa_aead_verify(psa_aead_operation_t *operation,
 		tlv_iterator_begin(&req_iter, &req_buf[req_fixed_len], req_len - req_fixed_len);
 		tlv_encode(&req_iter, &data_record);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_AEAD_VERIFY, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 			psa_status = opstatus;
 
@@ -549,7 +549,7 @@ psa_status_t psa_aead_verify(psa_aead_operation_t *operation,
 			}
 		}
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -567,7 +567,7 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation)
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -577,13 +577,13 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation)
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_AEAD_ABORT, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;

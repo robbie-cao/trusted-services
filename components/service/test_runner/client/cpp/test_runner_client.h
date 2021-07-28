@@ -11,8 +11,7 @@
 #include <vector>
 #include <string>
 #include <service/test_runner/common/test_runner.h>
-
-struct rpc_caller;
+#include <service/common/client/service_client.h>
 
 /*
  * Provides a client interface for running remote tests using the test-runner
@@ -52,8 +51,7 @@ private:
     int deserialize_result(const uint8_t *value_buf, size_t value_len,
                 struct test_result &result) const;
 
-    struct rpc_caller *m_caller;
-    int m_err_rpc_status;
+    struct service_client m_client;
 };
 
 #endif /* TEST_RUNNER_CLIENT_H */

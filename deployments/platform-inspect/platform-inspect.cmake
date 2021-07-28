@@ -29,6 +29,7 @@ add_components(
 		"components/app/platform-inspect"
 		"components/common/tlv"
 		"components/common/cbor_dump"
+		"components/service/common/client"
 		"components/service/common/include"
 		"components/service/attestation/include"
 		"components/service/attestation/client/psa"

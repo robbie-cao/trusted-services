@@ -34,6 +34,7 @@ add_components(
 		"components/common/endian"
 		"components/config/ramstore"
 		"components/service/common/include"
+		"components/service/common/client"
 		"components/service/common/serializer/protobuf"
 		"components/service/common/provider"
 		"components/service/locator/standalone"
@@ -143,6 +144,7 @@ add_components(
 		"components/service/crypto/client/cpp/protobuf"
 		"components/service/crypto/client/cpp/packed-c"
 		"components/service/common/serializer/protobuf"
+		"components/service/common/client"
 		"protocols/service/crypto/protobuf"
 		"protocols/service/crypto/packed-c"
 )

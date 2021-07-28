@@ -37,6 +37,7 @@ add_components(TARGET "protected-storage"
 		components/rpc/ffarpc/caller/sp
 		components/rpc/common/caller
 		components/service/common/include
+		components/service/common/client
 		components/service/common/provider
 		components/service/secure_storage/include
 		components/service/secure_storage/frontend/secure_storage_provider

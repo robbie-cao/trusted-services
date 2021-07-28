@@ -8,6 +8,7 @@
 #define SECURE_STORAGE_CLIENT_H
 
 #include <service/secure_storage/backend/storage_backend.h>
+#include <service/common/client/service_client.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,7 +20,7 @@ extern "C" {
 struct secure_storage_client
 {
     struct storage_backend backend;
-    struct rpc_caller *rpc_caller;
+    struct service_client client;
 };
 
 /**

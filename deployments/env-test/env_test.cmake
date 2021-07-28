@@ -24,6 +24,7 @@ add_components(
 	"components/rpc/common/interface"
 	"components/rpc/common/caller"
 	"components/service/common/include"
+	"components/service/common/client"
 	"components/service/common/provider"
 	"components/service/test_runner/provider"
 	"components/service/test_runner/provider/serializer/packed-c"

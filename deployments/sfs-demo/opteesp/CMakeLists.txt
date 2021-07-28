@@ -35,6 +35,7 @@ add_components(TARGET "sfs-demo"
 		components/rpc/common/caller
 		components/rpc/ffarpc/caller/sp
 		components/service/common/include
+		components/service/common/client
 		components/service/secure_storage/include
 		components/service/secure_storage/frontend/psa/its
 		components/service/secure_storage/backend/secure_storage_client

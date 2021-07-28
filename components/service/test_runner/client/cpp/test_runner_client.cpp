@@ -17,32 +17,30 @@
 #include <string>
 
 test_runner_client::test_runner_client() :
-    m_caller(NULL),
-    m_err_rpc_status(TS_RPC_CALL_ACCEPTED)
+    m_client()
 {
-
+    service_client_init(&m_client, NULL);
 }
 
 test_runner_client::test_runner_client(struct rpc_caller *caller) :
-    m_caller(caller),
-    m_err_rpc_status(TS_RPC_CALL_ACCEPTED)
+    m_client()
 {
-
+    service_client_init(&m_client, caller);
 }
 
 test_runner_client::~test_runner_client()
 {
-
+    service_client_deinit(&m_client);
 }
 
 void test_runner_client::set_caller(struct rpc_caller *caller)
 {
-    m_caller = caller;
+    m_client.caller = caller;
 }
 
 int test_runner_client::err_rpc_status() const
 {
-    return m_err_rpc_status;
+    return m_client.rpc_status;
 }
 
 int test_runner_client::run_tests(
@@ -67,7 +65,7 @@ int test_runner_client::iterate_over_tests(
     std::vector<struct test_result> &results)
 {
     int test_status = TS_TEST_RUNNER_STATUS_ERROR;
-    m_err_rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
+    m_client.rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
     rpc_call_handle call_handle;
     uint8_t *req_buf;
     std::vector<uint8_t> req_param;
@@ -75,7 +73,7 @@ int test_runner_client::iterate_over_tests(
     serialize_test_spec(req_param, spec);
 
     size_t req_len = req_param.size();
-    call_handle = rpc_caller_begin(m_caller, &req_buf, req_len);
+    call_handle = rpc_caller_begin(m_client.caller, &req_buf, req_len);
 
     if (call_handle) {
 
@@ -89,10 +87,10 @@ int test_runner_client::iterate_over_tests(
             TS_TEST_RUNNER_OPCODE_LIST_TESTS :
             TS_TEST_RUNNER_OPCODE_RUN_TESTS;
 
-        m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
+        m_client.rpc_status = rpc_caller_invoke(m_client.caller, call_handle,
             opcode, &opstatus, &resp_buf, &resp_len);
 
-        if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) {
+        if (m_client.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
             test_status = opstatus;
 
@@ -102,7 +100,7 @@ int test_runner_client::iterate_over_tests(
             }
         }
 
-        rpc_caller_end(m_caller, call_handle);
+        rpc_caller_end(m_client.caller, call_handle);
     }
 
     return test_status;

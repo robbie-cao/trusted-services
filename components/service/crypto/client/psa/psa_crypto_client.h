@@ -9,6 +9,7 @@
 
 #include <psa/error.h>
 #include <rpc_caller.h>
+#include <service/common/client/service_client.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,13 +19,11 @@ extern "C" {
  * @brief      The singleton psa_crypto_client state
  *
  * The psa crypto C API assumes a single instance of the backend provider.  This
- * structure defines the state used by the psa_cryypto_client that communicates
- * with a remote provider using the provided rpc caller.
+ * structure extends the base service client.
  */
 struct psa_crypto_client
 {
-    struct rpc_caller *caller;
-    int rpc_status;
+    struct service_client base;
     psa_status_t init_status;
 };
 

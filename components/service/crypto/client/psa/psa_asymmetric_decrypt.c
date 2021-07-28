@@ -49,7 +49,7 @@ psa_status_t psa_asymmetric_decrypt(psa_key_id_t id, psa_algorithm_t alg,
     rpc_call_handle call_handle;
     uint8_t *req_buf;
 
-    call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+    call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
     if (call_handle) {
 
@@ -64,11 +64,11 @@ psa_status_t psa_asymmetric_decrypt(psa_key_id_t id, psa_algorithm_t alg,
         tlv_encode(&req_iter, &ciphertext_record);
         if (salt) tlv_encode(&req_iter, &salt_record);
 
-        psa_crypto_client_instance.rpc_status =
-            rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+        psa_crypto_client_instance.base.rpc_status =
+            rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
                     TS_CRYPTO_OPCODE_ASYMMETRIC_DECRYPT, &opstatus, &resp_buf, &resp_len);
 
-        if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+        if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
             psa_status = opstatus;
 
@@ -98,7 +98,7 @@ psa_status_t psa_asymmetric_decrypt(psa_key_id_t id, psa_algorithm_t alg,
             }
         }
 
-        rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+        rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
     }
 
     return psa_status;

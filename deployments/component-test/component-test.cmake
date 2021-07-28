@@ -32,6 +32,7 @@ add_components(
 		"components/rpc/dummy"
 		"components/service/common/include"
 		"components/service/common/serializer/protobuf"
+		"components/service/common/client"
 		"components/service/common/provider"
 		"components/service/common/provider/test"
 		"components/service/locator"

@@ -10,7 +10,7 @@
 /* The singleton psa_crypto_client state */
 struct psa_crypto_client psa_crypto_client_instance = {
 
-	.caller = NULL,
+	.base.caller = NULL,
 
 	/* To conform to PSA API, psa_crypto_init needs to be called.
 	 * This state variable is used enforces this.
@@ -21,7 +21,7 @@ struct psa_crypto_client psa_crypto_client_instance = {
 psa_status_t psa_crypto_init(void) {
 
 	/* Must be called after psa_crypto_client_init */
-	if (psa_crypto_client_instance.caller) {
+	if (psa_crypto_client_instance.base.caller) {
 
 		psa_crypto_client_instance.init_status = PSA_SUCCESS;
 	}
@@ -31,17 +31,16 @@ psa_status_t psa_crypto_init(void) {
 
 psa_status_t psa_crypto_client_init(struct rpc_caller *caller)
 {
-	psa_crypto_client_instance.caller = caller;
-	return PSA_SUCCESS;
+	return service_client_init(&psa_crypto_client_instance.base, caller);
 }
 
 void psa_crypto_client_deinit(void)
 {
-	psa_crypto_client_instance.caller = NULL;
+	service_client_deinit(&psa_crypto_client_instance.base);
 	psa_crypto_client_instance.init_status = PSA_ERROR_BAD_STATE;
 }
 
 int psa_crypto_client_rpc_status(void)
 {
-	return psa_crypto_client_instance.rpc_status;
+	return psa_crypto_client_instance.base.rpc_status;
 }

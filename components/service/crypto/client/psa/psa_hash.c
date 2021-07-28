@@ -25,7 +25,7 @@ psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -35,11 +35,11 @@ psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
 
 		memcpy(req_buf, &req_msg, req_len);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_HASH_SETUP, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 			psa_status = opstatus;
 
@@ -58,7 +58,7 @@ psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
 			}
 		}
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -85,7 +85,7 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -99,13 +99,13 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
 		tlv_iterator_begin(&req_iter, &req_buf[req_fixed_len], req_len - req_fixed_len);
 		tlv_encode(&req_iter, &data_record);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_HASH_UPDATE, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -127,7 +127,7 @@ psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -137,11 +137,11 @@ psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_HASH_FINISH, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 			psa_status = opstatus;
 
@@ -171,7 +171,7 @@ psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
 			}
 		}
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -189,7 +189,7 @@ psa_status_t psa_hash_abort(psa_hash_operation_t *operation)
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -199,13 +199,13 @@ psa_status_t psa_hash_abort(psa_hash_operation_t *operation)
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_HASH_ABORT, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -232,7 +232,7 @@ psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -246,13 +246,13 @@ psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
 		tlv_iterator_begin(&req_iter, &req_buf[req_fixed_len], req_len - req_fixed_len);
 		tlv_encode(&req_iter, &data_record);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_HASH_VERIFY, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;
@@ -271,7 +271,7 @@ psa_status_t psa_hash_clone(const psa_hash_operation_t *source_operation,
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(psa_crypto_client_instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_begin(psa_crypto_client_instance.base.caller, &req_buf, req_len);
 
 	if (call_handle) {
 
@@ -281,11 +281,11 @@ psa_status_t psa_hash_clone(const psa_hash_operation_t *source_operation,
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
-		psa_crypto_client_instance.rpc_status =
-			rpc_caller_invoke(psa_crypto_client_instance.caller, call_handle,
+		psa_crypto_client_instance.base.rpc_status =
+			rpc_caller_invoke(psa_crypto_client_instance.base.caller, call_handle,
 				TS_CRYPTO_OPCODE_HASH_CLONE, &opstatus, &resp_buf, &resp_len);
 
-		if (psa_crypto_client_instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (psa_crypto_client_instance.base.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 			psa_status = opstatus;
 
@@ -304,7 +304,7 @@ psa_status_t psa_hash_clone(const psa_hash_operation_t *source_operation,
 			}
 		}
 
-		rpc_caller_end(psa_crypto_client_instance.caller, call_handle);
+		rpc_caller_end(psa_crypto_client_instance.base.caller, call_handle);
 	}
 
 	return psa_status;

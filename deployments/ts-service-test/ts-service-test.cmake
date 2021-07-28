@@ -28,6 +28,7 @@ add_components(
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/common/tlv"
+		"components/service/common/client"
 		"components/service/common/include"
 		"components/service/crypto/include"
 		"components/service/crypto/test/service"

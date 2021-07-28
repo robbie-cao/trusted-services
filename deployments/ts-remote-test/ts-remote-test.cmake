@@ -37,6 +37,8 @@ add_components(
 	COMPONENTS
 		"components/app/remote-test-runner"
 		"components/common/tlv"
+		"components/service/common/include"
+		"components/service/common/client"
 		"components/service/test_runner/client/cpp"
 )
 

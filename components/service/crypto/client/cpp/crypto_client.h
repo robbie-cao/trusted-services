@@ -9,8 +9,7 @@
 
 #include <cstdint>
 #include <psa/crypto.h>
-
-struct rpc_caller;
+#include <service/common/client/service_client.h>
 
 /*
  * Provides a client interface for accessing an instance of the Crypto service
@@ -72,8 +71,7 @@ protected:
     crypto_client(struct rpc_caller *caller);
     void set_caller(struct rpc_caller *caller);
 
-    struct rpc_caller *m_caller;
-    int m_err_rpc_status;
+    struct service_client m_client;
 };
 
 #endif /* CRYPTO_CLIENT_H */

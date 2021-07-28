@@ -27,6 +27,7 @@ add_components(
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/common/tlv"
+		"components/service/common/client"
 		"components/service/common/include"
 		"components/rpc/common/caller"
 		"components/rpc/common/logging"
