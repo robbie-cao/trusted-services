@@ -275,6 +275,8 @@ static rpc_status_t serialize_aead_finish_resp(struct call_param_buf *resp_buf,
 	struct tlv_iterator resp_iter;
 	int encoded_tlv_count = 0;
 
+	resp_buf->data_len = 0;
+
 	tlv_iterator_begin(&resp_iter, resp_buf->data, resp_buf->size);
 
 	struct tlv_record out_record;
@@ -284,7 +286,7 @@ static rpc_status_t serialize_aead_finish_resp(struct call_param_buf *resp_buf,
 
 	if (tlv_encode(&resp_iter, &out_record)) {
 
-		resp_buf->data_len = tlv_required_space(out_record.length);
+		resp_buf->data_len += tlv_required_space(out_record.length);
 		++encoded_tlv_count;
 	}
 
@@ -294,7 +296,7 @@ static rpc_status_t serialize_aead_finish_resp(struct call_param_buf *resp_buf,
 
 	if (tlv_encode(&resp_iter, &out_record)) {
 
-		resp_buf->data_len = tlv_required_space(out_record.length);
+		resp_buf->data_len += tlv_required_space(out_record.length);
 		++encoded_tlv_count;
 	}
 
