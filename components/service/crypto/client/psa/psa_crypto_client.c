@@ -5,6 +5,7 @@
  */
 
 #include <stddef.h>
+#include <service/discovery/client/discovery_client.h>
 #include "psa_crypto_client.h"
 
 /* The singleton psa_crypto_client state */
@@ -31,7 +32,14 @@ psa_status_t psa_crypto_init(void) {
 
 psa_status_t psa_crypto_client_init(struct rpc_caller *caller)
 {
-	return service_client_init(&psa_crypto_client_instance.base, caller);
+	psa_status_t status = service_client_init(&psa_crypto_client_instance.base, caller);
+
+	if (status == PSA_SUCCESS) {
+
+		status = discovery_client_get_service_info(&psa_crypto_client_instance.base);
+	}
+
+	return status;
 }
 
 void psa_crypto_client_deinit(void)

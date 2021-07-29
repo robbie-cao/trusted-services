@@ -44,25 +44,33 @@ static const struct service_handler handler_table[] = {
 
 struct rpc_interface *crypto_provider_init(struct crypto_provider *context)
 {
+	/* Initialise the crypto provider */
 	for (size_t encoding = 0; encoding < TS_RPC_ENCODING_LIMIT; ++encoding)
 		context->serializers[encoding] = NULL;
 
 	service_provider_init(&context->base_provider, context,
 					handler_table, sizeof(handler_table)/sizeof(struct service_handler));
 
+	/* Initialise the associated discovery provider */
+	discovery_provider_init(&context->discovery_provider);
+	service_provider_extend(&context->base_provider, &context->discovery_provider.base_provider);
+
 	return service_provider_get_rpc_interface(&context->base_provider);
 }
 
 void crypto_provider_deinit(struct crypto_provider *context)
 {
-
+	discovery_provider_deinit(&context->discovery_provider);
 }
 
 void crypto_provider_register_serializer(struct crypto_provider *context,
 				unsigned int encoding, const struct crypto_provider_serializer *serializer)
 {
-	if (encoding < TS_RPC_ENCODING_LIMIT)
+	if (encoding < TS_RPC_ENCODING_LIMIT) {
+
 		context->serializers[encoding] = serializer;
+		discovery_provider_register_supported_encoding(&context->discovery_provider, encoding);
+	}
 }
 
 void crypto_provider_extend(struct crypto_provider *context,

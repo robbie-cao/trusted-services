@@ -7,6 +7,7 @@
 #ifndef DISCOVERY_PROVIDER_SERIALIZER_H
 #define DISCOVERY_PROVIDER_SERIALIZER_H
 
+#include <stddef.h>
 #include <service/discovery/provider/discovery_info.h>
 #include <rpc/common/endpoint/rpc_interface.h>
 
@@ -20,6 +21,7 @@ struct discovery_provider_serializer {
 
 	/* Operation: get_service_info */
 	rpc_status_t (*serialize_get_service_info_resp)(struct call_param_buf *resp_buf,
+		size_t max_payload,
 		const struct discovery_info *info);
 };
 

@@ -8,7 +8,6 @@
 #define DISCOVERY_PROVIDER_H
 
 #include <stdint.h>
-#include <rpc/common/endpoint/rpc_interface.h>
 #include <service/common/provider/service_provider.h>
 #include <service/discovery/provider/serializer/discovery_provider_serializer.h>
 #include <service/discovery/provider/discovery_info.h>
@@ -32,10 +31,8 @@ struct discovery_provider
 /**
  * Initializes an instance of the discovery service provider.
  */
-struct rpc_interface *discovery_provider_init(
-	struct discovery_provider *context,
-	const struct discovery_deployment_info *deployment_info,
-	const struct discovery_identity_info *identity_info);
+void discovery_provider_init(
+	struct discovery_provider *context);
 
 /**
  * When operation of the provider is no longer required, this function
@@ -60,6 +57,13 @@ void discovery_provider_register_supported_encoding(
 	struct discovery_provider *context,
 	unsigned int encoding);
 
+/**
+ * Sets deployment specific information that is adverstised by the
+ * discovery provider.
+ */
+void discovery_provider_set_deployment_info(
+	struct discovery_provider *context,
+	const struct discovery_deployment_info *deployment_info);
 
 #ifdef __cplusplus
 } /* extern "C" */

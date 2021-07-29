@@ -37,6 +37,8 @@ add_components(
 		"components/service/common/client"
 		"components/service/common/serializer/protobuf"
 		"components/service/common/provider"
+		"components/service/discovery/provider"
+		"components/service/discovery/provider/serializer/packed-c"
 		"components/service/locator/standalone"
 		"components/service/locator/standalone/services/crypto"
 		"components/service/locator/standalone/services/internal-trusted-storage"

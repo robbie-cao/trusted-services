@@ -37,11 +37,13 @@ struct __attribute__ ((__packed__)) ts_discovery_get_service_info_out
 	 */
 	uint32_t supported_encodings;
 
-	/* The maximum supported size for an RPC call request.  This limit
-	 * will be imposed by the underlying RPC layer used by a client
-	 * to call service operations.
+	/* The maximum supported payloadsize for an RPC call request or
+	 * response.  This limit will be imposed by the underlying RPC
+	 * layer used by a client to call service operations. If the
+	 * maximum payload size is different between call requests and
+	 * responses, the smaller value should be used.
 	 */
-	uint32_t max_req_size;
+	uint32_t max_payload;
 };
 
 /* Variable length output parameter tags */

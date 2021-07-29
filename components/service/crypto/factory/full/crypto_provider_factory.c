@@ -17,6 +17,8 @@
 #include <service/crypto/provider/extension/key_derivation/serializer/packed-c/packedc_key_derivation_provider_serializer.h>
 #include <service/crypto/provider/extension/mac/mac_provider.h>
 #include <service/crypto/provider/extension/mac/serializer/packed-c/packedc_mac_provider_serializer.h>
+#include <service/discovery/provider/discovery_provider.h>
+#include <service/discovery/provider/serializer/packed-c/packedc_discovery_provider_serializer.h>
 
 /**
  * A crypto provider factory that constucts a crypto provider
@@ -38,14 +40,19 @@ static struct full_crypto_provider
 struct crypto_provider *crypto_provider_factory_create(void)
 {
 	/**
-	 * Initialize the base crypto provider
+	 * Initialize the core crypto provider
 	 */
 	crypto_provider_init(&instance.crypto_provider);
 
+	/* Register serializers for the core crypto provider */
 	crypto_provider_register_serializer(&instance.crypto_provider,
 		TS_RPC_ENCODING_PROTOBUF, pb_crypto_provider_serializer_instance());
 	crypto_provider_register_serializer(&instance.crypto_provider,
 		TS_RPC_ENCODING_PACKED_C, packedc_crypto_provider_serializer_instance());
+
+	/* Register serializer for the associated discovery provider */
+	discovery_provider_register_serializer(&instance.crypto_provider.discovery_provider,
+		TS_RPC_ENCODING_PACKED_C, packedc_discovery_provider_serializer_instance());
 
 	/**
 	 * Extend with hash operations

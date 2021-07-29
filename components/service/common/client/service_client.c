@@ -15,8 +15,8 @@ psa_status_t service_client_init(
 	context->caller = caller;
 	context->rpc_status = TS_RPC_CALL_ACCEPTED;
 
-	context->service_access_info.supported_encodings = 0;
-	context->service_access_info.max_req_size = 0;
+	context->service_info.supported_encodings = 0;
+	context->service_info.max_payload = 0;
 
 	return PSA_SUCCESS;
 }
@@ -27,9 +27,9 @@ void service_client_deinit(
 	context->caller = NULL;
 }
 
-void service_client_set_service_access_info(
+void service_client_set_service_info(
 	struct service_client *context,
-	const struct service_access_info *service_access_info)
+	const struct service_info *service_info)
 {
-	context->service_access_info = *service_access_info;
+	context->service_info = *service_info;
 }

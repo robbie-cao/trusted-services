@@ -10,7 +10,7 @@
 #include <stddef.h>
 #include <psa/error.h>
 #include <rpc_caller.h>
-#include <service/common/client/service_access_info.h>
+#include <service/common/client/service_info.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,14 +22,14 @@ extern "C" {
  * Holds common service objects needed for client access to a service instance.
  * Includes common information about the service that will have been discovered
  * in some way.  The TS discovery protocol provides a way to do this.  If
- * service info is not available, the service_access_info structure stays in its
+ * service info is not available, the service_info structure stays in its
  * initialied state.
  */
 struct service_client
 {
 	struct rpc_caller *caller;
 	int rpc_status;
-	struct service_access_info service_access_info;
+	struct service_info service_info;
 };
 
 /**
@@ -61,11 +61,11 @@ void service_client_deinit(
  * Service info will have been discovered in some way.
  *
  * @param[in]  context 	service_client instance
- * @param[in]  service_access_info service_access_info object
+ * @param[in]  service_info service_info object
  */
-void service_client_set_service_access_info(
+void service_client_set_service_info(
 	struct service_client *context,
-	const struct service_access_info *service_access_info);
+	const struct service_info *service_info);
 
 #ifdef __cplusplus
 }

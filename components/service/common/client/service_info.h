@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef SERVICE_ACCESS_INFO_H
-#define SERVICE_ACCESS_INFO_H
+#ifndef SERVICE_INFO_H
+#define SERVICE_INFO_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -15,19 +15,19 @@ extern "C" {
 #endif
 
 /**
- * @brief      Information about accessing a service
+ * @brief      Information about a service
  *
  * Provides information to a client about accessing a service provided
  * by a remote service provider instance.
  */
-struct service_access_info
+struct service_info
 {
 	uint32_t supported_encodings;
-	size_t max_req_size;
+	size_t max_payload;
 };
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* SERVICE_ACCESS_INFO_H */
+#endif /* SERVICE_INFO_H */

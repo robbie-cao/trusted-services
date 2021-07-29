@@ -10,6 +10,7 @@
 #include <rpc/common/endpoint/rpc_interface.h>
 #include <service/common/provider/service_provider.h>
 #include <service/crypto/provider/serializer/crypto_provider_serializer.h>
+#include <service/discovery/provider/discovery_provider.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
 
 #ifdef __cplusplus
@@ -18,8 +19,9 @@ extern "C" {
 
 struct crypto_provider
 {
-    struct service_provider base_provider;
-    const struct crypto_provider_serializer *serializers[TS_RPC_ENCODING_LIMIT];
+	struct service_provider base_provider;
+	const struct crypto_provider_serializer *serializers[TS_RPC_ENCODING_LIMIT];
+	struct discovery_provider discovery_provider;
 };
 
 /*
@@ -42,13 +44,14 @@ void crypto_provider_deinit(struct crypto_provider *context);
  * for compatibility with different types of client.
  */
 void crypto_provider_register_serializer(struct crypto_provider *context,
-                    unsigned int encoding, const struct crypto_provider_serializer *serializer);
+	unsigned int encoding,
+	const struct crypto_provider_serializer *serializer);
 
 /*
  * Extend the core set of operations provided by the crypto provider.
  */
 void crypto_provider_extend(struct crypto_provider *context,
-                    struct service_provider *sub_provider);
+	struct service_provider *sub_provider);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -30,6 +30,8 @@ add_components(
 		"components/common/tlv"
 		"components/service/common/client"
 		"components/service/common/include"
+		"components/service/discovery/client"
+		"components/service/discovery/test/service"
 		"components/service/crypto/include"
 		"components/service/crypto/test/service"
 		"components/service/crypto/test/service/protobuf"
