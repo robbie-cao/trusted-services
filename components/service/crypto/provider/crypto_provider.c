@@ -158,52 +158,29 @@ static rpc_status_t export_key_handler(void *context, struct call_req* req)
 
 	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
 
-		psa_status_t psa_status;
-		psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+		size_t max_export_size = PSA_EXPORT_KEY_PAIR_MAX_SIZE;
+		uint8_t *key_buffer = malloc(max_export_size);
 
-		psa_status = psa_get_key_attributes(id, &attributes);
+		if (key_buffer) {
 
-		if (psa_status == PSA_SUCCESS) {
+			size_t export_size;
+			psa_status_t psa_status = psa_export_key(id, key_buffer,
+				max_export_size, &export_size);
 
-			size_t max_export_size = PSA_EXPORT_KEY_OUTPUT_SIZE(
-				psa_get_key_type(&attributes),
-				psa_get_key_bits(&attributes));
+			if (psa_status == PSA_SUCCESS) {
 
-			if (max_export_size) {
-
-				uint8_t *key_buffer = malloc(max_export_size);
-
-				if (key_buffer) {
-
-					size_t export_size;
-					psa_status_t psa_status = psa_export_key(id, key_buffer,
-						max_export_size, &export_size);
-
-					if (psa_status == PSA_SUCCESS) {
-
-						struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
-						rpc_status = serializer->serialize_export_key_resp(resp_buf,
-							key_buffer, export_size);
-					}
-
-					free(key_buffer);
-				}
-				else {
-					/* Failed to allocate key buffer */
-					rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
-				}
+				struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+				rpc_status = serializer->serialize_export_key_resp(resp_buf,
+					key_buffer, export_size);
 			}
-			else {
 
-				/* No sensible export size was returned so
-				 * key attributes must be in an invalid state.
-				 */
-				psa_status = PSA_ERROR_GENERIC_ERROR;
-			}
+			free(key_buffer);
+			call_req_set_opstatus(req, psa_status);
 		}
-
-		call_req_set_opstatus(req, psa_status);
-		psa_reset_key_attributes(&attributes);
+		else {
+			/* Failed to allocate key buffer */
+			rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
+		}
 	}
 
 	return rpc_status;
