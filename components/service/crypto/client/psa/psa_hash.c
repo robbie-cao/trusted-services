@@ -311,18 +311,74 @@ psa_status_t psa_hash_clone(const psa_hash_operation_t *source_operation,
 }
 
 psa_status_t psa_hash_suspend(psa_hash_operation_t *operation,
-                              uint8_t *hash_state,
-                              size_t hash_state_size,
-                              size_t *hash_state_length)
+	uint8_t *hash_state,
+	size_t hash_state_size,
+	size_t *hash_state_length)
 {
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
 psa_status_t psa_hash_resume(psa_hash_operation_t *operation,
-                             const uint8_t *hash_state,
-                             size_t hash_state_length)
+	const uint8_t *hash_state,
+	size_t hash_state_length)
 {
 	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+static size_t max_hash_update_size(void)
+{
+	/* Returns the maximum number of bytes that may be
+	 * carried as a parameter of the hash_update operation
+	 * using the packed-c encoding.
+	 */
+	size_t payload_space = psa_crypto_client_instance.base.service_info.max_payload;
+	size_t overhead = sizeof(struct ts_crypto_hash_update_in) + TLV_HDR_LEN;
+
+	return (payload_space > overhead) ? payload_space - overhead : 0;
+}
+
+static psa_status_t multi_hash_update(psa_hash_operation_t *operation,
+	psa_algorithm_t alg,
+	const uint8_t *input,
+	size_t input_length)
+{
+	*operation = psa_hash_operation_init();
+	psa_status_t psa_status = psa_hash_setup(operation, alg);
+	size_t max_update_size = max_hash_update_size();
+
+	if (!max_update_size) {
+
+		/* Don't know the max update size so assume that the entire
+		 * input can be handled in a single update.  If this isn't
+		 * true, the first hash update operation will fail safely.
+		 */
+		max_update_size = input_length;
+	}
+
+	if (psa_status == PSA_SUCCESS) {
+
+		size_t bytes_processed = 0;
+
+		while (bytes_processed < input_length) {
+
+			size_t bytes_remaining = input_length - bytes_processed;
+			size_t update_len = (bytes_remaining < max_update_size) ?
+				bytes_remaining :
+				max_update_size;
+
+			psa_status = psa_hash_update(operation, &input[bytes_processed], update_len);
+
+			if (psa_status != PSA_SUCCESS) {
+
+				psa_hash_abort(operation);
+				break;
+			}
+
+			bytes_processed += update_len;
+		}
+	}
+
+	return psa_status;
 }
 
 psa_status_t psa_hash_compare(psa_algorithm_t alg,
@@ -331,7 +387,15 @@ psa_status_t psa_hash_compare(psa_algorithm_t alg,
 	const uint8_t *hash,
 	size_t hash_length)
 {
-	return PSA_ERROR_NOT_SUPPORTED;
+	psa_hash_operation_t operation;
+	psa_status_t psa_status = multi_hash_update(&operation, alg, input, input_length);
+
+	if (psa_status == PSA_SUCCESS) {
+
+		psa_status = psa_hash_verify(&operation, hash, hash_length);
+	}
+
+	return psa_status;
 }
 
 psa_status_t psa_hash_compute(psa_algorithm_t alg,
@@ -341,5 +405,13 @@ psa_status_t psa_hash_compute(psa_algorithm_t alg,
 	size_t hash_size,
 	size_t *hash_length)
 {
-	return PSA_ERROR_NOT_SUPPORTED;
+	psa_hash_operation_t operation;
+	psa_status_t psa_status = multi_hash_update(&operation, alg, input, input_length);
+
+	if (psa_status == PSA_SUCCESS) {
+
+		psa_status = psa_hash_finish(&operation, hash, hash_size, hash_length);
+	}
+
+	return psa_status;
 }

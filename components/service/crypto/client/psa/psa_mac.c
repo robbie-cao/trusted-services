@@ -275,6 +275,56 @@ psa_status_t psa_mac_abort(psa_mac_operation_t *operation)
 	return psa_status;
 }
 
+static size_t max_mac_update_size(void)
+{
+	/* Returns the maximum number of bytes that may be
+	 * carried as a parameter of the mac_update operation
+	 * using the packed-c encoding.
+	 */
+	size_t payload_space = psa_crypto_client_instance.base.service_info.max_payload;
+	size_t overhead = sizeof(struct ts_crypto_mac_update_in) + TLV_HDR_LEN;
+
+	return (payload_space > overhead) ? payload_space - overhead : 0;
+}
+
+static psa_status_t multi_mac_update(psa_mac_operation_t *operation,
+	const uint8_t *input,
+	size_t input_length)
+{
+	psa_status_t psa_status = PSA_SUCCESS;
+	size_t max_update_size = max_mac_update_size();
+	size_t bytes_processed = 0;
+
+	if (!max_update_size) {
+
+		/* Don't know the max update size so assume that the entire
+		 * input can be handled in a single update.  If this isn't
+		 * true, the first mac update operation will fail safely.
+		 */
+		max_update_size = input_length;
+	}
+
+	while (bytes_processed < input_length) {
+
+		size_t bytes_remaining = input_length - bytes_processed;
+		size_t update_len = (bytes_remaining < max_update_size) ?
+			bytes_remaining :
+			max_update_size;
+
+		psa_status = psa_mac_update(operation, &input[bytes_processed], update_len);
+
+		if (psa_status != PSA_SUCCESS) {
+
+			psa_mac_abort(operation);
+			break;
+		}
+
+		bytes_processed += update_len;
+	}
+
+	return psa_status;
+}
+
 psa_status_t psa_mac_verify(psa_key_id_t key,
 	psa_algorithm_t alg,
 	const uint8_t *input,
@@ -282,7 +332,20 @@ psa_status_t psa_mac_verify(psa_key_id_t key,
 	const uint8_t *mac,
 	size_t mac_length)
 {
-	return PSA_ERROR_NOT_SUPPORTED;
+	psa_mac_operation_t operation = psa_mac_operation_init();
+	psa_status_t psa_status = psa_mac_verify_setup(&operation, key, alg);
+
+	if (psa_status == PSA_SUCCESS) {
+
+		psa_status = multi_mac_update(&operation, input, input_length);
+	}
+
+	if (psa_status == PSA_SUCCESS) {
+
+		psa_status = psa_mac_verify_finish(&operation, mac, mac_length);
+	}
+
+	return psa_status;
 }
 
 psa_status_t psa_mac_compute(psa_key_id_t key,
@@ -293,5 +356,18 @@ psa_status_t psa_mac_compute(psa_key_id_t key,
 	size_t mac_size,
 	size_t *mac_length)
 {
-	return PSA_ERROR_NOT_SUPPORTED;
+	psa_mac_operation_t operation = psa_mac_operation_init();
+	psa_status_t psa_status = psa_mac_sign_setup(&operation, key, alg);
+
+	if (psa_status == PSA_SUCCESS) {
+
+		psa_status = multi_mac_update(&operation, input, input_length);
+	}
+
+	if (psa_status == PSA_SUCCESS) {
+
+		psa_status = psa_mac_sign_finish(&operation, mac, mac_size, mac_length);
+	}
+
+	return psa_status;
 }
