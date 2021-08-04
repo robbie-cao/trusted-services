@@ -6,7 +6,7 @@
 
 #include <psa/crypto.h>
 #include "psa_crypto_client.h"
-#include <service/crypto/client/caller/packed-c/crypto_caller.h>
+#include "crypto_caller_selector.h"
 
 
 psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
