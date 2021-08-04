@@ -23,8 +23,8 @@ extern "C" {
  */
 struct psa_crypto_client
 {
-    struct service_client base;
-    psa_status_t init_status;
+	struct service_client base;
+	psa_status_t init_status;
 };
 
 extern struct psa_crypto_client psa_crypto_client_instance;

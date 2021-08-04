@@ -40,7 +40,7 @@ add_components(
 		"components/service/common/include"
 		"components/service/common/client"
 		"components/service/crypto/client/cpp"
-		"components/service/crypto/client/cpp/packed-c"
+		"components/service/crypto/client/cpp/protocol/packed-c"
 		"protocols/service/crypto/packed-c"
 )
 

@@ -3,7 +3,7 @@
  * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  */
 
-#include <service/crypto/client/cpp/packed-c/packedc_crypto_client.h>
+#include <service/crypto/client/cpp/protocol/packed-c/packedc_crypto_client.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
 #include <app/ts-demo/ts-demo.h>
 #include <service_locator.h>

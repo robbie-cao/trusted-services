@@ -194,6 +194,28 @@ psa_status_t protobuf_crypto_client::import_key(const psa_key_attributes_t *attr
 	return psa_status;
 }
 
+psa_status_t protobuf_crypto_client::copy_key(
+	psa_key_id_t source_key,
+	const psa_key_attributes_t *attributes,
+	psa_key_id_t *target_key)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t protobuf_crypto_client::purge_key(
+	psa_key_id_t id)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t protobuf_crypto_client::get_key_attributes(
+	psa_key_id_t id,
+	psa_key_attributes_t *attributes)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+
 psa_status_t protobuf_crypto_client::export_key(psa_key_id_t id,
 						uint8_t *data, size_t data_size,
 						size_t *data_length)

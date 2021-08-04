@@ -8,7 +8,7 @@
 #include <vector>
 #include <cstring>
 #include <cstdint>
-#include <service/crypto/client/cpp/protobuf/protobuf_crypto_client.h>
+#include <service/crypto/client/cpp/protocol/protobuf/protobuf_crypto_client.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
 #include <service_locator.h>
 #include <CppUTest/TestHarness.h>

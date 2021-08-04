@@ -5,7 +5,7 @@
  */
 
 #include <app/ts-demo/ts-demo.h>
-#include <service/crypto/client/cpp/packed-c/packedc_crypto_client.h>
+#include <service/crypto/client/cpp/protocol/packed-c/packedc_crypto_client.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
 #include <CppUTest/TestHarness.h>
 #include <service_locator.h>

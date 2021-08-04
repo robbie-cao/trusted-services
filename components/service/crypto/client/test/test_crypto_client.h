@@ -7,7 +7,7 @@
 #ifndef TEST_CRYPTO_CLIENT_H
 #define TEST_CRYPTO_CLIENT_H
 
-#include <service/crypto/client/cpp/protobuf/protobuf_crypto_client.h>
+#include <service/crypto/client/cpp/protocol/protobuf/protobuf_crypto_client.h>
 #include <vector>
 
 /*

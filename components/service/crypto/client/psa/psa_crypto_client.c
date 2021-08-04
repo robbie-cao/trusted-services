@@ -8,7 +8,6 @@
 #include <service/discovery/client/discovery_client.h>
 #include "psa_crypto_client.h"
 
-/* The singleton psa_crypto_client state */
 struct psa_crypto_client psa_crypto_client_instance = {
 
 	.base.caller = NULL,
