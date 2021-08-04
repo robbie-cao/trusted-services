@@ -7,6 +7,7 @@
 #include <stddef.h>
 #include <service_locator.h>
 #include <service/crypto/client/psa/psa_crypto_client.h>
+#include <service/discovery/client/discovery_client.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
 #include "../service_under_test.h"
 
@@ -40,6 +41,8 @@ int locate_service_under_test(struct logging_caller *call_logger)
 
 					psa_crypto_client_init(caller);
 				}
+
+				discovery_client_get_service_info(psa_crypto_client_base());
 
 				status = 0;
 			}

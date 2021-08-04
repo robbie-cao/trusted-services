@@ -31,12 +31,6 @@ sp_dev_kit_configure_linking(TARGET se-proxy DEFINES ARM64=1)
 target_link_libraries(se-proxy PRIVATE ${SP_DEV_KIT_LIBRARIES})
 
 #-------------------------------------------------------------------------------
-#  Default deployment specific configuration
-#
-#-------------------------------------------------------------------------------
-set(TS_NO_FLOAT_HW ON)
-
-#-------------------------------------------------------------------------------
 #  Components that are specific to deployment in the opteesp environment.
 #
 #-------------------------------------------------------------------------------
@@ -56,9 +50,11 @@ add_components(TARGET "se-proxy"
 		"components/rpc/common/demux"
 		"components/service/common/include"
 		"components/service/common/serializer/protobuf"
+		"components/service/common/client"
 		"components/service/common/provider"
 		"components/service/discovery/provider"
 		"components/service/discovery/provider/serializer/packed-c"
+		"components/service/crypto/include"
 		"components/service/crypto/provider"
 		"components/service/crypto/provider/serializer/protobuf"
 		"components/service/crypto/provider/serializer/packed-c"
@@ -77,24 +73,14 @@ add_components(TARGET "se-proxy"
 		"components/service/attestation/provider"
 		"components/service/attestation/provider/serializer/packed-c"
 
-		# Components that won't be in a proxy
-		"components/common/endian"
-		"components/service/attestation/claims"
-		"components/service/attestation/claims/sources/boot_seed_generator"
-		"components/service/attestation/claims/sources/null_lifecycle"
-		"components/service/attestation/claims/sources/instance_id"
-		"components/service/attestation/claims/sources/implementation_id"
-		"components/service/attestation/claims/sources/event_log"
-		"components/service/attestation/claims/sources/event_log/mock"
-		"components/service/attestation/reporter/local"
-		"components/service/attestation/reporter/eat"
-		"components/service/attestation/key_mngr/local"
-		"components/service/secure_storage/frontend/psa/its"
-		"components/service/secure_storage/backend/secure_flash_store"
-		"components/service/secure_storage/backend/secure_flash_store/flash_fs"
-		"components/service/secure_storage/backend/secure_flash_store/flash"
-		"components/service/crypto/backend/mbedcrypto"
-		"components/service/crypto/backend/mbedcrypto/trng_adapter/platform"
+		# Stub service provider backends
+		"components/rpc/dummy"
+		"components/rpc/common/caller"
+		"components/service/attestation/reporter/stub"
+		"components/service/attestation/key_mngr/stub"
+		"components/service/crypto/backend/stub"
+		"components/service/crypto/client/psa"
+		"components/service/secure_storage/backend/mock_store"
 )
 
 target_sources(se-proxy PRIVATE
@@ -123,18 +109,6 @@ list(APPEND NANOPB_EXTERNAL_INCLUDE_PATHS ${SP_DEV_KIT_INCLUDE_DIR})
 include(../../../external/nanopb/nanopb.cmake)
 target_link_libraries(se-proxy PRIVATE nanopb::protobuf-nanopb-static)
 protobuf_generate_all(TGT "se-proxy" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protocols")
-
-# Mbed TLS provides libmbedcrypto
-include(../../../external/MbedTLS/MbedTLS.cmake)
-target_link_libraries(se-proxy PRIVATE mbedcrypto)
-
-# Qcbor
-include(${TS_ROOT}/external/qcbor/qcbor.cmake)
-target_link_libraries(se-proxy PRIVATE qcbor)
-
-# t_cose
-include(${TS_ROOT}/external/t_cose/t_cose.cmake)
-target_link_libraries(se-proxy PRIVATE t_cose)
 
 #################################################################
 

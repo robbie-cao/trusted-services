@@ -8,6 +8,7 @@
 #include <psa/crypto.h>
 #include <service/crypto/client/psa/psa_crypto_client.h>
 #include <service/crypto/test/service/crypto_service_scenarios.h>
+#include <service/discovery/client/discovery_client.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
 #include <service_locator.h>
 #include <CppUTest/TestHarness.h>
@@ -36,6 +37,8 @@ TEST_GROUP(PsaCryptoApiTests)
 
         psa_crypto_client_init(caller);
         psa_crypto_init();
+
+        discovery_client_get_service_info(psa_crypto_client_base());
 
         m_scenarios = new crypto_service_scenarios(new psa_crypto_api_client());
     }

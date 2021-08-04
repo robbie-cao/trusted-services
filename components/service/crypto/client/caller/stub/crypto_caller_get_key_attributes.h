@@ -1,0 +1,28 @@
+/*
+ * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#ifndef STUB_CRYPTO_CALLER_GET_KEY_ATTRIBUTES_H
+#define STUB_CRYPTO_CALLER_GET_KEY_ATTRIBUTES_H
+
+#include <psa/crypto.h>
+#include <service/common/client/service_client.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+static inline psa_status_t crypto_caller_get_key_attributes(struct service_client *context,
+	psa_key_id_t key,
+	psa_key_attributes_t *attributes)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* STUB_CRYPTO_CALLER_GET_KEY_ATTRIBUTES_H */

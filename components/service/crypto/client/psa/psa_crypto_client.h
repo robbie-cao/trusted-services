@@ -57,6 +57,19 @@ void psa_crypto_client_deinit(void);
  */
 int psa_crypto_client_rpc_status(void);
 
+/**
+ * @brief      Get the base service_client
+ *
+ * Returns a pointer to the base service_client member of the singleton psa crypto
+ * client.
+ *
+ * @return     Base service_client
+ */
+static inline struct service_client *psa_crypto_client_base(void)
+{
+	return &psa_crypto_client_instance.base;
+}
+
 #ifdef __cplusplus
 }
 #endif
