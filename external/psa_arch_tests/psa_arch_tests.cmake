@@ -46,6 +46,9 @@ endif()
 # Ensure list of include paths is separated correctly
 string(REPLACE ";" "\\;" PSA_ARCH_TESTS_EXTERNAL_INCLUDE_PATHS "${PSA_ARCH_TESTS_EXTERNAL_INCLUDE_PATHS}")
 
+# Ensure list of defines is separated correctly
+string(REPLACE ";" " " PSA_ARCH_TEST_EXTERNAL_DEFS "${PSA_ARCH_TEST_EXTERNAL_DEFS}")
+
 # Configure the psa-arch-test library
 execute_process(COMMAND
 	${CMAKE_COMMAND}
@@ -53,7 +56,7 @@ execute_process(COMMAND
 			-DCMAKE_TOOLCHAIN_FILE=${TS_EXTERNAL_LIB_TOOLCHAIN_FILE}
 			-DPSA_INCLUDE_PATHS=${PSA_ARCH_TESTS_EXTERNAL_INCLUDE_PATHS}
 			-DSUITE=${TS_ARCH_TEST_SUITE}
-			-DARCH_TEST_EXTERNAL_DEFS=${TS_ARCH_TEST_EXTERNAL_DEFS}
+			-DARCH_TEST_EXTERNAL_DEFS=${PSA_ARCH_TEST_EXTERNAL_DEFS}
 			-DCMAKE_VERBOSE_MAKEFILE=OFF
 			-DTARGET=tgt_dev_apis_linux
 			-GUnix\ Makefiles
