@@ -132,6 +132,7 @@ add_components(
 		"components/app/test-runner"
 		"components/common/tlv"
 		"components/service/common/include"
+		"components/service/discovery/client"
 		"components/service/secure_storage/include"
 		"components/service/secure_storage/test/service"
 		"components/service/secure_storage/frontend/psa/its"

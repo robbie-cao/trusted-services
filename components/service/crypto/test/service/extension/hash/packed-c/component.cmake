@@ -9,6 +9,5 @@ if (NOT DEFINED TGT)
 endif()
 
 target_sources(${TGT} PRIVATE
-	"${CMAKE_CURRENT_LIST_DIR}/psa_crypto_api_tests.cpp"
-	"${CMAKE_CURRENT_LIST_DIR}/psa_crypto_api_client.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/hash_service_packedc_tests.cpp"
 	)

@@ -75,21 +75,42 @@ public:
 		const uint8_t *salt, size_t salt_length,
 		uint8_t *output, size_t output_size, size_t *output_length);
 
-	psa_status_t asymmetric_decrypt(psa_key_id_t id, psa_algorithm_t alg,
-							const uint8_t *input, size_t input_length,
-							const uint8_t *salt, size_t salt_length,
-							uint8_t *output, size_t output_size, size_t *output_length);
+	psa_status_t asymmetric_decrypt(
+		psa_key_id_t id,
+		psa_algorithm_t alg,
+		const uint8_t *input, size_t input_length,
+		const uint8_t *salt, size_t salt_length,
+		uint8_t *output, size_t output_size, size_t *output_length);
 
 	/* Random number generation */
-	psa_status_t generate_random(uint8_t *output, size_t output_size);
+	psa_status_t generate_random(
+		uint8_t *output, size_t output_size);
 
 	/* Hash methods */
-	psa_status_t hash_setup(uint32_t *op_handle,
-							psa_algorithm_t alg);
-	psa_status_t hash_update(uint32_t op_handle,
-							const uint8_t *input, size_t input_length);
-	psa_status_t hash_finish(uint32_t op_handle,
-							uint8_t *hash, size_t hash_size, size_t *hash_length);
+	size_t hash_max_update_size() const;
+
+	psa_status_t hash_setup(
+		uint32_t *op_handle,
+		psa_algorithm_t alg);
+
+	psa_status_t hash_update(
+		uint32_t op_handle,
+		const uint8_t *input, size_t input_length);
+
+	psa_status_t hash_finish(
+		uint32_t op_handle,
+		uint8_t *hash, size_t hash_size, size_t *hash_length);
+
+	psa_status_t hash_abort(
+		uint32_t op_handle);
+
+	psa_status_t hash_verify(
+		uint32_t op_handle,
+		const uint8_t *hash, size_t hash_length);
+
+	psa_status_t hash_clone(
+		uint32_t source_op_handle,
+		uint32_t *target_op_handle);
 
 };
 

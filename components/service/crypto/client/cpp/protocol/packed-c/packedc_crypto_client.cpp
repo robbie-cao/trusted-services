@@ -137,6 +137,11 @@ psa_status_t packedc_crypto_client::generate_random(
 		output, output_size);
 }
 
+size_t packedc_crypto_client::hash_max_update_size() const
+{
+	return crypto_caller_hash_max_update_size(&m_client);
+}
+
 psa_status_t packedc_crypto_client::hash_setup(
 	uint32_t *op_handle,
 	psa_algorithm_t alg)
@@ -159,4 +164,27 @@ psa_status_t packedc_crypto_client::hash_finish(
 {
 	return crypto_caller_hash_finish(&m_client,
 		op_handle, hash, hash_size, hash_length);
+}
+
+psa_status_t packedc_crypto_client::hash_abort(
+	uint32_t op_handle)
+{
+	return crypto_caller_hash_abort(&m_client,
+		op_handle);
+}
+
+psa_status_t packedc_crypto_client::hash_verify(
+	uint32_t op_handle,
+	const uint8_t *hash, size_t hash_length)
+{
+	return crypto_caller_hash_verify(&m_client,
+		op_handle, hash, hash_length);
+}
+
+psa_status_t packedc_crypto_client::hash_clone(
+	uint32_t source_op_handle,
+	uint32_t *target_op_handle)
+{
+	return crypto_caller_hash_clone(&m_client,
+		source_op_handle, target_op_handle);
 }

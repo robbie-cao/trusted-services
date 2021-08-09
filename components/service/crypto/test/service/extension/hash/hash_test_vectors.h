@@ -9,9 +9,9 @@
 
 /*
  * A selection of test vectors in the form of blocks of plaintext,
- * ciphertext, expected hashes etc.
+ * expected hashes etc. for testing hash operations.
  */
-class crypto_test_vectors
+class hash_test_vectors
 {
 public:
 

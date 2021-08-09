@@ -5,9 +5,9 @@
  */
 
 #include <cstring>
-#include "crypto_test_vectors.h"
+#include "hash_test_vectors.h"
 
-void crypto_test_vectors::plaintext_1_len_610(std::vector<uint8_t> &plaintext)
+void hash_test_vectors::plaintext_1_len_610(std::vector<uint8_t> &plaintext)
 {
 	/* Plaintext 1 - data length 610 bytes */
 	const uint8_t data[] =
@@ -57,7 +57,7 @@ void crypto_test_vectors::plaintext_1_len_610(std::vector<uint8_t> &plaintext)
 	memcpy(&plaintext[0], data, sizeof(data));
 }
 
-void crypto_test_vectors::sha256_1(std::vector<uint8_t> &hash)
+void hash_test_vectors::sha256_1(std::vector<uint8_t> &hash)
 {
 	/* SHA256 for plaintext_1 */
 	const uint8_t data[] =

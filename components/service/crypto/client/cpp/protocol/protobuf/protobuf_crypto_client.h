@@ -87,6 +87,8 @@ public:
 		uint8_t *output, size_t output_size);
 
 	/* Hash methods */
+	size_t hash_max_update_size() const;
+
 	psa_status_t hash_setup(
 		uint32_t *op_handle,
 		psa_algorithm_t alg);
@@ -98,6 +100,17 @@ public:
 	psa_status_t hash_finish(
 		uint32_t op_handle,
 		uint8_t *hash, size_t hash_size, size_t *hash_length);
+
+	psa_status_t hash_abort(
+		uint32_t op_handle);
+
+	psa_status_t hash_verify(
+		uint32_t op_handle,
+		const uint8_t *hash, size_t hash_length);
+
+	psa_status_t hash_clone(
+		uint32_t source_op_handle,
+		uint32_t *target_op_handle);
 
 private:
 

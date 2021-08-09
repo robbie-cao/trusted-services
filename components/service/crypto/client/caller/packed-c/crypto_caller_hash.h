@@ -340,7 +340,7 @@ static inline psa_status_t crypto_caller_hash_resume(struct service_client *cont
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
-static inline size_t crypto_caller_hash_max_update_size(struct service_client *context)
+static inline size_t crypto_caller_hash_max_update_size(const struct service_client *context)
 {
 	/* Returns the maximum number of bytes that may be
 	 * carried as a parameter of the hash_update operation

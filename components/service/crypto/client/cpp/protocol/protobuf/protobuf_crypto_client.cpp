@@ -732,6 +732,11 @@ psa_status_t protobuf_crypto_client::generate_random(uint8_t *output, size_t out
 	return psa_status;
 }
 
+size_t protobuf_crypto_client::hash_max_update_size() const
+{
+	return 0;
+}
+
 psa_status_t protobuf_crypto_client::hash_setup(uint32_t *op_handle,
 							psa_algorithm_t alg)
 {
@@ -746,6 +751,26 @@ psa_status_t protobuf_crypto_client::hash_update(uint32_t op_handle,
 
 psa_status_t protobuf_crypto_client::hash_finish(uint32_t op_handle,
 							uint8_t *hash, size_t hash_size, size_t *hash_length)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t protobuf_crypto_client::hash_abort(
+	uint32_t op_handle)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t protobuf_crypto_client::hash_verify(
+	uint32_t op_handle,
+	const uint8_t *hash, size_t hash_length)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t protobuf_crypto_client::hash_clone(
+	uint32_t source_op_handle,
+	uint32_t *target_op_handle)
 {
 	return PSA_ERROR_NOT_SUPPORTED;
 }

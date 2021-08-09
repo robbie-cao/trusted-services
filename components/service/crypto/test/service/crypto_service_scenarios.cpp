@@ -10,7 +10,6 @@
 #include <vector>
 #include <CppUTest/TestHarness.h>
 #include "crypto_service_scenarios.h"
-#include "crypto_test_vectors.h"
 
 crypto_service_scenarios::crypto_service_scenarios(crypto_client *crypto_client) :
 	m_crypto_client(crypto_client)
@@ -363,32 +362,6 @@ void crypto_service_scenarios::asymEncryptDecryptWithSalt()
 	/* Remove the key */
 	status = m_crypto_client->destroy_key(key_id);
 	CHECK_EQUAL(PSA_SUCCESS, status);
-}
-
-void crypto_service_scenarios::calculateHash()
-{
-	psa_status_t status;
-	std::vector<uint8_t> input;
-	std::vector<uint8_t> expected_output;
-	uint8_t output[PSA_HASH_MAX_SIZE];
-	size_t output_len;
-
-	crypto_test_vectors::plaintext_1_len_610(input);
-	crypto_test_vectors::sha256_1(expected_output);
-
-	uint32_t op_handle = 0;
-
-	status = m_crypto_client->hash_setup(&op_handle, PSA_ALG_SHA_256);
-	CHECK_EQUAL(PSA_SUCCESS, status);
-
-	status = m_crypto_client->hash_update(op_handle, &input[0], input.size());
-	CHECK_EQUAL(PSA_SUCCESS, status);
-
-	status = m_crypto_client->hash_finish(op_handle, output, sizeof(output), &output_len);
-	CHECK_EQUAL(PSA_SUCCESS, status);
-
-	UNSIGNED_LONGS_EQUAL(expected_output.size(), output_len);
-	MEMCMP_EQUAL(&expected_output[0], &output[0], output_len);
 }
 
 void crypto_service_scenarios::generateRandomNumbers()

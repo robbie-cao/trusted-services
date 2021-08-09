@@ -92,11 +92,6 @@ TEST(CryptoServicePackedcTests, asymEncryptDecryptWithSalt)
     m_scenarios->asymEncryptDecryptWithSalt();
 }
 
-TEST(CryptoServicePackedcTests, calculateHash)
-{
-    m_scenarios->calculateHash();
-}
-
 TEST(CryptoServicePackedcTests, generateRandomNumbers)
 {
     m_scenarios->generateRandomNumbers();
