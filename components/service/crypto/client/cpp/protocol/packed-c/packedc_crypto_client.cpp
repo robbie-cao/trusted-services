@@ -255,3 +255,58 @@ psa_status_t packedc_crypto_client::cipher_abort(
 	return crypto_caller_cipher_abort(&m_client,
 		op_handle);
 }
+
+/* MAC methods */
+size_t packedc_crypto_client::mac_max_update_size() const
+{
+	return crypto_caller_mac_max_update_size(&m_client);
+}
+
+psa_status_t packedc_crypto_client::mac_sign_setup(
+	uint32_t *op_handle,
+	psa_key_id_t key,
+	psa_algorithm_t alg)
+{
+	return crypto_caller_mac_sign_setup(&m_client,
+		op_handle, key, alg);
+}
+
+psa_status_t packedc_crypto_client::mac_verify_setup(
+	uint32_t *op_handle,
+	psa_key_id_t key,
+	psa_algorithm_t alg)
+{
+	return crypto_caller_mac_verify_setup(&m_client,
+		op_handle, key, alg);
+}
+
+psa_status_t packedc_crypto_client::mac_update(
+	uint32_t op_handle,
+	const uint8_t *input, size_t input_length)
+{
+	return crypto_caller_mac_update(&m_client,
+		op_handle, input, input_length);
+}
+
+psa_status_t packedc_crypto_client::mac_sign_finish(
+	uint32_t op_handle,
+	uint8_t *mac, size_t mac_size, size_t *mac_length)
+{
+	return crypto_caller_mac_sign_finish(&m_client,
+		op_handle, mac, mac_size, mac_length);
+}
+
+psa_status_t packedc_crypto_client::mac_verify_finish(
+	uint32_t op_handle,
+	const uint8_t *mac, size_t mac_length)
+{
+	return crypto_caller_mac_verify_finish(&m_client,
+		op_handle, mac, mac_length);
+}
+
+psa_status_t packedc_crypto_client::mac_abort(
+	uint32_t op_handle)
+{
+	return crypto_caller_mac_abort(&m_client,
+		op_handle);
+}

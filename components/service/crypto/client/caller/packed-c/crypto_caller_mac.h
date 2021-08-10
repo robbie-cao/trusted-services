@@ -289,7 +289,7 @@ static inline psa_status_t crypto_caller_mac_abort(struct service_client *contex
 	return psa_status;
 }
 
-static inline size_t crypto_caller_mac_max_update_size(struct service_client *context)
+static inline size_t crypto_caller_mac_max_update_size(const struct service_client *context)
 {
 	/* Returns the maximum number of bytes that may be
 	 * carried as a parameter of the mac_update operation

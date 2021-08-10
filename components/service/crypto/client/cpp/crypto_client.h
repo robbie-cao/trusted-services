@@ -148,6 +148,35 @@ public:
 	virtual psa_status_t cipher_abort(
 		uint32_t op_handle) = 0;
 
+	/* MAC methods */
+	virtual size_t mac_max_update_size() const = 0;
+
+	virtual psa_status_t mac_sign_setup(
+		uint32_t *op_handle,
+		psa_key_id_t key,
+		psa_algorithm_t alg) = 0;
+
+	virtual psa_status_t mac_verify_setup(
+		uint32_t *op_handle,
+		psa_key_id_t key,
+		psa_algorithm_t alg) = 0;
+
+	virtual psa_status_t mac_update(
+		uint32_t op_handle,
+		const uint8_t *input, size_t input_length) = 0;
+
+	virtual psa_status_t mac_sign_finish(
+		uint32_t op_handle,
+		uint8_t *mac, size_t mac_size, size_t *mac_length) = 0;
+
+	virtual psa_status_t mac_verify_finish(
+		uint32_t op_handle,
+		const uint8_t *mac, size_t mac_length) = 0;
+
+	virtual psa_status_t mac_abort(
+		uint32_t op_handle) = 0;
+
+
 protected:
 	crypto_client();
 	crypto_client(struct rpc_caller *caller);
