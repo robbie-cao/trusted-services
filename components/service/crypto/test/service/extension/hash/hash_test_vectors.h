@@ -4,6 +4,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#ifndef HASH_TEST_VECTORS_H
+#define HASH_TEST_VECTORS_H
+
 #include <cstdint>
 #include <vector>
 
@@ -19,3 +22,5 @@ public:
 	static void sha256_1(std::vector<uint8_t> &hash);
 
 };
+
+#endif /* HASH_TEST_VECTORS_H */

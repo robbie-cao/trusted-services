@@ -65,7 +65,7 @@ void hash_service_scenarios::hashAndVerify()
 {
 	/* Calculates and verifies hash over a large reference input */
 	size_t max_payload = m_crypto_client->hash_max_update_size();
-	size_t input_size = 9999;
+	static const size_t input_size = 9999;
 	size_t byte_count = 0;
 
 	create_ref_input(input_size);
@@ -108,7 +108,7 @@ void hash_service_scenarios::hashAbort()
 {
 	/* Aborts a hash operation after the first update */
 	size_t max_payload = m_crypto_client->hash_max_update_size();
-	size_t input_size = 15999;
+	static const size_t input_size = 15999;
 
 	create_ref_input(input_size);
 

@@ -41,6 +41,19 @@ protobuf_crypto_client::~protobuf_crypto_client()
 
 }
 
+void protobuf_crypto_client::translate_key_attributes(ts_crypto_KeyAttributes &proto_attributes,
+							const psa_key_attributes_t &psa_attributes)
+{
+	proto_attributes.type = psa_get_key_type(&psa_attributes);
+	proto_attributes.key_bits = psa_get_key_bits(&psa_attributes);
+	proto_attributes.lifetime = psa_get_key_lifetime(&psa_attributes);
+	proto_attributes.id = psa_get_key_id(&psa_attributes);
+
+	proto_attributes.has_policy = true;
+	proto_attributes.policy.usage = psa_get_key_usage_flags(&psa_attributes);
+	proto_attributes.policy.alg = psa_get_key_algorithm(&psa_attributes);
+ }
+
 psa_status_t protobuf_crypto_client::generate_key(const psa_key_attributes_t *attributes,
 	psa_key_id_t *id)
 {
@@ -775,15 +788,59 @@ psa_status_t protobuf_crypto_client::hash_clone(
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
-void protobuf_crypto_client::translate_key_attributes(ts_crypto_KeyAttributes &proto_attributes,
-							const psa_key_attributes_t &psa_attributes)
+/* Cipher methods */
+size_t protobuf_crypto_client::cipher_max_update_size() const
 {
-	proto_attributes.type = psa_get_key_type(&psa_attributes);
-	proto_attributes.key_bits = psa_get_key_bits(&psa_attributes);
-	proto_attributes.lifetime = psa_get_key_lifetime(&psa_attributes);
-	proto_attributes.id = psa_get_key_id(&psa_attributes);
+	return 0;
+}
 
-	proto_attributes.has_policy = true;
-	proto_attributes.policy.usage = psa_get_key_usage_flags(&psa_attributes);
-	proto_attributes.policy.alg = psa_get_key_algorithm(&psa_attributes);
- }
+psa_status_t protobuf_crypto_client::cipher_encrypt_setup(
+	uint32_t *op_handle,
+	psa_key_id_t key,
+	psa_algorithm_t alg)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t protobuf_crypto_client::cipher_decrypt_setup(
+	uint32_t *op_handle,
+	psa_key_id_t key,
+	psa_algorithm_t alg)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t protobuf_crypto_client::cipher_generate_iv(
+	uint32_t op_handle,
+	uint8_t *iv, size_t iv_size, size_t *iv_length)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t protobuf_crypto_client::cipher_set_iv(
+	uint32_t op_handle,
+	const uint8_t *iv, size_t iv_length)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t protobuf_crypto_client::cipher_update(
+	uint32_t op_handle,
+	const uint8_t *input, size_t input_length,
+	uint8_t *output, size_t output_size, size_t *output_length)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t protobuf_crypto_client::cipher_finish(
+	uint32_t op_handle,
+	uint8_t *output, size_t output_size, size_t *output_length)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t protobuf_crypto_client::cipher_abort(
+	uint32_t op_handle)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}

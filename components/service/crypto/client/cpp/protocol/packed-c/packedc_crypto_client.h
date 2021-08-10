@@ -112,6 +112,39 @@ public:
 		uint32_t source_op_handle,
 		uint32_t *target_op_handle);
 
+	/* Cipher methods */
+	size_t cipher_max_update_size() const;
+
+	psa_status_t cipher_encrypt_setup(
+		uint32_t *op_handle,
+		psa_key_id_t key,
+		psa_algorithm_t alg);
+
+	psa_status_t cipher_decrypt_setup(
+		uint32_t *op_handle,
+		psa_key_id_t key,
+		psa_algorithm_t alg);
+
+	psa_status_t cipher_generate_iv(
+		uint32_t op_handle,
+		uint8_t *iv, size_t iv_size, size_t *iv_length);
+
+	psa_status_t cipher_set_iv(
+		uint32_t op_handle,
+		const uint8_t *iv, size_t iv_length);
+
+	psa_status_t cipher_update(
+		uint32_t op_handle,
+		const uint8_t *input, size_t input_length,
+		uint8_t *output, size_t output_size, size_t *output_length);
+
+	psa_status_t cipher_finish(
+		uint32_t op_handle,
+		uint8_t *output, size_t output_size, size_t *output_length);
+
+	psa_status_t cipher_abort(
+		uint32_t op_handle);
+
 };
 
 #endif /* PACKEDC_CRYPTO_CLIENT_H */

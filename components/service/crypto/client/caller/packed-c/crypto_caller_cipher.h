@@ -390,7 +390,7 @@ static inline psa_status_t crypto_caller_cipher_abort(struct service_client *con
 	return psa_status;
 }
 
-static inline size_t crypto_caller_cipher_max_update_size(struct service_client *context)
+static inline size_t crypto_caller_cipher_max_update_size(const struct service_client *context)
 {
 	/* Returns the maximum number of bytes that may be
 	 * carried as a parameter of the cipher_update operation
@@ -398,6 +398,9 @@ static inline size_t crypto_caller_cipher_max_update_size(struct service_client 
 	 */
 	size_t payload_space = context->service_info.max_payload;
 	size_t overhead = sizeof(struct ts_crypto_cipher_update_in) + TLV_HDR_LEN;
+
+	/* Allow for output to be a whole number of blocks */
+	overhead += PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE;
 
 	return (payload_space > overhead) ? payload_space - overhead : 0;
 }

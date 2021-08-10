@@ -4,6 +4,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#ifndef CRYPTO_SERVICE_SCENARIOS_H
+#define CRYPTO_SERVICE_SCENARIOS_H
+
 #include <service/crypto/client/cpp/crypto_client.h>
 
 /*
@@ -14,19 +17,21 @@
 class crypto_service_scenarios
 {
 public:
-    crypto_service_scenarios(crypto_client *crypto_client);
-    ~crypto_service_scenarios();
+	crypto_service_scenarios(crypto_client *crypto_client);
+	~crypto_service_scenarios();
 
-    void generateRandomNumbers();
-    void asymEncryptDecrypt();
-    void asymEncryptDecryptWithSalt();
-    void signAndVerifyHash();
-    void signAndVerifyEat();
-    void exportAndImportKeyPair();
-    void exportPublicKey();
-    void generatePersistentKeys();
-    void generateVolatileKeys();
+	void generateRandomNumbers();
+	void asymEncryptDecrypt();
+	void asymEncryptDecryptWithSalt();
+	void signAndVerifyHash();
+	void signAndVerifyEat();
+	void exportAndImportKeyPair();
+	void exportPublicKey();
+	void generatePersistentKeys();
+	void generateVolatileKeys();
 
 private:
-    crypto_client *m_crypto_client;
+	crypto_client *m_crypto_client;
 };
+
+#endif /* CRYPTO_SERVICE_SCENARIOS_H */

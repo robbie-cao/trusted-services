@@ -38,6 +38,8 @@ add_components(
 		"components/service/crypto/test/service/packed-c"
 		"components/service/crypto/test/service/extension/hash"
 		"components/service/crypto/test/service/extension/hash/packed-c"
+		"components/service/crypto/test/service/extension/cipher"
+		"components/service/crypto/test/service/extension/cipher/packed-c"
 		"components/service/crypto/client/psa"
 		"components/service/crypto/client/cpp"
 		"components/service/crypto/client/cpp/protocol/protobuf"

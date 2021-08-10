@@ -92,6 +92,8 @@ add_components(
 		"components/service/crypto/test/service/packed-c"
 		"components/service/crypto/test/service/extension/hash"
 		"components/service/crypto/test/service/extension/hash/packed-c"
+		"components/service/crypto/test/service/extension/cipher"
+		"components/service/crypto/test/service/extension/cipher/packed-c"
 		"components/service/crypto/test/protocol"
 		"components/service/secure_storage/include"
 		"components/service/secure_storage/frontend/psa/its"

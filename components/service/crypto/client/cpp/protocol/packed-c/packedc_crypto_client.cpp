@@ -26,6 +26,7 @@ packedc_crypto_client::~packedc_crypto_client()
 
 }
 
+/* Core crypto methods */
 psa_status_t packedc_crypto_client::generate_key(
 	const psa_key_attributes_t *attributes,
 	psa_key_id_t *id)
@@ -137,6 +138,7 @@ psa_status_t packedc_crypto_client::generate_random(
 		output, output_size);
 }
 
+/* Hash methods */
 size_t packedc_crypto_client::hash_max_update_size() const
 {
 	return crypto_caller_hash_max_update_size(&m_client);
@@ -187,4 +189,69 @@ psa_status_t packedc_crypto_client::hash_clone(
 {
 	return crypto_caller_hash_clone(&m_client,
 		source_op_handle, target_op_handle);
+}
+
+/* Cipher methods */
+size_t packedc_crypto_client::cipher_max_update_size() const
+{
+	return crypto_caller_cipher_max_update_size(&m_client);
+}
+
+psa_status_t packedc_crypto_client::cipher_encrypt_setup(
+	uint32_t *op_handle,
+	psa_key_id_t key,
+	psa_algorithm_t alg)
+{
+	return crypto_caller_cipher_encrypt_setup(&m_client,
+		op_handle, key, alg);
+}
+
+psa_status_t packedc_crypto_client::cipher_decrypt_setup(
+	uint32_t *op_handle,
+	psa_key_id_t key,
+	psa_algorithm_t alg)
+{
+	return crypto_caller_cipher_decrypt_setup(&m_client,
+		op_handle, key, alg);
+}
+
+psa_status_t packedc_crypto_client::cipher_generate_iv(
+	uint32_t op_handle,
+	uint8_t *iv, size_t iv_size, size_t *iv_length)
+{
+	return crypto_caller_cipher_generate_iv(&m_client,
+		op_handle, iv, iv_size, iv_length);
+}
+
+psa_status_t packedc_crypto_client::cipher_set_iv(
+	uint32_t op_handle,
+	const uint8_t *iv, size_t iv_length)
+{
+	return crypto_caller_cipher_set_iv(&m_client,
+		op_handle, iv, iv_length);
+}
+
+psa_status_t packedc_crypto_client::cipher_update(
+	uint32_t op_handle,
+	const uint8_t *input, size_t input_length,
+	uint8_t *output, size_t output_size, size_t *output_length)
+{
+	return crypto_caller_cipher_update(&m_client,
+		op_handle, input, input_length,
+		output, output_size, output_length);
+}
+
+psa_status_t packedc_crypto_client::cipher_finish(
+	uint32_t op_handle,
+	uint8_t *output, size_t output_size, size_t *output_length)
+{
+	return crypto_caller_cipher_finish(&m_client,
+		op_handle, output, output_size, output_length);
+}
+
+psa_status_t packedc_crypto_client::cipher_abort(
+	uint32_t op_handle)
+{
+	return crypto_caller_cipher_abort(&m_client,
+		op_handle);
 }
