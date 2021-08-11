@@ -173,6 +173,52 @@ public:
 	psa_status_t mac_abort(
 		uint32_t op_handle);
 
+	/* Key derivation methods */
+	psa_status_t key_derivation_setup(
+		uint32_t *op_handle,
+		psa_algorithm_t alg);
+
+	psa_status_t key_derivation_get_capacity(
+		const uint32_t op_handle,
+		size_t *capacity);
+
+	psa_status_t key_derivation_set_capacity(
+		uint32_t op_handle,
+		size_t capacity);
+
+	psa_status_t key_derivation_input_bytes(
+		uint32_t op_handle,
+		psa_key_derivation_step_t step,
+		const uint8_t *data, size_t data_length);
+
+	psa_status_t key_derivation_input_key(
+		uint32_t op_handle,
+		psa_key_derivation_step_t step,
+		psa_key_id_t key);
+
+	psa_status_t key_derivation_output_bytes(
+		uint32_t op_handle,
+		uint8_t *output, size_t output_length);
+
+	psa_status_t key_derivation_output_key(
+		const psa_key_attributes_t *attributes,
+		uint32_t op_handle,
+		psa_key_id_t *key);
+
+	psa_status_t key_derivation_abort(
+		uint32_t op_handle);
+
+	psa_status_t key_derivation_key_agreement(
+		uint32_t op_handle,
+		psa_key_derivation_step_t step,
+		psa_key_id_t private_key,
+		const uint8_t *peer_key, size_t peer_key_length);
+
+	psa_status_t raw_key_agreement(psa_algorithm_t alg,
+		psa_key_id_t private_key,
+		const uint8_t *peer_key, size_t peer_key_length,
+		uint8_t *output, size_t output_size, size_t *output_length);
+
 };
 
 #endif /* PACKEDC_CRYPTO_CLIENT_H */

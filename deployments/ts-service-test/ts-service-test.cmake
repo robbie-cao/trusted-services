@@ -42,6 +42,8 @@ add_components(
 		"components/service/crypto/test/service/extension/cipher/packed-c"
 		"components/service/crypto/test/service/extension/mac"
 		"components/service/crypto/test/service/extension/mac/packed-c"
+		"components/service/crypto/test/service/extension/key_derivation"
+		"components/service/crypto/test/service/extension/key_derivation/packed-c"
 		"components/service/crypto/client/psa"
 		"components/service/crypto/client/cpp"
 		"components/service/crypto/client/cpp/protocol/protobuf"

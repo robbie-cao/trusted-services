@@ -310,3 +310,91 @@ psa_status_t packedc_crypto_client::mac_abort(
 	return crypto_caller_mac_abort(&m_client,
 		op_handle);
 }
+
+/* Key derivation methods */
+psa_status_t packedc_crypto_client::key_derivation_setup(
+	uint32_t *op_handle,
+	psa_algorithm_t alg)
+{
+	return crypto_caller_key_derivation_setup(&m_client,
+		op_handle, alg);
+}
+
+psa_status_t packedc_crypto_client::key_derivation_get_capacity(
+	const uint32_t op_handle,
+	size_t *capacity)
+{
+	return crypto_caller_key_derivation_get_capacity(&m_client,
+		op_handle, capacity);
+}
+
+psa_status_t packedc_crypto_client::key_derivation_set_capacity(
+	uint32_t op_handle,
+	size_t capacity)
+{
+	return crypto_caller_key_derivation_set_capacity(&m_client,
+		op_handle, capacity);
+}
+
+psa_status_t packedc_crypto_client::key_derivation_input_bytes(
+	uint32_t op_handle,
+	psa_key_derivation_step_t step,
+	const uint8_t *data, size_t data_length)
+{
+	return crypto_caller_key_derivation_input_bytes(&m_client,
+		op_handle, step, data, data_length);
+}
+
+psa_status_t packedc_crypto_client::key_derivation_input_key(
+	uint32_t op_handle,
+	psa_key_derivation_step_t step,
+	psa_key_id_t key)
+{
+	return crypto_caller_key_derivation_input_key(&m_client,
+		op_handle, step, key);
+}
+
+psa_status_t packedc_crypto_client::key_derivation_output_bytes(
+	uint32_t op_handle,
+	uint8_t *output, size_t output_length)
+{
+	return crypto_caller_key_derivation_output_bytes(&m_client,
+		op_handle, output, output_length);
+}
+
+psa_status_t packedc_crypto_client::key_derivation_output_key(
+	const psa_key_attributes_t *attributes,
+	uint32_t op_handle,
+	psa_key_id_t *key)
+{
+	return crypto_caller_key_derivation_output_key(&m_client,
+		attributes, op_handle, key);
+}
+
+psa_status_t packedc_crypto_client::key_derivation_abort(
+	uint32_t op_handle)
+{
+	return crypto_caller_key_derivation_abort(&m_client,
+		op_handle);
+}
+
+psa_status_t packedc_crypto_client::key_derivation_key_agreement(
+	uint32_t op_handle,
+	psa_key_derivation_step_t step,
+	psa_key_id_t private_key,
+	const uint8_t *peer_key, size_t peer_key_length)
+{
+	return crypto_caller_key_derivation_key_agreement(&m_client,
+		op_handle, step, private_key,
+		peer_key, peer_key_length);
+}
+
+psa_status_t packedc_crypto_client::raw_key_agreement(psa_algorithm_t alg,
+	psa_key_id_t private_key,
+	const uint8_t *peer_key, size_t peer_key_length,
+	uint8_t *output, size_t output_size, size_t *output_length)
+{
+	return crypto_caller_raw_key_agreement(&m_client,
+		alg, private_key, peer_key, peer_key_length,
+		output, output_size, output_length);
+}
