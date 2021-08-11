@@ -34,7 +34,11 @@ static inline void packedc_crypto_caller_translate_key_attributes_from_proto(
 	psa_set_key_type(psa_attributes, proto_attributes->type);
 	psa_set_key_bits(psa_attributes, proto_attributes->key_bits);
 	psa_set_key_lifetime(psa_attributes, proto_attributes->lifetime);
-	psa_set_key_id(psa_attributes, proto_attributes->id);
+
+	if (proto_attributes->lifetime == PSA_KEY_LIFETIME_PERSISTENT) {
+
+		psa_set_key_id(psa_attributes, proto_attributes->id);
+	}
 
 	psa_set_key_usage_flags(psa_attributes, proto_attributes->policy.usage);
 	psa_set_key_algorithm(psa_attributes, proto_attributes->policy.alg);

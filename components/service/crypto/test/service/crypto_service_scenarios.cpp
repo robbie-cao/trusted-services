@@ -95,6 +95,81 @@ void crypto_service_scenarios::generatePersistentKeys()
 	psa_reset_key_attributes(&attributes);
 }
 
+void crypto_service_scenarios::copyKey()
+{
+	psa_status_t status;
+	psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+	psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_VOLATILE);
+	psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_COPY);
+	psa_set_key_algorithm(&attributes, PSA_ALG_RSA_PKCS1V15_CRYPT);
+	psa_set_key_type(&attributes, PSA_KEY_TYPE_RSA_KEY_PAIR);
+	psa_set_key_bits(&attributes, 256);
+
+	/* Generate a key */
+	psa_key_id_t key_id_1;
+	status = m_crypto_client->generate_key(&attributes, &key_id_1);
+	CHECK_EQUAL(PSA_SUCCESS, status);
+
+	/* Copy it */
+	psa_key_id_t key_id_2;
+	status = m_crypto_client->copy_key(key_id_1, &attributes, &key_id_2);
+	CHECK_EQUAL(PSA_SUCCESS, status);
+
+	/* Expect the copied key attributes to match the original */
+	psa_key_attributes_t copy_attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+	status = m_crypto_client->get_key_attributes(key_id_2, &copy_attributes);
+	CHECK_EQUAL(PSA_SUCCESS, status);
+
+	UNSIGNED_LONGS_EQUAL(
+		psa_get_key_type(&attributes), psa_get_key_type(&copy_attributes));
+	UNSIGNED_LONGS_EQUAL(
+		psa_get_key_algorithm(&attributes), psa_get_key_algorithm(&copy_attributes));
+	UNSIGNED_LONGS_EQUAL(
+		psa_get_key_bits(&attributes), psa_get_key_bits(&copy_attributes));
+	UNSIGNED_LONGS_EQUAL(
+		psa_get_key_usage_flags(&attributes), psa_get_key_usage_flags(&copy_attributes));
+	UNSIGNED_LONGS_EQUAL(
+		psa_get_key_lifetime(&attributes), psa_get_key_lifetime(&copy_attributes));
+
+	/* Remove the keys */
+	status = m_crypto_client->destroy_key(key_id_1);
+	CHECK_EQUAL(PSA_SUCCESS, status);
+	status = m_crypto_client->destroy_key(key_id_2);
+	CHECK_EQUAL(PSA_SUCCESS, status);
+
+	psa_reset_key_attributes(&attributes);
+	psa_reset_key_attributes(&copy_attributes);
+}
+
+void crypto_service_scenarios::purgeKey()
+{
+	psa_status_t status;
+	psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+	/* Generate a persistent key */
+	psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH);
+	psa_set_key_algorithm(&attributes, PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256));
+	psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
+	psa_set_key_bits(&attributes, 256);
+	psa_set_key_id(&attributes, 100002);
+
+	psa_key_id_t key_id;
+	status = m_crypto_client->generate_key(&attributes, &key_id);
+	CHECK_EQUAL(PSA_SUCCESS, status);
+
+	/* Perform purge */
+	status = m_crypto_client->purge_key(key_id);
+	CHECK_EQUAL(PSA_SUCCESS, status);
+
+	/* Expect key to still exist when destroyed */
+	status = m_crypto_client->destroy_key(key_id);
+	CHECK_EQUAL(PSA_SUCCESS, status);
+
+	psa_reset_key_attributes(&attributes);
+}
+
 void crypto_service_scenarios::exportPublicKey()
 {
 	psa_status_t status;
