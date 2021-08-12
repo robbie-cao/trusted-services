@@ -38,14 +38,14 @@ int attest_report_create(int32_t client_id,
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     struct claim_vector device_claims;
     struct claim_vector sw_claims;
-    psa_key_handle_t key_handle;
+    psa_key_id_t key_id;
 
     *report = NULL;
     *report_len = 0;
 
     if (!validate_challenge(auth_challenge_len)) return PSA_ERROR_INVALID_ARGUMENT;
 
-    status = attest_key_mngr_get_iak_handle(&key_handle);
+    status = attest_key_mngr_get_iak_id(&key_id);
     if (status != PSA_SUCCESS) return status;
 
     claim_vector_init(&device_claims, MAX_DEVICE_CLAIMS);
@@ -70,7 +70,7 @@ int attest_report_create(int32_t client_id,
                     &unsigned_token, &unsigned_token_len);
 
     if (status == PSA_SUCCESS) {
-        status = eat_sign(key_handle,
+        status = eat_sign(key_id,
                     unsigned_token, unsigned_token_len,
                     report, report_len);
     }

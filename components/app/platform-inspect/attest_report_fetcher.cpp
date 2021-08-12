@@ -18,9 +18,9 @@
 #include <t_cose/t_cose_sign1_verify.h>
 
 static bool fetch_and_verify(std::vector<uint8_t> &report, std::string &error_msg);
-static bool fetch_iak_public_key(psa_key_handle_t &iak_handle, std::string &error_msg);
+static bool fetch_iak_public_key(psa_key_id_t &iak_id, std::string &error_msg);
 static bool verify_token(std::vector<uint8_t> &report, const uint8_t *token, size_t token_len,
-    psa_key_handle_t iak_handle, std::string &error_msg);
+    psa_key_id_t iak_id, std::string &error_msg);
 
 bool fetch_attest_report(std::vector<uint8_t> &report, std::string &error_msg)
 {
@@ -69,10 +69,10 @@ static bool fetch_and_verify(std::vector<uint8_t> &report, std::string &error_ms
     bool success = false;
     uint8_t token_buf[PSA_INITIAL_ATTEST_MAX_TOKEN_SIZE];
     uint8_t challenge[PSA_INITIAL_ATTEST_CHALLENGE_SIZE_32];
-    psa_key_handle_t iak_handle;
+    psa_key_id_t iak_id;
     int status;
 
-    if (!fetch_iak_public_key(iak_handle, error_msg)) {
+    if (!fetch_iak_public_key(iak_id, error_msg)) {
 
         return false;
     }
@@ -93,7 +93,7 @@ static bool fetch_and_verify(std::vector<uint8_t> &report, std::string &error_ms
 
     if (status == PSA_SUCCESS) {
 
-        success = verify_token(report, token_buf, token_size, iak_handle, error_msg);
+        success = verify_token(report, token_buf, token_size, iak_id, error_msg);
     }
     else {
 
@@ -103,7 +103,7 @@ static bool fetch_and_verify(std::vector<uint8_t> &report, std::string &error_ms
     return success;
 }
 
-static bool fetch_iak_public_key(psa_key_handle_t &iak_handle, std::string &error_msg)
+static bool fetch_iak_public_key(psa_key_id_t &iak_id, std::string &error_msg)
 {
     size_t iak_pub_key_len = 0;
     uint8_t iak_pub_key_buf[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
@@ -122,7 +122,7 @@ static bool fetch_iak_public_key(psa_key_handle_t &iak_handle, std::string &erro
         psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_SECP_R1));
         psa_set_key_bits(&attributes, 256);
 
-        status = psa_import_key(&attributes, iak_pub_key_buf, iak_pub_key_len, &iak_handle);
+        status = psa_import_key(&attributes, iak_pub_key_buf, iak_pub_key_len, &iak_id);
 
         if (status != PSA_SUCCESS) {
 
@@ -141,12 +141,12 @@ static bool fetch_iak_public_key(psa_key_handle_t &iak_handle, std::string &erro
 }
 
 static bool verify_token(std::vector<uint8_t> &report, const uint8_t *token, size_t token_len,
-    psa_key_handle_t iak_handle, std::string &error_msg)
+    psa_key_id_t iak_id, std::string &error_msg)
 {
     struct t_cose_sign1_verify_ctx verify_ctx;
     struct t_cose_key key_pair;
 
-    key_pair.k.key_handle = iak_handle;
+    key_pair.k.key_handle = iak_id;
     key_pair.crypto_lib = T_COSE_CRYPTO_LIB_PSA;
     UsefulBufC signed_cose;
     UsefulBufC report_body;

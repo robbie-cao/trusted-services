@@ -7,18 +7,18 @@
 #ifndef CONFIG_MBEDTLS_USER_H
 #define CONFIG_MBEDTLS_USER_H
 
-/* Configuration for crypto client component */
-
+/* Mbed TLS configuration for using libmbedcrypto in
+ * a Posix environment.  Supported crypto operations
+ * are configured separately via the PSA crypto build
+ * interface (PSA_WANT_xxx).
+ */
+#define MBEDTLS_PSA_CRYPTO_CONFIG
 #define MBEDTLS_NO_UDBL_DIVISION
 #undef MBEDTLS_HAVE_TIME
 #undef MBEDTLS_HAVE_TIME_DATE
-#define MBEDTLS_TEST_NULL_ENTROPY
 #undef MBEDTLS_FS_IO
-#define MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
-#define MBEDTLS_NO_PLATFORM_ENTROPY
 #undef MBEDTLS_SELF_TEST
 #undef MBEDTLS_AESNI_C
-#define MBEDTLS_CMAC_C
 #undef MBEDTLS_PADLOCK_C
 #undef MBEDTLS_PLATFORM_C
 #undef MBEDTLS_PSA_CRYPTO_STORAGE_C

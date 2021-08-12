@@ -26,15 +26,15 @@ extern "C" {
  */
 
 /**
- * \brief Get the IAK key handle
+ * \brief Get the IAK key id
  *
  *  If an IAK doesn't exist, one will be generated.  This supports the
  *  generate-on-first-run strategy.
  *
- * \param[out] iak_handle  The returned key handle
+ * \param[out] iak_id  The returned key id
  * \return Status
  */
-psa_status_t attest_key_mngr_get_iak_handle(psa_key_handle_t *iak_handle);
+psa_status_t attest_key_mngr_get_iak_id(psa_key_id_t *iak_id);
 
 /**
  * \brief Export the IAK public key
@@ -48,7 +48,7 @@ psa_status_t attest_key_mngr_get_iak_handle(psa_key_handle_t *iak_handle);
  * \return Status
  */
 psa_status_t attest_key_mngr_export_iak_public_key(uint8_t *data,
-                                size_t data_size, size_t *data_length);
+								size_t data_size, size_t *data_length);
 
 /**
  * \brief Import the IAK key-pair

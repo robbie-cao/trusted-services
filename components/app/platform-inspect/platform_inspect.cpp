@@ -18,7 +18,14 @@ int main(int argc, char *argv[])
 {
     int rval = -1;
 
-    psa_crypto_init();
+    psa_status_t psa_status = psa_crypto_init();
+
+    if (psa_status != PSA_SUCCESS) {
+
+        printf("psa_crypto_init failed: %d\n", psa_status);
+        return rval;
+    }
+
     service_locator_init();
 
     /* Fetch platform info */

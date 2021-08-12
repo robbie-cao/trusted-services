@@ -13,7 +13,7 @@
 static bool alloc_output_buf(struct q_useful_buf *buf, size_t input_len);
 static int t_cose_to_psa_status(enum t_cose_err_t t_cose_status);
 
-int eat_sign(psa_key_handle_t key_handle,
+int eat_sign(psa_key_id_t key_id,
     const uint8_t *unsigned_token, size_t unsigned_token_len,
     const uint8_t **signed_token, size_t *signed_token_len)
 {
@@ -33,7 +33,7 @@ int eat_sign(psa_key_handle_t key_handle,
         return PSA_ERROR_INSUFFICIENT_MEMORY;
 
     /* Initialize signing context */
-    signing_key.k.key_handle = key_handle;
+    signing_key.k.key_handle = key_id;
     signing_key.crypto_lib  = T_COSE_CRYPTO_LIB_PSA;
     t_cose_sign1_sign_init(&sign_ctx, 0, T_COSE_ALGORITHM_ES256);
     t_cose_sign1_set_signing_key(&sign_ctx, signing_key,  NULL_Q_USEFUL_BUF_C);

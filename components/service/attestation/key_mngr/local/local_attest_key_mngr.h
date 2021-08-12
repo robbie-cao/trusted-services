@@ -32,9 +32,9 @@ extern "C" {
  * is passed, a volatile IAK will be generated.  This is useful
  * for test purposes.
  *
- * \param[in] iak_id    The key id for the IAK
+ * \param[in] cfg_iak_id    The configured IAK key id (zero for volatile)
  */
-void local_attest_key_mngr_init(psa_key_id_t iak_id);
+void local_attest_key_mngr_init(psa_key_id_t cfg_iak_id);
 
 /**
  * \brief De-initialize the attest_key_mngr

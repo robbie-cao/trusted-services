@@ -85,9 +85,9 @@ TEST(AttestationReporterTests, createReport)
         17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32
     };
 
-    /* Retrieve the IAK handle */
-    psa_key_handle_t iak_handle;
-    status = attest_key_mngr_get_iak_handle(&iak_handle);
+    /* Retrieve the IAK id */
+    psa_key_id_t iak_id;
+    status = attest_key_mngr_get_iak_id(&iak_id);
     LONGS_EQUAL(PSA_SUCCESS, status);
 
     /* Create a report */
@@ -106,7 +106,7 @@ TEST(AttestationReporterTests, createReport)
     struct t_cose_sign1_verify_ctx verify_ctx;
     struct t_cose_key key_pair;
 
-    key_pair.k.key_handle = iak_handle;
+    key_pair.k.key_handle = iak_id;
     key_pair.crypto_lib = T_COSE_CRYPTO_LIB_PSA;
     UsefulBufC signed_cose;
     UsefulBufC report_body;

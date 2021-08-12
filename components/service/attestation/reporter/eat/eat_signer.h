@@ -18,7 +18,7 @@ extern "C" {
 /**
  * \brief Sign the serialized EAT token
  *
- * \param[in] key_handle         Signing key handle
+ * \param[in] key_id         	 Signing key id
  * \param[in] unsigned_token     The token to sign
  * \param[in] unsigned_token_len The token to sign
  * \param[out] signed_token      The signed token
@@ -26,9 +26,9 @@ extern "C" {
  *
  * \return Operation status
  */
-int eat_sign(psa_key_handle_t key_handle,
-    const uint8_t *unsigned_token, size_t unsigned_token_len,
-    const uint8_t **signed_token, size_t *signed_token_len);
+int eat_sign(psa_key_id_t key_id,
+	const uint8_t *unsigned_token, size_t unsigned_token_len,
+	const uint8_t **signed_token, size_t *signed_token_len);
 
 
 #ifdef __cplusplus
