@@ -16,6 +16,7 @@
 #include <service/attestation/claims/sources/boot_seed_generator/boot_seed_generator.h>
 #include <service/attestation/claims/sources/null_lifecycle/null_lifecycle_claim_source.h>
 #include <service/attestation/claims/sources/instance_id/instance_id_claim_source.h>
+#include <service/attestation/claims/sources/implementation_id/implementation_id_claim_source.h>
 #include <service/attestation/key_mngr/local/local_attest_key_mngr.h>
 #include <service/crypto/backend/mbedcrypto/mbedcrypto_backend.h>
 #include <service/secure_storage/backend/mock_store/mock_store.h>
@@ -48,6 +49,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	struct boot_seed_generator boot_seed_claim_source;
 	struct null_lifecycle_claim_source lifecycle_claim_source;
 	struct instance_id_claim_source instance_id_claim_source;
+	struct implementation_id_claim_source implementation_id_claim_source;
 
 	/*********************************************************
 	 * Boot phase
@@ -82,6 +84,11 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 
 	/* Instance ID claim source */
 	claim_source = instance_id_claim_source_init(&instance_id_claim_source);
+	claims_register_add_claim_source(CLAIM_CATEGORY_DEVICE, claim_source);
+
+		/* Implementation ID claim source */
+	claim_source = implementation_id_claim_source_init(&implementation_id_claim_source,
+		"trustedfirmware.org.ts.attestation_sp");
 	claims_register_add_claim_source(CLAIM_CATEGORY_DEVICE, claim_source);
 
 	/**

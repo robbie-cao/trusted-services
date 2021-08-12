@@ -5,6 +5,7 @@
  */
 
 #include <stddef.h>
+#include <psa/crypto.h>
 #include <service_locator.h>
 #include <service/attestation/client/psa/iat_client.h>
 #include <service/attestation/client/provision/attest_provision_client.h>
@@ -19,7 +20,10 @@ int locate_service_under_test(struct logging_caller *call_logger)
 {
 	int status = -1;
 
-	if (!session_handle && !crypto_service_context) {
+	/* Attestation tests depend on PSA crypto so ensure library is initialised */
+	psa_status_t psa_status = psa_crypto_init();
+
+	if ((psa_status == PSA_SUCCESS) && !session_handle && !crypto_service_context) {
 
 		struct rpc_caller *caller;
 
