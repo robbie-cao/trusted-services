@@ -42,6 +42,7 @@ add_components(TARGET "attestation"
 	COMPONENTS
 		"components/common/tlv"
 		"components/common/endian"
+		"components/common/uuid"
 		"components/config/ramstore"
 		"components/config/loader/sp"
 		"components/messaging/ffa/libsp"
@@ -50,7 +51,12 @@ add_components(TARGET "attestation"
 		"components/rpc/common/caller"
 		"components/rpc/common/interface"
 		"components/service/common/include"
+		"components/service/common/client"
 		"components/service/common/provider"
+		"components/service/locator"
+		"components/service/locator/interface"
+		"components/service/locator/sp"
+		"components/service/locator/sp/ffa"
 		"components/service/attestation/include"
 		"components/service/attestation/claims"
 		"components/service/attestation/claims/sources/boot_seed_generator"
@@ -64,11 +70,8 @@ add_components(TARGET "attestation"
 		"components/service/attestation/key_mngr/local"
 		"components/service/attestation/provider"
 		"components/service/attestation/provider/serializer/packed-c"
-		"components/service/crypto/backend/mbedcrypto"
-		"components/service/crypto/backend/mbedcrypto/trng_adapter/platform"
-		"components/service/secure_storage/include"
-		"components/service/secure_storage/frontend/psa/its"
-		"components/service/secure_storage/backend/mock_store"
+		"components/service/crypto/include"
+		"components/service/crypto/client/psa"
 		"protocols/rpc/common/packed-c"
 		"environments/opteesp"
 )
@@ -92,11 +95,6 @@ add_platform(TARGET "attestation")
 #  Components used from external projects
 #
 #-------------------------------------------------------------------------------
-list(APPEND MBEDTLS_EXTRA_INCLUDES ${SP_DEV_KIT_INCLUDE_DIR})
-
-# Mbed TLS provides libmbedcrypto
-include(../../../external/MbedTLS/MbedTLS.cmake)
-target_link_libraries(attestation PRIVATE mbedcrypto)
 
 # Qcbor
 set (QCBOR_EXTERNAL_INCLUDE_PATHS ${SP_DEV_KIT_INCLUDE_DIR})
@@ -107,10 +105,6 @@ target_link_libraries(attestation PRIVATE qcbor)
 set (TCOSE_EXTERNAL_INCLUDE_PATHS ${SP_DEV_KIT_INCLUDE_DIR})
 include(${TS_ROOT}/external/t_cose/t_cose.cmake)
 target_link_libraries(attestation PRIVATE t_cose)
-
-if(CMAKE_CROSSCOMPILING)
-	target_link_libraries(attestation PRIVATE stdc++ gcc m)
-endif()
 
 #################################################################
 

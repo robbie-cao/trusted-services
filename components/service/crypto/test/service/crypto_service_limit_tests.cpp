@@ -109,10 +109,10 @@ TEST_GROUP(CryptoServiceLimitTests)
 
     /*
      * Maximum number of key slots in mbedcrypto
-     * is 32.  We would expect it to be possible to
-     * generate keys up to that limit.
+     * is 32.  Some key slots may be used by provisioned
+     * keys so allow a lower limit.
      */
-    const size_t MAX_KEY_SLOTS = 32;
+    const size_t MAX_KEY_SLOTS = 30;
 
     rpc_session_handle m_rpc_session_handle;
     struct service_context *m_crypto_service_context;

@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <rpc/ffarpc/caller/sp/ffarpc_caller.h>
 #include <rpc/ffarpc/endpoint/ffarpc_call_ep.h>
 #include <protocols/rpc/common/packed-c/status.h>
 #include <config/ramstore/config_ramstore.h>
@@ -18,22 +17,19 @@
 #include <service/attestation/claims/sources/instance_id/instance_id_claim_source.h>
 #include <service/attestation/claims/sources/implementation_id/implementation_id_claim_source.h>
 #include <service/attestation/key_mngr/local/local_attest_key_mngr.h>
-#include <service/crypto/backend/mbedcrypto/mbedcrypto_backend.h>
-#include <service/secure_storage/backend/mock_store/mock_store.h>
+#include <service/crypto/client/psa/psa_crypto_client.h>
+#include <service_locator.h>
+#include <psa/crypto.h>
 #include <ffa_api.h>
 #include <sp_api.h>
 #include <sp_rxtx.h>
 #include <trace.h>
 
-
-/* Temporary dependencies */
-#include <psa/crypto.h>
-
-
 uint16_t own_id = 0; /* !!Needs refactoring as parameter to ffarpc_caller_init */
 
 
 static int sp_init(uint16_t *own_sp_id);
+static void locate_crypto_service(void);
 
 void __noreturn sp_main(struct ffa_init_info *init_info)
 {
@@ -60,10 +56,9 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	sp_config_load(init_info);
 
 	/**
-	 * Initialize the mbedcrypto - to be replaced by crypto client
+	 * Locate crypto service endpoint and establish RPC session
 	 */
-	struct mock_store key_store;
-	mbedcrypto_backend_init(mock_store_init(&key_store), 0);
+	locate_crypto_service();
 
 	/**
 	 * Register claim sources for deployment
@@ -147,4 +142,27 @@ static int sp_init(uint16_t *own_sp_id)
 	}
 
 	return status;
+}
+
+void locate_crypto_service(void)
+{
+	service_locator_init();
+
+	int status;
+
+	/* todo - add option to use configurable crypto service location */
+	struct service_context *crypto_service_context =
+		service_locator_query("sn:ffa:d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0:0", &status);
+
+	if (crypto_service_context) {
+
+		struct rpc_caller *caller;
+
+		if (service_context_open(crypto_service_context, TS_RPC_ENCODING_PACKED_C, &caller)) {
+
+			psa_crypto_client_init(caller);
+		}
+	}
+
+	psa_crypto_init();
 }
