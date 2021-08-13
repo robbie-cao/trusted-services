@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -54,10 +54,10 @@ TEST(ServiceNameTests, checkFields) {
     CHECK(sn_check_service(sn2, "secure-storage"));
     CHECK_EQUAL(0, sn_get_service_instance(sn2));
 
-    const char *sn3 = "sn:ffa:d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0:7";
+    const char *sn3 = "sn:ffa:d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0:77";
     CHECK(sn_check_authority(sn3, "ffa"));
     CHECK(sn_check_service(sn3, "d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0"));
-    CHECK_EQUAL(7, sn_get_service_instance(sn3));
+    CHECK_EQUAL(77, sn_get_service_instance(sn3));
 
     /* Check instance defaults to zero */
     const char *sn4 = "sn:ffa:d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0";
