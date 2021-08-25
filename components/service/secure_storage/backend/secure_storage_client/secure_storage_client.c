@@ -32,7 +32,7 @@ static psa_status_t secure_storage_client_set(void *context,
 	(void)client_id;
 
 	/* Validating input parameters */
-	if (p_data == NULL)
+	if (p_data == NULL && data_length != 0)
 		return PSA_ERROR_INVALID_ARGUMENT;
 
 	request_length = sizeof(*request_desc) + data_length;
@@ -92,7 +92,7 @@ static psa_status_t secure_storage_client_get(void *context,
 	(void)client_id;
 
 	/* Validating input parameters */
-	if (p_data == NULL)
+	if (p_data == NULL && data_size != 0)
 		return PSA_ERROR_INVALID_ARGUMENT;
 
 	handle = rpc_caller_begin(this_context->client.caller, &request, sizeof(*request_desc));
