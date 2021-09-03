@@ -6,21 +6,47 @@
 
 $schema: ./test_data.schema.json,
 data:
+    - name: "attestation-optee-arm"
+      src: "$TS_ROOT/deployments/attestation/opteesp"
+      params:
+            - "-GUnix Makefiles"
+            - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
+    - name: "component-test-arm-linux"
+      src: "$TS_ROOT/deployments/component-test/arm-linux"
+      os_id : "GNU/Linux"
+      params:
+          - "-GUnix Makefiles"
+    - name: "component-test-pc-linux"
+      os_id : "GNU/Linux"
+      src: "$TS_ROOT/deployments/component-test/linux-pc"
+      params:
+          - "-GUnix Makefiles"
+    - name: "crypto-optee-arm"
+      src: "$TS_ROOT/deployments/crypto/opteesp"
+      params:
+          - "-GUnix Makefiles"
+          - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
     - name: "env-test-optee-arm"
       src: "$TS_ROOT/deployments/env-test/opteesp"
       params:
-            - "-GUnix Makefiles"
-            - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
-    - name: "libsp-optee-arm"
-      src: "$TS_ROOT/deployments/libsp/opteesp"
+          - "-GUnix Makefiles"
+          - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
+    - name: "internal-trusted-storage-optee-arm"
+      src: "$TS_ROOT/deployments/internal-trusted-storage/opteesp"
       params:
             - "-GUnix Makefiles"
             - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
+            - "-DCMAKE_VERBOSE_MAKEFILE=y"
     - name: "libsp-linux-pc"
       src: "$TS_ROOT/deployments/libsp/linux-pc"
       os_id : "GNU/Linux"
       params:
             - "-GUnix Makefiles"
+    - name: "libsp-optee-arm"
+      src: "$TS_ROOT/deployments/libsp/opteesp"
+      params:
+            - "-GUnix Makefiles"
+            - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
     - name: "libts-arm-linux"
       src: "$TS_ROOT/deployments/libts/arm-linux"
       os_id : "GNU/Linux"
@@ -31,24 +57,29 @@ data:
       os_id : "GNU/Linux"
       params:
             - "-GUnix Makefiles"
+    - name: "platform-inspect-arm-linux"
+      src: "$TS_ROOT/deployments/platform-inspect/arm-linux"
+      os_id : "GNU/Linux"
+      params:
+          - "-GUnix Makefiles"
+    - name: "platform-inspect-pc-linux"
+      src: "$TS_ROOT/deployments/platform-inspect/linux-pc"
+      os_id : "GNU/Linux"
+      params:
+          - "-GUnix Makefiles"
     - name: "protected-storage-optee-arm"
       src: "$TS_ROOT/deployments/protected-storage/opteesp"
       params:
             - "-GUnix Makefiles"
             - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
             - "-DCMAKE_VERBOSE_MAKEFILE=y"
-    - name: "psa-api-test-crypto-pc-linux"
-      src: "$TS_ROOT/deployments/psa-api-test/crypto/linux-pc"
-      os_id : "GNU/Linux"
-      params:
-            - "-GUnix Makefiles"
     - name: "psa-api-test-crypto-arm-linux"
       src: "$TS_ROOT/deployments/psa-api-test/crypto/arm-linux"
       os_id : "GNU/Linux"
       params:
             - "-GUnix Makefiles"
-    - name: "psa-api-test-initial_attestation-pc-linux"
-      src: "$TS_ROOT/deployments/psa-api-test/initial_attestation/linux-pc"
+    - name: "psa-api-test-crypto-pc-linux"
+      src: "$TS_ROOT/deployments/psa-api-test/crypto/linux-pc"
       os_id : "GNU/Linux"
       params:
             - "-GUnix Makefiles"
@@ -57,13 +88,13 @@ data:
       os_id : "GNU/Linux"
       params:
             - "-GUnix Makefiles"
-    - name: "psa-api-test-protected_storage-pc-linux"
-      src: "$TS_ROOT/deployments/psa-api-test/protected_storage/linux-pc"
+    - name: "psa-api-test-initial_attestation-pc-linux"
+      src: "$TS_ROOT/deployments/psa-api-test/initial_attestation/linux-pc"
       os_id : "GNU/Linux"
       params:
             - "-GUnix Makefiles"
-    - name: "psa-api-test-protected_storage-arm-linux"
-      src: "$TS_ROOT/deployments/psa-api-test/protected_storage/arm-linux"
+    - name: "psa-api-test-internal_trusted_storage-arm-linux"
+      src: "$TS_ROOT/deployments/psa-api-test/internal_trusted_storage/arm-linux"
       os_id : "GNU/Linux"
       params:
             - "-GUnix Makefiles"
@@ -72,8 +103,13 @@ data:
       os_id : "GNU/Linux"
       params:
             - "-GUnix Makefiles"
-    - name: "psa-api-test-internal_trusted_storage-arm-linux"
-      src: "$TS_ROOT/deployments/psa-api-test/internal_trusted_storage/arm-linux"
+    - name: "psa-api-test-protected_storage-arm-linux"
+      src: "$TS_ROOT/deployments/psa-api-test/protected_storage/arm-linux"
+      os_id : "GNU/Linux"
+      params:
+            - "-GUnix Makefiles"
+    - name: "psa-api-test-protected_storage-pc-linux"
+      src: "$TS_ROOT/deployments/psa-api-test/protected_storage/linux-pc"
       os_id : "GNU/Linux"
       params:
             - "-GUnix Makefiles"
@@ -87,21 +123,6 @@ data:
       params:
           - "-GUnix Makefiles"
           - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
-    - name: "crypto-optee-arm"
-      src: "$TS_ROOT/deployments/crypto/opteesp"
-      params:
-          - "-GUnix Makefiles"
-          - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
-    - name: "component-test-arm-linux"
-      src: "$TS_ROOT/deployments/component-test/arm-linux"
-      os_id : "GNU/Linux"
-      params:
-          - "-GUnix Makefiles"
-    - name: "component-test-pc-linux"
-      os_id : "GNU/Linux"
-      src: "$TS_ROOT/deployments/component-test/linux-pc"
-      params:
-          - "-GUnix Makefiles"
     - name: "ts-demo-arm-linux"
       src: "$TS_ROOT/deployments/ts-demo/arm-linux"
       os_id : "GNU/Linux"
@@ -129,27 +150,6 @@ data:
           - "-GUnix Makefiles"
     - name: "ts-service-test-pc-linux"
       src: "$TS_ROOT/deployments/ts-service-test/linux-pc"
-      os_id : "GNU/Linux"
-      params:
-          - "-GUnix Makefiles"
-    - name: "internal-trusted-storage-optee-arm"
-      src: "$TS_ROOT/deployments/internal-trusted-storage/opteesp"
-      params:
-            - "-GUnix Makefiles"
-            - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
-            - "-DCMAKE_VERBOSE_MAKEFILE=y"
-    - name: "attestation-optee-arm"
-      src: "$TS_ROOT/deployments/attestation/opteesp"
-      params:
-            - "-GUnix Makefiles"
-            - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
-    - name: "platform-inspect-arm-linux"
-      src: "$TS_ROOT/deployments/platform-inspect/arm-linux"
-      os_id : "GNU/Linux"
-      params:
-          - "-GUnix Makefiles"
-    - name: "platform-inspect-pc-linux"
-      src: "$TS_ROOT/deployments/platform-inspect/linux-pc"
       os_id : "GNU/Linux"
       params:
           - "-GUnix Makefiles"

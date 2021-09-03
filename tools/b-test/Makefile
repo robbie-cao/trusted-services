@@ -13,18 +13,18 @@ TEMPLATES:=$(wildcard *.j2)
 OUTPUTS:=$(TEMPLATES:%.j2=%)
 
 all:
-	make config
+	${MAKE} config
 	bash run.sh
 
 config: ${OUTPUTS}
 
 list:
-	make config
+	${MAKE} config
 	bash run.sh help
 
 # run a command of the generated script
 r-%:
-	make config
+	${MAKE} config
 	bash run.sh "$*"
 
 define help_msg

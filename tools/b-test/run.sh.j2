@@ -62,14 +62,19 @@ function _cmake() {
 	rm -rf "$b_dir"
 	mkdir -p "$b_dir"
 
-	_cmake "$log_file" -S {{config.src}} -B "$b_dir" {% for param in config.params %} "{{param}}" {%endfor%} || {
+	if [ -n "$_ccache" ]
+	then
+		ccache_option=-DCMAKE_C_COMPILER_LAUNCHER=$_ccache
+	fi
+
+	_cmake "$log_file" -S {{config.src}} -B "$b_dir" $ccache_option {% for param in config.params %} "{{param}}" {%endfor%} || {
 
 		echo "For details see: $log_file"
 		echo "########################## $COLOR_RED {{config.name}} failed $COLOR_RESET"
 		return
 	}
 
-	if _cmake "$log_file" --build "$b_dir" -j ${NUMBER_OF_PROCESSORS}
+	if _cmake "$log_file" --build "$b_dir" -j ${NUMBER_OF_PROCESSORS} --verbose
 	then
 		if _cmake "$log_file" --install "$b_dir" --prefix ./install
 		then
@@ -150,6 +155,8 @@ else
 	COLOR_RED=
 	COLOR_GREEN=
 fi
+
+_ccache=$(which ccache)
 
 case $1 in
 	{% for config in data %}
