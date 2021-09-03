@@ -6,6 +6,14 @@
 # t_cose is a library for signing CBOR tokens using COSE_Sign1
 #-------------------------------------------------------------------------------
 
+# Determine the number of processes to run while running parallel builds.
+# Pass -DPROCESSOR_COUNT=<n> to cmake to override.
+if(NOT DEFINED PROCESSOR_COUNT)
+	include(ProcessorCount)
+	ProcessorCount(PROCESSOR_COUNT)
+	set(PROCESSOR_COUNT ${PROCESSOR_COUNT} CACHE STRING "Number of cores to use for parallel builds.")
+endif()
+
 # External component details
 set(T_COSE_URL "https://github.com/laurencelundblade/t_cose.git" CACHE STRING "t_cose repository URL")
 set(T_COSE_REFSPEC "master" CACHE STRING "t_cose git refspec")
@@ -40,7 +48,7 @@ if(NOT t_cose_POPULATED)
 	FetchContent_Populate(t_cose)
 endif()
 
-# Prepare include paths for dependencie that t_codse has on external components
+# Prepare include paths for dependencies that t_codse has on external components
 get_target_property(_qcbor_inc qcbor INTERFACE_INCLUDE_DIRECTORIES)
 set(_ext_inc_paths
 	${_qcbor_inc}
@@ -68,15 +76,7 @@ WORKING_DIRECTORY
 
 # Build the library
 execute_process(COMMAND
-		${CMAKE_COMMAND} --build ${t_cose_BINARY_DIR} -j8
-		RESULT_VARIABLE _exec_error
-	)
-if (_exec_error)
-	message(FATAL_ERROR "Build step of t_cose failed with ${_exec_error}.")
-endif()
-
-execute_process(COMMAND
-		${CMAKE_COMMAND} --install ${t_cose_BINARY_DIR}
+		${CMAKE_COMMAND} --build ${t_cose_BINARY_DIR} --parallel ${PROCESSOR_COUNT} --target install
 		RESULT_VARIABLE _exec_error
 	)
 if (_exec_error)

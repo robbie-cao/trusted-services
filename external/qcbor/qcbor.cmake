@@ -3,8 +3,16 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
-# QCBOR is a library for encoding and decodingg CBOR objects, as per RFC8949
+# QCBOR is a library for encoding and decoding CBOR objects, as per RFC8949
 #-------------------------------------------------------------------------------
+
+# Determine the number of processes to run while running parallel builds.
+# Pass -DPROCESSOR_COUNT=<n> to cmake to override.
+if(NOT DEFINED PROCESSOR_COUNT)
+	include(ProcessorCount)
+	ProcessorCount(PROCESSOR_COUNT)
+	set(PROCESSOR_COUNT ${PROCESSOR_COUNT} CACHE STRING "Number of cores to use for parallel builds.")
+endif()
 
 # External component details
 set(QCBOR_URL "https://github.com/laurencelundblade/QCBOR.git" CACHE STRING "qcbor repository URL")
@@ -69,15 +77,7 @@ unset(QCBOR_EXTRA_OPTION)
 
 # Build the library
 execute_process(COMMAND
-		${CMAKE_COMMAND} --build ${qcbor_BINARY_DIR} -j8
-		RESULT_VARIABLE _exec_error
-	)
-if (_exec_error)
-	message(FATAL_ERROR "Build step of qcbor failed with ${_exec_error}.")
-endif()
-
-execute_process(COMMAND
-		${CMAKE_COMMAND} --install ${qcbor_BINARY_DIR}
+		${CMAKE_COMMAND} --build ${qcbor_BINARY_DIR} --parallel ${PROCESSOR_COUNT} --target install
 		RESULT_VARIABLE _exec_error
 	)
 if (_exec_error)

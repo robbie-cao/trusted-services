@@ -5,6 +5,14 @@
 #
 #-------------------------------------------------------------------------------
 
+# Determine the number of processes to run while running parallel builds.
+# Pass -DPROCESSOR_COUNT=<n> to cmake to override.
+if(NOT DEFINED PROCESSOR_COUNT)
+	include(ProcessorCount)
+	ProcessorCount(PROCESSOR_COUNT)
+	set(PROCESSOR_COUNT ${PROCESSOR_COUNT} CACHE STRING "Number of cores to use for parallel builds.")
+endif()
+
 set(MBEDTLS_URL "https://github.com/ARMmbed/mbedtls.git" CACHE STRING "Mbed TLS repository URL")
 set(MBEDTLS_REFSPEC "mbedtls-2.26.0" CACHE STRING "Mbed TLS git refspec")
 set(MBEDTLS_INSTALL_PATH "${CMAKE_CURRENT_BINARY_DIR}/mbedtls_install" CACHE PATH "Mbed TLS installation directory")
@@ -87,12 +95,12 @@ else()
 	endif()
 endif()
 
-#TODO: add dependnecy to generated project on this file!
+#TODO: add dependency to generated project on this file!
 #TODO: add custom target to rebuild Mbed TLS
 
 #Build the library
 execute_process(COMMAND
-		${CMAKE_COMMAND} --build ${mbedtls_BINARY_DIR} -- install -j8
+		${CMAKE_COMMAND} --build ${mbedtls_BINARY_DIR} --parallel ${PROCESSOR_COUNT} --target install
 		RESULT_VARIABLE _exec_error
 	)
 if (_exec_error)

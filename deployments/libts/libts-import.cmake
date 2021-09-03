@@ -11,6 +11,15 @@
 # CMake build file allows libts to be built and installed into the binary
 # directory of the dependent.
 #-------------------------------------------------------------------------------
+
+# Determine the number of processes to run while running parallel builds.
+# Pass -DPROCESSOR_COUNT=<n> to cmake to override.
+if(NOT DEFINED PROCESSOR_COUNT)
+	include(ProcessorCount)
+	ProcessorCount(PROCESSOR_COUNT)
+	set(PROCESSOR_COUNT ${PROCESSOR_COUNT} CACHE STRING "Number of cores to use for parallel builds.")
+endif()
+
 set(LIBTS_INSTALL_PATH "${CMAKE_CURRENT_BINARY_DIR}/libts_install" CACHE PATH "libts installation directory")
 set(LIBTS_PACKAGE_PATH "${LIBTS_INSTALL_PATH}/lib/cmake" CACHE PATH "libts CMake package directory")
 set(LIBTS_SOURCE_DIR "${TS_ROOT}/deployments/libts/${TS_ENV}" CACHE PATH "libts source directory")
@@ -34,7 +43,7 @@ endif()
 
 #Build the library
 execute_process(COMMAND
-	${CMAKE_COMMAND} --build ${LIBTS_BINARY_DIR} -- install -j8
+	${CMAKE_COMMAND} --build ${LIBTS_BINARY_DIR} --parallel ${PROCESSOR_COUNT} --target install
 	RESULT_VARIABLE _exec_error
 )
 

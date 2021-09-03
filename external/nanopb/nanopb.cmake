@@ -6,7 +6,7 @@
 #-------------------------------------------------------------------------------
 
 #[===[.rst:
-NonoPB integration for cmake
+NanoPB integration for cmake
 ----------------------------
 
 This module will:
@@ -19,10 +19,18 @@ Note: the python module created by the generator build will be installed under
 Python_SITELIB ("Third-party platform independent installation directory.")
 This means the build may alter the state of your system. Please use virtualenv.
 
-Note: see requirements.txt for dependnecies which need to be installed before
+Note: see requirements.txt for dependencies which need to be installed before
 running this module.
 
 #]===]
+
+# Determine the number of processes to run while running parallel builds.
+# Pass -DPROCESSOR_COUNT=<n> to cmake to override.
+if(NOT DEFINED PROCESSOR_COUNT)
+	include(ProcessorCount)
+	ProcessorCount(PROCESSOR_COUNT)
+	set(PROCESSOR_COUNT ${PROCESSOR_COUNT} CACHE STRING "Number of cores to use for parallel builds.")
+endif()
 
 #### Get the dependency
 
@@ -114,7 +122,7 @@ if (_exec_error)
 endif()
 
 execute_process(COMMAND
-		${CMAKE_COMMAND} --build ${nanopb_BINARY_DIR} -- install -j8
+		${CMAKE_COMMAND} --build ${nanopb_BINARY_DIR} --parallel ${PROCESSOR_COUNT} --target install
 		RESULT_VARIABLE _exec_error
 	)
 if (_exec_error)
@@ -165,7 +173,7 @@ endif()
   Inputs:
 
   ``SRC``
-	Path to of the protobuf file to process. Either absoluto or relative to the
+	Path to of the protobuf file to process. Either absolute or relative to the
 	callers location.
 
   ``TGT``
@@ -176,7 +184,7 @@ endif()
 	separating colliding protobuf files.
 
   ``BASE_DIR``
-	Base directory. Generated files are located reletive to this base.
+	Base directory. Generated files are located relative to this base.
 
 #]===]
 function(protobuf_generate)
@@ -200,7 +208,7 @@ function(protobuf_generate)
 		message(FATAL_ERROR "nanopb_generate(): mandatory parameter BASE_DIR missing.")
 	endif()
 
-	#If SRC is not abolute make it relative to the callers location.
+	#If SRC is not absolute make it relative to the callers location.
 	if (NOT IS_ABSOLUTE ${PARAMS_SRC})
 		set(PARAMS_SRC "${CMAKE_CURRENT_LIST_DIR}/${PARAMS_SRC}")
 	endif()
@@ -228,7 +236,7 @@ function(protobuf_generate)
 		#Create a custom target which depends on a "fake" file.
 		add_custom_target("${_nanopb_target}"
 							DEPENDS "${_nanopb_fake_file}")
-		#Add a cutom command to the target to create output directory.
+		#Add a custom command to the target to create output directory.
 		add_custom_command(OUTPUT "${_nanopb_fake_file}"
 			COMMAND ${CMAKE_COMMAND} -E make_directory ${_OUT_DIR_BASE}
 			COMMENT "Generating source from protobuf definitions for target ${PARAMS_TGT}")
@@ -273,7 +281,7 @@ endfunction()
 	separating colliding protobuf files.
 
   ``BASE_DIR``
-	Base directory. Generated files are located reletive to this base.
+	Base directory. Generated files are located relative to this base.
 
 #]===]
 function(protobuf_generate_all)
