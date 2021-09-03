@@ -6,6 +6,11 @@
 
 $schema: ./test_data.schema.json,
 data:
+    - name: "env-test-optee-arm"
+      src: "$TS_ROOT/deployments/env-test/opteesp"
+      params:
+            - "-GUnix Makefiles"
+            - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
     - name: "libsp-optee-arm"
       src: "$TS_ROOT/deployments/libsp/opteesp"
       params:
@@ -59,6 +64,16 @@ data:
           - "-GUnix Makefiles"
     - name: "ts-demo-pc-linux"
       src: "$TS_ROOT/deployments/ts-demo/linux-pc"
+      os_id : "GNU/Linux"
+      params:
+          - "-GUnix Makefiles"
+    - name: "ts-remote-test-arm-linux"
+      src: "$TS_ROOT/deployments/ts-remote-test/arm-linux"
+      os_id : "GNU/Linux"
+      params:
+          - "-GUnix Makefiles"
+    - name: "ts-remote-test-pc-linux"
+      src: "$TS_ROOT/deployments/ts-remote-test/linux-pc"
       os_id : "GNU/Linux"
       params:
           - "-GUnix Makefiles"
