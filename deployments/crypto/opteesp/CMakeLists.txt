@@ -21,6 +21,7 @@ project(trusted-services LANGUAGES C ASM)
 add_executable(crypto-sp)
 target_include_directories(crypto-sp PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID "d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0")
+set(TRACE_PREFIX "CRYPTO" CACHE STRING "Trace prefix")
 
 
 # Include SP DEV KIT interface
@@ -38,6 +39,8 @@ add_components(TARGET "crypto-sp"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/common/tlv"
+		"components/common/trace"
+		"components/common/utils"
 		"components/config/ramstore"
 		"components/config/loader/sp"
 		"components/messaging/ffa/libsp"

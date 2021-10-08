@@ -22,6 +22,7 @@ project(trusted-services LANGUAGES C ASM)
 add_executable(env-test)
 target_include_directories(env-test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID "33c75baf-ac6a-4fe4-8ac7-e9909bee2d17")
+set(TRACE_PREFIX "ENVTEST" CACHE STRING "Trace prefix")
 
 
 # Include SP DEV KIT interface
@@ -38,6 +39,8 @@ target_link_libraries(env-test PRIVATE ${SP_DEV_KIT_LIBRARIES})
 add_components(TARGET "env-test"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+		"components/common/trace"
+		"components/common/utils"
 		"components/config/loader/sp"
 		"components/messaging/ffa/libsp"
 		"components/rpc/ffarpc/endpoint"

@@ -18,6 +18,7 @@ project(trusted-services LANGUAGES C ASM)
 add_executable(protected-storage)
 target_include_directories(protected-storage PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID "751bf801-3dde-4768-a514-0f10aeed1790")
+set(TRACE_PREFIX "PS" CACHE STRING "Trace prefix")
 
 
 # Include SP DEV KIT interface
@@ -31,6 +32,8 @@ target_link_libraries(protected-storage ${SP_DEV_KIT_LIBRARIES})
 add_components(TARGET "protected-storage"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+		components/common/trace
+		components/common/utils
 		components/messaging/ffa/libsp
 		components/rpc/ffarpc/endpoint
 		components/rpc/common/interface

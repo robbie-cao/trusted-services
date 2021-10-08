@@ -40,6 +40,8 @@ target_link_libraries(smm-gateway PRIVATE ${SP_DEV_KIT_LIBRARIES})
 add_components(TARGET "smm-gateway"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+		"components/common/trace"
+		"components/common/utils"
 		"components/common/uuid"
 		"components/config/ramstore"
 		"components/config/loader/sp"

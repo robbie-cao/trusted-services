@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -115,7 +115,6 @@ if (NOT Spdevkit_FIND_COMPONENTS OR "SP_HEADER" IN_LIST Spdevkit_FIND_COMPONENTS
 		${SP_DEV_KIT_SRC_DIR}/sp_assert.c
 		${SP_DEV_KIT_SRC_DIR}/sp_entry.c
 		${SP_DEV_KIT_SRC_DIR}/sp_header.c
-		${SP_DEV_KIT_SRC_DIR}/sp_trace.c
 		)
 
 	target_include_directories(sp_header

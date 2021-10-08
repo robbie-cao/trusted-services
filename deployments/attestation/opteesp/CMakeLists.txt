@@ -21,6 +21,7 @@ project(trusted-services LANGUAGES C ASM)
 add_executable(attestation)
 target_include_directories(attestation PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID "a1baf155-8876-4695-8f7c-54955e8db974")
+set(TRACE_PREFIX "ATT" CACHE STRING "Trace prefix")
 
 
 # Include SP DEV KIT interface
@@ -44,6 +45,8 @@ add_components(TARGET "attestation"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/common/tlv"
+		"components/common/trace"
+		"components/common/utils"
 		"components/common/endian"
 		"components/common/uuid"
 		"components/config/ramstore"

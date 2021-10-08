@@ -17,6 +17,7 @@ include(${TS_ROOT}/environments/opteesp/env.cmake)
 project(trusted-services LANGUAGES C ASM)
 add_executable(sfs-demo)
 set(SP_UUID "01109cf8-e5ca-446f-9b55-f3cdc65110c8")
+set(TRACE_PREFIX "SFSDEMO" CACHE STRING "Trace prefix")
 
 
 # Include SP DEV KIT interface
@@ -30,6 +31,8 @@ target_link_libraries(sfs-demo ${SP_DEV_KIT_LIBRARIES})
 add_components(TARGET "sfs-demo"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+		components/common/trace
+		components/common/utils
 		components/messaging/ffa/libsp
 		components/rpc/common/interface
 		components/rpc/common/caller

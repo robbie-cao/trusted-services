@@ -18,13 +18,6 @@ void __noreturn optee_sp_entry(uintptr_t a0, uintptr_t a1, uintptr_t a2,
 	sp_main((struct ffa_init_info *)a0);
 }
 
-void optee_sp_log_puts(const char *str)
-{
-	struct ffa_params resp;
-
-	ffa_svc(0xdeadbeef, (uintptr_t)str, 0, 0, 0, 0, 0, 0, &resp);
-}
-
 void __noreturn optee_sp_panic(void)
 {
 	while (1)

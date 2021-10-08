@@ -40,6 +40,8 @@ target_link_libraries(se-proxy PRIVATE ${SP_DEV_KIT_LIBRARIES})
 add_components(TARGET "se-proxy"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+		"components/common/trace"
+		"components/common/utils"
 		"protocols/rpc/common/packed-c"
 		"protocols/service/secure_storage/packed-c"
 		"protocols/service/crypto/protobuf"
