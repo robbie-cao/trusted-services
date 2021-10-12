@@ -8,9 +8,10 @@
 #define SE_PROXY_INTERFACES_H
 
 /* Interface IDs from service endpoints available from an se-proxy deployment */
-#define SE_PROXY_INTERFACE_ID_ITS			(0)
-#define SE_PROXY_INTERFACE_ID_PS			(1)
-#define SE_PROXY_INTERFACE_ID_CRYPTO		(2)
-#define SE_PROXY_INTERFACE_ID_ATTEST		(3)
+#define SE_PROXY_INTERFACE_ID_ITS			    (0)
+#define SE_PROXY_INTERFACE_ID_PS			    (1)
+#define SE_PROXY_INTERFACE_ID_CRYPTO		    (2)
+#define SE_PROXY_INTERFACE_ID_ATTEST		    (3)
+#define SE_PROXY_INTERFACE_ID_CAPSULE_UPDATE    (4)
 
 #endif /* SE_PROXY_INTERFACES_H */
