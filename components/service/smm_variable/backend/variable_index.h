@@ -150,15 +150,11 @@ const struct variable_info *variable_index_add(
  * Removes a variable from the index if it exists.
  *
  * @param[in]  context variable_index
- * @param[in]  guid The variable's guid
- * @param[in]  name_size The name parameter's size
- * @param[in]  name The variable's name
+ * @param[in]  info The variable info corresponding to the entry to remove
  */
 void variable_index_remove(
 	struct variable_index *context,
-	const EFI_GUID *guid,
-	size_t name_size,
-	const int16_t *name);
+	const struct variable_info *info);
 
 /**
  * @brief      Update variable attributes

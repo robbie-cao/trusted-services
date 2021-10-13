@@ -97,6 +97,13 @@ static void mark_dirty(struct variable_entry *entry)
 		entry->dirty = true;
 }
 
+static struct variable_entry *containing_entry(const struct variable_info *info)
+{
+	size_t info_offset = offsetof(struct variable_entry, info);
+	struct variable_entry *entry = (struct variable_entry*)((uint8_t*)info - info_offset);
+	return entry;
+}
+
 /* Public functions */
 efi_status_t variable_index_init(
 	struct variable_index *context,
@@ -253,15 +260,11 @@ const struct variable_info *variable_index_add(
 
 void variable_index_remove(
 	struct variable_index *context,
-	const EFI_GUID *guid,
-	size_t name_size,
-	const int16_t *name)
+	const struct variable_info *info)
 {
-	int pos = find_variable(context, guid, name_size, name);
+	if (info) {
 
-	if (pos >= 0) {
-
-		struct variable_entry *entry = &context->entries[pos];
+		struct variable_entry *entry = containing_entry(info);
 		mark_dirty(entry);
 		entry->in_use = false;
 
@@ -277,9 +280,7 @@ void variable_index_update_attributes(
 	if (info) {
 
 		struct variable_info *modified_info = (struct variable_info*)info;
-
-		size_t info_offset = offsetof(struct variable_entry, info);
-		struct variable_entry *entry = (struct variable_entry*)((uint8_t*)modified_info - info_offset);
+		struct variable_entry *entry = containing_entry(modified_info);
 
 		if (attributes != modified_info->attributes) {
 

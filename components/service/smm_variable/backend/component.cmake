@@ -11,4 +11,5 @@ endif()
 target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/uefi_variable_store.c"
 	"${CMAKE_CURRENT_LIST_DIR}/variable_index.c"
+	"${CMAKE_CURRENT_LIST_DIR}/variable_index_iterator.c"
 	)

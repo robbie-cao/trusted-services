@@ -9,6 +9,7 @@
 #include <vector>
 #include <CppUTest/TestHarness.h>
 #include <service/smm_variable/backend/variable_index.h>
+#include <service/smm_variable/backend/variable_index_iterator.h>
 
 
 TEST_GROUP(UefiVariableIndexTests)
@@ -131,9 +132,7 @@ TEST(UefiVariableIndexTests, emptyIndexOperations)
 	/* Remove should silently return */
 	variable_index_remove(
 		&m_variable_index,
-		&guid_1,
-		name_1.size() * sizeof(int16_t),
-		name_1.data());
+		info);
 }
 
 TEST(UefiVariableIndexTests, addWithOversizedName)
@@ -324,15 +323,20 @@ TEST(UefiVariableIndexTests, dumpBufferTooSmall)
 TEST(UefiVariableIndexTests, removeVariable)
 {
 	uint8_t buffer[MAX_VARIABLES * sizeof(struct variable_info)];
+	const struct variable_info *info = NULL;
 
 	create_variables();
 
 	/* Remove one of the NV variables */
-	variable_index_remove(
+	info = variable_index_find(
 		&m_variable_index,
 		&guid_2,
 		name_2.size() * sizeof(int16_t),
 		name_2.data());
+
+	variable_index_remove(
+		&m_variable_index,
+		info);
 
 	/* Expect index to be dirty and for only one NV variable to be left */
 	size_t dump_len = 0;
@@ -342,11 +346,15 @@ TEST(UefiVariableIndexTests, removeVariable)
 	UNSIGNED_LONGS_EQUAL((sizeof(struct variable_info) * 1), dump_len);
 
 	/* Remove the volatile variable */
-	variable_index_remove(
+	info = variable_index_find(
 		&m_variable_index,
 		&guid_1,
 		name_1.size() * sizeof(int16_t),
 		name_1.data());
+
+	variable_index_remove(
+		&m_variable_index,
+		info);
 
 	/* Expect index not to be dirty because there was no change to any NV variable */
 	dump_len = 0;
@@ -356,11 +364,15 @@ TEST(UefiVariableIndexTests, removeVariable)
 	UNSIGNED_LONGS_EQUAL((sizeof(struct variable_info) * 1), dump_len);
 
 	/* Remove the remaining NV variable */
-	variable_index_remove(
+	info = variable_index_find(
 		&m_variable_index,
 		&guid_1,
 		name_3.size() * sizeof(int16_t),
 		name_3.data());
+
+	variable_index_remove(
+		&m_variable_index,
+		info);
 
 	/* Expect index to be dirty and dump to now be empty */
 	dump_len = 0;
@@ -374,12 +386,10 @@ TEST(UefiVariableIndexTests, removeVariable)
 	 */
 	variable_index_remove(
 		&m_variable_index,
-		&guid_1,
-		name_3.size(),
-		name_3.data());
+		info);
 
 	/* Enumerate and now expect an empty index */
-	const struct variable_info *info = NULL;
+	info = NULL;
 	std::vector<int16_t> null_name = to_variable_name(L"");
 
 	info = variable_index_find_next(
@@ -388,4 +398,72 @@ TEST(UefiVariableIndexTests, removeVariable)
 		null_name.size() * sizeof(int16_t),
 		null_name.data());
 	POINTERS_EQUAL(NULL, info);
+}
+
+TEST(UefiVariableIndexTests, checkIterator)
+{
+	const struct variable_info *info = NULL;
+
+	create_variables();
+
+	struct variable_index_iterator iter;
+
+	variable_index_iterator_first(&iter, &m_variable_index);
+	CHECK_FALSE(variable_index_iterator_is_done(&iter));
+
+	/* Check first entry is as expected */
+	info = variable_index_iterator_current(&iter);
+	CHECK_TRUE(info);
+	UNSIGNED_LONGS_EQUAL(name_1.size() * sizeof(int16_t), info->name_size);
+	MEMCMP_EQUAL(name_1.data(), info->name, info->name_size);
+
+	variable_index_iterator_next(&iter);
+	CHECK_FALSE(variable_index_iterator_is_done(&iter));
+
+	/* Check next is as expected */
+	info = variable_index_iterator_current(&iter);
+	CHECK_TRUE(info);
+	UNSIGNED_LONGS_EQUAL(name_2.size() * sizeof(int16_t), info->name_size);
+	MEMCMP_EQUAL(name_2.data(), info->name, info->name_size);
+
+	const struct variable_info *info_to_remove = info;
+
+	variable_index_iterator_next(&iter);
+	CHECK_FALSE(variable_index_iterator_is_done(&iter));
+
+	/* Check next is as expected */
+	info = variable_index_iterator_current(&iter);
+	CHECK_TRUE(info);
+	UNSIGNED_LONGS_EQUAL(name_3.size() * sizeof(int16_t), info->name_size);
+	MEMCMP_EQUAL(name_3.data(), info->name, info->name_size);
+
+	/* Expect iterating to be done */
+	variable_index_iterator_next(&iter);
+	CHECK_TRUE(variable_index_iterator_is_done(&iter));
+
+	/* Now remove the middle entry */
+	variable_index_remove(&m_variable_index, info_to_remove);
+
+	/* Iterate again but this time there should only be two entries */
+	variable_index_iterator_first(&iter, &m_variable_index);
+	CHECK_FALSE(variable_index_iterator_is_done(&iter));
+
+	/* Check first entry is as expected */
+	info = variable_index_iterator_current(&iter);
+	CHECK_TRUE(info);
+	UNSIGNED_LONGS_EQUAL(name_1.size() * sizeof(int16_t), info->name_size);
+	MEMCMP_EQUAL(name_1.data(), info->name, info->name_size);
+
+	variable_index_iterator_next(&iter);
+	CHECK_FALSE(variable_index_iterator_is_done(&iter));
+
+	/* Check next entry is as expected */
+	info = variable_index_iterator_current(&iter);
+	CHECK_TRUE(info);
+	UNSIGNED_LONGS_EQUAL(name_3.size() * sizeof(int16_t), info->name_size);
+	MEMCMP_EQUAL(name_3.data(), info->name, info->name_size);
+
+	/* Expect iterating to be done */
+	variable_index_iterator_next(&iter);
+	CHECK_TRUE(variable_index_iterator_is_done(&iter));
 }

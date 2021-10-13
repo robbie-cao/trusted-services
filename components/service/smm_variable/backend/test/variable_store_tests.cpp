@@ -152,6 +152,34 @@ TEST_GROUP(UefiVariableStoreTests)
 		return status;
 	}
 
+	void zap_stored_variable(
+		const std::wstring &name)
+	{
+		std::vector<int16_t> var_name = to_variable_name(name);
+		size_t name_size = var_name.size() * sizeof(int16_t);
+
+		/* Create the condition where a variable is indexed but
+		 * there is no corresponding stored object.
+		 */
+		struct variable_index *variable_index = &m_uefi_variable_store.variable_index;
+
+		const struct variable_info *info = variable_index_find(
+			variable_index,
+			&m_common_guid,
+			name_size,
+			var_name.data());
+
+		if (info && (info->attributes & EFI_VARIABLE_NON_VOLATILE)) {
+
+			struct storage_backend *storage_backend = m_uefi_variable_store.persistent_store;
+
+			storage_backend->interface->remove(
+				storage_backend->context,
+				OWNER_ID,
+				info->uid);
+		}
+	}
+
 	void power_cycle()
 	{
 		/* Simulate a power-cycle */
@@ -427,6 +455,71 @@ TEST(UefiVariableStoreTests, enumerateStoreContents)
 		&total_len);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	CHECK_TRUE(compare_variable_name(var_name_3, next_name->Name, next_name->NameSize));
+
+	status = uefi_variable_store_get_next_variable_name(
+		&m_uefi_variable_store,
+		next_name,
+		max_name_len,
+		&total_len);
+	UNSIGNED_LONGS_EQUAL(EFI_NOT_FOUND, status);
+}
+
+TEST(UefiVariableStoreTests, failedNvSet)
+{
+	efi_status_t status = EFI_SUCCESS;
+	std::wstring var_name_1 = L"test_variable_1";
+	std::wstring var_name_2 = L"test_variable_2";
+	std::wstring var_name_3 = L"test_variable_3";
+	std::string input_data = "blah blah";
+
+	/* Add some variables - a mixture of NV and volatile */
+	status = set_variable(
+		var_name_1,
+		input_data,
+		EFI_VARIABLE_NON_VOLATILE);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+
+	status = set_variable(
+		var_name_2,
+		input_data,
+		0);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+
+	status = set_variable(
+		var_name_3,
+		input_data,
+		EFI_VARIABLE_NON_VOLATILE);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Simulate a power failure which resulted in the
+	 * variable index being written but not the corresponding
+	 * data.
+	 */
+	zap_stored_variable(var_name_3);
+	power_cycle();
+
+	/* After the power cycle, we expect the volatile variable
+	 * to have gone and for the index to have been cleaned up
+	 * for the failed variable 3.
+	 */
+	uint8_t msg_buffer[VARIABLE_BUFFER_SIZE];
+	SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *next_name =
+		(SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME*)msg_buffer;
+	size_t max_name_len = VARIABLE_BUFFER_SIZE -
+		SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET;
+
+	/* Enumerate store contents */
+	size_t total_len = 0;
+	next_name->NameSize = sizeof(int16_t);
+	next_name->Name[0] = 0;
+
+	status = uefi_variable_store_get_next_variable_name(
+		&m_uefi_variable_store,
+		next_name,
+		max_name_len,
+		&total_len);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	CHECK_TRUE(compare_variable_name(var_name_1, next_name->Name, next_name->NameSize));
 
 	status = uefi_variable_store_get_next_variable_name(
 		&m_uefi_variable_store,

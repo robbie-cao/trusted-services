@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "uefi_variable_store.h"
+#include "variable_index_iterator.h"
 
 /* Private functions */
 static void load_variable_index(
@@ -141,12 +142,7 @@ efi_status_t uefi_variable_store_set_variable(
 				 * the storage backend without a corresponding index entry.
 				 */
 				remove_variable_data(context, info);
-
-				variable_index_remove(
-					&context->variable_index,
-					&info->guid,
-					info->name_size,
-					info->name);
+				variable_index_remove(&context->variable_index, info);
 
 				/* Variable info no longer valid */
 				info = NULL;
@@ -451,7 +447,42 @@ static efi_status_t load_variable_data(
 static void purge_orphan_index_entries(
 	struct uefi_variable_store *context)
 {
+	bool any_orphans = false;
+	struct variable_index_iterator iter;
+	variable_index_iterator_first(&iter, &context->variable_index);
 
+	/* Iterate over variable index looking for any entries for NV
+	 * variables where there is no corresponding object in the
+	 * persistent store. This condition could arrise due to
+	 * a power failure before an object is stored.
+	 */
+	while (!variable_index_iterator_is_done(&iter)) {
+
+		const struct variable_info *info = variable_index_iterator_current(&iter);
+
+		if (info->attributes & EFI_VARIABLE_NON_VOLATILE) {
+
+			struct psa_storage_info_t storage_info;
+			struct storage_backend *storage_backend = context->persistent_store;
+
+			psa_status_t psa_status = storage_backend->interface->get_info(
+				storage_backend->context,
+				context->owner_id,
+				info->uid,
+				&storage_info);
+
+			if (psa_status != PSA_SUCCESS) {
+
+				/* Detected a mismatch between the index and storage */
+				variable_index_remove(&context->variable_index, info);
+				any_orphans = true;
+			}
+		}
+
+		variable_index_iterator_next(&iter);
+	}
+
+	if (any_orphans) sync_variable_index(context);
 }
 
 static efi_status_t psa_to_efi_storage_status(
