@@ -118,6 +118,7 @@ add_components(
 		"components/service/test_runner/provider"
 		"components/service/test_runner/provider/serializer/packed-c"
 		"components/service/test_runner/provider/backend/null"
+		"components/service/smm_variable/provider"
 		"components/service/smm_variable/backend"
 		"components/service/smm_variable/backend/test"
 		"protocols/rpc/common/protobuf"
