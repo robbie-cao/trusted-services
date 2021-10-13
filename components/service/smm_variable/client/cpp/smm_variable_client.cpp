@@ -145,6 +145,14 @@ efi_status_t smm_variable_client::get_variable(
 	return efi_status;
 }
 
+efi_status_t smm_variable_client::remove_variable(
+	const EFI_GUID &guid,
+	const std::wstring &name)
+{
+	/* Variable is removed by performing a 'set' with zero length data */
+	return set_variable(guid, name, std::string(), 0);
+}
+
 efi_status_t smm_variable_client::get_next_variable_name(
 	EFI_GUID &guid,
 	std::wstring &name)

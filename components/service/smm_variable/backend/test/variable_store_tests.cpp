@@ -229,6 +229,50 @@ TEST(UefiVariableStoreTests, persistentSetGet)
 	LONGS_EQUAL(0, input_data.compare(output_data));
 }
 
+TEST(UefiVariableStoreTests, removeVolatile)
+{
+	efi_status_t status = EFI_SUCCESS;
+	std::wstring var_name = L"rm_volatile_variable";
+	std::string input_data = "quick brown fox";
+	std::string output_data;
+
+	status = set_variable(var_name, input_data, 0);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+
+	status = get_variable(var_name, output_data);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Remove by setting with zero data length */
+	status = set_variable(var_name, std::string(), 0);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Expect variable to no loger exist */
+	status = get_variable(var_name, output_data);
+	UNSIGNED_LONGS_EQUAL(EFI_NOT_FOUND, status);
+}
+
+TEST(UefiVariableStoreTests, removePersistent)
+{
+	efi_status_t status = EFI_SUCCESS;
+	std::wstring var_name = L"rm_nv_variable";
+	std::string input_data = "quick brown fox";
+	std::string output_data;
+
+	status = set_variable(var_name, input_data, EFI_VARIABLE_NON_VOLATILE);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+
+	status = get_variable(var_name, output_data);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Remove by setting with zero data length */
+	status = set_variable(var_name, std::string(), 0);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Expect variable to no loger exist */
+	status = get_variable(var_name, output_data);
+	UNSIGNED_LONGS_EQUAL(EFI_NOT_FOUND, status);
+}
+
 TEST(UefiVariableStoreTests, bootServiceAccess)
 {
 	efi_status_t status = EFI_SUCCESS;

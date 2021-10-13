@@ -44,6 +44,11 @@ public:
 		const std::wstring &name,
 		std::string &data);
 
+	/* Remove a variable */
+	efi_status_t remove_variable(
+		const EFI_GUID &guid,
+		const std::wstring &name);
+
 	/* Get the next variable name - for enumerating store contents */
 	efi_status_t get_next_variable_name(
 		EFI_GUID &guid,

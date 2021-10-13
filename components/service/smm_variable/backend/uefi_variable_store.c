@@ -5,6 +5,7 @@
  *
  */
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include "uefi_variable_store.h"
@@ -24,6 +25,10 @@ static efi_status_t store_variable_data(
 	struct uefi_variable_store *context,
 	const struct variable_info *info,
 	const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var);
+
+static efi_status_t remove_variable_data(
+	struct uefi_variable_store *context,
+	const struct variable_info *info);
 
 static efi_status_t load_variable_data(
 	struct uefi_variable_store *context,
@@ -115,12 +120,37 @@ efi_status_t uefi_variable_store_set_variable(
 		/* Variable already exists */
 		status = check_access_permitted(context, info);
 
-		if (!status) {
+		if (status == EFI_SUCCESS) {
 
-			variable_index_update_attributes(
-				&context->variable_index,
-				info,
-				var->Attributes);
+			should_sync_index = (info->attributes & EFI_VARIABLE_NON_VOLATILE);
+
+			if (var->DataSize) {
+
+				/* It's an update to an existing variable */
+				variable_index_update_attributes(
+					&context->variable_index,
+					info,
+					var->Attributes);
+			}
+			else {
+
+				/* It's a remove operation - for a remove, the variable
+				 * data must be removed from the storage backend before
+				 * modifying and syncing the variable index.  This ensures
+				 * that it's never possible for an object to exist within
+				 * the storage backend without a corresponding index entry.
+				 */
+				remove_variable_data(context, info);
+
+				variable_index_remove(
+					&context->variable_index,
+					&info->guid,
+					info->name_size,
+					info->name);
+
+				/* Variable info no longer valid */
+				info = NULL;
+			}
 		}
 		else {
 
@@ -128,7 +158,7 @@ efi_status_t uefi_variable_store_set_variable(
 			info = NULL;
 		}
 	}
-	else {
+	else if (var->DataSize) {
 
 		/* It's a new variable */
 		info = variable_index_add(
@@ -137,30 +167,27 @@ efi_status_t uefi_variable_store_set_variable(
 			var->NameSize,
 			var->Name,
 			var->Attributes);
+
+		should_sync_index = info && (info->attributes & EFI_VARIABLE_NON_VOLATILE);
 	}
 
-	/* Store variable data */
-	if (info) {
+	/* The order of these operations is important. For an update
+	 * or create operation, The variable index is always synchronized
+	 * to NV storage first, then the variable data is stored. If the
+	 * data store operation fails or doesn't happen due to a power failure,
+	 * the inconistency between the variable index and the persistent
+	 * store is detectable and may be corrected by purging the corresponding
+	 * index entry.
+	 */
+	if (should_sync_index) {
 
-		status = 0;
+		status = sync_variable_index(context);
+	}
 
-		/* The order of these operations is important.  The variable
-		 * index is always synchronized to NV storage first, then the
-		 * variable data is stored.  If the data store operation fails
-		 * or doesn't happen due to a power failure, the inconistency
-		 * between the variable index and the persistent store is
-		 * detectable and may be corrected by purging the corresponding
-		 * index entry.
-		 */
-		if (info->attributes & EFI_VARIABLE_NON_VOLATILE) {
+	/* Store any variable data to the storage backend */
+	if (info && (status == EFI_SUCCESS)) {
 
-			status = sync_variable_index(context);
-		}
-
-		if (!status) {
-
-			status = store_variable_data(context, info, var);
-		}
+		status = store_variable_data(context, info, var);
 	}
 
 	return status;
@@ -360,6 +387,28 @@ static efi_status_t store_variable_data(
 		* mismatch between the variable index and stored NV variables.
 		*/
 		purge_orphan_index_entries(context);
+	}
+
+	return psa_to_efi_storage_status(psa_status);
+}
+
+static efi_status_t remove_variable_data(
+	struct uefi_variable_store *context,
+	const struct variable_info *info)
+{
+	psa_status_t psa_status = PSA_SUCCESS;
+	bool is_nv = (info->attributes & EFI_VARIABLE_NON_VOLATILE);
+
+	struct storage_backend *storage_backend = (is_nv) ?
+		context->persistent_store :
+		context->volatile_store;
+
+	if (storage_backend) {
+
+		psa_status = storage_backend->interface->remove(
+			storage_backend->context,
+			context->owner_id,
+			info->uid);
 	}
 
 	return psa_to_efi_storage_status(psa_status);

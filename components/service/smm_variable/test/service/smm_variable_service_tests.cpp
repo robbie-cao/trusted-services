@@ -94,6 +94,10 @@ TEST(SmmVariableServiceTests, setAndGet)
 
 	UNSIGNED_LONGS_EQUAL(set_data.size(), get_data.size());
 	LONGS_EQUAL(0, get_data.compare(set_data));
+
+	/* Expect remove to be permitted */
+	efi_status = m_client->remove_variable(m_common_guid, var_name);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
 }
 
 TEST(SmmVariableServiceTests, setAndGetNv)
@@ -120,6 +124,10 @@ TEST(SmmVariableServiceTests, setAndGetNv)
 
 	UNSIGNED_LONGS_EQUAL(set_data.size(), get_data.size());
 	LONGS_EQUAL(0, get_data.compare(set_data));
+
+	/* Expect remove to be permitted */
+	efi_status = m_client->remove_variable(m_common_guid, var_name);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
 }
 
 TEST(SmmVariableServiceTests, runtimeStateAccessControl)
@@ -191,7 +199,15 @@ TEST(SmmVariableServiceTests, runtimeStateAccessControl)
 		get_data);
 	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
 	UNSIGNED_LONGS_EQUAL(runtime_set_data.size(), get_data.size());
-	LONGS_EQUAL(0, get_data.compare(set_data));
+	LONGS_EQUAL(0, get_data.compare(runtime_set_data));
+
+	/* Expect removing boot variable to be forbidden */
+	efi_status = m_client->remove_variable(m_common_guid, boot_var_name);
+	UNSIGNED_LONGS_EQUAL(EFI_ACCESS_DENIED, efi_status);
+
+	/* Expect removing runtime variable to be permitted */
+	efi_status = m_client->remove_variable(m_common_guid, runtime_var_name);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
 }
 
 TEST(SmmVariableServiceTests, enumerateStoreContents)
@@ -248,4 +264,14 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 
 	efi_status = m_client->get_next_variable_name(guid, var_name);
 	UNSIGNED_LONGS_EQUAL(EFI_NOT_FOUND, efi_status);
+
+	/* Expect to be able to remove all variables */
+	efi_status = m_client->remove_variable(m_common_guid, var_name_1);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	efi_status = m_client->remove_variable(m_common_guid, var_name_2);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	efi_status = m_client->remove_variable(m_common_guid, var_name_3);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
 }
