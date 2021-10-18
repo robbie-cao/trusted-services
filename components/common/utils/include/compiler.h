@@ -1,10 +1,13 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 /*
  * Copyright (c) 2014, STMicroelectronics International N.V.
+ * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
  */
 
 #ifndef COMPILER_H
 #define COMPILER_H
+
+#include <sys/cdefs.h>
 
 /*
  * Macros that should be used instead of using __attribute__ directly to
@@ -15,19 +18,33 @@
  * the conflicting defines has the same meaning in that environment.
  * Surrounding the troublesome defines with #ifndef should be enough.
  */
+#ifndef __deprecated
 #define __deprecated	__attribute__((deprecated))
+#endif
 #ifndef __packed
 #define __packed	__attribute__((packed))
 #endif
+#ifndef __weak
 #define __weak		__attribute__((weak))
+#endif
 #ifndef __noreturn
 #define __noreturn	__attribute__((__noreturn__))
 #endif
+#ifndef __pure
 #define __pure		__attribute__((pure))
+#endif
+#ifndef __aligned
 #define __aligned(x)	__attribute__((aligned(x)))
+#endif
+#ifndef __printf
 #define __printf(a, b)	__attribute__((format(printf, a, b)))
+#endif
+#ifndef __noinline
 #define __noinline	__attribute__((noinline))
+#endif
+#ifndef __attr_const
 #define __attr_const	__attribute__((__const__))
+#endif
 #ifndef __unused
 #define __unused	__attribute__((unused))
 #endif
@@ -35,9 +52,15 @@
 #ifndef __used
 #define __used		__attribute__((__used__))
 #endif
+#ifndef __must_check
 #define __must_check	__attribute__((warn_unused_result))
+#endif
+#ifndef __cold
 #define __cold		__attribute__((__cold__))
+#endif
+#ifndef __section
 #define __section(x)	__attribute__((section(x)))
+#endif
 #define __data		__section(".data")
 #define __bss		__section(".bss")
 #ifdef __clang__

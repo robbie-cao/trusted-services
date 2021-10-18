@@ -11,14 +11,16 @@
 #ifndef JUNO_DEF_H
 #define JUNO_DEF_H
 
+#include <stdint.h>
+
 /*******************************************************************************
  * TRNG related constants
  ******************************************************************************/
 #define TRNG_NOUTPUTS	4
-#define TRNG_STATUS	UL(0x10)
-#define TRNG_INTMASK	UL(0x14)
-#define TRNG_CONFIG	UL(0x18)
-#define TRNG_CONTROL	UL(0x1C)
+#define TRNG_STATUS	UINT32_C(0x10)
+#define TRNG_INTMASK	UINT32_C(0x14)
+#define TRNG_CONFIG	UINT32_C(0x18)
+#define TRNG_CONTROL	UINT32_C(0x1C)
 #define TRNG_NBYTES	16	/* Number of bytes generated per round. */
 
 
