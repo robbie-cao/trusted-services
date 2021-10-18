@@ -155,7 +155,7 @@ function(compiler_set_linker_script)
 	add_custom_target("${_MY_PARAMS_TARGET}_ld" DEPENDS "${_dst}")
 	add_dependencies("${_MY_PARAMS_TARGET}" "${_MY_PARAMS_TARGET}_ld")
 
-	target_link_options(${_MY_PARAMS_TARGET} PRIVATE "-Wl,--script")
+	target_link_options(${_MY_PARAMS_TARGET} PRIVATE "-Wl,--script=${_dst}")
 	set_target_properties(${_MY_PARAMS_TARGET} PROPERTIES LINK_DEPENDS "${_dst}")
 endfunction()
 

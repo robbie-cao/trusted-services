@@ -10,24 +10,40 @@ if (NOT DEFINED TGT)
 endif()
 
 target_sources(${TGT} PRIVATE
-	"${CMAKE_CURRENT_LIST_DIR}/libsp_entry.c"
+	"${CMAKE_CURRENT_LIST_DIR}/optee_sp_header.c"
+	"${CMAKE_CURRENT_LIST_DIR}/newlib_init.c"
+	"${CMAKE_CURRENT_LIST_DIR}/newlib_sp_assert.c"
+	"${CMAKE_CURRENT_LIST_DIR}/newlib_sp_heap.c"
+	"${CMAKE_CURRENT_LIST_DIR}/sp_entry.c"
 	"${CMAKE_CURRENT_LIST_DIR}/sp_trace.c"
-	)
+)
 
 target_include_directories(${TGT}
 	PUBLIC
 		"${CMAKE_CURRENT_LIST_DIR}/include"
 	)
 
-if (NOT DEFINED TRACE_PREFIX)
-	set(TRACE_PREFIX "SP" CACHE STRING "Trace prefix")
-endif()
-
-if (NOT DEFINED TRACE_LEVEL)
-	set(TRACE_LEVEL "TRACE_LEVEL_ERROR" CACHE STRING "Trace level")
-endif()
+# Default trace configuration, can be overwritten by setting the same variables
+# in the deployment specific file before including this file.
+set(TRACE_PREFIX "SP" CACHE STRING "Trace prefix")
+set(TRACE_LEVEL "TRACE_LEVEL_ERROR" CACHE STRING "Trace level")
 
 target_compile_definitions(${TGT} PRIVATE
 	TRACE_LEVEL=${TRACE_LEVEL}
 	TRACE_PREFIX="${TRACE_PREFIX}"
 )
+
+include(../../../external/newlib/newlib.cmake)
+
+target_link_libraries(${TGT} PRIVATE
+	c
+	nosys
+)
+
+target_link_options(${TGT} PRIVATE
+	-Wl,--hash-style=sysv
+	-Wl,--as-needed
+	-Wl,--gc-sections
+)
+
+compiler_set_linker_script(TARGET ${TGT} FILE ${CMAKE_CURRENT_LIST_DIR}/sp.ld.S DEF ARM64=1)

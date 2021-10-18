@@ -15,10 +15,6 @@ set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR arm)
 set(CMAKE_POSITION_INDEPENDENT_CODE True)
 
-#set(CMAKE_C_FLAGS_INIT --specs=nosys.specs)
-#set(CMAKE_CXX_FLAGS_INIT --specs=nosys.specs)
-#set(CMAKE_EXE_LINKER_FLAGS_INIT --specs=nosys.specs)
-
 include($ENV{TS_ROOT}/tools/cmake/compiler/GCC.cmake REQUIRED)
 include($ENV{TS_ROOT}/tools/cmake/compiler/config_iface.cmake REQUIRED)
 # Set mandatory compiler and linker flags for this environment:
