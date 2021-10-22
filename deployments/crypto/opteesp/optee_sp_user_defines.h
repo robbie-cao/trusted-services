@@ -17,6 +17,6 @@
 #define OPTEE_SP_STACK_SIZE			(64 * 1024)
 
 /* Provisioned heap size */
-#define OPTEE_SP_HEAP_SIZE			(480 * 1024)
+#define OPTEE_SP_HEAP_SIZE			(490 * 1024)
 
 #endif /* SP_HEADER_DEFINES_H */

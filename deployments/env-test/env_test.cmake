@@ -44,9 +44,10 @@ add_components(
 #
 #-------------------------------------------------------------------------------
 
+# Get libc include dir
+get_property(LIBC_INCLUDE_PATH TARGET c PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+
 # Mbed TLS provides libmbedcrypto
-list(APPEND MBEDTLS_EXTRA_INCLUDES ${SP_DEV_KIT_INCLUDE_DIR})
-set(MBEDTLS_EXTRA_INCLUDES ${MBEDTLS_EXTRA_INCLUDES}
-	CACHE STRING "PSA ITS for Mbed TLS" FORCE)
+list(APPEND MBEDTLS_EXTRA_INCLUDES ${LIBC_INCLUDE_PATH})
 include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(env-test PRIVATE mbedcrypto)

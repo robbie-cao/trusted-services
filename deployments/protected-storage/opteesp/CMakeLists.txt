@@ -20,15 +20,6 @@ target_include_directories(protected-storage PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}"
 set(SP_UUID "751bf801-3dde-4768-a514-0f10aeed1790")
 set(TRACE_PREFIX "PS" CACHE STRING "Trace prefix")
 
-
-# Include SP DEV KIT interface
-set(SP_DEV_KIT_INC_DIR ${CMAKE_CURRENT_LIST_DIR})
-list(APPEND CMAKE_MODULE_PATH "${TS_ROOT}/external/Spdevkit")
-find_package(Spdevkit COMPONENTS SP_HEADER interface)
-
-sp_dev_kit_configure_linking(TARGET protected-storage DEFINES ARM64=1)
-target_link_libraries(protected-storage ${SP_DEV_KIT_LIBRARIES})
-
 add_components(TARGET "protected-storage"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS

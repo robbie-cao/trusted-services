@@ -23,14 +23,6 @@ target_include_directories(attestation PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID "a1baf155-8876-4695-8f7c-54955e8db974")
 set(TRACE_PREFIX "ATT" CACHE STRING "Trace prefix")
 
-
-# Include SP DEV KIT interface
-set(SP_DEV_KIT_INC_DIR ${CMAKE_CURRENT_LIST_DIR})
-list(APPEND CMAKE_MODULE_PATH "${TS_ROOT}/external/Spdevkit")
-find_package(Spdevkit REQUIRED)
-sp_dev_kit_configure_linking(TARGET attestation DEFINES ARM64=1)
-target_link_libraries(attestation PRIVATE ${SP_DEV_KIT_LIBRARIES})
-
 #-------------------------------------------------------------------------------
 #  Default deployment specific configuration
 #
@@ -97,13 +89,16 @@ add_platform(TARGET "attestation")
 #
 #-------------------------------------------------------------------------------
 
+# Get libc include dir
+get_property(LIBC_INCLUDE_PATH TARGET c PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+
 # Qcbor
-set (QCBOR_EXTERNAL_INCLUDE_PATHS ${SP_DEV_KIT_INCLUDE_DIR})
+set (QCBOR_EXTERNAL_INCLUDE_PATHS ${LIBC_INCLUDE_PATH})
 include(${TS_ROOT}/external/qcbor/qcbor.cmake)
 target_link_libraries(attestation PRIVATE qcbor)
 
 # t_cose
-set (TCOSE_EXTERNAL_INCLUDE_PATHS ${SP_DEV_KIT_INCLUDE_DIR})
+set (TCOSE_EXTERNAL_INCLUDE_PATHS ${LIBC_INCLUDE_PATH})
 include(${TS_ROOT}/external/t_cose/t_cose.cmake)
 target_link_libraries(attestation PRIVATE t_cose)
 

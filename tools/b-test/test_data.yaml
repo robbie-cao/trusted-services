@@ -10,7 +10,6 @@ data:
       src: "$TS_ROOT/deployments/attestation/opteesp"
       params:
             - "-GUnix Makefiles"
-            - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
     - name: "component-test-arm-linux"
       src: "$TS_ROOT/deployments/component-test/arm-linux"
       os_id : "GNU/Linux"
@@ -25,17 +24,14 @@ data:
       src: "$TS_ROOT/deployments/crypto/opteesp"
       params:
           - "-GUnix Makefiles"
-          - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
     - name: "env-test-optee-arm"
       src: "$TS_ROOT/deployments/env-test/opteesp"
       params:
           - "-GUnix Makefiles"
-          - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
     - name: "internal-trusted-storage-optee-arm"
       src: "$TS_ROOT/deployments/internal-trusted-storage/opteesp"
       params:
             - "-GUnix Makefiles"
-            - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
             - "-DCMAKE_VERBOSE_MAKEFILE=y"
     - name: "libsp-linux-pc"
       src: "$TS_ROOT/deployments/libsp/linux-pc"
@@ -46,7 +42,6 @@ data:
       src: "$TS_ROOT/deployments/libsp/opteesp"
       params:
             - "-GUnix Makefiles"
-            - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
     - name: "libts-arm-linux"
       src: "$TS_ROOT/deployments/libts/arm-linux"
       os_id : "GNU/Linux"
@@ -71,7 +66,6 @@ data:
       src: "$TS_ROOT/deployments/protected-storage/opteesp"
       params:
             - "-GUnix Makefiles"
-            - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
             - "-DCMAKE_VERBOSE_MAKEFILE=y"
     - name: "psa-api-test-crypto-arm-linux"
       src: "$TS_ROOT/deployments/psa-api-test/crypto/arm-linux"
@@ -117,12 +111,10 @@ data:
       src: "$TS_ROOT/deployments/se-proxy/opteesp"
       params:
             - "-GUnix Makefiles"
-            - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
     - name: "sfs-demo-optee-arm"
       src: "$TS_ROOT/deployments/sfs-demo/opteesp"
       params:
           - "-GUnix Makefiles"
-          - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
     - name: "smm-gateway-pc-linux"
       src: "$TS_ROOT/deployments/smm-gateway/linux-pc"
       params:
@@ -131,7 +123,6 @@ data:
       src: "$TS_ROOT/deployments/smm-gateway/opteesp"
       params:
             - "-GUnix Makefiles"
-            - "-DSP_DEV_KIT_DIR=$SP_DEV_KIT_DIR"
             - "-DCMAKE_VERBOSE_MAKEFILE=y"
     - name: "ts-demo-arm-linux"
       src: "$TS_ROOT/deployments/ts-demo/arm-linux"

@@ -19,15 +19,6 @@ add_executable(sfs-demo)
 set(SP_UUID "01109cf8-e5ca-446f-9b55-f3cdc65110c8")
 set(TRACE_PREFIX "SFSDEMO" CACHE STRING "Trace prefix")
 
-
-# Include SP DEV KIT interface
-set(SP_DEV_KIT_INC_DIR ${CMAKE_CURRENT_LIST_DIR})
-list(APPEND CMAKE_MODULE_PATH "${TS_ROOT}/external/Spdevkit")
-find_package(Spdevkit REQUIRED)
-sp_dev_kit_configure_linking(TARGET sfs-demo DEFINES ARM64=1)
-target_link_libraries(sfs-demo ${SP_DEV_KIT_LIBRARIES})
-
-
 add_components(TARGET "sfs-demo"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS

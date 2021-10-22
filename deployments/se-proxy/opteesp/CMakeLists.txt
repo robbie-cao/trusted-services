@@ -24,16 +24,6 @@ target_include_directories(se-proxy PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID "46bb39d1-b4d9-45b5-88ff-040027dab249")
 
 #-------------------------------------------------------------------------------
-#  Include SP DEV KIT interface
-#
-#-------------------------------------------------------------------------------
-set(SP_DEV_KIT_INC_DIR ${CMAKE_CURRENT_LIST_DIR})
-list(APPEND CMAKE_MODULE_PATH "${TS_ROOT}/external/Spdevkit")
-find_package(Spdevkit REQUIRED)
-sp_dev_kit_configure_linking(TARGET se-proxy DEFINES ARM64=1)
-target_link_libraries(se-proxy PRIVATE ${SP_DEV_KIT_LIBRARIES})
-
-#-------------------------------------------------------------------------------
 #  Components that are specific to deployment in the opteesp environment.
 #
 #-------------------------------------------------------------------------------
@@ -104,8 +94,11 @@ add_platform(TARGET "se-proxy")
 #
 #-------------------------------------------------------------------------------
 
+# Get libc include dir
+get_property(LIBC_INCLUDE_PATH TARGET c PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+
 # Nanopb
-list(APPEND NANOPB_EXTERNAL_INCLUDE_PATHS ${SP_DEV_KIT_INCLUDE_DIR})
+list(APPEND NANOPB_EXTERNAL_INCLUDE_PATHS ${LIBC_INCLUDE_PATH})
 include(../../../external/nanopb/nanopb.cmake)
 target_link_libraries(se-proxy PRIVATE nanopb::protobuf-nanopb-static)
 protobuf_generate_all(TGT "se-proxy" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protocols")

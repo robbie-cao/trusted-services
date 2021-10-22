@@ -26,13 +26,6 @@ set(SP_UUID "ed32d533-99e6-4209-9cc0-2d72cdd998a7")
 set(MM_COMM_BUFFER_ADDRESS "0x00000008 0x81000000" CACHE STRING "Address of MM communicte buffer in 64 bit DTS format")
 set(MM_COMM_BUFFER_PAGE_COUNT "8" CACHE STRING "Size of the MM communicate buffer in 4k pages")
 
-# Include SP DEV KIT interface
-set(SP_DEV_KIT_INC_DIR ${CMAKE_CURRENT_LIST_DIR})
-list(APPEND CMAKE_MODULE_PATH "${TS_ROOT}/external/Spdevkit")
-find_package(Spdevkit REQUIRED)
-sp_dev_kit_configure_linking(TARGET smm-gateway DEFINES ARM64=1)
-target_link_libraries(smm-gateway PRIVATE ${SP_DEV_KIT_LIBRARIES})
-
 #-------------------------------------------------------------------------------
 #  Components that are specific to deployment in the opteesp environment.
 #

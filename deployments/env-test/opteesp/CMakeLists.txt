@@ -24,14 +24,6 @@ target_include_directories(env-test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID "33c75baf-ac6a-4fe4-8ac7-e9909bee2d17")
 set(TRACE_PREFIX "ENVTEST" CACHE STRING "Trace prefix")
 
-
-# Include SP DEV KIT interface
-set(SP_DEV_KIT_INC_DIR ${CMAKE_CURRENT_LIST_DIR})
-list(APPEND CMAKE_MODULE_PATH "${TS_ROOT}/external/Spdevkit")
-find_package(Spdevkit REQUIRED)
-sp_dev_kit_configure_linking(TARGET env-test DEFINES ARM64=1)
-target_link_libraries(env-test PRIVATE ${SP_DEV_KIT_LIBRARIES})
-
 #-------------------------------------------------------------------------------
 #  Components that are env-test specific to deployment in the opteesp
 #  environment.

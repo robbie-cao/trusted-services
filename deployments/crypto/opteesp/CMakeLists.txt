@@ -23,14 +23,6 @@ target_include_directories(crypto-sp PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID "d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0")
 set(TRACE_PREFIX "CRYPTO" CACHE STRING "Trace prefix")
 
-
-# Include SP DEV KIT interface
-set(SP_DEV_KIT_INC_DIR ${CMAKE_CURRENT_LIST_DIR})
-list(APPEND CMAKE_MODULE_PATH "${TS_ROOT}/external/Spdevkit")
-find_package(Spdevkit REQUIRED)
-sp_dev_kit_configure_linking(TARGET crypto-sp DEFINES ARM64=1)
-target_link_libraries(crypto-sp PRIVATE ${SP_DEV_KIT_LIBRARIES})
-
 #-------------------------------------------------------------------------------
 #  Components that are specific to deployment in the opteesp environment.
 #
@@ -94,18 +86,20 @@ add_platform(TARGET "crypto-sp")
 #
 #-------------------------------------------------------------------------------
 
+# Get libc include dir
+get_property(LIBC_INCLUDE_PATH TARGET c PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+
 # Nanopb
-list(APPEND NANOPB_EXTERNAL_INCLUDE_PATHS ${SP_DEV_KIT_INCLUDE_DIR})
+list(APPEND NANOPB_EXTERNAL_INCLUDE_PATHS ${LIBC_INCLUDE_PATH})
 include(../../../external/nanopb/nanopb.cmake)
 target_link_libraries(crypto-sp PRIVATE nanopb::protobuf-nanopb-static)
 protobuf_generate_all(TGT "crypto-sp" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protocols")
 
 # Mbed TLS provides libmbedcrypto
-list(APPEND MBEDTLS_EXTRA_INCLUDES ${SP_DEV_KIT_INCLUDE_DIR})
-set(MBEDTLS_EXTRA_INCLUDES ${MBEDTLS_EXTRA_INCLUDES}
-	CACHE STRING "PSA ITS for Mbed TLS" FORCE)
+list(APPEND MBEDTLS_EXTRA_INCLUDES ${LIBC_INCLUDE_PATH})
 include(../../../external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(crypto-sp PRIVATE mbedcrypto)
+target_link_libraries(mbedcrypto INTERFACE c)
 
 if(CMAKE_CROSSCOMPILING)
 	target_link_libraries(crypto-sp PRIVATE stdc++ gcc m)

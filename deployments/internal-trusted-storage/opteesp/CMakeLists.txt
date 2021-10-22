@@ -20,15 +20,6 @@ target_include_directories(internal-trusted-storage PRIVATE "${TOP_LEVEL_INCLUDE
 set(SP_UUID "dc1eef48-b17a-4ccf-ac8b-dfcff7711b14")
 set(TRACE_PREFIX "ITS" CACHE STRING "Trace prefix")
 
-
-# Include SP DEV KIT interface
-set(SP_DEV_KIT_INC_DIR ${CMAKE_CURRENT_LIST_DIR})
-list(APPEND CMAKE_MODULE_PATH "${TS_ROOT}/external/Spdevkit")
-find_package(Spdevkit COMPONENTS SP_HEADER interface)
-
-sp_dev_kit_configure_linking(TARGET internal-trusted-storage DEFINES ARM64=1)
-target_link_libraries(internal-trusted-storage ${SP_DEV_KIT_LIBRARIES})
-
 add_components(TARGET "internal-trusted-storage"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
