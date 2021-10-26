@@ -24,4 +24,19 @@ typedef struct {
 	uint8_t  Data4[8];
 } EFI_GUID;
 
+/**
+ * Header structure of messages in the MM communication buffer.
+ */
+typedef struct {
+	EFI_GUID HeaderGuid;
+	uint64_t MessageLength;
+	uint8_t Data[1];
+} EFI_MM_COMMUNICATE_HEADER;
+
+/**
+ * Size of the EFI MM_COMMUNICATE header without the data field.
+ */
+#define EFI_MM_COMMUNICATE_HEADER_SIZE	\
+	(offsetof(EFI_MM_COMMUNICATE_HEADER, Data))
+
 #endif /* COMMON_EFI_TYPES_H */
