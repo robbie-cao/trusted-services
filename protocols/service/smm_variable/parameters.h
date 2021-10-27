@@ -7,7 +7,8 @@
 #ifndef TS_SMM_VARIABLE_PARAMETERS_H
 #define TS_SMM_VARIABLE_PARAMETERS_H
 
-#include <protocols/common/efi/efi_types.h>
+#include "protocols/common/efi/efi_status.h"
+#include "protocols/common/efi/efi_types.h"
 
 /**
  * C/C++ definition of smm_variable service parameters
@@ -16,6 +17,18 @@
  * of these defines are maintained in the TS project to avoid a mandatory dependency
  * on the EDK2 project.
  */
+
+/**
+ * SMM variable call header
+ */
+typedef struct {
+	uint64_t Function;
+	efi_status_t ReturnStatus;
+	uint8_t Data[1];
+} SMM_VARIABLE_COMMUNICATE_HEADER;
+
+#define SMM_VARIABLE_COMMUNICATE_HEADER_SIZE \
+	offsetof(SMM_VARIABLE_COMMUNICATE_HEADER, Data)
 
 /**
  * Variable attributes
