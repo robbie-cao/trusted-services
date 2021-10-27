@@ -7,11 +7,11 @@
 #include <config/interface/config_store.h>
 #include <config/interface/config_blob.h>
 #include <platform/interface/device_region.h>
+#include "platform/interface/memory_region.h"
 #include "sp_config_loader.h"
 
 
-struct sp_param_device_region
-{
+struct sp_param_region {
 	char name[16];
 	uintptr_t location;
 	size_t size;
@@ -49,7 +49,7 @@ void sp_config_load(struct ffa_init_info *init_info)
 
 static void load_device_regions(const struct ffa_name_value_pair *value_pair)
 {
-	struct sp_param_device_region *d = (struct sp_param_device_region *)value_pair->value;
+	struct sp_param_region *d = (struct sp_param_region *)value_pair->value;
 
 	/* Iterate over the device regions */
 	while ((uintptr_t)d < (value_pair->value + value_pair->size)) {
@@ -71,8 +71,23 @@ static void load_device_regions(const struct ffa_name_value_pair *value_pair)
 
 static void load_memory_regions(const struct ffa_name_value_pair *value_pair)
 {
-	/* Not yet supported */
-	(void)value_pair;
+	struct sp_param_region *d = (struct sp_param_region *)value_pair->value;
+
+	/* Iterate over the device regions */
+	while ((uintptr_t)d < (value_pair->value + value_pair->size)) {
+
+		struct memory_region memory_region;
+
+		strcpy(memory_region.region_name, d->name);
+		memory_region.base_addr = d->location;
+		memory_region.region_size = d->size;
+
+		config_store_add(CONFIG_CLASSIFIER_MEMORY_REGION,
+			memory_region.region_name, 0,
+			&memory_region, sizeof(memory_region));
+
+		++d;
+	}
 }
 
 static void load_blob(const struct ffa_name_value_pair *value_pair)
