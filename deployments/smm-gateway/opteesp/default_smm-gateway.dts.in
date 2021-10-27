@@ -16,4 +16,14 @@
 	execution-state = <0>; /* AArch64 */
 	xlat-granule = <0>; /* 4KiB */
 	messaging-method = <0>; /* Direct messaging only */
+
+	memory-regions {
+		compatible = "arm,ffa-manifest-memory-regions";
+
+		mm-comm-buffer {
+			base-address = <@MM_COMM_BUFFER_ADDRESS@>;
+			pages-count = <@MM_COMM_BUFFER_PAGE_COUNT@>;
+			attributes = <0xb>;  /* ns access-read-write */
+		};
+	};
 };

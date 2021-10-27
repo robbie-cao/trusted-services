@@ -19,6 +19,9 @@ add_executable(smm-gateway)
 target_include_directories(smm-gateway PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID "ed32d533-99e6-4209-9cc0-2d72cdd998a7")
 
+# Setting the MM communication buffer parameters
+set(MM_COMM_BUFFER_ADDRESS "0x00000008 0x81000000" CACHE STRING "Address of MM communicte buffer in 64 bit DTS format")
+set(MM_COMM_BUFFER_PAGE_COUNT "8" CACHE STRING "Size of the MM communicate buffer in 4k pages")
 
 # Include SP DEV KIT interface
 set(SP_DEV_KIT_INC_DIR ${CMAKE_CURRENT_LIST_DIR})
@@ -40,6 +43,7 @@ add_components(TARGET "smm-gateway"
 		"components/messaging/ffa/libsp"
 		"components/rpc/ffarpc/endpoint"
 		"components/rpc/ffarpc/caller/sp"
+		"components/rpc/mm_communicate/endpoint/sp"
 		"components/rpc/common/caller"
 		"components/rpc/common/interface"
 		"components/service/common/include"
@@ -50,6 +54,7 @@ add_components(TARGET "smm-gateway"
 		"components/service/locator/sp"
 		"components/service/locator/sp/ffa"
 		"components/service/smm_variable/backend"
+		"components/service/smm_variable/frontend/mm_communicate"
 		"components/service/smm_variable/provider"
 		"components/service/secure_storage/include"
 		"components/service/secure_storage/backend/secure_storage_client"

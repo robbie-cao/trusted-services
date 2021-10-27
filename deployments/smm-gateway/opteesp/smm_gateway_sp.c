@@ -6,24 +6,34 @@
 #include <rpc/ffarpc/endpoint/ffarpc_call_ep.h>
 #include <deployments/smm-gateway/smm_gateway.h>
 #include <config/ramstore/config_ramstore.h>
+#include "config/interface/config_store.h"
 #include <config/loader/sp/sp_config_loader.h>
+#include "components/rpc/mm_communicate/endpoint/sp/mm_communicate_call_ep.h"
+#include "components/service/smm_variable/frontend/mm_communicate/smm_variable_mm_service.h"
+#include "platform/interface/memory_region.h"
 #include <ffa_api.h>
 #include <sp_api.h>
 #include <sp_messaging.h>
 #include <sp_rxtx.h>
 #include <trace.h>
 
+#define CONFIG_NAME_MM_COMM_BUFFER_REGION	"mm-comm-buffer"
 
 uint16_t own_id = 0; /* !!Needs refactoring as parameter to ffarpc_caller_init */
-
 
 static int sp_init(uint16_t *own_sp_id);
 
 void __noreturn sp_main(struct ffa_init_info *init_info)
 {
-	struct ffa_call_ep ffarpc_call_ep;
-	struct sp_msg req_msg = { 0 };
-	struct sp_msg resp_msg = { 0 };
+	struct memory_region mm_comm_buffer_region = { 0 };
+	struct rpc_interface *gateway_iface = NULL;
+	struct smm_variable_mm_service smm_var_service = { 0 };
+	struct mm_service_interface *smm_var_service_interface = NULL;
+	struct mm_communicate_ep mm_communicate_call_ep = { 0 };
+	struct ffa_direct_msg req_msg = { 0 };
+	struct ffa_direct_msg resp_msg = { 0 };
+
+	static const EFI_GUID smm_variable_guid = SMM_VARIABLE_GUID;
 
 	/* Boot phase */
 	if (sp_init(&own_id) != 0) goto fatal_error;
@@ -32,20 +42,39 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	config_ramstore_init();
 	sp_config_load(init_info);
 
+	if (!config_store_query(CONFIG_CLASSIFIER_MEMORY_REGION, CONFIG_NAME_MM_COMM_BUFFER_REGION,
+				0, &mm_comm_buffer_region, sizeof(mm_comm_buffer_region))) {
+		EMSG(CONFIG_NAME_MM_COMM_BUFFER_REGION " is not set in SP configuration");
+		goto fatal_error;
+	}
+
 	/* Initialize service layer and associate with RPC endpoint */
-	struct rpc_interface *gateway_iface = smm_gateway_create(own_id);
-	ffa_call_ep_init(&ffarpc_call_ep, gateway_iface);
+	gateway_iface = smm_gateway_create(own_id);
+
+	/* Initialize SMM variable MM service */
+	smm_var_service_interface = smm_variable_mm_service_init(&smm_var_service, gateway_iface);
+
+	/* Initialize MM communication layer */
+	if (!mm_communicate_call_ep_init(&mm_communicate_call_ep,
+					 (void *)mm_comm_buffer_region.base_addr,
+					 mm_comm_buffer_region.region_size))
+		goto fatal_error;
+
+	/* Attach SMM variable service to MM communication layer */
+	mm_communicate_call_ep_attach_service(&mm_communicate_call_ep, &smm_variable_guid,
+					      smm_var_service_interface);
 
 	/* End of boot phase */
-	sp_msg_wait(&req_msg);
+	ffa_msg_wait(&req_msg);
 
 	while (1) {
-		ffa_call_ep_receive(&ffarpc_call_ep, &req_msg, &resp_msg);
+		mm_communicate_call_ep_receive(&mm_communicate_call_ep, &req_msg, &resp_msg);
 
-		resp_msg.source_id = req_msg.destination_id;
-		resp_msg.destination_id = req_msg.source_id;
-
-		sp_msg_send_direct_resp(&resp_msg, &req_msg);
+		ffa_msg_send_direct_resp(req_msg.destination_id,
+					 req_msg.source_id, resp_msg.args[0],
+					 resp_msg.args[1], resp_msg.args[2],
+					 resp_msg.args[3], resp_msg.args[4],
+					 &req_msg);
 	}
 
 fatal_error:
