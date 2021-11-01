@@ -10,4 +10,5 @@ endif()
 
 target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/smm_variable_service_tests.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/smm_variable_attack_tests.cpp"
 	)

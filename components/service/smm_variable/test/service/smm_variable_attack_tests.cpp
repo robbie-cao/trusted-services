@@ -1,0 +1,249 @@
+/*
+ * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include <limits>
+#include <service/smm_variable/client/cpp/smm_variable_client.h>
+#include <protocols/rpc/common/packed-c/encoding.h>
+#include <service_locator.h>
+#include <CppUTest/TestHarness.h>
+
+/*
+ * Attack tests for the smm-variable service.  Invalid parameters are sent by
+ * a client to test service provider defenses against a potential attack.
+ */
+TEST_GROUP(SmmVariableAttackTests)
+{
+	void setup()
+	{
+		struct rpc_caller *caller;
+		int status;
+
+		m_rpc_session_handle = NULL;
+		m_service_context = NULL;
+
+		service_locator_init();
+
+		m_service_context =
+			service_locator_query("sn:trustedfirmware.org:smm-variable:0", &status);
+		CHECK_TRUE(m_service_context);
+
+		m_rpc_session_handle =
+			service_context_open(m_service_context, TS_RPC_ENCODING_PACKED_C, &caller);
+		CHECK_TRUE(m_rpc_session_handle);
+
+		m_client = new smm_variable_client(caller);
+
+		setup_common_guid();
+	}
+
+	void teardown()
+	{
+		delete m_client;
+		m_client = NULL;
+
+		service_context_close(m_service_context, m_rpc_session_handle);
+		m_rpc_session_handle = NULL;
+
+		service_context_relinquish(m_service_context);
+		m_service_context = NULL;
+	}
+
+	void setup_common_guid()
+	{
+		m_common_guid.Data1 = 0x12341234;
+		m_common_guid.Data2 = 0x1234;
+		m_common_guid.Data3 = 0x1234;
+		m_common_guid.Data4[0] = 0x00;
+		m_common_guid.Data4[1] = 0x01;
+		m_common_guid.Data4[2] = 0x02;
+		m_common_guid.Data4[3] = 0x03;
+		m_common_guid.Data4[4] = 0x04;
+		m_common_guid.Data4[5] = 0x05;
+		m_common_guid.Data4[6] = 0x06;
+		m_common_guid.Data4[7] = 0x07;
+	}
+
+	smm_variable_client *m_client;
+	rpc_session_handle m_rpc_session_handle;
+	struct service_context *m_service_context;
+	EFI_GUID m_common_guid;
+};
+
+TEST(SmmVariableAttackTests, setWithOversizeData)
+{
+	efi_status_t efi_status = EFI_SUCCESS;
+	std::wstring var_name = L"test_variable";
+	std::string set_data = "UEFI variable data string";
+
+	/* Override the data size with a big but plausable length */
+	efi_status = m_client->set_variable(
+		m_common_guid,
+		var_name,
+		set_data,
+		0,
+		0,
+		std::numeric_limits<uint16_t>::max());
+
+	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+}
+
+TEST(SmmVariableAttackTests, setWithSizeMaxDataSize)
+{
+	efi_status_t efi_status = EFI_SUCCESS;
+	std::wstring var_name = L"test_variable";
+	std::string set_data = "UEFI variable data string";
+
+	/* Override the data size with SIZE_MAX length */
+	efi_status = m_client->set_variable(
+		m_common_guid,
+		var_name,
+		set_data,
+		0,
+		0,
+		std::numeric_limits<size_t>::max());
+
+	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+}
+
+TEST(SmmVariableAttackTests, setWithOversizeName)
+{
+	efi_status_t efi_status = EFI_SUCCESS;
+	std::wstring var_name = L"test_variable";
+	std::string set_data = "UEFI variable data string";
+
+	/* Override the name size slightly too big such that name + data don't fit */
+	efi_status = m_client->set_variable(
+		m_common_guid,
+		var_name,
+		set_data,
+		0,
+		(var_name.size() + 1) * sizeof(int16_t) + 1,
+		0);
+
+	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+}
+
+TEST(SmmVariableAttackTests, setWithSizeMaxNameSize)
+{
+	efi_status_t efi_status = EFI_SUCCESS;
+	std::wstring var_name = L"test_variable";
+	std::string set_data = "UEFI variable data string";
+
+	/* Override the name size slightly too big such that name + data don't fit */
+	efi_status = m_client->set_variable(
+		m_common_guid,
+		var_name,
+		set_data,
+		0,
+		std::numeric_limits<size_t>::max(),
+		0);
+
+	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+}
+
+TEST(SmmVariableAttackTests, setAndGetWithOversizeName)
+{
+	efi_status_t efi_status = EFI_SUCCESS;
+	std::wstring var_name = L"test_variable";
+	std::string set_data = "UEFI variable data string";
+	std::string get_data;
+
+	efi_status = m_client->set_variable(
+		m_common_guid,
+		var_name,
+		set_data,
+		0);
+
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	efi_status = m_client->get_variable(
+		m_common_guid,
+		var_name,
+		get_data,
+		(var_name.size() + 1) * sizeof(int16_t) + 1);
+
+	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+
+	/* Expect remove to be permitted */
+	efi_status = m_client->remove_variable(m_common_guid, var_name);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+}
+
+TEST(SmmVariableAttackTests, setAndGetWithSizeMaxNameSize)
+{
+	efi_status_t efi_status = EFI_SUCCESS;
+	std::wstring var_name = L"test_variable";
+	std::string set_data = "UEFI variable data string";
+	std::string get_data;
+
+	efi_status = m_client->set_variable(
+		m_common_guid,
+		var_name,
+		set_data,
+		0);
+
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	efi_status = m_client->get_variable(
+		m_common_guid,
+		var_name,
+		get_data,
+		std::numeric_limits<size_t>::max());
+
+	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+
+	/* Expect remove to be permitted */
+	efi_status = m_client->remove_variable(m_common_guid, var_name);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+}
+
+TEST(SmmVariableAttackTests, enumerateWithOversizeName)
+{
+	efi_status_t efi_status = EFI_SUCCESS;
+	std::wstring var_name;
+	EFI_GUID guid = {0};
+
+	efi_status = m_client->get_next_variable_name(
+		guid,
+		var_name,
+		(var_name.size() + 1) * sizeof(int16_t) + 1);
+
+	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+}
+
+TEST(SmmVariableAttackTests, enumerateWithSizeMaxNameSize)
+{
+	efi_status_t efi_status = EFI_SUCCESS;
+	std::wstring var_name_1 = L"varibale_1";
+	std::wstring var_name;
+	EFI_GUID guid = {0};
+
+	/* Add a variable */
+	efi_status = m_client->set_variable(
+		m_common_guid,
+		var_name_1,
+		std::string("Some data"),
+		EFI_VARIABLE_NON_VOLATILE);
+
+	/* Initial iteration uses good name length */
+	efi_status = m_client->get_next_variable_name(
+		guid,
+		var_name);
+
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	/* Next iteration uses invalid name length */
+	efi_status = m_client->get_next_variable_name(
+		guid,
+		var_name,
+		std::numeric_limits<size_t>::max());
+
+	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+
+	/* Expect to be able to remove the variable */
+	efi_status = m_client->remove_variable(m_common_guid, var_name_1);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+}

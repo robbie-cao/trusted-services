@@ -38,11 +38,25 @@ public:
 		const std::string &data,
 		uint32_t attributes);
 
+	efi_status_t set_variable(
+		const EFI_GUID &guid,
+		const std::wstring &name,
+		const std::string &data,
+		uint32_t attributes,
+		size_t override_name_size,
+		size_t override_data_size);
+
 	/* Get a string type variable */
 	efi_status_t get_variable(
 		const EFI_GUID &guid,
 		const std::wstring &name,
 		std::string &data);
+
+	efi_status_t get_variable(
+		const EFI_GUID &guid,
+		const std::wstring &name,
+		std::string &data,
+		size_t override_name_size);
 
 	/* Remove a variable */
 	efi_status_t remove_variable(
@@ -54,10 +68,17 @@ public:
 		EFI_GUID &guid,
 		std::wstring &name);
 
+	efi_status_t get_next_variable_name(
+		EFI_GUID &guid,
+		std::wstring &name,
+		size_t override_name_size);
+
 	/* Exit boot service */
 	efi_status_t exit_boot_service();
 
 private:
+	efi_status_t rpc_to_efi_status() const;
+
 	static std::vector<int16_t> to_variable_name(const std::wstring &string);
 	static const std::wstring from_variable_name(const int16_t *name, size_t name_size);
 

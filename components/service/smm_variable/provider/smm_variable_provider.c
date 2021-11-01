@@ -59,59 +59,64 @@ void smm_variable_provider_deinit(struct smm_variable_provider *context)
 	uefi_variable_store_deinit(&context->variable_store);
 }
 
-static size_t sanitize_access_variable_param(struct call_req *req)
+static efi_status_t sanitize_access_variable_param(struct call_req *req, size_t *param_len)
 {
-	size_t param_len = 0;
+	efi_status_t efi_status = EFI_INVALID_PARAMETER;
+	*param_len = 0;
 	const struct call_param_buf *req_buf = call_req_get_req_buf(req);
 
 	if (req_buf->data_len >= SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET) {
 
 		const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *param =
 			(const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE*)req_buf->data;
-		size_t length_with_name =
-			SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(param);
 
-		if (length_with_name <= req_buf->data_len) {
+		size_t max_space_for_name = req_buf->data_len -
+			SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET;
 
-			param_len = length_with_name;
+		if (param->NameSize <= max_space_for_name) {
+
+			*param_len = SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(param);
+			efi_status = EFI_SUCCESS;
 		}
 	}
 
-	return param_len;
+	return efi_status;
 }
 
-static size_t sanitize_get_next_var_name_param(struct call_req *req)
+static efi_status_t sanitize_get_next_var_name_param(struct call_req *req, size_t *param_len)
 {
-	size_t param_len = 0;
+	efi_status_t efi_status = EFI_INVALID_PARAMETER;
+	*param_len = 0;
 	const struct call_param_buf *req_buf = call_req_get_req_buf(req);
 
 	if (req_buf->data_len >= SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_NAME_OFFSET) {
 
 		const SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *param =
 			(const SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME*)req_buf->data;
-		size_t length_with_name =
-			SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_TOTAL_SIZE(param);
 
-		if (length_with_name <= req_buf->data_len) {
+		size_t max_space_for_name = req_buf->data_len -
+			SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_NAME_OFFSET;
 
-			param_len = length_with_name;
+		if (param->NameSize <= max_space_for_name) {
+
+			*param_len = SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_TOTAL_SIZE(param);
+			efi_status = EFI_SUCCESS;
 		}
 	}
 
-	return param_len;
+	return efi_status;
 }
 
 static rpc_status_t get_variable_handler(void *context, struct call_req *req)
 {
 	struct smm_variable_provider *this_instance = (struct smm_variable_provider*)context;
 
-	rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
-	size_t param_len = sanitize_access_variable_param(req);
+	size_t param_len = 0;
+	efi_status_t efi_status = sanitize_access_variable_param(req, &param_len);
 
-	if (param_len) {
+	if (efi_status == EFI_SUCCESS) {
 
 		/* Valid access variable header parameter */
-		rpc_status = TS_RPC_ERROR_INVALID_RESP_BODY;
 		struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
 
 		if (resp_buf->size >= param_len) {
@@ -121,31 +126,34 @@ static rpc_status_t get_variable_handler(void *context, struct call_req *req)
 
 			memmove(resp_buf->data, req_buf->data, param_len);
 
-			efi_status_t efi_status = uefi_variable_store_get_variable(
+			efi_status = uefi_variable_store_get_variable(
 				&this_instance->variable_store,
 				(SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE*)resp_buf->data,
 				max_data_len,
 				&resp_buf->data_len);
+		}
+		else {
 
-			rpc_status = TS_RPC_CALL_ACCEPTED;
-			call_req_set_opstatus(req, efi_status);
+			/* Reponse buffer not big enough */
+			efi_status = EFI_BAD_BUFFER_SIZE;
 		}
 	}
 
-	return rpc_status;
+	call_req_set_opstatus(req, efi_status);
+
+	return TS_RPC_CALL_ACCEPTED;
 }
 
 static rpc_status_t get_next_variable_name_handler(void *context, struct call_req* req)
 {
 	struct smm_variable_provider *this_instance = (struct smm_variable_provider*)context;
 
-	rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
-	size_t param_len = sanitize_get_next_var_name_param(req);
+	size_t param_len = 0;
+	efi_status_t efi_status = sanitize_get_next_var_name_param(req, &param_len);
 
-	if (param_len) {
+	if (efi_status == EFI_SUCCESS) {
 
 		/* Valid get next variable name header */
-		rpc_status = TS_RPC_ERROR_INVALID_RESP_BODY;
 		struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
 
 		if (resp_buf->size >= param_len) {
@@ -156,48 +164,60 @@ static rpc_status_t get_next_variable_name_handler(void *context, struct call_re
 
 			memmove(resp_buf->data, req_buf->data, param_len);
 
-			efi_status_t efi_status = uefi_variable_store_get_next_variable_name(
+			efi_status = uefi_variable_store_get_next_variable_name(
 				&this_instance->variable_store,
 				(SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME*)resp_buf->data,
 				max_name_len,
 				&resp_buf->data_len);
+		}
+		else {
 
-			rpc_status = TS_RPC_CALL_ACCEPTED;
-			call_req_set_opstatus(req, efi_status);
+			/* Reponse buffer not big enough */
+			efi_status = EFI_BAD_BUFFER_SIZE;
 		}
 	}
 
-	return rpc_status;
+	call_req_set_opstatus(req, efi_status);
+
+	return TS_RPC_CALL_ACCEPTED;
 }
 
 static rpc_status_t set_variable_handler(void *context, struct call_req* req)
 {
 	struct smm_variable_provider *this_instance = (struct smm_variable_provider*)context;
 
-	rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
-	size_t param_len = sanitize_access_variable_param(req);
+	size_t param_len = 0;
+	efi_status_t efi_status = sanitize_access_variable_param(req, &param_len);
 
-	if (param_len) {
+	if (efi_status == EFI_SUCCESS) {
 
 		/* Access variable header is whole.  Check that buffer length can
 		 * accommodate the data.
 		 */
 		struct call_param_buf *req_buf = call_req_get_req_buf(req);
+
 		const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *access_var =
 			(const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE*)req_buf->data;
 
-		if (SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_TOTAL_SIZE(access_var) <= req_buf->data_len) {
+		size_t space_for_data = req_buf->data_len -
+			SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(access_var);
 
-			efi_status_t efi_status = uefi_variable_store_set_variable(
+		if (access_var->DataSize <= space_for_data) {
+
+			efi_status = uefi_variable_store_set_variable(
 				&this_instance->variable_store,
 				access_var);
+		}
+		else {
 
-			rpc_status = TS_RPC_CALL_ACCEPTED;
-			call_req_set_opstatus(req, efi_status);
+			/* Invalid DataSize */
+			efi_status = EFI_INVALID_PARAMETER;
 		}
 	}
 
-	return rpc_status;
+	call_req_set_opstatus(req, efi_status);
+
+	return TS_RPC_CALL_ACCEPTED;
 }
 
 static rpc_status_t query_variable_info_handler(void *context, struct call_req* req)
@@ -213,10 +233,9 @@ static rpc_status_t query_variable_info_handler(void *context, struct call_req* 
 static rpc_status_t exit_boot_service_handler(void *context, struct call_req* req)
 {
 	struct smm_variable_provider *this_instance = (struct smm_variable_provider*)context;
-	rpc_status_t rpc_status = TS_RPC_CALL_ACCEPTED;
 
 	efi_status_t efi_status = uefi_variable_store_exit_boot_service(&this_instance->variable_store);
 	call_req_set_opstatus(req, efi_status);
 
-	return rpc_status;
+	return TS_RPC_CALL_ACCEPTED;
 }
