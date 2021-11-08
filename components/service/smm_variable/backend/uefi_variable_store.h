@@ -144,6 +144,34 @@ efi_status_t uefi_variable_store_query_variable_info(
 efi_status_t uefi_variable_store_exit_boot_service(
 	struct uefi_variable_store *context);
 
+/**
+ * @brief      Set variable check property
+ *
+ * Corresponds to the SetVarCheckProperty EDK2 operation
+ *
+ * @param[in]  context uefi_variable_store instance
+ * @param[in]  property The variable check property
+ *
+ * @return     EFI_SUCCESS if succesful
+ */
+efi_status_t uefi_variable_store_set_var_check_property(
+	struct uefi_variable_store *context,
+	const SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *property);
+
+/**
+ * @brief      Get variable check property
+ *
+ * Corresponds to the GetVarCheckProperty EDK2 operation
+ *
+ * @param[in]  context uefi_variable_store instance
+ * @param[out] property The variable check property
+ *
+ * @return     EFI_SUCCESS if succesful
+ */
+efi_status_t uefi_variable_store_get_var_check_property(
+	struct uefi_variable_store *context,
+	SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *property);
+
 #ifdef __cplusplus
 }
 #endif

@@ -10,6 +10,7 @@
 #include <string.h>
 #include "uefi_variable_store.h"
 #include "variable_index_iterator.h"
+#include "variable_checker.h"
 
 /* Private functions */
 static void load_variable_index(
@@ -21,6 +22,11 @@ static efi_status_t sync_variable_index(
 static efi_status_t check_access_permitted(
 	const struct uefi_variable_store *context,
 	const struct variable_info *info);
+
+static efi_status_t check_access_permitted_on_set(
+	const struct uefi_variable_store *context,
+	const struct variable_info *info,
+	const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var);
 
 static efi_status_t store_variable_data(
 	struct uefi_variable_store *context,
@@ -118,18 +124,19 @@ efi_status_t uefi_variable_store_set_variable(
 
 	if (info) {
 
-		/* Variable already exists */
-		status = check_access_permitted(context, info);
+		/* Variable info already exists */
+		status = check_access_permitted_on_set(context, info, var);
 
 		if (status == EFI_SUCCESS) {
 
-			should_sync_index = (info->attributes & EFI_VARIABLE_NON_VOLATILE);
+			should_sync_index =
+				(var->Attributes & EFI_VARIABLE_NON_VOLATILE) ||
+				(info->is_variable_set && (info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE));
 
 			if (var->DataSize) {
 
-				/* It's an update to an existing variable */
-				variable_index_update_attributes(
-					&context->variable_index,
+				/* It's a set rather than a remove operation */
+				variable_index_update_variable(
 					info,
 					var->Attributes);
 			}
@@ -142,7 +149,7 @@ efi_status_t uefi_variable_store_set_variable(
 				 * the storage backend without a corresponding index entry.
 				 */
 				remove_variable_data(context, info);
-				variable_index_remove(&context->variable_index, info);
+				variable_index_remove_variable(&context->variable_index, info);
 
 				/* Variable info no longer valid */
 				info = NULL;
@@ -157,14 +164,15 @@ efi_status_t uefi_variable_store_set_variable(
 	else if (var->DataSize) {
 
 		/* It's a new variable */
-		info = variable_index_add(
+		info = variable_index_add_variable(
 			&context->variable_index,
 			&var->Guid,
 			var->NameSize,
 			var->Name,
 			var->Attributes);
 
-		should_sync_index = info && (info->attributes & EFI_VARIABLE_NON_VOLATILE);
+		if (!info) status = EFI_OUT_OF_RESOURCES;
+		should_sync_index = info && (info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE);
 	}
 
 	/* The order of these operations is important. For an update
@@ -207,7 +215,7 @@ efi_status_t uefi_variable_store_get_variable(
 		var->NameSize,
 		var->Name);
 
-	if (info) {
+	if (info && info->is_variable_set) {
 
 		/* Variable already exists */
 		status = check_access_permitted(context, info);
@@ -215,7 +223,7 @@ efi_status_t uefi_variable_store_get_variable(
 		if (status == EFI_SUCCESS) {
 
 			status = load_variable_data(context, info, var, max_data_len);
-			var->Attributes = info->attributes;
+			var->Attributes = info->metadata.attributes;
 			*total_length = SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_TOTAL_SIZE(var);
 		}
 	}
@@ -241,11 +249,11 @@ efi_status_t uefi_variable_store_get_next_variable_name(
 		cur->NameSize,
 		cur->Name);
 
-	if (info && (info->name_size <= max_name_len)) {
+	if (info && (info->metadata.name_size <= max_name_len)) {
 
-		cur->Guid = info->guid;
-		cur->NameSize = info->name_size;
-		memcpy(cur->Name, info->name, info->name_size);
+		cur->Guid = info->metadata.guid;
+		cur->NameSize = info->metadata.name_size;
+		memcpy(cur->Name, info->metadata.name, info->metadata.name_size);
 
 		*total_length = SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_TOTAL_SIZE(cur);
 
@@ -270,6 +278,91 @@ efi_status_t uefi_variable_store_exit_boot_service(
 {
 	context->is_boot_service = false;
 	return EFI_SUCCESS;
+}
+
+efi_status_t uefi_variable_store_set_var_check_property(
+	struct uefi_variable_store *context,
+	const SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *property)
+{
+	efi_status_t status = check_name_terminator(property->Name, property->NameSize);
+	if (status != EFI_SUCCESS) return status;
+
+	/* Find in index */
+	const struct variable_info *info = variable_index_find(
+		&context->variable_index,
+		&property->Guid,
+		property->NameSize,
+		property->Name);
+
+	if (info) {
+
+		/* Applying check constraints to an existing variable that may have
+		 * constraints already set.  These could constrain the setting of
+		 * the constraints.
+		 */
+		struct variable_constraints constraints = info->check_constraints;
+
+		status = variable_checker_set_constraints(
+			&constraints,
+			info->is_constraints_set,
+			&property->VariableProperty);
+
+		if (status == EFI_SUCCESS) {
+
+			variable_index_update_constraints(info, &constraints);
+		}
+	}
+	else {
+
+		/* Applying check constraints for a new variable */
+		struct variable_constraints constraints;
+
+		status = variable_checker_set_constraints(
+			&constraints,
+			false,
+			&property->VariableProperty);
+
+		if (status == EFI_SUCCESS) {
+
+			info = variable_index_add_constraints(
+				&context->variable_index,
+				&property->Guid,
+				property->NameSize,
+				property->Name,
+				&constraints);
+
+			if (!info) status = EFI_OUT_OF_RESOURCES;
+		}
+	}
+
+	return status;
+}
+
+efi_status_t uefi_variable_store_get_var_check_property(
+	struct uefi_variable_store *context,
+	SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *property)
+{
+	efi_status_t status = check_name_terminator(property->Name, property->NameSize);
+	if (status != EFI_SUCCESS) return status;
+
+	status = EFI_NOT_FOUND;
+
+	const struct variable_info *info = variable_index_find(
+		&context->variable_index,
+		&property->Guid,
+		property->NameSize,
+		property->Name);
+
+	if (info && info->is_constraints_set) {
+
+		variable_checker_get_constraints(
+			&info->check_constraints,
+			&property->VariableProperty);
+
+		status = EFI_SUCCESS;
+	}
+
+	return status;
 }
 
 static void load_variable_index(
@@ -338,13 +431,35 @@ static efi_status_t check_access_permitted(
 {
 	efi_status_t status = EFI_SUCCESS;
 
-	if (info->attributes & EFI_VARIABLE_BOOTSERVICE_ACCESS) {
+	if (info->is_variable_set) {
 
-		if (!context->is_boot_service) status = EFI_ACCESS_DENIED;
+		if (info->metadata.attributes & EFI_VARIABLE_BOOTSERVICE_ACCESS) {
+
+			if (!context->is_boot_service) status = EFI_ACCESS_DENIED;
+		}
+		else if (info->metadata.attributes & EFI_VARIABLE_RUNTIME_ACCESS) {
+
+			if (context->is_boot_service) status = EFI_ACCESS_DENIED;
+		}
 	}
-	else if (info->attributes & EFI_VARIABLE_RUNTIME_ACCESS) {
 
-		if (context->is_boot_service) status = EFI_ACCESS_DENIED;
+	return status;
+}
+
+static efi_status_t check_access_permitted_on_set(
+	const struct uefi_variable_store *context,
+	const struct variable_info *info,
+	const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var)
+{
+	efi_status_t status = check_access_permitted(context, info);
+
+	if ((status == EFI_SUCCESS) && info->is_constraints_set) {
+
+		/* Apply check constraints */
+		status = variable_checker_check_on_set(
+			&info->check_constraints,
+			var->Attributes,
+			var->DataSize);
 	}
 
 	return status;
@@ -360,7 +475,7 @@ static efi_status_t store_variable_data(
 	const uint8_t *data = (const uint8_t*)var +
 		SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(var);
 
-	bool is_nv = (info->attributes & EFI_VARIABLE_NON_VOLATILE);
+	bool is_nv = (info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE);
 
 	struct storage_backend *storage_backend = (is_nv) ?
 		context->persistent_store :
@@ -371,7 +486,7 @@ static efi_status_t store_variable_data(
 		psa_status = storage_backend->interface->set(
 			storage_backend->context,
 			context->owner_id,
-			info->uid,
+			info->metadata.uid,
 			data_len,
 			data,
 			PSA_STORAGE_FLAG_NONE);
@@ -393,18 +508,22 @@ static efi_status_t remove_variable_data(
 	const struct variable_info *info)
 {
 	psa_status_t psa_status = PSA_SUCCESS;
-	bool is_nv = (info->attributes & EFI_VARIABLE_NON_VOLATILE);
 
-	struct storage_backend *storage_backend = (is_nv) ?
-		context->persistent_store :
-		context->volatile_store;
+	if (info->is_variable_set) {
 
-	if (storage_backend) {
+		bool is_nv = (info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE);
 
-		psa_status = storage_backend->interface->remove(
-			storage_backend->context,
-			context->owner_id,
-			info->uid);
+		struct storage_backend *storage_backend = (is_nv) ?
+			context->persistent_store :
+			context->volatile_store;
+
+		if (storage_backend) {
+
+			psa_status = storage_backend->interface->remove(
+				storage_backend->context,
+				context->owner_id,
+				info->metadata.uid);
+		}
 	}
 
 	return psa_to_efi_storage_status(psa_status);
@@ -421,7 +540,7 @@ static efi_status_t load_variable_data(
 	uint8_t *data = (uint8_t*)var +
 		SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(var);
 
-	bool is_nv = (info->attributes & EFI_VARIABLE_NON_VOLATILE);
+	bool is_nv = (info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE);
 
 	struct storage_backend *storage_backend = (is_nv) ?
 		context->persistent_store :
@@ -432,7 +551,7 @@ static efi_status_t load_variable_data(
 		psa_status = storage_backend->interface->get(
 			storage_backend->context,
 			context->owner_id,
-			info->uid,
+			info->metadata.uid,
 			0,
 			max_data_len,
 			data,
@@ -453,14 +572,14 @@ static void purge_orphan_index_entries(
 
 	/* Iterate over variable index looking for any entries for NV
 	 * variables where there is no corresponding object in the
-	 * persistent store. This condition could arrise due to
+	 * persistent store. This condition could arise due to
 	 * a power failure before an object is stored.
 	 */
 	while (!variable_index_iterator_is_done(&iter)) {
 
 		const struct variable_info *info = variable_index_iterator_current(&iter);
 
-		if (info->attributes & EFI_VARIABLE_NON_VOLATILE) {
+		if (info->is_variable_set && (info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE)) {
 
 			struct psa_storage_info_t storage_info;
 			struct storage_backend *storage_backend = context->persistent_store;
@@ -468,13 +587,13 @@ static void purge_orphan_index_entries(
 			psa_status_t psa_status = storage_backend->interface->get_info(
 				storage_backend->context,
 				context->owner_id,
-				info->uid,
+				info->metadata.uid,
 				&storage_info);
 
 			if (psa_status != PSA_SUCCESS) {
 
 				/* Detected a mismatch between the index and storage */
-				variable_index_remove(&context->variable_index, info);
+				variable_index_remove_variable(&context->variable_index, info);
 				any_orphans = true;
 			}
 		}

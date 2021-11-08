@@ -152,6 +152,30 @@ TEST_GROUP(UefiVariableStoreTests)
 		return status;
 	}
 
+	efi_status_t set_check_var_property(
+		const std::wstring &name,
+		const VAR_CHECK_VARIABLE_PROPERTY &check_property)
+	{
+		std::vector<int16_t> var_name = to_variable_name(name);
+		size_t name_size = var_name.size() * sizeof(int16_t);
+		uint8_t msg_buffer[SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_SIZE(name_size)];
+
+		SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *check_var =
+			(SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY*)msg_buffer;
+
+		check_var->Guid = m_common_guid;
+		check_var->NameSize = name_size;
+		memcpy(check_var->Name, var_name.data(), name_size);
+
+		check_var->VariableProperty = check_property;
+
+		efi_status_t status = uefi_variable_store_set_var_check_property(
+			&m_uefi_variable_store,
+			check_var);
+
+		return status;
+	}
+
 	void zap_stored_variable(
 		const std::wstring &name)
 	{
@@ -169,14 +193,14 @@ TEST_GROUP(UefiVariableStoreTests)
 			name_size,
 			var_name.data());
 
-		if (info && (info->attributes & EFI_VARIABLE_NON_VOLATILE)) {
+		if (info && (info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE)) {
 
 			struct storage_backend *storage_backend = m_uefi_variable_store.persistent_store;
 
 			storage_backend->interface->remove(
 				storage_backend->context,
 				OWNER_ID,
-				info->uid);
+				info->metadata.uid);
 		}
 	}
 
@@ -527,4 +551,82 @@ TEST(UefiVariableStoreTests, failedNvSet)
 		max_name_len,
 		&total_len);
 	UNSIGNED_LONGS_EQUAL(EFI_NOT_FOUND, status);
+}
+
+TEST(UefiVariableStoreTests, readOnlycheck)
+{
+	efi_status_t status = EFI_SUCCESS;
+	std::wstring var_name_1 = L"test_variable_1";
+	std::string input_data = "blah blah";
+
+	/* Add a variable */
+	status = set_variable(
+		var_name_1,
+		input_data,
+		EFI_VARIABLE_NON_VOLATILE);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Apply a check to constrain to Read Only */
+	VAR_CHECK_VARIABLE_PROPERTY check_property;
+	check_property.Revision = VAR_CHECK_VARIABLE_PROPERTY_REVISION;
+	check_property.Attributes = 0;
+	check_property.Property = VAR_CHECK_VARIABLE_PROPERTY_READ_ONLY;
+	check_property.MinSize = 0;
+	check_property.MaxSize = 100;
+
+	status = set_check_var_property(var_name_1, check_property);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Subsequent set operations should fail */
+	status = set_variable(
+		var_name_1,
+		input_data,
+		EFI_VARIABLE_NON_VOLATILE);
+	UNSIGNED_LONGS_EQUAL(EFI_WRITE_PROTECTED, status);
+}
+
+TEST(UefiVariableStoreTests, noRemoveCheck)
+{
+	efi_status_t status = EFI_SUCCESS;
+	std::wstring var_name_1 = L"test_variable_1";
+	std::string input_data = "blah blah";
+
+	/* Add a variable */
+	status = set_variable(
+		var_name_1,
+		input_data,
+		EFI_VARIABLE_NON_VOLATILE);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Apply a check to constrain size to > 0.  This should prevent removal */
+	VAR_CHECK_VARIABLE_PROPERTY check_property;
+	check_property.Revision = VAR_CHECK_VARIABLE_PROPERTY_REVISION;
+	check_property.Attributes = 0;
+	check_property.Property = 0;
+	check_property.MinSize = 1;
+	check_property.MaxSize = 10;
+
+	status = set_check_var_property(var_name_1, check_property);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Try and remove by setting with zero length data */
+	status = set_variable(
+		var_name_1,
+		std::string(),
+		EFI_VARIABLE_NON_VOLATILE);
+	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, status);
+
+	/* Setting with non zero data should work */
+	status = set_variable(
+		var_name_1,
+		std::string("Good"),
+		EFI_VARIABLE_NON_VOLATILE);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* But with data that exceeds the MaxSize */
+	status = set_variable(
+		var_name_1,
+		std::string("A data value that exceeds the MaxSize"),
+		EFI_VARIABLE_NON_VOLATILE);
+	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, status);
 }

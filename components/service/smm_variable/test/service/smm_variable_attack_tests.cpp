@@ -247,3 +247,73 @@ TEST(SmmVariableAttackTests, enumerateWithSizeMaxNameSize)
 	efi_status = m_client->remove_variable(m_common_guid, var_name_1);
 	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
 }
+
+TEST(SmmVariableAttackTests, setCheckPropertyWithOversizeName)
+{
+	efi_status_t efi_status = EFI_SUCCESS;
+	std::wstring var_name = L"varibale_1";
+
+	VAR_CHECK_VARIABLE_PROPERTY check_property;
+	check_property.Revision = VAR_CHECK_VARIABLE_PROPERTY_REVISION;
+	check_property.Attributes = 0;
+	check_property.Property = 0;
+	check_property.MinSize = 0;
+	check_property.MaxSize = 200;
+
+	efi_status = m_client->set_var_check_property(
+		m_common_guid,
+		var_name,
+		check_property,
+		(var_name.size() + 1) * sizeof(int16_t) + 1);
+	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+}
+
+TEST(SmmVariableAttackTests, setCheckPropertyWithMaxSizeName)
+{
+	efi_status_t efi_status = EFI_SUCCESS;
+	std::wstring var_name = L"varibale_1";
+
+	VAR_CHECK_VARIABLE_PROPERTY check_property;
+	check_property.Revision = VAR_CHECK_VARIABLE_PROPERTY_REVISION;
+	check_property.Attributes = 0;
+	check_property.Property = 0;
+	check_property.MinSize = 0;
+	check_property.MaxSize = 200;
+
+	efi_status = m_client->set_var_check_property(
+		m_common_guid,
+		var_name,
+		check_property,
+		std::numeric_limits<size_t>::max());
+	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+}
+
+TEST(SmmVariableAttackTests, getCheckPropertyWithOversizeName)
+{
+	efi_status_t efi_status = EFI_SUCCESS;
+	std::wstring var_name = L"varibale_1";
+
+	VAR_CHECK_VARIABLE_PROPERTY check_property;
+
+	efi_status = m_client->get_var_check_property(
+		m_common_guid,
+		var_name,
+		check_property,
+		(var_name.size() + 1) * sizeof(int16_t) + 1);
+	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+}
+
+TEST(SmmVariableAttackTests, getCheckPropertyWithMaxSizeName)
+{
+	efi_status_t efi_status = EFI_SUCCESS;
+	std::wstring var_name = L"varibale_1";
+
+	VAR_CHECK_VARIABLE_PROPERTY check_property;
+
+	efi_status = m_client->get_var_check_property(
+		m_common_guid,
+		var_name,
+		check_property,
+		std::numeric_limits<size_t>::max());
+	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+}

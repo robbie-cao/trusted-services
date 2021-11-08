@@ -76,6 +76,35 @@ public:
 	/* Exit boot service */
 	efi_status_t exit_boot_service();
 
+	/* Set variable check properties */
+	efi_status_t set_var_check_property(
+		const EFI_GUID &guid,
+		const std::wstring &name,
+		const VAR_CHECK_VARIABLE_PROPERTY &check_property);
+
+	efi_status_t set_var_check_property(
+		const EFI_GUID &guid,
+		const std::wstring &name,
+		const VAR_CHECK_VARIABLE_PROPERTY &check_property,
+		size_t override_name_size);
+
+	/* Get variable check properties */
+	efi_status_t get_var_check_property(
+		const EFI_GUID &guid,
+		const std::wstring &name,
+		VAR_CHECK_VARIABLE_PROPERTY &check_property);
+
+	efi_status_t get_var_check_property(
+		const EFI_GUID &guid,
+		const std::wstring &name,
+		VAR_CHECK_VARIABLE_PROPERTY &check_property,
+		size_t override_name_size);
+
+	/* Get maximum variable payload size */
+	efi_status_t get_payload_zize(
+		size_t &payload_size);
+
+
 private:
 	efi_status_t rpc_to_efi_status() const;
 

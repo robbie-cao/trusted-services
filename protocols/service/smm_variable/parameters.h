@@ -99,5 +99,48 @@ typedef struct {
 	uint32_t		Attributes;
 } SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO;
 
+/**
+ * Variable check property structure. Specifies check constraints
+ * for a variable.
+ */
+typedef struct {
+	uint16_t		Revision;
+	uint16_t		Property;
+	uint32_t		Attributes;
+	uint64_t		MinSize;
+	uint64_t		MaxSize;
+} VAR_CHECK_VARIABLE_PROPERTY;
+
+#define VAR_CHECK_VARIABLE_PROPERTY_READ_ONLY     	(1U << 0)
+
+/* Supported check property revision */
+#define VAR_CHECK_VARIABLE_PROPERTY_REVISION		(0x0001)
+
+/**
+ * Parameter structure for VarCheckVariableProperty Set/Get
+ */
+typedef struct {
+	EFI_GUID					Guid;
+	uint64_t					NameSize;
+	VAR_CHECK_VARIABLE_PROPERTY	VariableProperty;
+	int16_t						Name[1];
+} SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY;
+
+#define SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_NAME_OFFSET \
+	offsetof(SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY, Name)
+
+#define SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_TOTAL_SIZE(s) \
+	(offsetof(SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY, Name) + s->NameSize)
+
+#define SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_SIZE(name_size) \
+	(offsetof(SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY, Name) + name_size)
+
+/**
+ * Parameter structure for GetPayloadSize.
+ */
+typedef struct {
+	uint64_t						VariablePayloadSize;
+} SMM_VARIABLE_COMMUNICATE_GET_PAYLOAD_SIZE;
+
 
 #endif /* TS_SMM_VARIABLE_PARAMETERS_H */

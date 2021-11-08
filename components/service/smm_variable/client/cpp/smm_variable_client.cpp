@@ -168,14 +168,26 @@ efi_status_t smm_variable_client::get_variable(
 
 			efi_status = opstatus;
 
-			if (!efi_status) {
+			if (efi_status == EFI_SUCCESS) {
 
-				access_var = (SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE*)resp_buf;
-				data_size = access_var->DataSize;
-				const char *data_start = (const char*)
-					&resp_buf[SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(access_var)];
+				efi_status = EFI_PROTOCOL_ERROR;
 
-				data.assign(data_start, data_size);
+				if (resp_len >= SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET) {
+
+					access_var = (SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE*)resp_buf;
+
+					if (resp_len >=
+						SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_TOTAL_SIZE(access_var)) {
+
+						data_size = access_var->DataSize;
+						const char *data_start = (const char*)
+						&resp_buf[
+							SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(access_var)];
+
+						data.assign(data_start, data_size);
+						efi_status = EFI_SUCCESS;
+					}
+				}
 			}
 		}
 		else {
@@ -247,11 +259,23 @@ efi_status_t smm_variable_client::get_next_variable_name(
 
 			efi_status = opstatus;
 
-			if (!efi_status) {
+			if (efi_status == EFI_SUCCESS) {
 
-				next_var = (SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME*)resp_buf;
-				guid = next_var->Guid;
-				name = from_variable_name(next_var->Name, next_var->NameSize);
+				efi_status = EFI_PROTOCOL_ERROR;
+
+				if (resp_len >= SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_NAME_OFFSET) {
+
+					next_var = (SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME*)resp_buf;
+
+					if (resp_len >=
+						SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_TOTAL_SIZE(next_var)) {
+
+						guid = next_var->Guid;
+						name = from_variable_name(next_var->Name, next_var->NameSize);
+
+						efi_status = EFI_SUCCESS;
+					}
+				}
 			}
 		}
 		else {
@@ -287,6 +311,205 @@ efi_status_t smm_variable_client::exit_boot_service()
 		if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) {
 
 			efi_status = opstatus;
+		}
+		else {
+
+			efi_status = rpc_to_efi_status();
+		}
+
+		rpc_caller_end(m_caller, call_handle);
+	}
+
+	return efi_status;
+}
+
+efi_status_t smm_variable_client::set_var_check_property(
+	const EFI_GUID &guid,
+	const std::wstring &name,
+	const VAR_CHECK_VARIABLE_PROPERTY &check_property)
+{
+	return set_var_check_property(
+		guid,
+		name,
+		check_property,
+		0);
+}
+
+efi_status_t smm_variable_client::set_var_check_property(
+	const EFI_GUID &guid,
+	const std::wstring &name,
+	const VAR_CHECK_VARIABLE_PROPERTY &check_property,
+	size_t override_name_size)
+{
+	efi_status_t efi_status = EFI_NOT_READY;
+
+	std::vector<int16_t> var_name = to_variable_name(name);
+	size_t name_size = var_name.size() * sizeof(int16_t);
+	size_t req_len = SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_SIZE(name_size);
+
+	rpc_call_handle call_handle;
+	uint8_t *req_buf;
+
+	call_handle = rpc_caller_begin(m_caller, &req_buf, req_len);
+
+	if (call_handle) {
+
+		uint8_t *resp_buf;
+        size_t resp_len;
+		int opstatus;
+
+		SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *req_msg =
+			(SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY*)req_buf;
+
+		req_msg->Guid = guid;
+		req_msg->NameSize = name_size;
+		req_msg->VariableProperty = check_property;
+
+		memcpy(req_msg->Name, var_name.data(), name_size);
+
+		/* To support invalid size testing, use override if set */
+		if (override_name_size) req_msg->NameSize = override_name_size;
+
+		m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
+			SMM_VARIABLE_FUNCTION_VAR_CHECK_VARIABLE_PROPERTY_SET, &opstatus,
+			&resp_buf, &resp_len);
+
+		if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) {
+
+			efi_status = opstatus;
+		}
+		else {
+
+			efi_status = rpc_to_efi_status();
+		}
+
+		rpc_caller_end(m_caller, call_handle);
+	}
+
+	return efi_status;
+}
+
+efi_status_t smm_variable_client::get_var_check_property(
+	const EFI_GUID &guid,
+	const std::wstring &name,
+	VAR_CHECK_VARIABLE_PROPERTY &check_property)
+{
+	return get_var_check_property(
+		guid,
+		name,
+		check_property,
+		0);
+}
+
+efi_status_t smm_variable_client::get_var_check_property(
+	const EFI_GUID &guid,
+	const std::wstring &name,
+	VAR_CHECK_VARIABLE_PROPERTY &check_property,
+	size_t override_name_size)
+{
+	efi_status_t efi_status = EFI_NOT_READY;
+
+	std::vector<int16_t> var_name = to_variable_name(name);
+	size_t name_size = var_name.size() * sizeof(int16_t);
+	size_t req_len = SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_SIZE(name_size);
+
+	rpc_call_handle call_handle;
+	uint8_t *req_buf;
+
+	call_handle = rpc_caller_begin(m_caller, &req_buf, req_len);
+
+	if (call_handle) {
+
+		uint8_t *resp_buf;
+        size_t resp_len;
+		int opstatus;
+
+		SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *req_msg =
+			(SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY*)req_buf;
+
+		req_msg->Guid = guid;
+		req_msg->NameSize = name_size;
+
+		memcpy(req_msg->Name, var_name.data(), name_size);
+
+		/* To support invalid size testing, use overrides if set */
+		if (override_name_size) req_msg->NameSize = override_name_size;
+
+		m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
+			SMM_VARIABLE_FUNCTION_VAR_CHECK_VARIABLE_PROPERTY_GET, &opstatus,
+			&resp_buf, &resp_len);
+
+		if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) {
+
+			efi_status = opstatus;
+
+			if (efi_status == EFI_SUCCESS) {
+
+				efi_status = EFI_PROTOCOL_ERROR;
+
+				if (resp_len >= SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_NAME_OFFSET) {
+
+					SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *resp_msg =
+						(SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY*)resp_buf;
+
+					if (resp_len >=
+						SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_TOTAL_SIZE(resp_msg)) {
+
+						check_property = resp_msg->VariableProperty;
+						efi_status = EFI_SUCCESS;
+					}
+				}
+			}
+		}
+		else {
+
+			efi_status = rpc_to_efi_status();
+		}
+
+		rpc_caller_end(m_caller, call_handle);
+	}
+
+	return efi_status;
+}
+
+efi_status_t smm_variable_client::get_payload_zize(
+	size_t &payload_size)
+{
+	efi_status_t efi_status = EFI_NOT_READY;
+
+	size_t req_len = 0;
+	rpc_call_handle call_handle;
+	uint8_t *req_buf;
+
+	call_handle = rpc_caller_begin(m_caller, &req_buf, req_len);
+
+	if (call_handle) {
+
+		uint8_t *resp_buf;
+        size_t resp_len;
+		int opstatus;
+
+		m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
+			SMM_VARIABLE_FUNCTION_GET_PAYLOAD_SIZE, &opstatus, &resp_buf, &resp_len);
+
+		if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) {
+
+			efi_status = opstatus;
+
+			if (efi_status == EFI_SUCCESS) {
+
+				if (resp_len >= sizeof(SMM_VARIABLE_COMMUNICATE_GET_PAYLOAD_SIZE)) {
+
+					SMM_VARIABLE_COMMUNICATE_GET_PAYLOAD_SIZE *resp_msg =
+						(SMM_VARIABLE_COMMUNICATE_GET_PAYLOAD_SIZE*)resp_buf;
+
+					payload_size = resp_msg->VariablePayloadSize;
+				}
+				else {
+
+					efi_status = EFI_PROTOCOL_ERROR;
+				}
+			}
 		}
 		else {
 

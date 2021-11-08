@@ -64,7 +64,7 @@ static int find_variable(
 	for (int pos = 0; pos < context->max_variables; pos++) {
 
 		if ((context->entries[pos].in_use) &&
-			(uid == context->entries[pos].info.uid)) {
+			(uid == context->entries[pos].info.metadata.uid)) {
 
 			found_pos = pos;
 			break;
@@ -93,7 +93,7 @@ static int find_free(
 
 static void mark_dirty(struct variable_entry *entry)
 {
-	if (entry->info.attributes & EFI_VARIABLE_NON_VOLATILE)
+	if (entry->info.metadata.attributes & EFI_VARIABLE_NON_VOLATILE)
 		entry->dirty = true;
 }
 
@@ -129,7 +129,7 @@ void variable_index_deinit(
 size_t variable_index_max_dump_size(
 	struct variable_index *context)
 {
-	return sizeof(struct variable_info) * context->max_variables;
+	return sizeof(struct variable_metadata) * context->max_variables;
 }
 
 const struct variable_info *variable_index_find(
@@ -174,7 +174,8 @@ const struct variable_info *variable_index_find_next(
 				++pos;
 				while (pos < context->max_variables) {
 
-					if (context->entries[pos].in_use) {
+					if (context->entries[pos].in_use &&
+						context->entries[pos].info.is_variable_set) {
 
 						result = &context->entries[pos].info;
 						break;
@@ -191,7 +192,8 @@ const struct variable_info *variable_index_find_next(
 
 			while (pos < context->max_variables) {
 
-				if (context->entries[pos].in_use) {
+				if (context->entries[pos].in_use &&
+					context->entries[pos].info.is_variable_set) {
 
 					result = &context->entries[pos].info;
 					break;
@@ -219,22 +221,21 @@ static void set_variable_name(
 	for (size_t i = 0; i < name_size; i++) {
 
 		++trimmed_size;
-		info->name[i] = name[i];
+		info->metadata.name[i] = name[i];
 
 		if (!name[i]) break;
 	}
 
-	info->name_size = trimmed_size * sizeof(int16_t);
+	info->metadata.name_size = trimmed_size * sizeof(int16_t);
 }
 
-const struct variable_info *variable_index_add(
+static struct variable_entry *add_entry(
 	struct variable_index *context,
 	const EFI_GUID *guid,
 	size_t name_size,
-	const int16_t *name,
-	uint32_t attributes)
+	const int16_t *name)
 {
-	struct variable_info *info = NULL;
+	struct variable_entry *entry = NULL;
 
 	if (name_size <= (VARIABLE_INDEX_MAX_NAME_SIZE * sizeof(int16_t))) {
 
@@ -242,23 +243,71 @@ const struct variable_info *variable_index_add(
 
 		if (pos >= 0) {
 
-			struct variable_entry *entry = &context->entries[pos];
+			entry = &context->entries[pos];
 
-			info = &entry->info;
-			info->uid = generate_uid(context, guid, name_size, name);
-			info->guid = *guid;
-			info->attributes = attributes;
+			struct variable_info *info = &entry->info;
+
+			/* Initialize metadata */
+			info->metadata.uid = generate_uid(context, guid, name_size, name);
+			info->metadata.guid = *guid;
+			info->metadata.attributes = 0;
 			set_variable_name(info, name_size, name);
 
-			mark_dirty(entry);
+			info->is_constraints_set = false;
+			info->is_variable_set = false;
+
 			entry->in_use = true;
 		}
+	}
+
+	return entry;
+}
+
+const struct variable_info *variable_index_add_variable(
+	struct variable_index *context,
+	const EFI_GUID *guid,
+	size_t name_size,
+	const int16_t *name,
+	uint32_t attributes)
+{
+	struct variable_info *info = NULL;
+	struct variable_entry *entry = add_entry(context, guid, name_size, name);
+
+	if (entry) {
+
+		info = &entry->info;
+
+		info->metadata.attributes = attributes;
+		info->is_variable_set = true;
+
+		mark_dirty(entry);
 	}
 
 	return info;
 }
 
-void variable_index_remove(
+const struct variable_info *variable_index_add_constraints(
+	struct variable_index *context,
+	const EFI_GUID *guid,
+	size_t name_size,
+	const int16_t *name,
+	const struct variable_constraints *constraints)
+{
+	struct variable_info *info = NULL;
+	struct variable_entry *entry = add_entry(context, guid, name_size, name);
+
+	if (entry) {
+
+		info = &entry->info;
+
+		info->check_constraints = *constraints;
+		info->is_constraints_set = true;
+	}
+
+	return info;
+}
+
+void variable_index_remove_variable(
 	struct variable_index *context,
 	const struct variable_info *info)
 {
@@ -266,14 +315,22 @@ void variable_index_remove(
 
 		struct variable_entry *entry = containing_entry(info);
 		mark_dirty(entry);
-		entry->in_use = false;
 
-		memset(&entry->info, 0, sizeof(struct variable_info));
+		/* Mark variable as no longer set */
+		entry->info.is_variable_set = false;
+
+		/* Entry may still be needed if check constraints were set */
+		entry->in_use = info->is_constraints_set;
+
+		if (!entry->in_use) {
+
+			/* Entry not needed so wipe */
+			memset(&entry->info, 0, sizeof(struct variable_info));
+		}
 	}
 }
 
-void variable_index_update_attributes(
-	struct variable_index *context,
+void variable_index_update_variable(
 	const struct variable_info *info,
 	uint32_t attributes)
 {
@@ -282,11 +339,27 @@ void variable_index_update_attributes(
 		struct variable_info *modified_info = (struct variable_info*)info;
 		struct variable_entry *entry = containing_entry(modified_info);
 
-		if (attributes != modified_info->attributes) {
+		if (!modified_info->is_variable_set ||
+			(attributes != modified_info->metadata.attributes)) {
 
-			modified_info->attributes = attributes;
+			/* The update changes the variable_info state */
+			modified_info->is_variable_set = true;
+			modified_info->metadata.attributes = attributes;
 			mark_dirty(entry);
 		}
+	}
+}
+
+void variable_index_update_constraints(
+	const struct variable_info *info,
+	const struct variable_constraints *constraints)
+{
+	if (info) {
+
+		struct variable_info *modified_info = (struct variable_info*)info;
+
+		modified_info->check_constraints = *constraints;
+		modified_info->is_constraints_set = true;
 	}
 }
 
@@ -303,15 +376,16 @@ bool variable_index_dump(
 	for (int pos = 0; pos < context->max_variables; pos++) {
 
 		struct variable_entry *entry = &context->entries[pos];
-		struct variable_info *info = &entry->info;
+		struct variable_metadata *metadata = &entry->info.metadata;
 
 		if (entry->in_use &&
-			(info->attributes & EFI_VARIABLE_NON_VOLATILE) &&
-			((bytes_dumped + sizeof(struct variable_info)) <= buffer_size)) {
+			entry->info.is_variable_set &&
+			(metadata->attributes & EFI_VARIABLE_NON_VOLATILE) &&
+			((bytes_dumped + sizeof(struct variable_metadata)) <= buffer_size)) {
 
-			memcpy(dump_pos, info, sizeof(struct variable_info));
-			bytes_dumped += sizeof(struct variable_info);
-			dump_pos += sizeof(struct variable_info);
+			memcpy(dump_pos, metadata, sizeof(struct variable_metadata));
+			bytes_dumped += sizeof(struct variable_metadata);
+			dump_pos += sizeof(struct variable_metadata);
 		}
 
 		any_dirty |= entry->dirty;
@@ -334,23 +408,24 @@ size_t variable_index_restore(
 
 	while (bytes_loaded < data_len) {
 
-		if ((data_len - bytes_loaded) >= sizeof(struct variable_info)) {
+		if ((data_len - bytes_loaded) >= sizeof(struct variable_metadata)) {
 
 			struct variable_entry *entry = &context->entries[pos];
-			struct variable_info *info = &entry->info;
+			struct variable_metadata *metadata = &entry->info.metadata;
 
-			memcpy(info, load_pos, sizeof(struct variable_info));
+			memcpy(metadata, load_pos, sizeof(struct variable_metadata));
 
+			entry->info.is_variable_set = true;
 			entry->in_use = true;
 
-			bytes_loaded += sizeof(struct variable_info);
-			load_pos += sizeof(struct variable_info);
+			bytes_loaded += sizeof(struct variable_metadata);
+			load_pos += sizeof(struct variable_metadata);
 
 			++pos;
 		}
 		else {
 
-			/* Not a whole number of variable_info structs! */
+			/* Not a whole number of variable_metadata structs! */
 			break;
 		}
 	}

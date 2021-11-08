@@ -71,7 +71,7 @@ TEST_GROUP(UefiVariableIndexTests)
 	{
 		const struct variable_info *info = NULL;
 
-		info = variable_index_add(
+		info = variable_index_add_variable(
 			&m_variable_index,
 			&guid_1,
 			name_1.size() * sizeof(int16_t),
@@ -80,7 +80,7 @@ TEST_GROUP(UefiVariableIndexTests)
 
 		CHECK_TRUE(info);
 
-		info = variable_index_add(
+		info = variable_index_add_variable(
 			&m_variable_index,
 			&guid_2,
 			name_2.size() * sizeof(int16_t),
@@ -89,7 +89,7 @@ TEST_GROUP(UefiVariableIndexTests)
 
 		CHECK_TRUE(info);
 
-		info = variable_index_add(
+		info = variable_index_add_variable(
 			&m_variable_index,
 			&guid_1,
 			name_3.size() * sizeof(int16_t),
@@ -130,7 +130,7 @@ TEST(UefiVariableIndexTests, emptyIndexOperations)
 	POINTERS_EQUAL(NULL, info);
 
 	/* Remove should silently return */
-	variable_index_remove(
+	variable_index_remove_variable(
 		&m_variable_index,
 		info);
 }
@@ -142,7 +142,7 @@ TEST(UefiVariableIndexTests, addWithOversizedName)
 
 	name = to_variable_name(L"a long variable name that exceeds the length limit");
 
-	info = variable_index_add(
+	info = variable_index_add_variable(
 		&m_variable_index,
 		&guid_1,
 		name.size() * sizeof(int16_t),
@@ -154,7 +154,7 @@ TEST(UefiVariableIndexTests, addWithOversizedName)
 
 	name = to_variable_name(L"a long variable name that fits!");
 
-	info = variable_index_add(
+	info = variable_index_add_variable(
 		&m_variable_index,
 		&guid_1,
 		name.size() * sizeof(int16_t),
@@ -173,7 +173,7 @@ TEST(UefiVariableIndexTests, variableIndexFull)
 	/* Expect to be able to fill the index */
 	for (size_t i = 0; i < MAX_VARIABLES; ++i) {
 
-		info = variable_index_add(
+		info = variable_index_add_variable(
 			&m_variable_index,
 			&guid,
 			name_1.size() * sizeof(int16_t),
@@ -187,7 +187,7 @@ TEST(UefiVariableIndexTests, variableIndexFull)
 	}
 
 	/* Variable index should now be full */
-	info = variable_index_add(
+	info = variable_index_add_variable(
 		&m_variable_index,
 		&guid,
 		name_1.size() * sizeof(int16_t),
@@ -211,41 +211,41 @@ TEST(UefiVariableIndexTests, enumerateStore)
 		null_name.size() * sizeof(int16_t),
 		null_name.data());
 	CHECK_TRUE(info);
-	LONGS_EQUAL(EFI_VARIABLE_BOOTSERVICE_ACCESS, info->attributes);
-	MEMCMP_EQUAL(&guid_1, &info->guid, sizeof(EFI_GUID));
-	MEMCMP_EQUAL(name_1.data(), info->name, name_1.size());
+	LONGS_EQUAL(EFI_VARIABLE_BOOTSERVICE_ACCESS, info->metadata.attributes);
+	MEMCMP_EQUAL(&guid_1, &info->metadata.guid, sizeof(EFI_GUID));
+	MEMCMP_EQUAL(name_1.data(), info->metadata.name, name_1.size());
 
 	info = variable_index_find_next(
 		&m_variable_index,
-		&info->guid,
-		info->name_size,
-		info->name);
+		&info->metadata.guid,
+		info->metadata.name_size,
+		info->metadata.name);
 	CHECK_TRUE(info);
-	LONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS, info->attributes);
-	MEMCMP_EQUAL(&guid_2, &info->guid, sizeof(EFI_GUID));
-	MEMCMP_EQUAL(name_2.data(), info->name, name_2.size());
+	LONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS, info->metadata.attributes);
+	MEMCMP_EQUAL(&guid_2, &info->metadata.guid, sizeof(EFI_GUID));
+	MEMCMP_EQUAL(name_2.data(), info->metadata.name, name_2.size());
 
 	info = variable_index_find_next(
 		&m_variable_index,
-		&info->guid,
-		info->name_size,
-		info->name);
+		&info->metadata.guid,
+		info->metadata.name_size,
+		info->metadata.name);
 	CHECK_TRUE(info);
-	LONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS, info->attributes);
-	MEMCMP_EQUAL(&guid_1, &info->guid, sizeof(EFI_GUID));
-	MEMCMP_EQUAL(name_3.data(), info->name, name_3.size());
+	LONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS, info->metadata.attributes);
+	MEMCMP_EQUAL(&guid_1, &info->metadata.guid, sizeof(EFI_GUID));
+	MEMCMP_EQUAL(name_3.data(), info->metadata.name, name_3.size());
 
 	info = variable_index_find_next(
 		&m_variable_index,
-		&info->guid,
-		info->name_size,
-		info->name);
+		&info->metadata.guid,
+		info->metadata.name_size,
+		info->metadata.name);
 	POINTERS_EQUAL(NULL, info);
 }
 
 TEST(UefiVariableIndexTests, dumpLoadRoadtrip)
 {
-	uint8_t buffer[MAX_VARIABLES * sizeof(struct variable_info)];
+	uint8_t buffer[MAX_VARIABLES * sizeof(struct variable_metadata)];
 
 	create_variables();
 
@@ -254,14 +254,14 @@ TEST(UefiVariableIndexTests, dumpLoadRoadtrip)
 	bool is_dirty = variable_index_dump(&m_variable_index, sizeof(buffer), buffer, &dump_len);
 
 	CHECK_TRUE(is_dirty);
-	UNSIGNED_LONGS_EQUAL((sizeof(struct variable_info) * 2), dump_len);
+	UNSIGNED_LONGS_EQUAL((sizeof(struct variable_metadata) * 2), dump_len);
 
 	/* Expect no records to be dirty when the dump is repeated */
 	dump_len = 0;
 	is_dirty = variable_index_dump(&m_variable_index, sizeof(buffer), buffer, &dump_len);
 
 	CHECK_FALSE(is_dirty);
-	UNSIGNED_LONGS_EQUAL((sizeof(struct variable_info) * 2), dump_len);
+	UNSIGNED_LONGS_EQUAL((sizeof(struct variable_metadata) * 2), dump_len);
 
 	/* Tear down and reinitialize to simulate a reboot */
 	variable_index_deinit(&m_variable_index);
@@ -283,28 +283,28 @@ TEST(UefiVariableIndexTests, dumpLoadRoadtrip)
 		null_name.data());
 	CHECK_TRUE(info);
 	UNSIGNED_LONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS,
-		info->attributes);
+		info->metadata.attributes);
 
 	info = variable_index_find_next(
 		&m_variable_index,
-		&info->guid,
-		info->name_size,
-		info->name);
+		&info->metadata.guid,
+		info->metadata.name_size,
+		info->metadata.name);
 	CHECK_TRUE(info);
 	UNSIGNED_LONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS,
-		info->attributes);
+		info->metadata.attributes);
 
 	info = variable_index_find_next(
 		&m_variable_index,
-		&info->guid,
-		info->name_size,
-		info->name);
+		&info->metadata.guid,
+		info->metadata.name_size,
+		info->metadata.name);
 	POINTERS_EQUAL(NULL, info);
 }
 
 TEST(UefiVariableIndexTests, dumpBufferTooSmall)
 {
-	uint8_t buffer[1 * sizeof(struct variable_info) + 1];
+	uint8_t buffer[1 * sizeof(struct variable_metadata) + 1];
 
 	create_variables();
 
@@ -316,13 +316,13 @@ TEST(UefiVariableIndexTests, dumpBufferTooSmall)
 	bool is_dirty = variable_index_dump(&m_variable_index, sizeof(buffer), buffer, &dump_len);
 
 	CHECK_TRUE(is_dirty);
-	UNSIGNED_LONGS_EQUAL(sizeof(struct variable_info) * 1, dump_len);
+	UNSIGNED_LONGS_EQUAL(sizeof(struct variable_metadata) * 1, dump_len);
 }
 
 
 TEST(UefiVariableIndexTests, removeVariable)
 {
-	uint8_t buffer[MAX_VARIABLES * sizeof(struct variable_info)];
+	uint8_t buffer[MAX_VARIABLES * sizeof(struct variable_metadata)];
 	const struct variable_info *info = NULL;
 
 	create_variables();
@@ -334,7 +334,7 @@ TEST(UefiVariableIndexTests, removeVariable)
 		name_2.size() * sizeof(int16_t),
 		name_2.data());
 
-	variable_index_remove(
+	variable_index_remove_variable(
 		&m_variable_index,
 		info);
 
@@ -343,7 +343,7 @@ TEST(UefiVariableIndexTests, removeVariable)
 	bool is_dirty = variable_index_dump(&m_variable_index, sizeof(buffer), buffer, &dump_len);
 
 	CHECK_TRUE(is_dirty);
-	UNSIGNED_LONGS_EQUAL((sizeof(struct variable_info) * 1), dump_len);
+	UNSIGNED_LONGS_EQUAL((sizeof(struct variable_metadata) * 1), dump_len);
 
 	/* Remove the volatile variable */
 	info = variable_index_find(
@@ -352,7 +352,7 @@ TEST(UefiVariableIndexTests, removeVariable)
 		name_1.size() * sizeof(int16_t),
 		name_1.data());
 
-	variable_index_remove(
+	variable_index_remove_variable(
 		&m_variable_index,
 		info);
 
@@ -361,7 +361,7 @@ TEST(UefiVariableIndexTests, removeVariable)
 	is_dirty = variable_index_dump(&m_variable_index, sizeof(buffer), buffer, &dump_len);
 
 	CHECK_FALSE(is_dirty);
-	UNSIGNED_LONGS_EQUAL((sizeof(struct variable_info) * 1), dump_len);
+	UNSIGNED_LONGS_EQUAL((sizeof(struct variable_metadata) * 1), dump_len);
 
 	/* Remove the remaining NV variable */
 	info = variable_index_find(
@@ -370,7 +370,7 @@ TEST(UefiVariableIndexTests, removeVariable)
 		name_3.size() * sizeof(int16_t),
 		name_3.data());
 
-	variable_index_remove(
+	variable_index_remove_variable(
 		&m_variable_index,
 		info);
 
@@ -379,14 +379,7 @@ TEST(UefiVariableIndexTests, removeVariable)
 	is_dirty = variable_index_dump(&m_variable_index, sizeof(buffer), buffer, &dump_len);
 
 	CHECK_TRUE(is_dirty);
-	UNSIGNED_LONGS_EQUAL((sizeof(struct variable_info) * 0), dump_len);
-
-	/* Repeat the remove on an empty index. This should have no effect on the empty state
-	 * of the index.
-	 */
-	variable_index_remove(
-		&m_variable_index,
-		info);
+	UNSIGNED_LONGS_EQUAL((sizeof(struct variable_metadata) * 0), dump_len);
 
 	/* Enumerate and now expect an empty index */
 	info = NULL;
@@ -414,8 +407,8 @@ TEST(UefiVariableIndexTests, checkIterator)
 	/* Check first entry is as expected */
 	info = variable_index_iterator_current(&iter);
 	CHECK_TRUE(info);
-	UNSIGNED_LONGS_EQUAL(name_1.size() * sizeof(int16_t), info->name_size);
-	MEMCMP_EQUAL(name_1.data(), info->name, info->name_size);
+	UNSIGNED_LONGS_EQUAL(name_1.size() * sizeof(int16_t), info->metadata.name_size);
+	MEMCMP_EQUAL(name_1.data(), info->metadata.name, info->metadata.name_size);
 
 	variable_index_iterator_next(&iter);
 	CHECK_FALSE(variable_index_iterator_is_done(&iter));
@@ -423,8 +416,8 @@ TEST(UefiVariableIndexTests, checkIterator)
 	/* Check next is as expected */
 	info = variable_index_iterator_current(&iter);
 	CHECK_TRUE(info);
-	UNSIGNED_LONGS_EQUAL(name_2.size() * sizeof(int16_t), info->name_size);
-	MEMCMP_EQUAL(name_2.data(), info->name, info->name_size);
+	UNSIGNED_LONGS_EQUAL(name_2.size() * sizeof(int16_t), info->metadata.name_size);
+	MEMCMP_EQUAL(name_2.data(), info->metadata.name, info->metadata.name_size);
 
 	const struct variable_info *info_to_remove = info;
 
@@ -434,15 +427,15 @@ TEST(UefiVariableIndexTests, checkIterator)
 	/* Check next is as expected */
 	info = variable_index_iterator_current(&iter);
 	CHECK_TRUE(info);
-	UNSIGNED_LONGS_EQUAL(name_3.size() * sizeof(int16_t), info->name_size);
-	MEMCMP_EQUAL(name_3.data(), info->name, info->name_size);
+	UNSIGNED_LONGS_EQUAL(name_3.size() * sizeof(int16_t), info->metadata.name_size);
+	MEMCMP_EQUAL(name_3.data(), info->metadata.name, info->metadata.name_size);
 
 	/* Expect iterating to be done */
 	variable_index_iterator_next(&iter);
 	CHECK_TRUE(variable_index_iterator_is_done(&iter));
 
 	/* Now remove the middle entry */
-	variable_index_remove(&m_variable_index, info_to_remove);
+	variable_index_remove_variable(&m_variable_index, info_to_remove);
 
 	/* Iterate again but this time there should only be two entries */
 	variable_index_iterator_first(&iter, &m_variable_index);
@@ -451,8 +444,8 @@ TEST(UefiVariableIndexTests, checkIterator)
 	/* Check first entry is as expected */
 	info = variable_index_iterator_current(&iter);
 	CHECK_TRUE(info);
-	UNSIGNED_LONGS_EQUAL(name_1.size() * sizeof(int16_t), info->name_size);
-	MEMCMP_EQUAL(name_1.data(), info->name, info->name_size);
+	UNSIGNED_LONGS_EQUAL(name_1.size() * sizeof(int16_t), info->metadata.name_size);
+	MEMCMP_EQUAL(name_1.data(), info->metadata.name, info->metadata.name_size);
 
 	variable_index_iterator_next(&iter);
 	CHECK_FALSE(variable_index_iterator_is_done(&iter));
@@ -460,10 +453,171 @@ TEST(UefiVariableIndexTests, checkIterator)
 	/* Check next entry is as expected */
 	info = variable_index_iterator_current(&iter);
 	CHECK_TRUE(info);
-	UNSIGNED_LONGS_EQUAL(name_3.size() * sizeof(int16_t), info->name_size);
-	MEMCMP_EQUAL(name_3.data(), info->name, info->name_size);
+	UNSIGNED_LONGS_EQUAL(name_3.size() * sizeof(int16_t), info->metadata.name_size);
+	MEMCMP_EQUAL(name_3.data(), info->metadata.name, info->metadata.name_size);
 
 	/* Expect iterating to be done */
 	variable_index_iterator_next(&iter);
 	CHECK_TRUE(variable_index_iterator_is_done(&iter));
+}
+
+TEST(UefiVariableIndexTests, setCheckConstraintsExistingVar)
+{
+	/* Variable check constraints are set using an independent SMM
+	 * function from setting a variable. A client may set constraints
+	 * for an existing variable or a non-existing one. This test case
+	 * covers setting check constraints for an existing variable.
+	 */
+	create_variables();
+
+	struct variable_constraints constraints;
+	constraints.revision = 10;
+	constraints.property = VAR_CHECK_VARIABLE_PROPERTY_READ_ONLY;
+	constraints.attributes = 0;
+	constraints.min_size = 1;
+	constraints.max_size = 100;
+
+	/* Set check constraints on one of the variables */
+	const struct variable_info *info = variable_index_find(
+		&m_variable_index,
+		&guid_2,
+		name_2.size() * sizeof(int16_t),
+		name_2.data());
+
+	CHECK_TRUE(info);
+	CHECK_TRUE(info->is_variable_set);
+	CHECK_FALSE(info->is_constraints_set);
+
+	variable_index_update_constraints(info, &constraints);
+
+	CHECK_TRUE(info->is_constraints_set);
+	CHECK_TRUE(info->is_variable_set);
+
+	/* Remove the variable but still expect the variable to be indexed
+	 * because of the set constraints.
+	 */
+	variable_index_remove_variable(
+		&m_variable_index,
+		info);
+
+	info = variable_index_find(
+		&m_variable_index,
+		&guid_2,
+		name_2.size() * sizeof(int16_t),
+		name_2.data());
+
+	CHECK_TRUE(info);
+	CHECK_FALSE(info->is_variable_set);
+	CHECK_TRUE(info->is_constraints_set);
+
+	/* Enumerate over variables, only expecting to find the two remaining 'set' variables. */
+	info = NULL;
+	std::vector<int16_t> null_name = to_variable_name(L"");
+
+	info = variable_index_find_next(
+		&m_variable_index,
+		&guid_1,
+		null_name.size() * sizeof(int16_t),
+		null_name.data());
+	CHECK_TRUE(info);
+	UNSIGNED_LONGS_EQUAL(EFI_VARIABLE_BOOTSERVICE_ACCESS, info->metadata.attributes);
+
+	info = variable_index_find_next(
+		&m_variable_index,
+		&info->metadata.guid,
+		info->metadata.name_size,
+		info->metadata.name);
+	CHECK_TRUE(info);
+	UNSIGNED_LONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS,
+		info->metadata.attributes);
+
+	info = variable_index_find_next(
+		&m_variable_index,
+		&info->metadata.guid,
+		info->metadata.name_size,
+		info->metadata.name);
+	CHECK_FALSE(info);
+
+	/* Iterating over the index should still return all three because the set constraints
+	 * for variable 2 still persist.
+	 */
+	struct variable_index_iterator iter;
+
+	variable_index_iterator_first(&iter, &m_variable_index);
+	CHECK_FALSE(variable_index_iterator_is_done(&iter));
+
+	/* Check first entry is as expected */
+	info = variable_index_iterator_current(&iter);
+	CHECK_TRUE(info);
+	UNSIGNED_LONGS_EQUAL(name_1.size() * sizeof(int16_t), info->metadata.name_size);
+	MEMCMP_EQUAL(name_1.data(), info->metadata.name, info->metadata.name_size);
+
+	variable_index_iterator_next(&iter);
+	CHECK_FALSE(variable_index_iterator_is_done(&iter));
+
+	/* Check next is as expected */
+	info = variable_index_iterator_current(&iter);
+	CHECK_TRUE(info);
+	UNSIGNED_LONGS_EQUAL(name_2.size() * sizeof(int16_t), info->metadata.name_size);
+	MEMCMP_EQUAL(name_2.data(), info->metadata.name, info->metadata.name_size);
+
+	variable_index_iterator_next(&iter);
+	CHECK_FALSE(variable_index_iterator_is_done(&iter));
+
+	/* Check next is as expected */
+	info = variable_index_iterator_current(&iter);
+	CHECK_TRUE(info);
+	UNSIGNED_LONGS_EQUAL(name_3.size() * sizeof(int16_t), info->metadata.name_size);
+	MEMCMP_EQUAL(name_3.data(), info->metadata.name, info->metadata.name_size);
+
+	/* Expect iterating to be done */
+	variable_index_iterator_next(&iter);
+	CHECK_TRUE(variable_index_iterator_is_done(&iter));
+}
+
+TEST(UefiVariableIndexTests, setCheckConstraintsNonExistingVar)
+{
+	/* This test case covers setting check constraints for a variable
+	 * that hasn't been set yet.
+	 */
+	struct variable_constraints constraints;
+	constraints.revision = 10;
+	constraints.property = VAR_CHECK_VARIABLE_PROPERTY_READ_ONLY;
+	constraints.attributes = 0;
+	constraints.min_size = 1;
+	constraints.max_size = 100;
+
+	/* Initially expect no variable_info */
+	const struct variable_info *info = variable_index_find(
+		&m_variable_index,
+		&guid_2,
+		name_2.size() * sizeof(int16_t),
+		name_2.data());
+
+	CHECK_FALSE(info);
+
+	/* Adding the check constraints should result in an entry being added */
+	info = variable_index_add_constraints(
+		&m_variable_index,
+		&guid_2,
+		name_2.size() * sizeof(int16_t),
+		name_2.data(),
+		&constraints);
+
+	CHECK_TRUE(info);
+	CHECK_FALSE(info->is_variable_set);
+	CHECK_TRUE(info->is_constraints_set);
+
+	/* Updating the variable should cause the variable to be marked as set */
+	variable_index_update_variable(info, EFI_VARIABLE_RUNTIME_ACCESS);
+
+	CHECK_TRUE(info->is_variable_set);
+	CHECK_TRUE(info->is_constraints_set);
+
+	/* Check the constraints are as expected */
+	UNSIGNED_LONGS_EQUAL(constraints.revision, info->check_constraints.revision);
+	UNSIGNED_LONGS_EQUAL(constraints.property, info->check_constraints.property);
+	UNSIGNED_LONGS_EQUAL(constraints.attributes, info->check_constraints.attributes);
+	UNSIGNED_LONGS_EQUAL(constraints.min_size, info->check_constraints.min_size);
+	UNSIGNED_LONGS_EQUAL(constraints.max_size, info->check_constraints.max_size);
 }

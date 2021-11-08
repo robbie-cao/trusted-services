@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <protocols/common/efi/efi_status.h>
 #include <protocols/service/smm_variable/smm_variable_proto.h>
+#include "variable_checker.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,17 +25,31 @@ extern "C" {
 #define VARIABLE_INDEX_MAX_NAME_SIZE		(32)
 
 /**
- * \brief variable_info structure definition
+ * \brief variable_metadata structure definition
  *
- * Holds information about a stored variable.
+ * Holds metadata associated with stored variable.
  */
-struct variable_info
+struct variable_metadata
 {
 	EFI_GUID	guid;
 	size_t		name_size;
 	int16_t		name[VARIABLE_INDEX_MAX_NAME_SIZE];
 	uint32_t	attributes;
 	uint64_t	uid;
+};
+
+/**
+ * \brief variable_info structure definition
+ *
+ * Holds information about a stored variable.
+ */
+struct variable_info
+{
+	struct variable_metadata metadata;
+	struct variable_constraints check_constraints;
+
+	bool is_variable_set;
+	bool is_constraints_set;
 };
 
 /**
@@ -137,7 +152,7 @@ const struct variable_info *variable_index_find_next(
  *
  * @return     Pointer to variable_info or NULL
  */
-const struct variable_info *variable_index_add(
+const struct variable_info *variable_index_add_variable(
 	struct variable_index *context,
 	const EFI_GUID *guid,
 	size_t name_size,
@@ -152,21 +167,47 @@ const struct variable_info *variable_index_add(
  * @param[in]  context variable_index
  * @param[in]  info The variable info corresponding to the entry to remove
  */
-void variable_index_remove(
+void variable_index_remove_variable(
 	struct variable_index *context,
 	const struct variable_info *info);
 
 /**
- * @brief      Update variable attributes
+ * @brief      Update a variable that's already in the index
  *
- * @param[in]  context variable_index
  * @param[in]  info variable info
  * @param[in]  attributes The variable's attributes
  */
-void variable_index_update_attributes(
-	struct variable_index *context,
+void variable_index_update_variable(
 	const struct variable_info *info,
 	uint32_t attributes);
+
+/**
+ * @brief      Add a new check constraints object to the index
+ *
+ * @param[in]  context variable_index
+ * @param[in]  guid The variable's guid
+ * @param[in]  name_size The name parameter's size
+ * @param[in]  name The variable's name
+ * @param[in]  constraints The check constraints
+ *
+ * @return     Pointer to variable_info or NULL
+ */
+const struct variable_info *variable_index_add_constraints(
+	struct variable_index *context,
+	const EFI_GUID *guid,
+	size_t name_size,
+	const int16_t *name,
+	const struct variable_constraints *constraints);
+
+/**
+ * @brief      Update variable constraints that are already in the index
+ *
+ * @param[in]  info variable info
+ * @param[in]  constraints The check constraints
+ */
+void variable_index_update_constraints(
+	const struct variable_info *info,
+	const struct variable_constraints *constraints);
 
 /**
  * @brief      Dump the serialized index contents for persistent backup

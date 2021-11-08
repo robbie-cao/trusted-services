@@ -275,3 +275,144 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 	efi_status = m_client->remove_variable(m_common_guid, var_name_3);
 	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
 }
+
+TEST(SmmVariableServiceTests, setReadOnlyConstraint)
+{
+	efi_status_t efi_status = EFI_SUCCESS;
+	std::wstring var_name_1 = L"ro_variable";
+	std::string set_data = "A read only variable";
+
+	/* Add a variable to the store */
+	efi_status = m_client->set_variable(
+		m_common_guid,
+		var_name_1,
+		set_data,
+		0);
+
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	/* Apply a check to constrain to Read Only */
+	VAR_CHECK_VARIABLE_PROPERTY check_property;
+	check_property.Revision = VAR_CHECK_VARIABLE_PROPERTY_REVISION;
+	check_property.Attributes = 0;
+	check_property.Property = VAR_CHECK_VARIABLE_PROPERTY_READ_ONLY;
+	check_property.MinSize = 0;
+	check_property.MaxSize = 100;
+
+	efi_status = m_client->set_var_check_property(
+		m_common_guid,
+		var_name_1,
+		check_property);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	/* Read back the check property constraint and expect it to match the set value */
+	VAR_CHECK_VARIABLE_PROPERTY got_check_property;
+
+	efi_status = m_client->get_var_check_property(
+		m_common_guid,
+		var_name_1,
+		got_check_property);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	UNSIGNED_LONGS_EQUAL(check_property.Revision, got_check_property.Revision);
+	UNSIGNED_LONGS_EQUAL(check_property.Attributes, got_check_property.Attributes);
+	UNSIGNED_LONGS_EQUAL(check_property.Property, got_check_property.Property);
+	UNSIGNED_LONGS_EQUAL(check_property.MinSize, got_check_property.MinSize);
+	UNSIGNED_LONGS_EQUAL(check_property.MaxSize, got_check_property.MaxSize);
+
+	/* Attempt to modify variable */
+	efi_status = m_client->set_variable(
+		m_common_guid,
+		var_name_1,
+		std::string("Different variable data"),
+		0);
+
+	UNSIGNED_LONGS_EQUAL(EFI_WRITE_PROTECTED, efi_status);
+
+	/* Expect to still be able to read variable */
+	std::string get_data;
+
+	efi_status = m_client->get_variable(
+		m_common_guid,
+		var_name_1,
+		get_data);
+
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	/* Variable value should be unmodified */
+	UNSIGNED_LONGS_EQUAL(set_data.size(), get_data.size());
+	LONGS_EQUAL(0, get_data.compare(set_data));
+}
+
+TEST(SmmVariableServiceTests, setSizeConstraint)
+{
+	efi_status_t efi_status = EFI_SUCCESS;
+	std::wstring var_name_1 = L"size_limited_variable";
+	std::string set_data = "Initial value";
+
+	/* Add a variable to the store */
+	efi_status = m_client->set_variable(
+		m_common_guid,
+		var_name_1,
+		set_data,
+		0);
+
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	/* Apply a check to constrain the variable size */
+	VAR_CHECK_VARIABLE_PROPERTY check_property;
+	check_property.Revision = VAR_CHECK_VARIABLE_PROPERTY_REVISION;
+	check_property.Attributes = 0;
+	check_property.Property = 0;
+	check_property.MinSize = 0;
+	check_property.MaxSize = 20;
+
+	efi_status = m_client->set_var_check_property(
+		m_common_guid,
+		var_name_1,
+		check_property);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	/* Attempt to set value to a size that exceeds the MaxSize constraint */
+	efi_status = m_client->set_variable(
+		m_common_guid,
+		var_name_1,
+		std::string("A data value that exceeds the MaxSize constraint"),
+		0);
+	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+
+	/* But setting a value that's within the constraints should work */
+	efi_status = m_client->set_variable(
+		m_common_guid,
+		var_name_1,
+		std::string("Small value"),
+		0);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	/* Removing should be allowed though */
+	efi_status = m_client->remove_variable(m_common_guid, var_name_1);
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	/* Although the variable has been removed, the constraint should
+	 * still be set.
+	 */
+	efi_status = m_client->set_variable(
+		m_common_guid,
+		var_name_1,
+		std::string("Another try to set a value that exceeds the MaxSize constraint"),
+		0);
+	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+}
+
+TEST(SmmVariableServiceTests, checkMaxVariablePayload)
+{
+	efi_status_t efi_status = EFI_SUCCESS;
+	size_t max_payload_size = 0;
+
+	/* Expect to read a reasonable size for the variable payload */
+	efi_status = m_client->get_payload_zize(max_payload_size);
+
+	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	CHECK_TRUE(max_payload_size >= 1024);
+	CHECK_TRUE(max_payload_size <= 64 * 1024);
+}
