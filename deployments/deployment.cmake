@@ -23,6 +23,7 @@ set(ENV{TS_ROOT} "${TS_ROOT}")
 include(${TS_ROOT}/tools/cmake/common/Utils.cmake REQUIRED)
 include(${TS_ROOT}/tools/cmake/common/AddComponents.cmake REQUIRED)
 include(${TS_ROOT}/tools/cmake/common/AddPlatform.cmake REQUIRED)
+include(${TS_ROOT}/tools/cmake/common/TsGetVersion.cmake REQUIRED)
 
 # Check build environment requirements are met
 ts_verify_build_env()
