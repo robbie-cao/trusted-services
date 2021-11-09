@@ -19,6 +19,9 @@ static void load_variable_index(
 static efi_status_t sync_variable_index(
 	struct uefi_variable_store *context);
 
+static efi_status_t check_capabilities(
+	const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var);
+
 static efi_status_t check_access_permitted(
 	const struct uefi_variable_store *context,
 	const struct variable_info *info);
@@ -113,7 +116,10 @@ efi_status_t uefi_variable_store_set_variable(
 	efi_status_t status = check_name_terminator(var->Name, var->NameSize);
 	if (status != EFI_SUCCESS) return status;
 
+	status = check_capabilities(var);
 	bool should_sync_index = false;
+
+	if (status != EFI_SUCCESS) return status;
 
 	/* Find in index */
 	const struct variable_info *info = variable_index_find(
@@ -425,6 +431,24 @@ static efi_status_t sync_variable_index(
 	return status;
 }
 
+static efi_status_t check_capabilities(
+	const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var)
+{
+	efi_status_t status = EFI_SUCCESS;
+
+	/* Check if any unsupported variable attributes have been requested */
+	if (var->Attributes & ~(
+		EFI_VARIABLE_NON_VOLATILE |
+		EFI_VARIABLE_BOOTSERVICE_ACCESS |
+		EFI_VARIABLE_RUNTIME_ACCESS)) {
+
+		/* An unsupported attribute has been requested */
+		status = EFI_UNSUPPORTED;
+	}
+
+	return status;
+}
+
 static efi_status_t check_access_permitted(
 	const struct uefi_variable_store *context,
 	const struct variable_info *info)
@@ -460,6 +484,17 @@ static efi_status_t check_access_permitted_on_set(
 			&info->check_constraints,
 			var->Attributes,
 			var->DataSize);
+	}
+
+	if ((status == EFI_SUCCESS) && var->DataSize) {
+
+		/* Restrict which attributes can be modified for an existing variable */
+		if ((var->Attributes & EFI_VARIABLE_NON_VOLATILE) !=
+			(info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE)) {
+
+			/* Don't permit change of storage class */
+			status = EFI_INVALID_PARAMETER;
+		}
 	}
 
 	return status;

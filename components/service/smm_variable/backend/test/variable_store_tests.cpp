@@ -553,6 +553,20 @@ TEST(UefiVariableStoreTests, failedNvSet)
 	UNSIGNED_LONGS_EQUAL(EFI_NOT_FOUND, status);
 }
 
+TEST(UefiVariableStoreTests, unsupportedAttribute)
+{
+	efi_status_t status = EFI_SUCCESS;
+	std::wstring var_name_1 = L"test_variable_1";
+	std::string input_data = "blah blah";
+
+	/* Add a variable with an unsupported attribute */
+	status = set_variable(
+		var_name_1,
+		input_data,
+		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_AUTHENTICATED_WRITE_ACCESS);
+	UNSIGNED_LONGS_EQUAL(EFI_UNSUPPORTED, status);
+}
+
 TEST(UefiVariableStoreTests, readOnlycheck)
 {
 	efi_status_t status = EFI_SUCCESS;
