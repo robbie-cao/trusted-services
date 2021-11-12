@@ -49,3 +49,5 @@ if (COVERAGE)
 		OUTPUT_DIRECTORY ${SMM_GATEWAY_COVERAGE_REPORT_DIR}
 	)
 endif()
+
+include(${TS_ROOT}/components/rpc/common/tests.cmake)
