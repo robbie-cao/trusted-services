@@ -51,3 +51,4 @@ if (COVERAGE)
 endif()
 
 include(${TS_ROOT}/components/rpc/common/tests.cmake)
+include(${TS_ROOT}/components/rpc/mm_communicate/endpoint/sp/tests.cmake)
