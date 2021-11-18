@@ -16,6 +16,7 @@ add_components(
 	COMPONENTS
 		"components/app/ts-demo"
 		"components/app/ts-demo/test"
+		"components/common/utils"
 		"components/common/uuid"
 		"components/common/uuid/test"
 		"components/common/tlv"
@@ -117,6 +118,8 @@ add_components(
 		"components/service/test_runner/provider"
 		"components/service/test_runner/provider/serializer/packed-c"
 		"components/service/test_runner/provider/backend/null"
+		"components/service/smm_variable/backend"
+		"components/service/smm_variable/backend/test"
 		"protocols/rpc/common/protobuf"
 		"protocols/rpc/common/packed-c"
 		"protocols/service/crypto/packed-c"
