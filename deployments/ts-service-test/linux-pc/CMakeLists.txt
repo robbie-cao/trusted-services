@@ -80,6 +80,8 @@ add_components(
     COMPONENTS
 		"components/service/test_runner/client/cpp"
 		"components/service/test_runner/test/service"
+		"components/service/smm_variable/client/cpp"
+		"components/service/smm_variable/test/service"
 )
 
 #-------------------------------------------------------------------------------
