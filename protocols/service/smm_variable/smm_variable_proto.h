@@ -10,4 +10,8 @@
 #include <protocols/service/smm_variable/opcodes.h>
 #include <protocols/service/smm_variable/parameters.h>
 
+/* The GUID used to identify the SMM Variable service */
+#define SMM_VARIABLE_GUID \
+	{0xed32d533, 0x99e6, 0x4209, { 0x9c, 0xc0, 0x2d, 0x72, 0xcd, 0xd9, 0x98, 0xa7 }}
+
 #endif /* TS_SMM_VARIABLE_PROTO_H */

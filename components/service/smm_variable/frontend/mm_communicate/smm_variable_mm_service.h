@@ -8,6 +8,7 @@
 
 #include "components/rpc/common/endpoint/rpc_interface.h"
 #include "components/rpc/mm_communicate/endpoint/sp/mm_communicate_call_ep.h"
+#include "protocols/service/smm_variable/smm_variable_proto.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,10 +18,6 @@ extern "C" {
  * MM service interface implementation for parsing SMM variable requests and
  * forwarding them to an RPC interface.
  */
-
-#define SMM_VARIABLE_GUID \
-	{0xed32d533, 0x99e6, 0x4209, { 0x9c, 0xc0, 0x2d, 0x72, 0xcd, 0xd9, 0x98, 0xa7 }}
-
 struct smm_variable_mm_service {
 	struct mm_service_interface mm_service;
 	struct rpc_interface *iface;

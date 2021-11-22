@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -27,7 +27,9 @@ add_components(
 	TARGET "ts"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+		"components/common/utils"
 		"components/rpc/ffarpc/caller/linux"
+		"components/rpc/mm_communicate/caller/linux"
 		"components/service/locator/linux"
 		"components/service/locator/linux/ffa"
 		"components/common/uuid"
