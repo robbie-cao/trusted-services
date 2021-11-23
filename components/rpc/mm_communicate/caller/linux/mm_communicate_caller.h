@@ -28,7 +28,6 @@ struct mm_communicate_caller
 	int ffa_fd;
 	const char *ffa_device_path;
 	uint16_t dest_partition_id;
-	uint16_t dest_iface_id;
 	uint8_t *comm_buffer;
 	size_t comm_buffer_size;
 	size_t req_len;
@@ -55,7 +54,6 @@ size_t mm_communicate_caller_discover(
 int mm_communicate_caller_open(
 	struct mm_communicate_caller *s,
 	uint16_t dest_partition_id,
-	uint16_t dest_iface_id,
 	const EFI_GUID *svc_guid);
 
 int mm_communicate_caller_close(

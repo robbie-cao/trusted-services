@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -21,7 +21,11 @@ target_include_directories(ts-service-test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 add_components(
 	TARGET "ts-service-test"
 	BASE_DIR ${TS_ROOT}
-	COMPONENTS   "components/app/test-runner"
+	COMPONENTS
+		"components/app/test-runner"
+# Running smm_variable tests currently requires kernel built with CONFIG_STRICT_DEVMEM=n
+#		"components/service/smm_variable/client/cpp"
+#		"components/service/smm_variable/test/service"
  )
 
 include(${TS_ROOT}/external/CppUTest/CppUTest.cmake)

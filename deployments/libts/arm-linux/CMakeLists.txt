@@ -32,6 +32,7 @@ add_components(
 		"components/rpc/mm_communicate/caller/linux"
 		"components/service/locator/linux"
 		"components/service/locator/linux/ffa"
+		"components/service/locator/linux/mm_communicate"
 		"components/common/uuid"
 )
 
