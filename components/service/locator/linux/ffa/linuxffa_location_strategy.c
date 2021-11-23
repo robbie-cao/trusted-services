@@ -116,6 +116,7 @@ static size_t suggest_tf_org_partition_uuids(const char *sn,
 		{"protected-storage",           "751bf801-3dde-4768-a514-0f10aeed1790",	0},
 		{"test-runner",                 "33c75baf-ac6a-4fe4-8ac7-e9909bee2d17",	0},
 		{"attestation",                 "a1baf155-8876-4695-8f7c-54955e8db974",	0},
+		{"smm-variable",                "ed32d533-99e6-4209-9cc0-2d72cdd998a7",	0},
 
 		/* Secure Enclave proxy accessed services */
 		{"crypto",                      "46bb39d1-b4d9-45b5-88ff-040027dab249",	SE_PROXY_INTERFACE_ID_CRYPTO},
