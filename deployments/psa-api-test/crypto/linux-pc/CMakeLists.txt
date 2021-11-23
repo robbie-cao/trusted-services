@@ -13,12 +13,12 @@ include(../../psa-api-test-config.cmake REQUIRED)
 #  linux-pc
 #
 #  Used for building and running psa arch crypto tests in a native PC enviroment.
-#  Tests can be run by running the built executable called "psa-api-test"
+#  Tests can be run by running the built executable called "psa-crypto-api-test"
 #-------------------------------------------------------------------------------
 include(${TS_ROOT}/environments/linux-pc/env.cmake)
-project(trusted-services LANGUAGES CXX C)
-add_executable(psa-api-test)
-target_include_directories(psa-api-test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
+project(psa-crypto-api-test LANGUAGES CXX C)
+add_executable(${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME} PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 
 #-------------------------------------------------------------------------------
 #  Extend with components that are common across all deployments of

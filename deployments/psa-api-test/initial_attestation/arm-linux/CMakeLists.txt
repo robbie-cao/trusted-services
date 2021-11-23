@@ -14,9 +14,9 @@ include(../../psa-api-test-config.cmake REQUIRED)
 #  Used for building and running psa arch tests on an Arm based Linux device
 #-------------------------------------------------------------------------------
 include(${TS_ROOT}/environments/arm-linux/env.cmake)
-project(trusted-services LANGUAGES CXX C)
-add_executable(psa-api-test)
-target_include_directories(psa-api-test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
+project(psa-iat-api-test LANGUAGES CXX C)
+add_executable(${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME} PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 
 #-------------------------------------------------------------------------------
 #  Extend with components that are common across all deployments of
@@ -28,6 +28,6 @@ include(../iat-api-test.cmake REQUIRED)
 #  Linker option to enable repeated searches for undefined references.
 #  Required to resolve dependencies between arch-test and mbedcrypto libraries.
 #-------------------------------------------------------------------------------
-target_link_options(psa-api-test PRIVATE
+target_link_options(${PROJECT_NAME} PRIVATE
 	-Wl,--start-group
 	)

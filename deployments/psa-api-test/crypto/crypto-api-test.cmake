@@ -30,14 +30,14 @@ set(TS_ARCH_TEST_BUILD_SUBDIR crypto CACHE STRING "Arch test build subdirectory"
 #
 #-------------------------------------------------------------------------------
 add_components(
-	TARGET "psa-api-test"
+	TARGET "${PROJECT_NAME}"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/service/crypto/include"
 		"components/service/crypto/client/psa"
 )
 
-target_sources(psa-api-test PRIVATE
+target_sources(${PROJECT_NAME} PRIVATE
 	${TS_ROOT}/deployments/psa-api-test/crypto/crypto_locator.c
 )
 

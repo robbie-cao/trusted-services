@@ -14,9 +14,9 @@ include(../../psa-api-test-config.cmake REQUIRED)
 #  Used for building and running psa arch tests on an Arm based Linux device
 #-------------------------------------------------------------------------------
 include(${TS_ROOT}/environments/arm-linux/env.cmake)
-project(trusted-services LANGUAGES CXX C)
-add_executable(psa-api-test)
-target_include_directories(psa-api-test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
+project(psa-its-api-test LANGUAGES CXX C)
+add_executable(${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME} PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 
 #-------------------------------------------------------------------------------
 #  Extend with components that are common across all deployments of

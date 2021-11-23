@@ -16,14 +16,14 @@
 #  deployed.
 #-------------------------------------------------------------------------------
 include(${TS_ROOT}/deployments/libts/libts-import.cmake)
-target_link_libraries(psa-api-test PRIVATE libts)
+target_link_libraries(${PROJECT_NAME} PRIVATE libts)
 
 #-------------------------------------------------------------------------------
 #  Components that are common accross all deployments
 #
 #-------------------------------------------------------------------------------
 add_components(
-	TARGET "psa-api-test"
+	TARGET "${PROJECT_NAME}"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/common/tlv"
@@ -34,7 +34,7 @@ add_components(
 		"components/rpc/common/logging"
 )
 
-target_sources(psa-api-test PRIVATE
+target_sources(${PROJECT_NAME} PRIVATE
 	${TS_ROOT}/deployments/psa-api-test/arch_test_runner.c
 )
 
@@ -42,7 +42,7 @@ target_sources(psa-api-test PRIVATE
 #  Export project header paths for arch tests
 #
 #-------------------------------------------------------------------------------
-get_target_property(_include_paths psa-api-test INCLUDE_DIRECTORIES)
+get_target_property(_include_paths ${PROJECT_NAME} INCLUDE_DIRECTORIES)
 list(APPEND PSA_ARCH_TESTS_EXTERNAL_INCLUDE_PATHS ${_include_paths})
 
 #-------------------------------------------------------------------------------
@@ -52,7 +52,7 @@ list(APPEND PSA_ARCH_TESTS_EXTERNAL_INCLUDE_PATHS ${_include_paths})
 
 # psa-arch-tests
 include(${TS_ROOT}/external/psa_arch_tests/psa_arch_tests.cmake)
-target_link_libraries(psa-api-test PRIVATE val_nspe test_combine pal_nspe)
+target_link_libraries(${PROJECT_NAME} PRIVATE val_nspe test_combine pal_nspe)
 
 #-------------------------------------------------------------------------------
 #  Define install content.
@@ -61,4 +61,4 @@ target_link_libraries(psa-api-test PRIVATE val_nspe test_combine pal_nspe)
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "location to install build output to." FORCE)
 endif()
-install(TARGETS psa-api-test RUNTIME DESTINATION ${TS_ENV}/bin)
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${TS_ENV}/bin)

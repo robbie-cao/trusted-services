@@ -29,7 +29,7 @@ set(TS_ARCH_TEST_BUILD_SUBDIR initial_attestation CACHE STRING "Arch test build 
 #
 #-------------------------------------------------------------------------------
 add_components(
-	TARGET "psa-api-test"
+	TARGET "${PROJECT_NAME}"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/service/attestation/include"
@@ -37,7 +37,7 @@ add_components(
 		"components/service/attestation/client/provision"
 )
 
-target_sources(psa-api-test PRIVATE
+target_sources(${PROJECT_NAME} PRIVATE
 	${TS_ROOT}/deployments/psa-api-test/initial_attestation/iat_locator.c
 )
 
@@ -53,7 +53,7 @@ set(MBEDTLS_USER_CONFIG_FILE
 
 # Mbed TLS provides libmbedcrypto
 include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
-target_link_libraries(psa-api-test PRIVATE mbedcrypto)
+target_link_libraries(${PROJECT_NAME} PRIVATE mbedcrypto)
 
 #-------------------------------------------------------------------------------
 #  Advertise PSA API include paths to PSA Arch tests
