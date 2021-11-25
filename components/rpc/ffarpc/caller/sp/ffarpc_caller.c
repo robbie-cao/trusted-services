@@ -57,7 +57,7 @@ out:
 }
 
 static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t opcode,
-				int *opstatus, uint8_t **resp_buf, size_t *resp_len)
+				rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len)
 {
 	struct ffarpc_caller *this_context = (struct ffarpc_caller *)context;
 	sp_result sp_res = SP_RESULT_OK;
@@ -101,7 +101,7 @@ static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t 
 
 	this_context->resp_len = (size_t)resp.args[SP_CALL_ARGS_RESP_DATA_LEN];
 	status = resp.args[SP_CALL_ARGS_RESP_RPC_STATUS];
-	*opstatus = resp.args[SP_CALL_ARGS_RESP_OP_STATUS];
+	*opstatus = (rpc_status_t)((int32_t)resp.args[SP_CALL_ARGS_RESP_OP_STATUS]);
 
 	if (this_context->resp_len > 0) {
 		this_context->resp_buf = shared_buffer;

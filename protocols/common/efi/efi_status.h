@@ -13,10 +13,10 @@
 /**
  * Common EFI status type
  */
-typedef uint32_t efi_status_t;
+typedef uint64_t efi_status_t;
 
 /* For error class status codes */
-#define EFI_ERROR(s)				((1U << ((CHAR_BIT * sizeof(efi_status_t)) - 1)) | s)
+#define EFI_ERROR(s)	((1ULL << ((CHAR_BIT * sizeof(efi_status_t)) - 1)) | s)
 
 /**
  * Common EFI status codes

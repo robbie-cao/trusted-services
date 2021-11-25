@@ -57,7 +57,7 @@ psa_status_t attest_provision_export_iak_public_key(
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		instance.rpc_status = rpc_caller_invoke(instance.caller, call_handle,
 			TS_ATTESTATION_OPCODE_EXPORT_IAK_PUBLIC_KEY, &opstatus, &resp_buf, &resp_len);
@@ -119,7 +119,7 @@ psa_status_t attest_provision_import_iak(
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 		struct tlv_iterator req_iter;
 
 		tlv_iterator_begin(&req_iter, req_buf, req_len);
@@ -152,7 +152,7 @@ psa_status_t attest_provision_iak_exists(void)
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		instance.rpc_status = rpc_caller_invoke(instance.caller, call_handle,
 			TS_ATTESTATION_OPCODE_IAK_EXISTS, &opstatus, &resp_buf, &resp_len);

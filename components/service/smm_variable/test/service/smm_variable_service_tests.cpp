@@ -83,21 +83,21 @@ TEST(SmmVariableServiceTests, setAndGet)
 		set_data,
 		0);
 
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	efi_status = m_client->get_variable(
 		m_common_guid,
 		var_name,
 		get_data);
 
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	UNSIGNED_LONGS_EQUAL(set_data.size(), get_data.size());
 	LONGS_EQUAL(0, get_data.compare(set_data));
 
 	/* Expect remove to be permitted */
 	efi_status = m_client->remove_variable(m_common_guid, var_name);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 }
 
 TEST(SmmVariableServiceTests, setAndGetNv)
@@ -113,21 +113,21 @@ TEST(SmmVariableServiceTests, setAndGetNv)
 		set_data,
 		EFI_VARIABLE_NON_VOLATILE);
 
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	efi_status = m_client->get_variable(
 		m_common_guid,
 		var_name,
 		get_data);
 
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	UNSIGNED_LONGS_EQUAL(set_data.size(), get_data.size());
 	LONGS_EQUAL(0, get_data.compare(set_data));
 
 	/* Expect remove to be permitted */
 	efi_status = m_client->remove_variable(m_common_guid, var_name);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 }
 
 TEST(SmmVariableServiceTests, runtimeStateAccessControl)
@@ -156,21 +156,21 @@ TEST(SmmVariableServiceTests, runtimeStateAccessControl)
 		boot_var_name,
 		boot_set_data,
 		EFI_VARIABLE_BOOTSERVICE_ACCESS);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	efi_status = m_client->set_variable(
 		m_common_guid,
 		runtime_var_name,
 		runtime_set_data,
 		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Expect access to boot variable to be permitted */
 	efi_status = m_client->get_variable(
 		m_common_guid,
 		boot_var_name,
 		get_data);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 	UNSIGNED_LONGS_EQUAL(boot_set_data.size(), get_data.size());
 	LONGS_EQUAL(0, get_data.compare(boot_set_data));
 
@@ -179,35 +179,35 @@ TEST(SmmVariableServiceTests, runtimeStateAccessControl)
 		m_common_guid,
 		runtime_var_name,
 		get_data);
-	UNSIGNED_LONGS_EQUAL(EFI_ACCESS_DENIED, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_ACCESS_DENIED, efi_status);
 
 	/* Exit boot service - access should no longer be permitted */
 	efi_status = m_client->exit_boot_service();
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Access to the boot variablel should now be forbidden */
 	efi_status = m_client->get_variable(
 		m_common_guid,
 		boot_var_name,
 		get_data);
-	UNSIGNED_LONGS_EQUAL(EFI_ACCESS_DENIED, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_ACCESS_DENIED, efi_status);
 
 	/* Expect access to the runtime variable to now be permitted */
 	efi_status = m_client->get_variable(
 		m_common_guid,
 		runtime_var_name,
 		get_data);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 	UNSIGNED_LONGS_EQUAL(runtime_set_data.size(), get_data.size());
 	LONGS_EQUAL(0, get_data.compare(runtime_set_data));
 
 	/* Expect removing boot variable to be forbidden */
 	efi_status = m_client->remove_variable(m_common_guid, boot_var_name);
-	UNSIGNED_LONGS_EQUAL(EFI_ACCESS_DENIED, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_ACCESS_DENIED, efi_status);
 
 	/* Expect removing runtime variable to be permitted */
 	efi_status = m_client->remove_variable(m_common_guid, runtime_var_name);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 }
 
 TEST(SmmVariableServiceTests, enumerateStoreContents)
@@ -225,7 +225,7 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 		set_data,
 		EFI_VARIABLE_NON_VOLATILE);
 
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	efi_status = m_client->set_variable(
 		m_common_guid,
@@ -233,7 +233,7 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 		set_data,
 		EFI_VARIABLE_NON_VOLATILE);
 
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	efi_status = m_client->set_variable(
 		m_common_guid,
@@ -241,39 +241,39 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 		set_data,
 		0);
 
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Enumerate store contents - expect the values we added */
 	std::wstring var_name;
 	EFI_GUID guid = {0};
 
 	efi_status = m_client->get_next_variable_name(guid, var_name);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 	UNSIGNED_LONGS_EQUAL(var_name_1.size(), var_name.size());
 	LONGS_EQUAL(0, var_name.compare(var_name_1));
 
 	efi_status = m_client->get_next_variable_name(guid, var_name);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 	UNSIGNED_LONGS_EQUAL(var_name_2.size(), var_name.size());
 	LONGS_EQUAL(0, var_name.compare(var_name_2));
 
 	efi_status = m_client->get_next_variable_name(guid, var_name);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 	UNSIGNED_LONGS_EQUAL(var_name_3.size(), var_name.size());
 	LONGS_EQUAL(0, var_name.compare(var_name_3));
 
 	efi_status = m_client->get_next_variable_name(guid, var_name);
-	UNSIGNED_LONGS_EQUAL(EFI_NOT_FOUND, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, efi_status);
 
 	/* Expect to be able to remove all variables */
 	efi_status = m_client->remove_variable(m_common_guid, var_name_1);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	efi_status = m_client->remove_variable(m_common_guid, var_name_2);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	efi_status = m_client->remove_variable(m_common_guid, var_name_3);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 }
 
 TEST(SmmVariableServiceTests, setReadOnlyConstraint)
@@ -289,7 +289,7 @@ TEST(SmmVariableServiceTests, setReadOnlyConstraint)
 		set_data,
 		0);
 
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Apply a check to constrain to Read Only */
 	VAR_CHECK_VARIABLE_PROPERTY check_property;
@@ -303,7 +303,7 @@ TEST(SmmVariableServiceTests, setReadOnlyConstraint)
 		m_common_guid,
 		var_name_1,
 		check_property);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Read back the check property constraint and expect it to match the set value */
 	VAR_CHECK_VARIABLE_PROPERTY got_check_property;
@@ -312,7 +312,7 @@ TEST(SmmVariableServiceTests, setReadOnlyConstraint)
 		m_common_guid,
 		var_name_1,
 		got_check_property);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	UNSIGNED_LONGS_EQUAL(check_property.Revision, got_check_property.Revision);
 	UNSIGNED_LONGS_EQUAL(check_property.Attributes, got_check_property.Attributes);
@@ -327,7 +327,7 @@ TEST(SmmVariableServiceTests, setReadOnlyConstraint)
 		std::string("Different variable data"),
 		0);
 
-	UNSIGNED_LONGS_EQUAL(EFI_WRITE_PROTECTED, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_WRITE_PROTECTED, efi_status);
 
 	/* Expect to still be able to read variable */
 	std::string get_data;
@@ -337,7 +337,7 @@ TEST(SmmVariableServiceTests, setReadOnlyConstraint)
 		var_name_1,
 		get_data);
 
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Variable value should be unmodified */
 	UNSIGNED_LONGS_EQUAL(set_data.size(), get_data.size());
@@ -357,7 +357,7 @@ TEST(SmmVariableServiceTests, setSizeConstraint)
 		set_data,
 		0);
 
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Apply a check to constrain the variable size */
 	VAR_CHECK_VARIABLE_PROPERTY check_property;
@@ -371,7 +371,7 @@ TEST(SmmVariableServiceTests, setSizeConstraint)
 		m_common_guid,
 		var_name_1,
 		check_property);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Attempt to set value to a size that exceeds the MaxSize constraint */
 	efi_status = m_client->set_variable(
@@ -379,7 +379,7 @@ TEST(SmmVariableServiceTests, setSizeConstraint)
 		var_name_1,
 		std::string("A data value that exceeds the MaxSize constraint"),
 		0);
-	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 
 	/* But setting a value that's within the constraints should work */
 	efi_status = m_client->set_variable(
@@ -387,11 +387,11 @@ TEST(SmmVariableServiceTests, setSizeConstraint)
 		var_name_1,
 		std::string("Small value"),
 		0);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Removing should be allowed though */
 	efi_status = m_client->remove_variable(m_common_guid, var_name_1);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Although the variable has been removed, the constraint should
 	 * still be set.
@@ -401,7 +401,7 @@ TEST(SmmVariableServiceTests, setSizeConstraint)
 		var_name_1,
 		std::string("Another try to set a value that exceeds the MaxSize constraint"),
 		0);
-	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 }
 
 TEST(SmmVariableServiceTests, checkMaxVariablePayload)
@@ -412,7 +412,7 @@ TEST(SmmVariableServiceTests, checkMaxVariablePayload)
 	/* Expect to read a reasonable size for the variable payload */
 	efi_status = m_client->get_payload_zize(max_payload_size);
 
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 	CHECK_TRUE(max_payload_size >= 1024);
 	CHECK_TRUE(max_payload_size <= 64 * 1024);
 }

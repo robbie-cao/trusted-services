@@ -24,7 +24,7 @@ psa_status_t discovery_client_get_service_info(
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		service_client->rpc_status = rpc_caller_invoke(service_client->caller, call_handle,
 			TS_DISCOVERY_OPCODE_GET_SERVICE_INFO, &opstatus, &resp_buf, &resp_len);

@@ -88,7 +88,7 @@ static rpc_status_t get_token_handler(void *context, struct call_req* req)
         const uint8_t *token = NULL;
         size_t token_size = 0;
 
-        int opstatus = attest_report_create((int32_t)call_req_get_caller_id(req),
+        rpc_opstatus_t opstatus = attest_report_create((int32_t)call_req_get_caller_id(req),
             challenge, challenge_len,
             &token, &token_size);
 
@@ -126,7 +126,7 @@ static rpc_status_t get_token_size_handler(void *context, struct call_req* req)
         const uint8_t *token = NULL;
         size_t token_size = 0;
 
-        int opstatus = attest_report_create((int32_t)call_req_get_caller_id(req),
+        rpc_opstatus_t opstatus = attest_report_create((int32_t)call_req_get_caller_id(req),
             challenge, challenge_len,
             &token, &token_size);
 
@@ -157,7 +157,7 @@ static rpc_status_t export_iak_public_key_handler(void *context, struct call_req
 
         if (key_buffer) {
 
-            int opstatus;
+            rpc_opstatus_t opstatus;
             size_t export_size;
             opstatus =
                 attest_key_mngr_export_iak_public_key(key_buffer, max_key_size, &export_size);
@@ -200,7 +200,7 @@ static rpc_status_t import_iak_handler(void *context, struct call_req* req)
 
             if (rpc_status == TS_RPC_CALL_ACCEPTED) {
 
-                int opstatus;
+                rpc_opstatus_t opstatus;
                 opstatus = attest_key_mngr_import_iak(key_buffer, key_data_len);
                 call_req_set_opstatus(req, opstatus);
             }
@@ -218,7 +218,7 @@ static rpc_status_t import_iak_handler(void *context, struct call_req* req)
 
 static rpc_status_t iak_exists_handler(void *context, struct call_req* req)
 {
-    int opstatus = PSA_ERROR_DOES_NOT_EXIST;
+    rpc_opstatus_t opstatus = PSA_ERROR_DOES_NOT_EXIST;
 
     if (attest_key_mngr_iak_exists()) {
 

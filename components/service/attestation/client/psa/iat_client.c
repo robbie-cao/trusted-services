@@ -63,7 +63,7 @@ psa_status_t psa_initial_attest_get_token(
 
         uint8_t *resp_buf;
         size_t resp_len;
-        int opstatus;
+        rpc_opstatus_t opstatus;
         struct tlv_iterator req_iter;
 
         tlv_iterator_begin(&req_iter, req_buf, req_len);
@@ -128,7 +128,7 @@ psa_status_t psa_initial_attest_get_token_size(
 
         uint8_t *resp_buf;
         size_t resp_len;
-        int opstatus;
+        rpc_opstatus_t opstatus;
         struct tlv_iterator req_iter;
 
         memcpy(req_buf, &req_msg, req_len);

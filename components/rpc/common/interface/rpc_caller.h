@@ -42,7 +42,7 @@ struct rpc_caller
 	rpc_call_handle (*call_begin)(void *context, uint8_t **req_buf, size_t req_len);
 
 	rpc_status_t (*call_invoke)(void *context, rpc_call_handle handle, uint32_t opcode,
-		     	int *opstatus, uint8_t **resp_buf, size_t *resp_len);
+		     	rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len);
 
 	void (*call_end)(void *context, rpc_call_handle handle);
 };
@@ -79,7 +79,7 @@ RPC_CALLER_EXPORTED rpc_call_handle rpc_caller_begin(struct rpc_caller *s,
  * call_end() is called for the transaction.
  */
 RPC_CALLER_EXPORTED rpc_status_t rpc_caller_invoke(struct rpc_caller *s, rpc_call_handle handle,
-			uint32_t opcode, int *opstatus, uint8_t **resp_buf, size_t *resp_len);
+			uint32_t opcode, rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len);
 
 /*
  * Ends the call transaction, allowing any resource associated with the

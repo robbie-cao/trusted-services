@@ -74,7 +74,7 @@ static inline psa_status_t common_aead_setup(struct service_client *context,
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_len);
 
@@ -148,7 +148,7 @@ static inline psa_status_t crypto_caller_aead_generate_nonce(struct service_clie
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
@@ -220,7 +220,7 @@ static inline psa_status_t crypto_caller_aead_set_nonce(struct service_client *c
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
@@ -263,7 +263,7 @@ static inline psa_status_t crypto_caller_aead_set_lengths(struct service_client 
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
@@ -307,7 +307,7 @@ static inline psa_status_t crypto_caller_aead_update_ad(struct service_client *c
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
@@ -359,7 +359,7 @@ static inline psa_status_t crypto_caller_aead_update(struct service_client *cont
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
@@ -434,7 +434,7 @@ static inline psa_status_t crypto_caller_aead_finish(struct service_client *cont
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
@@ -528,7 +528,7 @@ static inline psa_status_t crypto_caller_aead_verify(struct service_client *cont
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
@@ -595,7 +595,7 @@ static inline psa_status_t crypto_caller_aead_abort(struct service_client *conte
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 

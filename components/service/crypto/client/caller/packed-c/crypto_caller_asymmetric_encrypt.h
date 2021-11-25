@@ -60,7 +60,7 @@ static inline psa_status_t crypto_caller_asymmetric_encrypt(struct service_clien
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus = PSA_ERROR_GENERIC_ERROR;
+		rpc_opstatus_t opstatus = PSA_ERROR_GENERIC_ERROR;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);

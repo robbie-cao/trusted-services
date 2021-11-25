@@ -75,7 +75,7 @@ TEST(ServiceFrameworkTests, serviceWithNoOps)
 	uint8_t *resp_buf;
 	size_t req_len = 100;
 	size_t resp_len;
-	int opstatus;
+	rpc_opstatus_t opstatus;
 
 	handle = rpc_caller_begin(caller, &req_buf, req_len);
 	CHECK_TRUE(handle);
@@ -109,7 +109,7 @@ TEST(ServiceFrameworkTests, serviceWithOps)
 	uint8_t *resp_buf;
 	size_t req_len = 100;
 	size_t resp_len;
-	int opstatus;
+	rpc_opstatus_t opstatus;
 	std::string respString;
 
 	/* Expect this call transaction to succeed */
@@ -192,7 +192,7 @@ TEST(ServiceFrameworkTests, serviceProviderChain)
 	uint8_t *resp_buf;
 	size_t req_len = 100;
 	size_t resp_len;
-	int opstatus;
+	rpc_opstatus_t opstatus;
 	std::string respString;
 
 	/* Expect calls that will be handled by all three chained service providers to succeed */

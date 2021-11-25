@@ -17,12 +17,12 @@
 extern uint16_t own_id;
 
 static void set_resp_args(uint32_t *resp_args, uint32_t ifaceid_opcode, uint32_t data_len,
-			  rpc_status_t rpc_status, uint32_t opstatus)
+			  rpc_status_t rpc_status, rpc_opstatus_t opstatus)
 {
 	resp_args[SP_CALL_ARGS_IFACE_ID_OPCODE] = ifaceid_opcode;
 	resp_args[SP_CALL_ARGS_RESP_DATA_LEN] = data_len;
 	resp_args[SP_CALL_ARGS_RESP_RPC_STATUS] = rpc_status;
-	resp_args[SP_CALL_ARGS_RESP_OP_STATUS] = opstatus;
+	resp_args[SP_CALL_ARGS_RESP_OP_STATUS] = (uint32_t)opstatus;
 }
 
 static void set_mgmt_resp_args(uint32_t *resp_args, uint32_t ifaceid_opcode,

@@ -77,7 +77,7 @@ efi_status_t smm_variable_client::set_variable(
 
 		uint8_t *resp_buf;
         size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *access_var =
 			(SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE*)req_buf;
@@ -147,7 +147,7 @@ efi_status_t smm_variable_client::get_variable(
 
 		uint8_t *resp_buf;
         size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *access_var =
 			(SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE*)req_buf;
@@ -239,7 +239,7 @@ efi_status_t smm_variable_client::get_next_variable_name(
 
 		uint8_t *resp_buf;
         size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *next_var =
 			(SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME*)req_buf;
@@ -303,7 +303,7 @@ efi_status_t smm_variable_client::exit_boot_service()
 
 		uint8_t *resp_buf;
         size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
 			SMM_VARIABLE_FUNCTION_EXIT_BOOT_SERVICE, &opstatus, &resp_buf, &resp_len);
@@ -356,7 +356,7 @@ efi_status_t smm_variable_client::set_var_check_property(
 
 		uint8_t *resp_buf;
         size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *req_msg =
 			(SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY*)req_buf;
@@ -422,7 +422,7 @@ efi_status_t smm_variable_client::get_var_check_property(
 
 		uint8_t *resp_buf;
         size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *req_msg =
 			(SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY*)req_buf;
@@ -487,7 +487,7 @@ efi_status_t smm_variable_client::get_payload_zize(
 
 		uint8_t *resp_buf;
         size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
 			SMM_VARIABLE_FUNCTION_GET_PAYLOAD_SIZE, &opstatus, &resp_buf, &resp_len);

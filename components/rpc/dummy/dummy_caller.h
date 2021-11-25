@@ -26,12 +26,12 @@ struct dummy_caller
 {
     struct rpc_caller rpc_caller;
     rpc_status_t rpc_status;
-    int opstatus;
+    rpc_opstatus_t opstatus;
     uint8_t *req_buf;
 };
 
 struct rpc_caller *dummy_caller_init(struct dummy_caller *s,
-                                    rpc_status_t rpc_status, int opstatus);
+                                    rpc_status_t rpc_status, rpc_opstatus_t opstatus);
 void dummy_caller_deinit(struct dummy_caller *s);
 
 #ifdef __cplusplus

@@ -75,7 +75,7 @@ psa_status_t protobuf_crypto_client::generate_key(const psa_key_attributes_t *at
 
 			uint8_t *resp_buf;
 			size_t resp_len;
-			int opstatus;
+			rpc_opstatus_t opstatus;
 
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_GenerateKeyIn_fields, &req_msg);
@@ -129,7 +129,7 @@ psa_status_t protobuf_crypto_client::destroy_key(psa_key_id_t id)
 
 			uint8_t *resp_buf;
 			size_t resp_len;
-			int opstatus;
+			rpc_opstatus_t opstatus;
 
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_DestroyKeyIn_fields, &req_msg);
@@ -170,7 +170,7 @@ psa_status_t protobuf_crypto_client::import_key(const psa_key_attributes_t *attr
 
 			uint8_t *resp_buf;
 			size_t resp_len;
-			int opstatus;
+			rpc_opstatus_t opstatus;
 
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_ImportKeyIn_fields, &req_msg);
@@ -251,7 +251,7 @@ psa_status_t protobuf_crypto_client::export_key(psa_key_id_t id,
 
 			uint8_t *resp_buf;
 			size_t resp_len;
-			int opstatus;
+			rpc_opstatus_t opstatus;
 
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_ExportKeyIn_fields, &req_msg);
@@ -327,7 +327,7 @@ psa_status_t protobuf_crypto_client::export_public_key(psa_key_id_t id,
 
 			uint8_t *resp_buf;
 			size_t resp_len;
-			int opstatus;
+			rpc_opstatus_t opstatus;
 
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_ExportPublicKeyIn_fields, &req_msg);
@@ -410,7 +410,7 @@ psa_status_t protobuf_crypto_client::sign_hash(psa_key_id_t id, psa_algorithm_t 
 
 			uint8_t *resp_buf;
 			size_t resp_len;
-			int opstatus;
+			rpc_opstatus_t opstatus;
 
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_SignHashIn_fields, &req_msg);
@@ -491,7 +491,7 @@ psa_status_t protobuf_crypto_client::verify_hash(psa_key_id_t id, psa_algorithm_
 
 			uint8_t *resp_buf;
 			size_t resp_len;
-			int opstatus;
+			rpc_opstatus_t opstatus;
 
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_VerifyHashIn_fields, &req_msg);
@@ -542,7 +542,7 @@ psa_status_t protobuf_crypto_client::asymmetric_encrypt(psa_key_id_t id, psa_alg
 
 			uint8_t *resp_buf;
 			size_t resp_len;
-			int opstatus = PSA_ERROR_GENERIC_ERROR;
+			rpc_opstatus_t opstatus = PSA_ERROR_GENERIC_ERROR;
 
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_AsymmetricEncryptIn_fields, &req_msg);
@@ -626,7 +626,7 @@ psa_status_t protobuf_crypto_client::asymmetric_decrypt(psa_key_id_t id, psa_alg
 
 			uint8_t *resp_buf;
 			size_t resp_len;
-			int opstatus;
+			rpc_opstatus_t opstatus;
 
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_AsymmetricDecryptIn_fields, &req_msg);
@@ -698,7 +698,7 @@ psa_status_t protobuf_crypto_client::generate_random(uint8_t *output, size_t out
 
 			uint8_t *resp_buf;
 			size_t resp_len;
-			int opstatus;
+			rpc_opstatus_t opstatus;
 
 			pb_ostream_t ostream = pb_ostream_from_buffer(req_buf, req_len);
 			pb_encode(&ostream, ts_crypto_GenerateRandomIn_fields, &req_msg);

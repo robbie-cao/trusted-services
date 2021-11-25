@@ -9,12 +9,12 @@
 
 static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_len);
 static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t opcode,
-		     	int *opstatus, uint8_t **resp_buf, size_t *resp_len);
+		     	rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len);
 static void call_end(void *context, rpc_call_handle handle);
 
 
 struct rpc_caller *dummy_caller_init(struct dummy_caller *s,
-    rpc_status_t rpc_status, int opstatus)
+    rpc_status_t rpc_status, rpc_opstatus_t opstatus)
 {
     struct rpc_caller *base = &s->rpc_caller;
 
@@ -49,7 +49,7 @@ static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_l
 }
 
 static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t opcode,
-		     	int *opstatus, uint8_t **resp_buf, size_t *resp_len)
+		     	rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len)
 {
     struct dummy_caller *this_context = (struct dummy_caller*)context;
 

@@ -44,6 +44,8 @@ static psa_status_t secure_storage_client_set(void *context,
 	handle = rpc_caller_begin(this_context->client.caller, &request, request_length);
 
 	if (handle) {
+		rpc_opstatus_t opstatus = PSA_ERROR_GENERIC_ERROR;
+
 		/* Populating request descriptor */
 		request_desc = (struct secure_storage_request_set *)request;
 		request_desc->uid = uid;
@@ -54,12 +56,15 @@ static psa_status_t secure_storage_client_set(void *context,
 		this_context->client.rpc_status = rpc_caller_invoke(this_context->client.caller,
 						handle,
 						TS_SECURE_STORAGE_OPCODE_SET,
-						(uint32_t *)&psa_status, &response,
+						&opstatus, &response,
 						&response_length);
 
 		if (this_context->client.rpc_status != TS_RPC_CALL_ACCEPTED) {
 			/* RPC failure */
 			psa_status = PSA_ERROR_GENERIC_ERROR;
+		}
+		else {
+			psa_status = opstatus;
 		}
 
 		rpc_caller_end(this_context->client.caller, handle);
@@ -98,6 +103,8 @@ static psa_status_t secure_storage_client_get(void *context,
 	handle = rpc_caller_begin(this_context->client.caller, &request, sizeof(*request_desc));
 
 	if (handle) {
+		rpc_opstatus_t opstatus = PSA_ERROR_GENERIC_ERROR;
+
 		/* Populating request descriptor */
 		request_desc = (struct secure_storage_request_get *)request;
 		request_desc->uid = uid;
@@ -107,12 +114,15 @@ static psa_status_t secure_storage_client_get(void *context,
 		this_context->client.rpc_status = rpc_caller_invoke(this_context->client.caller,
 						handle,
 						TS_SECURE_STORAGE_OPCODE_GET,
-						(uint32_t *)&psa_status, &response,
+						&opstatus, &response,
 						&response_length);
 
 		if (this_context->client.rpc_status != TS_RPC_CALL_ACCEPTED ) {
 			/* RPC failure */
 			psa_status = PSA_ERROR_GENERIC_ERROR;
+		}
+		else {
+			psa_status = opstatus;
 		}
 
 		/* Filling output parameters */
@@ -153,20 +163,27 @@ static psa_status_t secure_storage_client_get_info(void *context,
 	handle = rpc_caller_begin(this_context->client.caller, &request, sizeof(*request_desc));
 
 	if (handle) {
+		rpc_opstatus_t opstatus = PSA_ERROR_GENERIC_ERROR;
+
 		/* Populating request descriptor */
 		request_desc = (struct secure_storage_request_get_info *)request;
 		request_desc->uid = uid;
 
 		this_context->client.rpc_status = rpc_caller_invoke(this_context->client.caller, handle,
 						TS_SECURE_STORAGE_OPCODE_GET_INFO,
-						(uint32_t *)&psa_status, &response,
+						&opstatus, &response,
 						&response_length);
 
 		if (this_context->client.rpc_status != TS_RPC_CALL_ACCEPTED) {
 			/* RPC failure */
 			psa_status = PSA_ERROR_GENERIC_ERROR;
-		} else if (response_length && response_length != sizeof(*response_desc)) {
-			psa_status = PSA_ERROR_GENERIC_ERROR;
+		} else {
+			if (response_length && response_length != sizeof(*response_desc)) {
+				psa_status = PSA_ERROR_GENERIC_ERROR;
+			}
+			else {
+				psa_status = opstatus;
+			}
 		}
 
 		if (psa_status == PSA_SUCCESS) {
@@ -208,6 +225,8 @@ static psa_status_t secure_storage_client_remove(void *context,
 	handle = rpc_caller_begin(this_context->client.caller, &request, sizeof(*request_desc));
 
 	if (handle) {
+		rpc_opstatus_t opstatus = PSA_ERROR_GENERIC_ERROR;
+
 		/* Populating request descriptor */
 		request_desc = (struct secure_storage_request_remove *)request;
 		request_desc->uid = uid;
@@ -215,12 +234,15 @@ static psa_status_t secure_storage_client_remove(void *context,
 		this_context->client.rpc_status = rpc_caller_invoke(this_context->client.caller,
 						handle,
 						TS_SECURE_STORAGE_OPCODE_REMOVE,
-						(uint32_t *)&psa_status, &response,
+						&opstatus, &response,
 						&response_length);
 
 		if (this_context->client.rpc_status != TS_RPC_CALL_ACCEPTED) {
 			/* RPC failure */
 			psa_status = PSA_ERROR_GENERIC_ERROR;
+		}
+		else {
+			psa_status = opstatus;
 		}
 
 		rpc_caller_end(this_context->client.caller, handle);
@@ -256,6 +278,7 @@ static psa_status_t secure_storage_client_create(void *context,
 	handle = rpc_caller_begin(this_context->client.caller, &request, request_length);
 
 	if (handle) {
+		rpc_opstatus_t opstatus = PSA_ERROR_GENERIC_ERROR;
 
 		request_desc = (struct secure_storage_request_create*)request;
 		request_desc->uid = uid;
@@ -265,12 +288,15 @@ static psa_status_t secure_storage_client_create(void *context,
 		this_context->client.rpc_status = rpc_caller_invoke(this_context->client.caller,
 						handle,
 						TS_SECURE_STORAGE_OPCODE_CREATE,
-						(uint32_t *)&psa_status, &response,
+						&opstatus, &response,
 						&response_length);
 
 		if (this_context->client.rpc_status != TS_RPC_CALL_ACCEPTED) {
 			/* RPC failure */
 			psa_status = PSA_ERROR_GENERIC_ERROR;
+		}
+		else {
+			psa_status = opstatus;
 		}
 
 		rpc_caller_end(this_context->client.caller, handle);
@@ -315,6 +341,8 @@ static psa_status_t secure_storage_set_extended(void *context,
 	handle = rpc_caller_begin(this_context->client.caller, &request, request_length);
 
 	if (handle) {
+		rpc_opstatus_t opstatus = PSA_ERROR_GENERIC_ERROR;
+
 		/* Populating request descriptor */
 		request_desc = (struct secure_storage_request_set_extended *)request;
 		request_desc->uid = uid;
@@ -325,12 +353,15 @@ static psa_status_t secure_storage_set_extended(void *context,
 		this_context->client.rpc_status = rpc_caller_invoke(this_context->client.caller,
 						handle,
 						TS_SECURE_STORAGE_OPCODE_SET_EXTENDED,
-						(uint32_t *)&psa_status, &response,
+						&opstatus, &response,
 						&response_length);
 
 		if (this_context->client.rpc_status != TS_RPC_CALL_ACCEPTED) {
 			/* RPC failure */
 			psa_status = PSA_ERROR_GENERIC_ERROR;
+		}
+		else {
+			psa_status = opstatus;
 		}
 
 		rpc_caller_end(this_context->client.caller, handle);
@@ -358,18 +389,24 @@ static uint32_t secure_storage_get_support(void *context, uint32_t client_id)
 	handle = rpc_caller_begin(this_context->client.caller, &request, 0);
 
 	if (handle) {
+		rpc_opstatus_t opstatus = PSA_ERROR_GENERIC_ERROR;
 
 		this_context->client.rpc_status = rpc_caller_invoke(this_context->client.caller,
 						handle,
 						TS_SECURE_STORAGE_OPCODE_GET_SUPPORT,
-						(uint32_t *)&psa_status, &response,
+						&opstatus, &response,
 						&response_length);
 
 		if (this_context->client.rpc_status != TS_RPC_CALL_ACCEPTED) {
 			/* RPC failure */
 			psa_status = PSA_ERROR_GENERIC_ERROR;
-		} else if (response_length < sizeof(*response_desc)) {
-			psa_status = PSA_ERROR_GENERIC_ERROR;
+		} else {
+			if (response_length < sizeof(*response_desc)) {
+				psa_status = PSA_ERROR_GENERIC_ERROR;
+			}
+			else {
+				psa_status = opstatus;
+			}
 		}
 
 		if (psa_status == PSA_SUCCESS) {

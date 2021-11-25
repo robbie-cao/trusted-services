@@ -25,7 +25,7 @@ TEST_GROUP(UefiVariableStoreTests)
 			m_persistent_backend,
 			m_volatile_backend);
 
-		UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 		setup_common_guid();
 	}
@@ -219,7 +219,7 @@ TEST_GROUP(UefiVariableStoreTests)
 			m_persistent_backend,
 			m_volatile_backend);
 
-		UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	}
 
 	static const size_t MAX_VARIABLES = 10;
@@ -242,13 +242,13 @@ TEST(UefiVariableStoreTests, setGetRoundtrip)
 	std::string output_data;
 
 	status = set_variable(var_name, input_data, 0);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	status = get_variable(var_name, output_data);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Expect got variable data to be the same as the set value */
-	UNSIGNED_LONGS_EQUAL(input_data.size(), output_data.size());
+	UNSIGNED_LONGLONGS_EQUAL(input_data.size(), output_data.size());
 	LONGS_EQUAL(0, input_data.compare(output_data));
 }
 
@@ -260,13 +260,13 @@ TEST(UefiVariableStoreTests, persistentSetGet)
 	std::string output_data;
 
 	status = set_variable(var_name, input_data, EFI_VARIABLE_NON_VOLATILE);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	status = get_variable(var_name, output_data);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Expect got variable data to be the same as the set value */
-	UNSIGNED_LONGS_EQUAL(input_data.size(), output_data.size());
+	UNSIGNED_LONGLONGS_EQUAL(input_data.size(), output_data.size());
 	LONGS_EQUAL(0, input_data.compare(output_data));
 
 	/* Expect the variable to survive a power cycle */
@@ -274,10 +274,10 @@ TEST(UefiVariableStoreTests, persistentSetGet)
 
 	output_data = std::string();
 	status = get_variable(var_name, output_data);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Still expect got variable data to be the same as the set value */
-	UNSIGNED_LONGS_EQUAL(input_data.size(), output_data.size());
+	UNSIGNED_LONGLONGS_EQUAL(input_data.size(), output_data.size());
 	LONGS_EQUAL(0, input_data.compare(output_data));
 }
 
@@ -289,18 +289,18 @@ TEST(UefiVariableStoreTests, removeVolatile)
 	std::string output_data;
 
 	status = set_variable(var_name, input_data, 0);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	status = get_variable(var_name, output_data);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Remove by setting with zero data length */
 	status = set_variable(var_name, std::string(), 0);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Expect variable to no loger exist */
 	status = get_variable(var_name, output_data);
-	UNSIGNED_LONGS_EQUAL(EFI_NOT_FOUND, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 }
 
 TEST(UefiVariableStoreTests, removePersistent)
@@ -311,18 +311,18 @@ TEST(UefiVariableStoreTests, removePersistent)
 	std::string output_data;
 
 	status = set_variable(var_name, input_data, EFI_VARIABLE_NON_VOLATILE);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	status = get_variable(var_name, output_data);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Remove by setting with zero data length */
 	status = set_variable(var_name, std::string(), 0);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Expect variable to no loger exist */
 	status = get_variable(var_name, output_data);
-	UNSIGNED_LONGS_EQUAL(EFI_NOT_FOUND, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 }
 
 TEST(UefiVariableStoreTests, bootServiceAccess)
@@ -336,24 +336,24 @@ TEST(UefiVariableStoreTests, bootServiceAccess)
 		var_name,
 		input_data,
 		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* 'Reboot' */
 	power_cycle();
 
 	/* Expect access to be permitted */
 	status = get_variable(var_name, output_data);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
-	UNSIGNED_LONGS_EQUAL(input_data.size(), output_data.size());
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(input_data.size(), output_data.size());
 	LONGS_EQUAL(0, input_data.compare(output_data));
 
 	/* End of boot phase */
 	status = uefi_variable_store_exit_boot_service(&m_uefi_variable_store);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Expect access to be blocked */
 	status = get_variable(var_name, output_data);
-	UNSIGNED_LONGS_EQUAL(EFI_ACCESS_DENIED, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_ACCESS_DENIED, status);
 }
 
 TEST(UefiVariableStoreTests, runtimeAccess)
@@ -367,22 +367,22 @@ TEST(UefiVariableStoreTests, runtimeAccess)
 		var_name,
 		input_data,
 		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* 'Reboot' */
 	power_cycle();
 
 	status = get_variable(var_name, output_data);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_ACCESS_DENIED, status);
 
-	UNSIGNED_LONGS_EQUAL(EFI_ACCESS_DENIED, status);
 	/* End of boot phase */
 	status = uefi_variable_store_exit_boot_service(&m_uefi_variable_store);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Expect access to be permitted */
 	status = get_variable(var_name, output_data);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
-	UNSIGNED_LONGS_EQUAL(input_data.size(), output_data.size());
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(input_data.size(), output_data.size());
 	LONGS_EQUAL(0, input_data.compare(output_data));
 }
 
@@ -399,19 +399,19 @@ TEST(UefiVariableStoreTests, enumerateStoreContents)
 		var_name_1,
 		input_data,
 		EFI_VARIABLE_NON_VOLATILE);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	status = set_variable(
 		var_name_2,
 		input_data,
 		0);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	status = set_variable(
 		var_name_3,
 		input_data,
 		EFI_VARIABLE_NON_VOLATILE);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Prepare to enumerate */
 	uint8_t msg_buffer[VARIABLE_BUFFER_SIZE];
@@ -430,7 +430,7 @@ TEST(UefiVariableStoreTests, enumerateStoreContents)
 		next_name,
 		max_name_len,
 		&total_len);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	CHECK_TRUE(compare_variable_name(var_name_1, next_name->Name, next_name->NameSize));
 
 	status = uefi_variable_store_get_next_variable_name(
@@ -438,7 +438,7 @@ TEST(UefiVariableStoreTests, enumerateStoreContents)
 		next_name,
 		max_name_len,
 		&total_len);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	CHECK_TRUE(compare_variable_name(var_name_2, next_name->Name, next_name->NameSize));
 
 	status = uefi_variable_store_get_next_variable_name(
@@ -446,7 +446,7 @@ TEST(UefiVariableStoreTests, enumerateStoreContents)
 		next_name,
 		max_name_len,
 		&total_len);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	CHECK_TRUE(compare_variable_name(var_name_3, next_name->Name, next_name->NameSize));
 
 	status = uefi_variable_store_get_next_variable_name(
@@ -454,7 +454,7 @@ TEST(UefiVariableStoreTests, enumerateStoreContents)
 		next_name,
 		max_name_len,
 		&total_len);
-	UNSIGNED_LONGS_EQUAL(EFI_NOT_FOUND, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 
 	power_cycle();
 
@@ -469,7 +469,7 @@ TEST(UefiVariableStoreTests, enumerateStoreContents)
 		next_name,
 		max_name_len,
 		&total_len);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	CHECK_TRUE(compare_variable_name(var_name_1, next_name->Name, next_name->NameSize));
 
 	status = uefi_variable_store_get_next_variable_name(
@@ -485,7 +485,7 @@ TEST(UefiVariableStoreTests, enumerateStoreContents)
 		next_name,
 		max_name_len,
 		&total_len);
-	UNSIGNED_LONGS_EQUAL(EFI_NOT_FOUND, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 }
 
 TEST(UefiVariableStoreTests, failedNvSet)
@@ -501,19 +501,19 @@ TEST(UefiVariableStoreTests, failedNvSet)
 		var_name_1,
 		input_data,
 		EFI_VARIABLE_NON_VOLATILE);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	status = set_variable(
 		var_name_2,
 		input_data,
 		0);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	status = set_variable(
 		var_name_3,
 		input_data,
 		EFI_VARIABLE_NON_VOLATILE);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Simulate a power failure which resulted in the
 	 * variable index being written but not the corresponding
@@ -542,7 +542,7 @@ TEST(UefiVariableStoreTests, failedNvSet)
 		next_name,
 		max_name_len,
 		&total_len);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	CHECK_TRUE(compare_variable_name(var_name_1, next_name->Name, next_name->NameSize));
 
 	status = uefi_variable_store_get_next_variable_name(
@@ -550,7 +550,7 @@ TEST(UefiVariableStoreTests, failedNvSet)
 		next_name,
 		max_name_len,
 		&total_len);
-	UNSIGNED_LONGS_EQUAL(EFI_NOT_FOUND, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 }
 
 TEST(UefiVariableStoreTests, unsupportedAttribute)
@@ -564,7 +564,7 @@ TEST(UefiVariableStoreTests, unsupportedAttribute)
 		var_name_1,
 		input_data,
 		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_AUTHENTICATED_WRITE_ACCESS);
-	UNSIGNED_LONGS_EQUAL(EFI_UNSUPPORTED, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_UNSUPPORTED, status);
 }
 
 TEST(UefiVariableStoreTests, readOnlycheck)
@@ -578,7 +578,7 @@ TEST(UefiVariableStoreTests, readOnlycheck)
 		var_name_1,
 		input_data,
 		EFI_VARIABLE_NON_VOLATILE);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Apply a check to constrain to Read Only */
 	VAR_CHECK_VARIABLE_PROPERTY check_property;
@@ -589,14 +589,14 @@ TEST(UefiVariableStoreTests, readOnlycheck)
 	check_property.MaxSize = 100;
 
 	status = set_check_var_property(var_name_1, check_property);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Subsequent set operations should fail */
 	status = set_variable(
 		var_name_1,
 		input_data,
 		EFI_VARIABLE_NON_VOLATILE);
-	UNSIGNED_LONGS_EQUAL(EFI_WRITE_PROTECTED, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_WRITE_PROTECTED, status);
 }
 
 TEST(UefiVariableStoreTests, noRemoveCheck)
@@ -610,7 +610,7 @@ TEST(UefiVariableStoreTests, noRemoveCheck)
 		var_name_1,
 		input_data,
 		EFI_VARIABLE_NON_VOLATILE);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Apply a check to constrain size to > 0.  This should prevent removal */
 	VAR_CHECK_VARIABLE_PROPERTY check_property;
@@ -621,26 +621,26 @@ TEST(UefiVariableStoreTests, noRemoveCheck)
 	check_property.MaxSize = 10;
 
 	status = set_check_var_property(var_name_1, check_property);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Try and remove by setting with zero length data */
 	status = set_variable(
 		var_name_1,
 		std::string(),
 		EFI_VARIABLE_NON_VOLATILE);
-	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, status);
 
 	/* Setting with non zero data should work */
 	status = set_variable(
 		var_name_1,
 		std::string("Good"),
 		EFI_VARIABLE_NON_VOLATILE);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* But with data that exceeds the MaxSize */
 	status = set_variable(
 		var_name_1,
 		std::string("A data value that exceeds the MaxSize"),
 		EFI_VARIABLE_NON_VOLATILE);
-	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, status);
 }

@@ -25,7 +25,7 @@
 
 static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_len);
 static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t opcode,
-			int *opstatus, uint8_t **resp_buf, size_t *resp_len);
+			rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len);
 static void call_end(void *context, rpc_call_handle handle);
 
 static int kernel_write_req_buf(struct ffarpc_caller *s);
@@ -249,7 +249,7 @@ static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_l
 }
 
 static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t opcode,
-				int *opstatus, uint8_t **resp_buf, size_t *resp_len)
+				rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len)
 {
 	rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
 	struct ffarpc_caller *s = (struct ffarpc_caller*)context;
@@ -283,8 +283,8 @@ static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t 
 			if (kernel_op_status == 0) {
 				/* Send completed normally - ffa return args in msg_args struct */
 				s->resp_len = (size_t)direct_msg.args[FFA_CALL_ARGS_RESP_DATA_LEN];
-				rpc_status = (int)direct_msg.args[FFA_CALL_ARGS_RESP_RPC_STATUS];
-				*opstatus = (int)direct_msg.args[FFA_CALL_ARGS_RESP_OP_STATUS];
+				rpc_status = (rpc_status_t)direct_msg.args[FFA_CALL_ARGS_RESP_RPC_STATUS];
+				*opstatus = (rpc_opstatus_t)((int32_t)direct_msg.args[FFA_CALL_ARGS_RESP_OP_STATUS]);
 
 				if (s->resp_len > 0) {
 					s->resp_buf = malloc(s->resp_len);

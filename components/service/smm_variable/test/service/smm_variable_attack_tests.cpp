@@ -87,7 +87,7 @@ TEST(SmmVariableAttackTests, setWithOversizeData)
 		0,
 		std::numeric_limits<uint16_t>::max());
 
-	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 }
 
 TEST(SmmVariableAttackTests, setWithSizeMaxDataSize)
@@ -105,7 +105,7 @@ TEST(SmmVariableAttackTests, setWithSizeMaxDataSize)
 		0,
 		std::numeric_limits<size_t>::max());
 
-	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 }
 
 TEST(SmmVariableAttackTests, setWithOversizeName)
@@ -123,7 +123,7 @@ TEST(SmmVariableAttackTests, setWithOversizeName)
 		(var_name.size() + 1) * sizeof(int16_t) + 1,
 		0);
 
-	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 }
 
 TEST(SmmVariableAttackTests, setWithSizeMaxNameSize)
@@ -141,7 +141,7 @@ TEST(SmmVariableAttackTests, setWithSizeMaxNameSize)
 		std::numeric_limits<size_t>::max(),
 		0);
 
-	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 }
 
 TEST(SmmVariableAttackTests, setAndGetWithOversizeName)
@@ -157,7 +157,7 @@ TEST(SmmVariableAttackTests, setAndGetWithOversizeName)
 		set_data,
 		0);
 
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	efi_status = m_client->get_variable(
 		m_common_guid,
@@ -165,11 +165,11 @@ TEST(SmmVariableAttackTests, setAndGetWithOversizeName)
 		get_data,
 		(var_name.size() + 1) * sizeof(int16_t) + 1);
 
-	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 
 	/* Expect remove to be permitted */
 	efi_status = m_client->remove_variable(m_common_guid, var_name);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 }
 
 TEST(SmmVariableAttackTests, setAndGetWithSizeMaxNameSize)
@@ -185,7 +185,7 @@ TEST(SmmVariableAttackTests, setAndGetWithSizeMaxNameSize)
 		set_data,
 		0);
 
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	efi_status = m_client->get_variable(
 		m_common_guid,
@@ -193,11 +193,11 @@ TEST(SmmVariableAttackTests, setAndGetWithSizeMaxNameSize)
 		get_data,
 		std::numeric_limits<size_t>::max());
 
-	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 
 	/* Expect remove to be permitted */
 	efi_status = m_client->remove_variable(m_common_guid, var_name);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 }
 
 TEST(SmmVariableAttackTests, enumerateWithOversizeName)
@@ -211,7 +211,7 @@ TEST(SmmVariableAttackTests, enumerateWithOversizeName)
 		var_name,
 		(var_name.size() + 1) * sizeof(int16_t) + 1);
 
-	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 }
 
 TEST(SmmVariableAttackTests, enumerateWithSizeMaxNameSize)
@@ -233,7 +233,7 @@ TEST(SmmVariableAttackTests, enumerateWithSizeMaxNameSize)
 		guid,
 		var_name);
 
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Next iteration uses invalid name length */
 	efi_status = m_client->get_next_variable_name(
@@ -241,11 +241,11 @@ TEST(SmmVariableAttackTests, enumerateWithSizeMaxNameSize)
 		var_name,
 		std::numeric_limits<size_t>::max());
 
-	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 
 	/* Expect to be able to remove the variable */
 	efi_status = m_client->remove_variable(m_common_guid, var_name_1);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 }
 
 TEST(SmmVariableAttackTests, setCheckPropertyWithOversizeName)
@@ -265,7 +265,7 @@ TEST(SmmVariableAttackTests, setCheckPropertyWithOversizeName)
 		var_name,
 		check_property,
 		(var_name.size() + 1) * sizeof(int16_t) + 1);
-	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 }
 
 TEST(SmmVariableAttackTests, setCheckPropertyWithMaxSizeName)
@@ -285,7 +285,7 @@ TEST(SmmVariableAttackTests, setCheckPropertyWithMaxSizeName)
 		var_name,
 		check_property,
 		std::numeric_limits<size_t>::max());
-	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 }
 
 TEST(SmmVariableAttackTests, getCheckPropertyWithOversizeName)
@@ -300,7 +300,7 @@ TEST(SmmVariableAttackTests, getCheckPropertyWithOversizeName)
 		var_name,
 		check_property,
 		(var_name.size() + 1) * sizeof(int16_t) + 1);
-	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 }
 
 TEST(SmmVariableAttackTests, getCheckPropertyWithMaxSizeName)
@@ -315,5 +315,5 @@ TEST(SmmVariableAttackTests, getCheckPropertyWithMaxSizeName)
 		var_name,
 		check_property,
 		std::numeric_limits<size_t>::max());
-	UNSIGNED_LONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 }

@@ -37,7 +37,7 @@ static inline psa_status_t crypto_caller_generate_random(struct service_client *
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_len);
 

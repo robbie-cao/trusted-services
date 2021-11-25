@@ -40,7 +40,7 @@ static inline psa_status_t crypto_caller_key_derivation_setup(struct service_cli
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_len);
 
@@ -92,7 +92,7 @@ static inline psa_status_t crypto_caller_key_derivation_get_capacity(struct serv
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_len);
 
@@ -145,7 +145,7 @@ static inline psa_status_t crypto_caller_key_derivation_set_capacity(struct serv
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_len);
 
@@ -191,7 +191,7 @@ static inline psa_status_t crypto_caller_key_derivation_input_bytes(struct servi
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
@@ -233,7 +233,7 @@ static inline psa_status_t crypto_caller_key_derivation_input_key(struct service
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_len);
 
@@ -271,7 +271,7 @@ static inline psa_status_t crypto_caller_key_derivation_output_bytes(struct serv
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
@@ -338,7 +338,7 @@ static inline psa_status_t crypto_caller_key_derivation_output_key(struct servic
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_len);
 
@@ -391,7 +391,7 @@ static inline psa_status_t crypto_caller_key_derivation_abort(struct service_cli
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
@@ -439,7 +439,7 @@ static inline psa_status_t crypto_caller_key_derivation_key_agreement(struct ser
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
@@ -492,7 +492,7 @@ static inline psa_status_t crypto_caller_raw_key_agreement(struct service_client
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);

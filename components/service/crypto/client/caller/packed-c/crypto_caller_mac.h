@@ -42,7 +42,7 @@ static inline psa_status_t common_mac_setup(struct service_client *context,
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_len);
 
@@ -119,7 +119,7 @@ static inline psa_status_t crypto_caller_mac_update(struct service_client *conte
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
@@ -162,7 +162,7 @@ static inline psa_status_t crypto_caller_mac_sign_finish(struct service_client *
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
@@ -234,7 +234,7 @@ static inline psa_status_t crypto_caller_mac_verify_finish(struct service_client
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
@@ -273,7 +273,7 @@ static inline psa_status_t crypto_caller_mac_abort(struct service_client *contex
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 

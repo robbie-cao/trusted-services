@@ -79,7 +79,7 @@ int test_runner_client::iterate_over_tests(
 
         uint8_t *resp_buf;
         size_t resp_len;
-        int opstatus;
+        rpc_opstatus_t opstatus;
 
         memcpy(req_buf, req_param.data(), req_len);
 

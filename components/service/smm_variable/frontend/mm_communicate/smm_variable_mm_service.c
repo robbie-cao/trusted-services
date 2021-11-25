@@ -12,7 +12,7 @@ struct smm_variable_rpc_context {
 	struct rpc_interface *smm_variable_rpc_interface;
 };
 
-static int32_t convert_rpc_status(rpc_status_t rpc_status)
+static rpc_opstatus_t convert_rpc_status(rpc_status_t rpc_status)
 {
 	switch (rpc_status) {
 	case TS_RPC_CALL_ACCEPTED:

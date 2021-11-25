@@ -42,7 +42,7 @@ static inline psa_status_t common_cipher_setup(struct service_client *context,
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_len);
 
@@ -116,7 +116,7 @@ static inline psa_status_t crypto_caller_cipher_generate_iv(struct service_clien
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
@@ -188,7 +188,7 @@ static inline psa_status_t crypto_caller_cipher_set_iv(struct service_client *co
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
@@ -240,7 +240,7 @@ static inline psa_status_t crypto_caller_cipher_update(struct service_client *co
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
@@ -311,7 +311,7 @@ static inline psa_status_t crypto_caller_cipher_finish(struct service_client *co
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
@@ -374,7 +374,7 @@ static inline psa_status_t crypto_caller_cipher_abort(struct service_client *con
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 

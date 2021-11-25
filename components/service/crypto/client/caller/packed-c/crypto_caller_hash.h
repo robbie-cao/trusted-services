@@ -39,7 +39,7 @@ static inline psa_status_t crypto_caller_hash_setup(struct service_client *conte
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_len);
 
@@ -100,7 +100,7 @@ static inline psa_status_t crypto_caller_hash_update(struct service_client *cont
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
@@ -143,7 +143,7 @@ static inline psa_status_t crypto_caller_hash_finish(struct service_client *cont
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
@@ -206,7 +206,7 @@ static inline psa_status_t crypto_caller_hash_abort(struct service_client *conte
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
@@ -250,7 +250,7 @@ static inline psa_status_t crypto_caller_hash_verify(struct service_client *cont
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
@@ -290,7 +290,7 @@ static inline psa_status_t crypto_caller_hash_clone(struct service_client *conte
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		int opstatus;
+		rpc_opstatus_t opstatus;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 

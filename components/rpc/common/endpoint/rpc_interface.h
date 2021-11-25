@@ -62,7 +62,7 @@ struct call_req {
 	uint32_t interface_id;
 	uint32_t opcode;
 	uint32_t encoding;
-	int opstatus;
+	rpc_opstatus_t opstatus;
 	struct call_param_buf req_buf;
 	struct call_param_buf resp_buf;
 };
@@ -87,12 +87,12 @@ static inline uint32_t call_req_get_encoding(const struct call_req *req)
 	return req->encoding;
 }
 
-static inline int call_req_get_opstatus(const struct call_req *req)
+static inline rpc_opstatus_t call_req_get_opstatus(const struct call_req *req)
 {
 	return req->opstatus;
 }
 
-static inline void call_req_set_opstatus(struct call_req *req, int opstatus)
+static inline void call_req_set_opstatus(struct call_req *req, rpc_opstatus_t opstatus)
 {
 	req->opstatus = opstatus;
 }

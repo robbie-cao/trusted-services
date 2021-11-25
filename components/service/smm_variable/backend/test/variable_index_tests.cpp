@@ -17,7 +17,7 @@ TEST_GROUP(UefiVariableIndexTests)
 	void setup()
 	{
 		efi_status_t status = variable_index_init(&m_variable_index, MAX_VARIABLES);
-		UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 		guid_1.Data1 = 0x12341234;
 		guid_1.Data2 = 0x1234;
@@ -266,7 +266,7 @@ TEST(UefiVariableIndexTests, dumpLoadRoadtrip)
 	/* Tear down and reinitialize to simulate a reboot */
 	variable_index_deinit(&m_variable_index);
 	efi_status_t status = variable_index_init(&m_variable_index, MAX_VARIABLES);
-	UNSIGNED_LONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Load the dumped contents */
 	size_t load_len = variable_index_restore(&m_variable_index, dump_len, buffer);
@@ -282,7 +282,7 @@ TEST(UefiVariableIndexTests, dumpLoadRoadtrip)
 		null_name.size() * sizeof(int16_t),
 		null_name.data());
 	CHECK_TRUE(info);
-	UNSIGNED_LONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS,
+	UNSIGNED_LONGLONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS,
 		info->metadata.attributes);
 
 	info = variable_index_find_next(
@@ -291,7 +291,7 @@ TEST(UefiVariableIndexTests, dumpLoadRoadtrip)
 		info->metadata.name_size,
 		info->metadata.name);
 	CHECK_TRUE(info);
-	UNSIGNED_LONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS,
+	UNSIGNED_LONGLONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS,
 		info->metadata.attributes);
 
 	info = variable_index_find_next(
@@ -520,7 +520,7 @@ TEST(UefiVariableIndexTests, setCheckConstraintsExistingVar)
 		null_name.size() * sizeof(int16_t),
 		null_name.data());
 	CHECK_TRUE(info);
-	UNSIGNED_LONGS_EQUAL(EFI_VARIABLE_BOOTSERVICE_ACCESS, info->metadata.attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_VARIABLE_BOOTSERVICE_ACCESS, info->metadata.attributes);
 
 	info = variable_index_find_next(
 		&m_variable_index,
@@ -528,7 +528,7 @@ TEST(UefiVariableIndexTests, setCheckConstraintsExistingVar)
 		info->metadata.name_size,
 		info->metadata.name);
 	CHECK_TRUE(info);
-	UNSIGNED_LONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS,
+	UNSIGNED_LONGLONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS,
 		info->metadata.attributes);
 
 	info = variable_index_find_next(

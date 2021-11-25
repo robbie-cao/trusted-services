@@ -14,7 +14,7 @@
 
 static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_len);
 static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t opcode,
-		     	int *opstatus, uint8_t **resp_buf, size_t *resp_len);
+		     	rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len);
 static void call_end(void *context, rpc_call_handle handle);
 
 
@@ -85,7 +85,7 @@ static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_l
 }
 
 static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t opcode,
-		     	int *opstatus, uint8_t **resp_buf, size_t *resp_len)
+		     	rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len)
 {
     struct direct_caller *this_context = (struct direct_caller*)context;
     rpc_status_t status = TS_RPC_ERROR_INVALID_TRANSACTION;

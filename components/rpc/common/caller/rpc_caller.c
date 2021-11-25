@@ -28,7 +28,7 @@ rpc_call_handle rpc_caller_begin(struct rpc_caller *s,
 }
 
 rpc_status_t rpc_caller_invoke(struct rpc_caller *s, rpc_call_handle handle,
-			uint32_t opcode, int *opstatus, uint8_t **resp_buf, size_t *resp_len)
+			uint32_t opcode, rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len)
 {
 	return s->call_invoke(s->context, handle, opcode, opstatus, resp_buf, resp_len);
 }
