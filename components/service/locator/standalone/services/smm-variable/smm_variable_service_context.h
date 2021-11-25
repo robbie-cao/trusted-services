@@ -27,6 +27,9 @@ private:
 
 	static const size_t MAX_VARIABLES = 40;
 
+	/* Use an RPC buffer size that is typical for MM Communicate */
+	static const size_t RPC_BUFFER_SIZE = 64 * 1024;
+
 	struct smm_variable_provider m_smm_variable_provider;
 	struct secure_storage_client m_persistent_store_client;
 	struct mock_store m_volatile_store;

@@ -472,7 +472,7 @@ efi_status_t smm_variable_client::get_var_check_property(
 	return efi_status;
 }
 
-efi_status_t smm_variable_client::get_payload_zize(
+efi_status_t smm_variable_client::get_payload_size(
 	size_t &payload_size)
 {
 	efi_status_t efi_status = EFI_NOT_READY;

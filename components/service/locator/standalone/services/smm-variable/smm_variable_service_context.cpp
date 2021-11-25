@@ -8,7 +8,7 @@
 #include <protocols/rpc/common/packed-c/encoding.h>
 
 smm_variable_service_context::smm_variable_service_context(const char *sn) :
-	standalone_service_context(sn),
+	standalone_service_context(sn, RPC_BUFFER_SIZE),
 	m_smm_variable_provider(),
 	m_persistent_store_client(),
 	m_volatile_store(),

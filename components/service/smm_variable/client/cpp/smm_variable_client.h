@@ -101,7 +101,7 @@ public:
 		size_t override_name_size);
 
 	/* Get maximum variable payload size */
-	efi_status_t get_payload_zize(
+	efi_status_t get_payload_size(
 		size_t &payload_size);
 
 

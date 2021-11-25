@@ -64,6 +64,160 @@ TEST_GROUP(SmmVariableServiceTests)
 		m_common_guid.Data4[7] = 0x07;
 	}
 
+	/* This test makes the irreversible transition from boot to runtime
+	 * state, leaving a variable that can't be removed. To prevent this from
+	 * breaking the variable enumeration test, this test is called from
+	 * the enumeration test to guarantee the order.
+	 */
+	void runtimeStateAccessControl()
+	{
+		efi_status_t efi_status = EFI_SUCCESS;
+		std::wstring boot_var_name = L"a boot variable";
+		std::string boot_set_data = "Only accessible during boot";
+		std::wstring runtime_var_name = L"a runtime variable";
+		std::string runtime_set_data = "Only accessible during runtime";
+		std::string get_data;
+
+		/* This test can only successfully be run once as it exits
+		 * boot service, blocking access to the added boot variable.
+		 * If the boot variable already exists at the start of the
+		 * test, indicating a subsequent test run, just return.
+		 */
+		efi_status = m_client->get_variable(
+			m_common_guid,
+			boot_var_name,
+			get_data);
+		if (efi_status == EFI_ACCESS_DENIED) return;
+
+		/* Add variables with runtime state access control */
+		efi_status = m_client->set_variable(
+			m_common_guid,
+			boot_var_name,
+			boot_set_data,
+			EFI_VARIABLE_BOOTSERVICE_ACCESS);
+		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+		efi_status = m_client->set_variable(
+			m_common_guid,
+			runtime_var_name,
+			runtime_set_data,
+			EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS);
+		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+		/* Expect access to boot variable to be permitted */
+		efi_status = m_client->get_variable(
+			m_common_guid,
+			boot_var_name,
+			get_data);
+		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+		UNSIGNED_LONGS_EQUAL(boot_set_data.size(), get_data.size());
+		LONGS_EQUAL(0, get_data.compare(boot_set_data));
+
+		/* Expect access to the runtime variable to be forbidden during boot */
+		efi_status = m_client->get_variable(
+			m_common_guid,
+			runtime_var_name,
+			get_data);
+		UNSIGNED_LONGLONGS_EQUAL(EFI_ACCESS_DENIED, efi_status);
+
+		/* Exit boot service - access should no longer be permitted */
+		efi_status = m_client->exit_boot_service();
+		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+		/* Access to the boot variablel should now be forbidden */
+		efi_status = m_client->get_variable(
+			m_common_guid,
+			boot_var_name,
+			get_data);
+		UNSIGNED_LONGLONGS_EQUAL(EFI_ACCESS_DENIED, efi_status);
+
+		/* Expect access to the runtime variable to now be permitted */
+		efi_status = m_client->get_variable(
+			m_common_guid,
+			runtime_var_name,
+			get_data);
+		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+		UNSIGNED_LONGS_EQUAL(runtime_set_data.size(), get_data.size());
+		LONGS_EQUAL(0, get_data.compare(runtime_set_data));
+
+		/* Expect removing boot variable to be forbidden */
+		efi_status = m_client->remove_variable(m_common_guid, boot_var_name);
+		UNSIGNED_LONGLONGS_EQUAL(EFI_ACCESS_DENIED, efi_status);
+
+		/* Expect removing runtime variable to be permitted */
+		efi_status = m_client->remove_variable(m_common_guid, runtime_var_name);
+		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+	}
+
+	/* This test also leaves an unremovable variable */
+	void setReadOnlyConstraint()
+	{
+		efi_status_t efi_status = EFI_SUCCESS;
+		std::wstring var_name_1 = L"ro_variable";
+		std::string set_data = "A read only variable";
+
+		/* Add a variable to the store */
+		efi_status = m_client->set_variable(
+			m_common_guid,
+			var_name_1,
+			set_data,
+			0);
+
+		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+		/* Apply a check to constrain to Read Only */
+		VAR_CHECK_VARIABLE_PROPERTY check_property;
+		check_property.Revision = VAR_CHECK_VARIABLE_PROPERTY_REVISION;
+		check_property.Attributes = 0;
+		check_property.Property = VAR_CHECK_VARIABLE_PROPERTY_READ_ONLY;
+		check_property.MinSize = 0;
+		check_property.MaxSize = 100;
+
+		efi_status = m_client->set_var_check_property(
+			m_common_guid,
+			var_name_1,
+			check_property);
+		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+		/* Read back the check property constraint and expect it to match the set value */
+		VAR_CHECK_VARIABLE_PROPERTY got_check_property;
+
+		efi_status = m_client->get_var_check_property(
+			m_common_guid,
+			var_name_1,
+			got_check_property);
+		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+		UNSIGNED_LONGS_EQUAL(check_property.Revision, got_check_property.Revision);
+		UNSIGNED_LONGS_EQUAL(check_property.Attributes, got_check_property.Attributes);
+		UNSIGNED_LONGS_EQUAL(check_property.Property, got_check_property.Property);
+		UNSIGNED_LONGS_EQUAL(check_property.MinSize, got_check_property.MinSize);
+		UNSIGNED_LONGS_EQUAL(check_property.MaxSize, got_check_property.MaxSize);
+
+		/* Attempt to modify variable */
+		efi_status = m_client->set_variable(
+			m_common_guid,
+			var_name_1,
+			std::string("Different variable data"),
+			0);
+
+		UNSIGNED_LONGLONGS_EQUAL(EFI_WRITE_PROTECTED, efi_status);
+
+		/* Expect to still be able to read variable */
+		std::string get_data;
+
+		efi_status = m_client->get_variable(
+			m_common_guid,
+			var_name_1,
+			get_data);
+
+		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+		/* Variable value should be unmodified */
+		UNSIGNED_LONGS_EQUAL(set_data.size(), get_data.size());
+		LONGS_EQUAL(0, get_data.compare(set_data));
+	}
+
 	smm_variable_client *m_client;
 	rpc_session_handle m_rpc_session_handle;
 	struct service_context *m_service_context;
@@ -127,86 +281,6 @@ TEST(SmmVariableServiceTests, setAndGetNv)
 
 	/* Expect remove to be permitted */
 	efi_status = m_client->remove_variable(m_common_guid, var_name);
-	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
-}
-
-TEST(SmmVariableServiceTests, runtimeStateAccessControl)
-{
-	efi_status_t efi_status = EFI_SUCCESS;
-	std::wstring boot_var_name = L"a boot variable";
-	std::string boot_set_data = "Only accessible during boot";
-	std::wstring runtime_var_name = L"a runtime variable";
-	std::string runtime_set_data = "Only accessible during runtime";
-	std::string get_data;
-
-	/* This test can only successfully be run once as it exits
-	 * boot service, blocking access to the added boot variable.
-	 * If the boot variable already exists at the start of the
-	 * test, indicating a subsequent test run, just return.
-	 */
-	efi_status = m_client->get_variable(
-		m_common_guid,
-		boot_var_name,
-		get_data);
-	if (efi_status == EFI_ACCESS_DENIED) return;
-
-	/* Add variables with runtime state access control */
-	efi_status = m_client->set_variable(
-		m_common_guid,
-		boot_var_name,
-		boot_set_data,
-		EFI_VARIABLE_BOOTSERVICE_ACCESS);
-	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
-
-	efi_status = m_client->set_variable(
-		m_common_guid,
-		runtime_var_name,
-		runtime_set_data,
-		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS);
-	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
-
-	/* Expect access to boot variable to be permitted */
-	efi_status = m_client->get_variable(
-		m_common_guid,
-		boot_var_name,
-		get_data);
-	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
-	UNSIGNED_LONGS_EQUAL(boot_set_data.size(), get_data.size());
-	LONGS_EQUAL(0, get_data.compare(boot_set_data));
-
-	/* Expect access to the runtime variable to be forbidden during boot */
-	efi_status = m_client->get_variable(
-		m_common_guid,
-		runtime_var_name,
-		get_data);
-	UNSIGNED_LONGLONGS_EQUAL(EFI_ACCESS_DENIED, efi_status);
-
-	/* Exit boot service - access should no longer be permitted */
-	efi_status = m_client->exit_boot_service();
-	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
-
-	/* Access to the boot variablel should now be forbidden */
-	efi_status = m_client->get_variable(
-		m_common_guid,
-		boot_var_name,
-		get_data);
-	UNSIGNED_LONGLONGS_EQUAL(EFI_ACCESS_DENIED, efi_status);
-
-	/* Expect access to the runtime variable to now be permitted */
-	efi_status = m_client->get_variable(
-		m_common_guid,
-		runtime_var_name,
-		get_data);
-	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
-	UNSIGNED_LONGS_EQUAL(runtime_set_data.size(), get_data.size());
-	LONGS_EQUAL(0, get_data.compare(runtime_set_data));
-
-	/* Expect removing boot variable to be forbidden */
-	efi_status = m_client->remove_variable(m_common_guid, boot_var_name);
-	UNSIGNED_LONGLONGS_EQUAL(EFI_ACCESS_DENIED, efi_status);
-
-	/* Expect removing runtime variable to be permitted */
-	efi_status = m_client->remove_variable(m_common_guid, runtime_var_name);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 }
 
@@ -274,74 +348,12 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 
 	efi_status = m_client->remove_variable(m_common_guid, var_name_3);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
-}
 
-TEST(SmmVariableServiceTests, setReadOnlyConstraint)
-{
-	efi_status_t efi_status = EFI_SUCCESS;
-	std::wstring var_name_1 = L"ro_variable";
-	std::string set_data = "A read only variable";
-
-	/* Add a variable to the store */
-	efi_status = m_client->set_variable(
-		m_common_guid,
-		var_name_1,
-		set_data,
-		0);
-
-	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
-
-	/* Apply a check to constrain to Read Only */
-	VAR_CHECK_VARIABLE_PROPERTY check_property;
-	check_property.Revision = VAR_CHECK_VARIABLE_PROPERTY_REVISION;
-	check_property.Attributes = 0;
-	check_property.Property = VAR_CHECK_VARIABLE_PROPERTY_READ_ONLY;
-	check_property.MinSize = 0;
-	check_property.MaxSize = 100;
-
-	efi_status = m_client->set_var_check_property(
-		m_common_guid,
-		var_name_1,
-		check_property);
-	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
-
-	/* Read back the check property constraint and expect it to match the set value */
-	VAR_CHECK_VARIABLE_PROPERTY got_check_property;
-
-	efi_status = m_client->get_var_check_property(
-		m_common_guid,
-		var_name_1,
-		got_check_property);
-	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
-
-	UNSIGNED_LONGS_EQUAL(check_property.Revision, got_check_property.Revision);
-	UNSIGNED_LONGS_EQUAL(check_property.Attributes, got_check_property.Attributes);
-	UNSIGNED_LONGS_EQUAL(check_property.Property, got_check_property.Property);
-	UNSIGNED_LONGS_EQUAL(check_property.MinSize, got_check_property.MinSize);
-	UNSIGNED_LONGS_EQUAL(check_property.MaxSize, got_check_property.MaxSize);
-
-	/* Attempt to modify variable */
-	efi_status = m_client->set_variable(
-		m_common_guid,
-		var_name_1,
-		std::string("Different variable data"),
-		0);
-
-	UNSIGNED_LONGLONGS_EQUAL(EFI_WRITE_PROTECTED, efi_status);
-
-	/* Expect to still be able to read variable */
-	std::string get_data;
-
-	efi_status = m_client->get_variable(
-		m_common_guid,
-		var_name_1,
-		get_data);
-
-	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
-
-	/* Variable value should be unmodified */
-	UNSIGNED_LONGS_EQUAL(set_data.size(), get_data.size());
-	LONGS_EQUAL(0, get_data.compare(set_data));
+	/* Now that the enumeration test is completed, it's safe to
+	 * run tests that leavev variables behind.
+	 */
+	runtimeStateAccessControl();
+	setReadOnlyConstraint();
 }
 
 TEST(SmmVariableServiceTests, setSizeConstraint)
@@ -410,7 +422,7 @@ TEST(SmmVariableServiceTests, checkMaxVariablePayload)
 	size_t max_payload_size = 0;
 
 	/* Expect to read a reasonable size for the variable payload */
-	efi_status = m_client->get_payload_zize(max_payload_size);
+	efi_status = m_client->get_payload_size(max_payload_size);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 	CHECK_TRUE(max_payload_size >= 1024);

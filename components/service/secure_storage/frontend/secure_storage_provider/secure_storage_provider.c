@@ -54,14 +54,15 @@ static rpc_status_t get_handler(void *context, struct call_req *req)
 
 	request_desc = (struct secure_storage_request_get *)(req->req_buf.data);
 
-	/* Check if the requested data would fit into the response buffer. */
-	if (req->resp_buf.size < request_desc->data_size)
-		return TS_RPC_ERROR_INVALID_RESP_BODY;
+	/* Clip the requested data size if it's too big for the response buffer */
+	size_t data_size = (req->resp_buf.size < data_size) ?
+		req->resp_buf.size :
+		request_desc->data_size;
 
 	psa_status = this_context->backend->interface->get(this_context->backend->context,
 				req->caller_id, request_desc->uid,
 				request_desc->data_offset,
-				request_desc->data_size,
+				data_size,
 				req->resp_buf.data, &req->resp_buf.data_len);
 	call_req_set_opstatus(req, psa_status);
 
@@ -226,7 +227,7 @@ struct rpc_interface *secure_storage_provider_init(struct secure_storage_provide
 		goto out;
 
 	service_provider_init(&context->base_provider, context, handler_table,
-			      sizeof(handler_table) / sizeof(handler_table[0]));
+				  sizeof(handler_table) / sizeof(handler_table[0]));
 
 	rpc_interface = service_provider_get_rpc_interface(&context->base_provider);
 
