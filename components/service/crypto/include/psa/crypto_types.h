@@ -49,10 +49,6 @@ typedef int32_t psa_status_t;
  * @{
  */
 
-/* Integral type representing a key handle. */
-typedef uint16_t psa_key_handle_t;
-
-
 /** \brief Encoding of a key type.
  */
 typedef uint16_t psa_key_type_t;
@@ -222,6 +218,15 @@ typedef uint32_t psa_key_location_t;
  */
 typedef uint32_t psa_key_id_t;
 #define PSA_KEY_ID_INIT 0
+
+/** Key handle for open keys
+ *
+ * This type is used as a handle returned by psa_open_key which is planned
+ * to be deprecated.  Until it is, psa_key_handle_t must have the same
+ * number of bits as psa_key_id_t as there are operations where the types
+ * are used interchangeably
+ */
+typedef psa_key_id_t psa_key_handle_t;
 
 /**@}*/
 
