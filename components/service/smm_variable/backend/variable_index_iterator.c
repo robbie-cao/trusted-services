@@ -31,10 +31,10 @@ bool variable_index_iterator_is_done(
 	return iter->current_pos >= iter->variable_index->max_variables;
 }
 
-const struct variable_info *variable_index_iterator_current(
+struct variable_info *variable_index_iterator_current(
 	const struct variable_index_iterator *iter)
 {
-	const struct variable_info *current = NULL;
+	struct variable_info *current = NULL;
 
 	if (!variable_index_iterator_is_done(iter)) {
 

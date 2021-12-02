@@ -132,13 +132,13 @@ size_t variable_index_max_dump_size(
 	return sizeof(struct variable_metadata) * context->max_variables;
 }
 
-const struct variable_info *variable_index_find(
-	const struct variable_index *context,
+struct variable_info *variable_index_find(
+	struct variable_index *context,
 	const EFI_GUID *guid,
 	size_t name_size,
 	const int16_t *name)
 {
-	const struct variable_info *result = NULL;
+	struct variable_info *result = NULL;
 	int pos = find_variable(context, guid, name_size, name);
 
 	if (pos >= 0) {
@@ -149,13 +149,13 @@ const struct variable_info *variable_index_find(
 	return result;
 }
 
-const struct variable_info *variable_index_find_next(
+struct variable_info *variable_index_find_next(
 	const struct variable_index *context,
 	const EFI_GUID *guid,
 	size_t name_size,
 	const int16_t *name)
 {
-	const struct variable_info *result = NULL;
+	struct variable_info *result = NULL;
 
 	if (name_size >= sizeof(int16_t)) {
 
@@ -263,53 +263,53 @@ static struct variable_entry *add_entry(
 	return entry;
 }
 
-const struct variable_info *variable_index_add_variable(
+struct variable_info *variable_index_add_entry(
 	struct variable_index *context,
 	const EFI_GUID *guid,
 	size_t name_size,
-	const int16_t *name,
+	const int16_t *name)
+{
+	struct variable_info *info = NULL;
+	struct variable_entry *entry = add_entry(context, guid, name_size, name);
+
+	if (entry) {
+
+		info = &entry->info;
+	}
+
+	return info;
+}
+
+void variable_index_remove_unused_entry(
+	struct variable_index *context,
+	struct variable_info *info)
+{
+	if (info &&
+		!info->is_constraints_set &&
+		!info->is_variable_set) {
+
+		struct variable_entry *entry = containing_entry(info);
+		entry->in_use = false;
+
+		memset(info, 0, sizeof(struct variable_info));
+	}
+}
+
+void variable_index_set_variable(
+	struct variable_info *info,
 	uint32_t attributes)
 {
-	struct variable_info *info = NULL;
-	struct variable_entry *entry = add_entry(context, guid, name_size, name);
+	struct variable_entry *entry = containing_entry(info);
 
-	if (entry) {
+	info->metadata.attributes = attributes;
+	info->is_variable_set = true;
 
-		info = &entry->info;
-
-		info->metadata.attributes = attributes;
-		info->is_variable_set = true;
-
-		mark_dirty(entry);
-	}
-
-	return info;
+	mark_dirty(entry);
 }
 
-const struct variable_info *variable_index_add_constraints(
+void variable_index_clear_variable(
 	struct variable_index *context,
-	const EFI_GUID *guid,
-	size_t name_size,
-	const int16_t *name,
-	const struct variable_constraints *constraints)
-{
-	struct variable_info *info = NULL;
-	struct variable_entry *entry = add_entry(context, guid, name_size, name);
-
-	if (entry) {
-
-		info = &entry->info;
-
-		info->check_constraints = *constraints;
-		info->is_constraints_set = true;
-	}
-
-	return info;
-}
-
-void variable_index_remove_variable(
-	struct variable_index *context,
-	const struct variable_info *info)
+	struct variable_info *info)
 {
 	if (info) {
 
@@ -318,48 +318,17 @@ void variable_index_remove_variable(
 
 		/* Mark variable as no longer set */
 		entry->info.is_variable_set = false;
-
-		/* Entry may still be needed if check constraints were set */
-		entry->in_use = info->is_constraints_set;
-
-		if (!entry->in_use) {
-
-			/* Entry not needed so wipe */
-			memset(&entry->info, 0, sizeof(struct variable_info));
-		}
 	}
 }
 
-void variable_index_update_variable(
-	const struct variable_info *info,
-	uint32_t attributes)
-{
-	if (info) {
-
-		struct variable_info *modified_info = (struct variable_info*)info;
-		struct variable_entry *entry = containing_entry(modified_info);
-
-		if (!modified_info->is_variable_set ||
-			(attributes != modified_info->metadata.attributes)) {
-
-			/* The update changes the variable_info state */
-			modified_info->is_variable_set = true;
-			modified_info->metadata.attributes = attributes;
-			mark_dirty(entry);
-		}
-	}
-}
-
-void variable_index_update_constraints(
-	const struct variable_info *info,
+void variable_index_set_constraints(
+	struct variable_info *info,
 	const struct variable_constraints *constraints)
 {
 	if (info) {
 
-		struct variable_info *modified_info = (struct variable_info*)info;
-
-		modified_info->check_constraints = *constraints;
-		modified_info->is_constraints_set = true;
+		info->check_constraints = *constraints;
+		info->is_constraints_set = true;
 	}
 }
 

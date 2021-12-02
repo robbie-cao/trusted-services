@@ -54,7 +54,7 @@ bool variable_index_iterator_is_done(
  *
  * @return     Pointer to variable_info or NULL
  */
-const struct variable_info *variable_index_iterator_current(
+struct variable_info *variable_index_iterator_current(
 	const struct variable_index_iterator *iter);
 
 /**

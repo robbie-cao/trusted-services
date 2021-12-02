@@ -249,6 +249,30 @@ TEST(SmmVariableServiceTests, setAndGet)
 	UNSIGNED_LONGS_EQUAL(set_data.size(), get_data.size());
 	LONGS_EQUAL(0, get_data.compare(set_data));
 
+	/* Extend the variable using an append write */
+	std::string append_data = " values added with append write";
+
+	efi_status = m_client->set_variable(
+		m_common_guid,
+		var_name,
+		append_data,
+		EFI_VARIABLE_APPEND_WRITE);
+
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	efi_status = m_client->get_variable(
+		m_common_guid,
+		var_name,
+		get_data);
+
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	std::string appended_data = set_data + append_data;
+
+	/* Expect the append write operation to have extended the variable */
+	UNSIGNED_LONGLONGS_EQUAL(appended_data.size(), get_data.size());
+	LONGS_EQUAL(0, appended_data.compare(get_data));
+
 	/* Expect remove to be permitted */
 	efi_status = m_client->remove_variable(m_common_guid, var_name);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
@@ -278,6 +302,30 @@ TEST(SmmVariableServiceTests, setAndGetNv)
 
 	UNSIGNED_LONGS_EQUAL(set_data.size(), get_data.size());
 	LONGS_EQUAL(0, get_data.compare(set_data));
+
+	/* Extend the variable using an append write */
+	std::string append_data = " values added with append write";
+
+	efi_status = m_client->set_variable(
+		m_common_guid,
+		var_name,
+		append_data,
+		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_APPEND_WRITE);
+
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	efi_status = m_client->get_variable(
+		m_common_guid,
+		var_name,
+		get_data);
+
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	std::string appended_data = set_data + append_data;
+
+	/* Expect the append write operation to have extended the variable */
+	UNSIGNED_LONGLONGS_EQUAL(appended_data.size(), get_data.size());
+	LONGS_EQUAL(0, appended_data.compare(get_data));
 
 	/* Expect remove to be permitted */
 	efi_status = m_client->remove_variable(m_common_guid, var_name);

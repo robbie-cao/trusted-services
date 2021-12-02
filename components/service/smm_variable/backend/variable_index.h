@@ -119,8 +119,8 @@ size_t variable_index_max_dump_size(
  *
  * @return     Pointer to variable_info or NULL
  */
-const struct variable_info *variable_index_find(
-	const struct variable_index *context,
+struct variable_info *variable_index_find(
+	struct variable_index *context,
 	const EFI_GUID *guid,
 	size_t name_size,
 	const int16_t *name);
@@ -135,78 +135,76 @@ const struct variable_info *variable_index_find(
  *
  * @return     Pointer to variable_info or NULL
  */
-const struct variable_info *variable_index_find_next(
+struct variable_info *variable_index_find_next(
 	const struct variable_index *context,
 	const EFI_GUID *guid,
 	size_t name_size,
 	const int16_t *name);
 
 /**
- * @brief      Add a new variable to the index
+ * @brief      Add a new entry to the index
+ *
+ * An entry is needed either when a new variable is created or
+ * when variable constraints are set for a variable that doesn't
+ * yet exist.
  *
  * @param[in]  context variable_index
  * @param[in]  guid The variable's guid
  * @param[in]  name_size The name parameter's size
  * @param[in]  name The variable's name
- * @param[in]  attributes The variable's attributes
  *
  * @return     Pointer to variable_info or NULL
  */
-const struct variable_info *variable_index_add_variable(
+struct variable_info *variable_index_add_entry(
 	struct variable_index *context,
 	const EFI_GUID *guid,
 	size_t name_size,
-	const int16_t *name,
-	uint32_t attributes);
+	const int16_t *name);
 
 /**
- * @brief      Remove a variable from the index
+ * @brief      Remove an unused entry from the index
  *
- * Removes a variable from the index if it exists.
+ * Removes an entry if it is not in use.
  *
  * @param[in]  context variable_index
  * @param[in]  info The variable info corresponding to the entry to remove
  */
-void variable_index_remove_variable(
+void variable_index_remove_unused_entry(
 	struct variable_index *context,
-	const struct variable_info *info);
+	struct variable_info *info);
 
 /**
- * @brief      Update a variable that's already in the index
+ * @brief      Set a variable to the index
+ *
+ * An entry for the variable must already exist.
  *
  * @param[in]  info variable info
  * @param[in]  attributes The variable's attributes
  */
-void variable_index_update_variable(
-	const struct variable_info *info,
+void variable_index_set_variable(
+	struct variable_info *info,
 	uint32_t attributes);
 
 /**
- * @brief      Add a new check constraints object to the index
+ * @brief      Clear a variable from the index
+ *
+ * Clears a variable from the index
  *
  * @param[in]  context variable_index
- * @param[in]  guid The variable's guid
- * @param[in]  name_size The name parameter's size
- * @param[in]  name The variable's name
- * @param[in]  constraints The check constraints
- *
- * @return     Pointer to variable_info or NULL
+ * @param[in]  info The variable info corresponding to the variable to clear
  */
-const struct variable_info *variable_index_add_constraints(
+void variable_index_clear_variable(
 	struct variable_index *context,
-	const EFI_GUID *guid,
-	size_t name_size,
-	const int16_t *name,
-	const struct variable_constraints *constraints);
+	struct variable_info *info);
 
 /**
- * @brief      Update variable constraints that are already in the index
+ * @brief      Set a check constraints object associated with a variavle
  *
  * @param[in]  info variable info
  * @param[in]  constraints The check constraints
  */
-void variable_index_update_constraints(
-	const struct variable_info *info,
+void variable_index_set_constraints(
+	struct variable_info *info,
 	const struct variable_constraints *constraints);
 
 /**

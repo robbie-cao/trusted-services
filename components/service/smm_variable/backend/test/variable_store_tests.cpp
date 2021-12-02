@@ -250,6 +250,21 @@ TEST(UefiVariableStoreTests, setGetRoundtrip)
 	/* Expect got variable data to be the same as the set value */
 	UNSIGNED_LONGLONGS_EQUAL(input_data.size(), output_data.size());
 	LONGS_EQUAL(0, input_data.compare(output_data));
+
+	/* Extend the variable using an append write */
+	std::string input_data2 = " jumps over the lazy dog";
+
+	status = set_variable(var_name, input_data2, EFI_VARIABLE_APPEND_WRITE);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	status = get_variable(var_name, output_data);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	std::string expected_output = input_data + input_data2;
+
+	/* Expect the append write operation to have extended the variable */
+	UNSIGNED_LONGLONGS_EQUAL(expected_output.size(), output_data.size());
+	LONGS_EQUAL(0, expected_output.compare(output_data));
 }
 
 TEST(UefiVariableStoreTests, persistentSetGet)
@@ -259,7 +274,8 @@ TEST(UefiVariableStoreTests, persistentSetGet)
 	std::string input_data = "quick brown fox";
 	std::string output_data;
 
-	status = set_variable(var_name, input_data, EFI_VARIABLE_NON_VOLATILE);
+	status = set_variable(var_name, input_data,
+		EFI_VARIABLE_NON_VOLATILE);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	status = get_variable(var_name, output_data);
@@ -269,6 +285,22 @@ TEST(UefiVariableStoreTests, persistentSetGet)
 	UNSIGNED_LONGLONGS_EQUAL(input_data.size(), output_data.size());
 	LONGS_EQUAL(0, input_data.compare(output_data));
 
+	/* Extend the variable using an append write */
+	std::string input_data2 = " jumps over the lazy dog";
+
+	status = set_variable(var_name, input_data2,
+		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_APPEND_WRITE);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	status = get_variable(var_name, output_data);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	std::string expected_output = input_data + input_data2;
+
+	/* Expect the append write operation to have extended the variable */
+	UNSIGNED_LONGLONGS_EQUAL(expected_output.size(), output_data.size());
+	LONGS_EQUAL(0, expected_output.compare(output_data));
+
 	/* Expect the variable to survive a power cycle */
 	power_cycle();
 
@@ -277,8 +309,8 @@ TEST(UefiVariableStoreTests, persistentSetGet)
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Still expect got variable data to be the same as the set value */
-	UNSIGNED_LONGLONGS_EQUAL(input_data.size(), output_data.size());
-	LONGS_EQUAL(0, input_data.compare(output_data));
+	UNSIGNED_LONGLONGS_EQUAL(expected_output.size(), output_data.size());
+	LONGS_EQUAL(0, expected_output.compare(output_data));
 }
 
 TEST(UefiVariableStoreTests, removeVolatile)
@@ -317,7 +349,7 @@ TEST(UefiVariableStoreTests, removePersistent)
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Remove by setting with zero data length */
-	status = set_variable(var_name, std::string(), 0);
+	status = set_variable(var_name, std::string(), EFI_VARIABLE_NON_VOLATILE);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Expect variable to no loger exist */

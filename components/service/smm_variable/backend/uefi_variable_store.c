@@ -46,6 +46,13 @@ static efi_status_t load_variable_data(
 	SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var,
 	size_t max_data_len);
 
+static psa_status_t append_write(
+	struct storage_backend *storage_backend,
+	uint32_t client_id,
+	uint64_t uid,
+	size_t data_length,
+	const void *data);
+
 static void purge_orphan_index_entries(
 	struct uefi_variable_store *context);
 
@@ -113,40 +120,45 @@ efi_status_t uefi_variable_store_set_variable(
 	struct uefi_variable_store *context,
 	const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var)
 {
+	bool should_sync_index = false;
+
+	/* Validate incoming request */
 	efi_status_t status = check_name_terminator(var->Name, var->NameSize);
 	if (status != EFI_SUCCESS) return status;
 
 	status = check_capabilities(var);
-	bool should_sync_index = false;
-
 	if (status != EFI_SUCCESS) return status;
 
-	/* Find in index */
-	const struct variable_info *info = variable_index_find(
+	/* Find an existing entry in the variable index or add a new one */
+	struct variable_info *info = variable_index_find(
 		&context->variable_index,
 		&var->Guid,
 		var->NameSize,
 		var->Name);
 
-	if (info) {
+	if (!info) {
 
-		/* Variable info already exists */
-		status = check_access_permitted_on_set(context, info, var);
+		info = variable_index_add_entry(
+			&context->variable_index,
+			&var->Guid,
+			var->NameSize,
+			var->Name);
 
-		if (status == EFI_SUCCESS) {
+		if (!info) return EFI_OUT_OF_RESOURCES;
+	}
 
-			should_sync_index =
-				(var->Attributes & EFI_VARIABLE_NON_VOLATILE) ||
-				(info->is_variable_set && (info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE));
+	/* Control access */
+	status = check_access_permitted_on_set(context, info, var);
 
-			if (var->DataSize) {
+	if (status == EFI_SUCCESS) {
 
-				/* It's a set rather than a remove operation */
-				variable_index_update_variable(
-					info,
-					var->Attributes);
-			}
-			else {
+		/* Access permitted */
+		if (info->is_variable_set) {
+
+			/* It's a request to update to an existing variable */
+			if (!(var->Attributes &
+				(EFI_VARIABLE_APPEND_WRITE | EFI_VARIABLE_AUTHENTICATED_WRITE_ACCESS_MASK)) &&
+				!var->DataSize) {
 
 				/* It's a remove operation - for a remove, the variable
 				 * data must be removed from the storage backend before
@@ -155,30 +167,29 @@ efi_status_t uefi_variable_store_set_variable(
 				 * the storage backend without a corresponding index entry.
 				 */
 				remove_variable_data(context, info);
-				variable_index_remove_variable(&context->variable_index, info);
+				variable_index_clear_variable(&context->variable_index, info);
 
-				/* Variable info no longer valid */
-				info = NULL;
+				should_sync_index = (var->Attributes & EFI_VARIABLE_NON_VOLATILE);
+			}
+			else {
+
+				/* It's a set operation where variable data is potentially
+				 * being overwritten or extended.
+				 */
+				if ((var->Attributes & ~EFI_VARIABLE_APPEND_WRITE) != info->metadata.attributes) {
+
+					/* Modifying attributes is forbidden */
+					return EFI_INVALID_PARAMETER;
+				}
 			}
 		}
 		else {
 
-			/* Access forbidden */
-			info = NULL;
+			/*  It's a request to create a new variable */
+			variable_index_set_variable(info, var->Attributes);
+
+			should_sync_index = (var->Attributes & EFI_VARIABLE_NON_VOLATILE);
 		}
-	}
-	else if (var->DataSize) {
-
-		/* It's a new variable */
-		info = variable_index_add_variable(
-			&context->variable_index,
-			&var->Guid,
-			var->NameSize,
-			var->Name,
-			var->Attributes);
-
-		if (!info) status = EFI_OUT_OF_RESOURCES;
-		should_sync_index = info && (info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE);
 	}
 
 	/* The order of these operations is important. For an update
@@ -195,10 +206,12 @@ efi_status_t uefi_variable_store_set_variable(
 	}
 
 	/* Store any variable data to the storage backend */
-	if (info && (status == EFI_SUCCESS)) {
+	if (info->is_variable_set && (status == EFI_SUCCESS)) {
 
 		status = store_variable_data(context, info, var);
 	}
+
+	variable_index_remove_unused_entry(&context->variable_index, info);
 
 	return status;
 }
@@ -293,53 +306,41 @@ efi_status_t uefi_variable_store_set_var_check_property(
 	efi_status_t status = check_name_terminator(property->Name, property->NameSize);
 	if (status != EFI_SUCCESS) return status;
 
-	/* Find in index */
-	const struct variable_info *info = variable_index_find(
+	/* Find in index or create a new entry */
+	struct variable_info *info = variable_index_find(
 		&context->variable_index,
 		&property->Guid,
 		property->NameSize,
 		property->Name);
 
-	if (info) {
+	if (!info) {
 
-		/* Applying check constraints to an existing variable that may have
-		 * constraints already set.  These could constrain the setting of
-		 * the constraints.
-		 */
-		struct variable_constraints constraints = info->check_constraints;
+		info = variable_index_add_entry(
+			&context->variable_index,
+			&property->Guid,
+			property->NameSize,
+			property->Name);
 
-		status = variable_checker_set_constraints(
-			&constraints,
-			info->is_constraints_set,
-			&property->VariableProperty);
-
-		if (status == EFI_SUCCESS) {
-
-			variable_index_update_constraints(info, &constraints);
-		}
+		if (!info) return EFI_OUT_OF_RESOURCES;
 	}
-	else {
 
-		/* Applying check constraints for a new variable */
-		struct variable_constraints constraints;
+	/* Applying check constraints to an existing variable that may have
+	 * constraints already set.  These could constrain the setting of
+	 * the constraints.
+	 */
+	struct variable_constraints constraints = info->check_constraints;
 
-		status = variable_checker_set_constraints(
-			&constraints,
-			false,
-			&property->VariableProperty);
+	status = variable_checker_set_constraints(
+		&constraints,
+		info->is_constraints_set,
+		&property->VariableProperty);
 
-		if (status == EFI_SUCCESS) {
+	if (status == EFI_SUCCESS) {
 
-			info = variable_index_add_constraints(
-				&context->variable_index,
-				&property->Guid,
-				property->NameSize,
-				property->Name,
-				&constraints);
-
-			if (!info) status = EFI_OUT_OF_RESOURCES;
-		}
+		variable_index_set_constraints(info, &constraints);
 	}
+
+	variable_index_remove_unused_entry(&context->variable_index, info);
 
 	return status;
 }
@@ -440,7 +441,8 @@ static efi_status_t check_capabilities(
 	if (var->Attributes & ~(
 		EFI_VARIABLE_NON_VOLATILE |
 		EFI_VARIABLE_BOOTSERVICE_ACCESS |
-		EFI_VARIABLE_RUNTIME_ACCESS)) {
+		EFI_VARIABLE_RUNTIME_ACCESS |
+		EFI_VARIABLE_APPEND_WRITE)) {
 
 		/* An unsupported attribute has been requested */
 		status = EFI_UNSUPPORTED;
@@ -486,17 +488,6 @@ static efi_status_t check_access_permitted_on_set(
 			var->DataSize);
 	}
 
-	if ((status == EFI_SUCCESS) && var->DataSize) {
-
-		/* Restrict which attributes can be modified for an existing variable */
-		if ((var->Attributes & EFI_VARIABLE_NON_VOLATILE) !=
-			(info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE)) {
-
-			/* Don't permit change of storage class */
-			status = EFI_INVALID_PARAMETER;
-		}
-	}
-
 	return status;
 }
 
@@ -518,20 +509,34 @@ static efi_status_t store_variable_data(
 
 	if (storage_backend) {
 
-		psa_status = storage_backend->interface->set(
-			storage_backend->context,
-			context->owner_id,
-			info->metadata.uid,
-			data_len,
-			data,
-			PSA_STORAGE_FLAG_NONE);
+		if (!(var->Attributes & EFI_VARIABLE_APPEND_WRITE)) {
+
+			/* Create or overwrite variable data */
+			psa_status = storage_backend->interface->set(
+				storage_backend->context,
+				context->owner_id,
+				info->metadata.uid,
+				data_len,
+				data,
+				PSA_STORAGE_FLAG_NONE);
+		}
+		else {
+
+			/* Append new data to existing variable data */
+			psa_status = append_write(
+				storage_backend,
+				context->owner_id,
+				info->metadata.uid,
+				data_len,
+				data);
+		}
 	}
 
 	if ((psa_status != PSA_SUCCESS) && is_nv) {
 
 		/* A storage failure has occurred so attempt to fix any
-		* mismatch between the variable index and stored NV variables.
-		*/
+		 * mismatch between the variable index and stored NV variables.
+		 */
 		purge_orphan_index_entries(context);
 	}
 
@@ -598,6 +603,76 @@ static efi_status_t load_variable_data(
 	return psa_to_efi_storage_status(psa_status);
 }
 
+static psa_status_t append_write(
+	struct storage_backend *storage_backend,
+	uint32_t client_id,
+	uint64_t uid,
+	size_t data_length,
+	const void *data)
+{
+	struct psa_storage_info_t storage_info;
+
+	if (data_length == 0) return PSA_SUCCESS;
+
+	psa_status_t psa_status = storage_backend->interface->get_info(
+		storage_backend->context,
+		client_id,
+		uid,
+		&storage_info);
+
+	if (psa_status != PSA_SUCCESS) return psa_status;
+
+	/* Determine size of appended variable */
+	size_t new_size = storage_info.size + data_length;
+
+	/* Defend against integer overflow */
+	if (new_size < storage_info.size) return PSA_ERROR_INVALID_ARGUMENT;
+
+	/* Storage backend doesn't support an append operation so we need
+	 * need to read the current variable data, extend it and write it back.
+	 */
+	uint8_t *rw_buf = malloc(new_size);
+	if (!rw_buf) return PSA_ERROR_INSUFFICIENT_MEMORY;
+
+	size_t old_size = 0;
+	psa_status = storage_backend->interface->get(
+		storage_backend->context,
+		client_id,
+		uid,
+		0,
+		new_size,
+		rw_buf,
+		&old_size);
+
+	if (psa_status == PSA_SUCCESS) {
+
+		if ((old_size + data_length) <= new_size) {
+
+			/* Extend the variable data */
+			memcpy(&rw_buf[old_size], data, data_length);
+
+			psa_status = storage_backend->interface->set(
+				storage_backend->context,
+				client_id,
+				uid,
+				old_size + data_length,
+				rw_buf,
+				storage_info.flags);
+		}
+		else {
+
+			/* There's a mismatch between the length obtained from
+			 * get_info() and the subsequent length returned by get().
+			 */
+			psa_status = PSA_ERROR_STORAGE_FAILURE;
+		}
+	}
+
+	free(rw_buf);
+
+	return psa_status;
+}
+
 static void purge_orphan_index_entries(
 	struct uefi_variable_store *context)
 {
@@ -612,7 +687,7 @@ static void purge_orphan_index_entries(
 	 */
 	while (!variable_index_iterator_is_done(&iter)) {
 
-		const struct variable_info *info = variable_index_iterator_current(&iter);
+		struct variable_info *info = variable_index_iterator_current(&iter);
 
 		if (info->is_variable_set && (info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE)) {
 
@@ -628,7 +703,7 @@ static void purge_orphan_index_entries(
 			if (psa_status != PSA_SUCCESS) {
 
 				/* Detected a mismatch between the index and storage */
-				variable_index_remove_variable(&context->variable_index, info);
+				variable_index_clear_variable(&context->variable_index, info);
 				any_orphans = true;
 			}
 		}
