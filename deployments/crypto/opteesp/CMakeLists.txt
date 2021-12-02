@@ -5,6 +5,9 @@
 #
 #-------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.16)
+
+# Set default platform.
+set(TS_PLATFORM "arm/fvp/fvp_base_revc-2xaemv8a" CACHE STRING "Target platform location.")
 include(../../deployment.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
@@ -78,14 +81,9 @@ target_sources(crypto-sp PRIVATE
 )
 
 #-------------------------------------------------------------------------------
-#  Use the selected platform to provide drivers needed by the deployment
+#  Set target platform to provide drivers needed by the deployment
 #
 #-------------------------------------------------------------------------------
-# temporarily force platform - with this change, the build interface to
-# an external builder such as a Yocto recipe is unchanged.  Should remove
-# once the build interface is published.
-set(TS_PLATFORM "arm/fvp/fvp_base_revc-2xaemv8a" CACHE STRING "Overridden" FORCE)
-
 add_platform(TARGET "crypto-sp")
 
 #-------------------------------------------------------------------------------

@@ -5,6 +5,9 @@
 #
 #-------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.16)
+
+# Set default platform.
+set(TS_PLATFORM "arm/fvp/fvp_base_revc-2xaemv8a" CACHE STRING "Target platform location.")
 include(../../deployment.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
@@ -58,13 +61,10 @@ target_sources(env-test PRIVATE
 )
 
 #-------------------------------------------------------------------------------
-#  Use the selected platform to provide drivers needed by the deployment
+#  Set target platform to provide drivers needed by the deployment
 #
 #-------------------------------------------------------------------------------
-# temporarily force platform - remove when external builder updated
-set(TS_PLATFORM "arm/fvp/fvp_base_revc-2xaemv8a" CACHE STRING "Overridden" FORCE)
-
-add_platform(TARGET "env-test")
+add_platform(TARGET "env_test")
 
 if(CMAKE_CROSSCOMPILING)
 	target_link_libraries(env-test PRIVATE stdc++ gcc m)
