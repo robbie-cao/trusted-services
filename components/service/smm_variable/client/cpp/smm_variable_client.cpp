@@ -219,6 +219,72 @@ efi_status_t smm_variable_client::get_next_variable_name(
 		0);
 }
 
+efi_status_t smm_variable_client::query_variable_info(
+	uint32_t attributes,
+	size_t *max_variable_storage_size,
+	size_t *remaining_variable_storage_size,
+	size_t *max_variable_size)
+{
+	efi_status_t efi_status = EFI_NOT_READY;
+
+	size_t req_len = sizeof(SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO);
+	rpc_call_handle call_handle;
+	uint8_t *req_buf;
+
+	call_handle = rpc_caller_begin(m_caller, &req_buf, req_len);
+
+	if (call_handle) {
+
+		uint8_t *resp_buf;
+        size_t resp_len;
+		rpc_opstatus_t opstatus;
+
+		SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO *query =
+			(SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO*)req_buf;
+
+		query->Attributes = attributes;
+		query->MaximumVariableSize = 0;
+		query->MaximumVariableStorageSize = 0;
+		query->RemainingVariableStorageSize = 0;
+
+		m_err_rpc_status = rpc_caller_invoke(m_caller, call_handle,
+			SMM_VARIABLE_FUNCTION_QUERY_VARIABLE_INFO, &opstatus, &resp_buf, &resp_len);
+
+		if (m_err_rpc_status == TS_RPC_CALL_ACCEPTED) {
+
+			efi_status = opstatus;
+
+			if (efi_status == EFI_SUCCESS) {
+
+				if (resp_len >= sizeof(SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO)) {
+
+					query = (SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO*)resp_buf;
+
+					*max_variable_storage_size = query->MaximumVariableStorageSize;
+					*remaining_variable_storage_size = query->RemainingVariableStorageSize;
+					*max_variable_size = query->MaximumVariableSize;
+				}
+				else {
+
+					efi_status = EFI_PROTOCOL_ERROR;
+				}
+			}
+			else {
+
+				efi_status = EFI_PROTOCOL_ERROR;
+			}
+		}
+		else {
+
+			efi_status = rpc_to_efi_status();
+		}
+
+		rpc_caller_end(m_caller, call_handle);
+	}
+
+	return efi_status;
+}
+
 efi_status_t smm_variable_client::get_next_variable_name(
 	EFI_GUID &guid,
 	std::wstring &name,

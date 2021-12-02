@@ -46,8 +46,15 @@ static efi_status_t load_variable_data(
 	SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var,
 	size_t max_data_len);
 
-static psa_status_t append_write(
-	struct storage_backend *storage_backend,
+static psa_status_t store_overwrite(
+	struct delegate_variable_store *delegate_store,
+	uint32_t client_id,
+	uint64_t uid,
+	size_t data_length,
+	const void *data);
+
+static psa_status_t store_append_write(
+	struct delegate_variable_store *delegate_store,
 	uint32_t client_id,
 	uint64_t uid,
 	size_t data_length,
@@ -55,6 +62,15 @@ static psa_status_t append_write(
 
 static void purge_orphan_index_entries(
 	struct uefi_variable_store *context);
+
+static struct delegate_variable_store *select_delegate_store(
+	struct uefi_variable_store *context,
+	uint32_t attributes);
+
+static size_t space_used(
+	struct uefi_variable_store *context,
+	uint32_t attributes,
+	struct storage_backend *storage_backend);
 
 static efi_status_t psa_to_efi_storage_status(
 	psa_status_t psa_status);
@@ -66,6 +82,10 @@ static efi_status_t check_name_terminator(
 /* Private UID for storing the variable index */
 #define VARIABLE_INDEX_STORAGE_UID			(1)
 
+/* Default maximum variable size -
+ * may be overridden using uefi_variable_store_set_storage_limits()
+ */
+#define DEFAULT_MAX_VARIABLE_SIZE			(2048)
 
 efi_status_t uefi_variable_store_init(
 	struct uefi_variable_store *context,
@@ -76,8 +96,17 @@ efi_status_t uefi_variable_store_init(
 {
 	efi_status_t status = EFI_SUCCESS;
 
-	context->persistent_store = persistent_store;
-	context->volatile_store = volatile_store;
+	/* Initialise persistent store defaults */
+	context->persistent_store.is_nv = true;
+	context->persistent_store.max_variable_size = DEFAULT_MAX_VARIABLE_SIZE;
+	context->persistent_store.total_capacity = DEFAULT_MAX_VARIABLE_SIZE * max_variables;
+	context->persistent_store.storage_backend = persistent_store;
+
+	/* Initialise volatile store defaults */
+	context->volatile_store.is_nv = false;
+	context->volatile_store.max_variable_size = DEFAULT_MAX_VARIABLE_SIZE;
+	context->volatile_store.total_capacity = DEFAULT_MAX_VARIABLE_SIZE * max_variables;
+	context->volatile_store.storage_backend = volatile_store;
 
 	context->owner_id = owner_id;
 	context->is_boot_service = true;
@@ -114,6 +143,20 @@ void uefi_variable_store_deinit(
 
 	free(context->index_sync_buffer);
 	context->index_sync_buffer = NULL;
+}
+
+void uefi_variable_store_set_storage_limits(
+	struct uefi_variable_store *context,
+	uint32_t attributes,
+	size_t total_capacity,
+	size_t max_variable_size)
+{
+	struct delegate_variable_store *delegate_store = select_delegate_store(
+		context,
+		attributes);
+
+	delegate_store->total_capacity = total_capacity;
+	delegate_store->max_variable_size = max_variable_size;
 }
 
 efi_status_t uefi_variable_store_set_variable(
@@ -284,12 +327,24 @@ efi_status_t uefi_variable_store_get_next_variable_name(
 
 efi_status_t uefi_variable_store_query_variable_info(
 	struct uefi_variable_store *context,
-	SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO *cur)
+	SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO *var_info)
 {
-	efi_status_t status = EFI_UNSUPPORTED;
+	struct delegate_variable_store *delegate_store = select_delegate_store(
+		context,
+		var_info->Attributes);
 
+	size_t total_used = space_used(
+		context,
+		var_info->Attributes,
+		delegate_store->storage_backend);
 
-	return status;
+	var_info->MaximumVariableSize = delegate_store->max_variable_size;
+	var_info->MaximumVariableStorageSize = delegate_store->total_capacity;
+	var_info->RemainingVariableStorageSize = (total_used < delegate_store->total_capacity) ?
+		delegate_store->total_capacity - total_used :
+		0;
+
+	return EFI_SUCCESS;
 }
 
 efi_status_t uefi_variable_store_exit_boot_service(
@@ -375,7 +430,7 @@ efi_status_t uefi_variable_store_get_var_check_property(
 static void load_variable_index(
 	struct uefi_variable_store *context)
 {
-	struct storage_backend *persistent_store = context->persistent_store;
+	struct storage_backend *persistent_store = context->persistent_store.storage_backend;
 
 	if (persistent_store) {
 
@@ -413,7 +468,7 @@ static efi_status_t sync_variable_index(
 
 	if (is_dirty) {
 
-		struct storage_backend *persistent_store = context->persistent_store;
+		struct storage_backend *persistent_store = context->persistent_store.storage_backend;
 
 		if (persistent_store) {
 
@@ -501,30 +556,27 @@ static efi_status_t store_variable_data(
 	const uint8_t *data = (const uint8_t*)var +
 		SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(var);
 
-	bool is_nv = (info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE);
+	struct delegate_variable_store *delegate_store = select_delegate_store(
+		context,
+		info->metadata.attributes);
 
-	struct storage_backend *storage_backend = (is_nv) ?
-		context->persistent_store :
-		context->volatile_store;
-
-	if (storage_backend) {
+	if (delegate_store->storage_backend) {
 
 		if (!(var->Attributes & EFI_VARIABLE_APPEND_WRITE)) {
 
 			/* Create or overwrite variable data */
-			psa_status = storage_backend->interface->set(
-				storage_backend->context,
+			psa_status = store_overwrite(
+				delegate_store,
 				context->owner_id,
 				info->metadata.uid,
 				data_len,
-				data,
-				PSA_STORAGE_FLAG_NONE);
+				data);
 		}
 		else {
 
 			/* Append new data to existing variable data */
-			psa_status = append_write(
-				storage_backend,
+			psa_status = store_append_write(
+				delegate_store,
 				context->owner_id,
 				info->metadata.uid,
 				data_len,
@@ -532,7 +584,7 @@ static efi_status_t store_variable_data(
 		}
 	}
 
-	if ((psa_status != PSA_SUCCESS) && is_nv) {
+	if ((psa_status != PSA_SUCCESS) && delegate_store->is_nv) {
 
 		/* A storage failure has occurred so attempt to fix any
 		 * mismatch between the variable index and stored NV variables.
@@ -551,16 +603,14 @@ static efi_status_t remove_variable_data(
 
 	if (info->is_variable_set) {
 
-		bool is_nv = (info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE);
+		struct delegate_variable_store *delegate_store = select_delegate_store(
+			context,
+			info->metadata.attributes);
 
-		struct storage_backend *storage_backend = (is_nv) ?
-			context->persistent_store :
-			context->volatile_store;
+		if (delegate_store->storage_backend) {
 
-		if (storage_backend) {
-
-			psa_status = storage_backend->interface->remove(
-				storage_backend->context,
+			psa_status = delegate_store->storage_backend->interface->remove(
+				delegate_store->storage_backend->context,
 				context->owner_id,
 				info->metadata.uid);
 		}
@@ -580,16 +630,14 @@ static efi_status_t load_variable_data(
 	uint8_t *data = (uint8_t*)var +
 		SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(var);
 
-	bool is_nv = (info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE);
+	struct delegate_variable_store *delegate_store = select_delegate_store(
+		context,
+		info->metadata.attributes);
 
-	struct storage_backend *storage_backend = (is_nv) ?
-		context->persistent_store :
-		context->volatile_store;
+	if (delegate_store->storage_backend) {
 
-	if (storage_backend) {
-
-		psa_status = storage_backend->interface->get(
-			storage_backend->context,
+		psa_status = delegate_store->storage_backend->interface->get(
+			delegate_store->storage_backend->context,
 			context->owner_id,
 			info->metadata.uid,
 			0,
@@ -603,8 +651,29 @@ static efi_status_t load_variable_data(
 	return psa_to_efi_storage_status(psa_status);
 }
 
-static psa_status_t append_write(
-	struct storage_backend *storage_backend,
+static psa_status_t store_overwrite(
+	struct delegate_variable_store *delegate_store,
+	uint32_t client_id,
+	uint64_t uid,
+	size_t data_length,
+	const void *data)
+{
+	/* Police maximum variable size limit */
+	if (data_length > delegate_store->max_variable_size) return PSA_ERROR_INVALID_ARGUMENT;
+
+	psa_status_t psa_status = delegate_store->storage_backend->interface->set(
+		delegate_store->storage_backend->context,
+		client_id,
+		uid,
+		data_length,
+		data,
+		PSA_STORAGE_FLAG_NONE);
+
+	return psa_status;
+}
+
+static psa_status_t store_append_write(
+	struct delegate_variable_store *delegate_store,
 	uint32_t client_id,
 	uint64_t uid,
 	size_t data_length,
@@ -614,8 +683,8 @@ static psa_status_t append_write(
 
 	if (data_length == 0) return PSA_SUCCESS;
 
-	psa_status_t psa_status = storage_backend->interface->get_info(
-		storage_backend->context,
+	psa_status_t psa_status = delegate_store->storage_backend->interface->get_info(
+		delegate_store->storage_backend->context,
 		client_id,
 		uid,
 		&storage_info);
@@ -628,6 +697,9 @@ static psa_status_t append_write(
 	/* Defend against integer overflow */
 	if (new_size < storage_info.size) return PSA_ERROR_INVALID_ARGUMENT;
 
+		/* Police maximum variable size limit */
+	if (new_size > delegate_store->max_variable_size) return PSA_ERROR_INVALID_ARGUMENT;
+
 	/* Storage backend doesn't support an append operation so we need
 	 * need to read the current variable data, extend it and write it back.
 	 */
@@ -635,8 +707,8 @@ static psa_status_t append_write(
 	if (!rw_buf) return PSA_ERROR_INSUFFICIENT_MEMORY;
 
 	size_t old_size = 0;
-	psa_status = storage_backend->interface->get(
-		storage_backend->context,
+	psa_status = delegate_store->storage_backend->interface->get(
+		delegate_store->storage_backend->context,
 		client_id,
 		uid,
 		0,
@@ -651,8 +723,8 @@ static psa_status_t append_write(
 			/* Extend the variable data */
 			memcpy(&rw_buf[old_size], data, data_length);
 
-			psa_status = storage_backend->interface->set(
-				storage_backend->context,
+			psa_status = delegate_store->storage_backend->interface->set(
+				delegate_store->storage_backend->context,
 				client_id,
 				uid,
 				old_size + data_length,
@@ -692,7 +764,7 @@ static void purge_orphan_index_entries(
 		if (info->is_variable_set && (info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE)) {
 
 			struct psa_storage_info_t storage_info;
-			struct storage_backend *storage_backend = context->persistent_store;
+			struct storage_backend *storage_backend = context->persistent_store.storage_backend;
 
 			psa_status_t psa_status = storage_backend->interface->get_info(
 				storage_backend->context,
@@ -712,6 +784,53 @@ static void purge_orphan_index_entries(
 	}
 
 	if (any_orphans) sync_variable_index(context);
+}
+
+static struct delegate_variable_store *select_delegate_store(
+	struct uefi_variable_store *context,
+	uint32_t attributes)
+{
+	bool is_nv = (attributes & EFI_VARIABLE_NON_VOLATILE);
+
+	return (is_nv) ?
+		&context->persistent_store :
+		&context->volatile_store;
+}
+
+static size_t space_used(
+	struct uefi_variable_store *context,
+	uint32_t attributes,
+	struct storage_backend *storage_backend)
+{
+	if (!storage_backend) return 0;
+
+	size_t total_used = 0;
+	struct variable_index_iterator iter;
+	variable_index_iterator_first(&iter, &context->variable_index);
+
+	while (!variable_index_iterator_is_done(&iter)) {
+
+		struct variable_info *info = variable_index_iterator_current(&iter);
+
+		if (info->is_variable_set &&
+		    ((info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE) ==
+			 (attributes & EFI_VARIABLE_NON_VOLATILE))) {
+
+			struct psa_storage_info_t storage_info;
+
+			psa_status_t psa_status = storage_backend->interface->get_info(
+				storage_backend->context,
+				context->owner_id,
+				info->metadata.uid,
+				&storage_info);
+
+			if (psa_status == PSA_SUCCESS) total_used += storage_info.size;
+		}
+
+		variable_index_iterator_next(&iter);
+	}
+
+	return total_used;
 }
 
 static efi_status_t psa_to_efi_storage_status(

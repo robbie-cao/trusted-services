@@ -252,11 +252,38 @@ static rpc_status_t set_variable_handler(void *context, struct call_req* req)
 
 static rpc_status_t query_variable_info_handler(void *context, struct call_req* req)
 {
+	efi_status_t efi_status = EFI_INVALID_PARAMETER;
 	struct smm_variable_provider *this_instance = (struct smm_variable_provider*)context;
 
-	/* todo */
+	const struct call_param_buf *req_buf = call_req_get_req_buf(req);
 
-	return TS_RPC_ERROR_NOT_READY;
+	if (req_buf->data_len >= sizeof(SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO)) {
+
+		struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+
+		if (resp_buf->size >= req_buf->data_len) {
+
+			memmove(resp_buf->data, req_buf->data, req_buf->data_len);
+
+			efi_status = uefi_variable_store_query_variable_info(
+				&this_instance->variable_store,
+				(SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO*)resp_buf->data);
+
+			if (efi_status == EFI_SUCCESS) {
+
+				resp_buf->data_len = sizeof(SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO);
+			}
+		}
+		else {
+
+			/* Reponse buffer not big enough */
+			efi_status = EFI_BAD_BUFFER_SIZE;
+		}
+	}
+
+	call_req_set_opstatus(req, efi_status);
+
+	return TS_RPC_CALL_ACCEPTED;
 }
 
 static rpc_status_t exit_boot_service_handler(void *context, struct call_req* req)

@@ -335,12 +335,38 @@ TEST(SmmVariableServiceTests, setAndGetNv)
 TEST(SmmVariableServiceTests, enumerateStoreContents)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
+
+	/* Query information about the empty variable store */
+	size_t nv_max_variable_storage_size = 0;
+	size_t nv_max_variable_size = 0;
+	size_t nv_remaining_variable_storage_size = 0;
+
+	efi_status = m_client->query_variable_info(
+		EFI_VARIABLE_NON_VOLATILE,
+		&nv_max_variable_storage_size,
+		&nv_remaining_variable_storage_size,
+		&nv_max_variable_size);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(nv_max_variable_storage_size, nv_remaining_variable_storage_size);
+
+	size_t v_max_variable_storage_size = 0;
+	size_t v_max_variable_size = 0;
+	size_t v_remaining_variable_storage_size = 0;
+
+	efi_status = m_client->query_variable_info(
+		0,
+		&v_max_variable_storage_size,
+		&v_remaining_variable_storage_size,
+		&v_max_variable_size);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(v_max_variable_storage_size, v_remaining_variable_storage_size);
+
+	/* Add some variables to the store */
 	std::wstring var_name_1 = L"varibale_1";
 	std::wstring var_name_2 = L"varibale_2";
 	std::wstring var_name_3 = L"varibale_3";
 	std::string set_data = "Some variable data";
 
-	/* Add some variables to the store */
 	efi_status = m_client->set_variable(
 		m_common_guid,
 		var_name_1,
@@ -364,6 +390,33 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 		0);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	/* Query variable info again and check it's as expected */
+	size_t max_variable_storage_size = 0;
+	size_t max_variable_size = 0;
+	size_t remaining_variable_storage_size = 0;
+
+	/* Check non-volatile - two variables have been added */
+	efi_status = m_client->query_variable_info(
+		EFI_VARIABLE_NON_VOLATILE,
+		&max_variable_storage_size,
+		&remaining_variable_storage_size,
+		&max_variable_size);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(
+		(nv_remaining_variable_storage_size - set_data.size() * 2),
+		remaining_variable_storage_size);
+
+	/* Check volatile - one variables have been added */
+	efi_status = m_client->query_variable_info(
+		0,
+		&max_variable_storage_size,
+		&remaining_variable_storage_size,
+		&max_variable_size);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+	UNSIGNED_LONGLONGS_EQUAL(
+		(v_remaining_variable_storage_size - set_data.size() * 1),
+		remaining_variable_storage_size);
 
 	/* Enumerate store contents - expect the values we added */
 	std::wstring var_name;

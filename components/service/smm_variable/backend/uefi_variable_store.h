@@ -21,6 +21,20 @@ extern "C" {
 #endif
 
 /**
+ * \brief delegate_variable_store structure definition
+ *
+ * A delegate_variable_store combines an association with a concrete
+ * storage backend and a set of limits parameters.
+ */
+struct delegate_variable_store
+{
+	bool is_nv;
+	size_t total_capacity;
+	size_t max_variable_size;
+	struct storage_backend *storage_backend;
+};
+
+/**
  * \brief uefi_variable_store structure definition
  *
  * A uefi_variable_store provides a variable store using a persistent and a
@@ -35,8 +49,8 @@ struct uefi_variable_store
 	uint8_t *index_sync_buffer;
 	size_t index_sync_buffer_size;
 	struct variable_index variable_index;
-	struct storage_backend *persistent_store;
-	struct storage_backend *volatile_store;
+	struct delegate_variable_store persistent_store;
+	struct delegate_variable_store volatile_store;
 };
 
 /**
@@ -68,6 +82,23 @@ efi_status_t uefi_variable_store_init(
  */
 void uefi_variable_store_deinit(
 	struct uefi_variable_store *context);
+
+/**
+ * @brief      Set storage limits
+ *
+ * Overrides the default limits for the specified storage space. These
+ * values are reflected in the values returned by QueryVariableInfo.
+ *
+ * @param[in]  context uefi_variable_store instance
+ * @param[in]  attributes EFI_VARIABLE_NON_VOLATILE or 0
+ * @param[in]  total_capacity The total storage capacity in bytes
+ * @param[in]  max_variable_size Variable size limit
+ */
+void uefi_variable_store_set_storage_limits(
+	struct uefi_variable_store *context,
+	uint32_t attributes,
+	size_t total_capacity,
+	size_t max_variable_size);
 
 /**
  * @brief      Set variable
@@ -123,13 +154,13 @@ efi_status_t uefi_variable_store_get_next_variable_name(
  * @brief      Query for variable info
  *
  * @param[in]  context uefi_variable_store instance
- * @param[out] info Returns info
+ * @param[inout] var_info Returns info
  *
  * @return     EFI_SUCCESS if succesful
  */
 efi_status_t uefi_variable_store_query_variable_info(
 	struct uefi_variable_store *context,
-	SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO *cur);
+	SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO *var_info);
 
 /**
  * @brief      Exit boot service

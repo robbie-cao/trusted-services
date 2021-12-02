@@ -27,6 +27,18 @@ TEST_GROUP(UefiVariableStoreTests)
 
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
+		uefi_variable_store_set_storage_limits(
+			&m_uefi_variable_store,
+			EFI_VARIABLE_NON_VOLATILE,
+			STORE_CAPACITY,
+			MAX_VARIABLE_SIZE);
+
+		uefi_variable_store_set_storage_limits(
+			&m_uefi_variable_store,
+			0,
+			STORE_CAPACITY,
+			MAX_VARIABLE_SIZE);
+
 		setup_common_guid();
 	}
 
@@ -152,6 +164,33 @@ TEST_GROUP(UefiVariableStoreTests)
 		return status;
 	}
 
+	efi_status_t query_variable_info(
+		uint32_t attributes,
+		size_t *max_variable_storage_size,
+		size_t *remaining_variable_storage_size,
+		size_t *max_variable_size)
+	{
+		SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO query;
+
+		query.MaximumVariableStorageSize = 0;
+		query.RemainingVariableStorageSize = 0;
+		query.MaximumVariableSize = 0;
+		query.Attributes = attributes;
+
+		efi_status_t status = uefi_variable_store_query_variable_info(
+			&m_uefi_variable_store,
+			&query);
+
+		if (status == EFI_SUCCESS) {
+
+			*max_variable_storage_size = query.MaximumVariableStorageSize;
+			*remaining_variable_storage_size = query.RemainingVariableStorageSize;
+			*max_variable_size = query.MaximumVariableSize;
+		}
+
+		return status;
+	}
+
 	efi_status_t set_check_var_property(
 		const std::wstring &name,
 		const VAR_CHECK_VARIABLE_PROPERTY &check_property)
@@ -195,7 +234,8 @@ TEST_GROUP(UefiVariableStoreTests)
 
 		if (info && (info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE)) {
 
-			struct storage_backend *storage_backend = m_uefi_variable_store.persistent_store;
+			struct storage_backend *storage_backend =
+				m_uefi_variable_store.persistent_store.storage_backend;
 
 			storage_backend->interface->remove(
 				storage_backend->context,
@@ -220,9 +260,24 @@ TEST_GROUP(UefiVariableStoreTests)
 			m_volatile_backend);
 
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+		uefi_variable_store_set_storage_limits(
+			&m_uefi_variable_store,
+			EFI_VARIABLE_NON_VOLATILE,
+			STORE_CAPACITY,
+			MAX_VARIABLE_SIZE);
+
+		uefi_variable_store_set_storage_limits(
+			&m_uefi_variable_store,
+			0,
+			STORE_CAPACITY,
+			MAX_VARIABLE_SIZE);
 	}
 
 	static const size_t MAX_VARIABLES = 10;
+	static const size_t MAX_VARIABLE_SIZE = 100;
+	static const size_t STORE_CAPACITY = 1000;
+
 	static const uint32_t OWNER_ID = 100;
 	static const size_t VARIABLE_BUFFER_SIZE = 1024;
 
@@ -265,6 +320,22 @@ TEST(UefiVariableStoreTests, setGetRoundtrip)
 	/* Expect the append write operation to have extended the variable */
 	UNSIGNED_LONGLONGS_EQUAL(expected_output.size(), output_data.size());
 	LONGS_EQUAL(0, expected_output.compare(output_data));
+
+	/* Expect query_variable_info to return consistent values */
+	size_t max_variable_storage_size = 0;
+	size_t remaining_variable_storage_size = 0;
+	size_t max_variable_size = 0;
+
+	status = query_variable_info(
+		0,
+		&max_variable_storage_size,
+		&remaining_variable_storage_size,
+		&max_variable_size);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	UNSIGNED_LONGLONGS_EQUAL(STORE_CAPACITY, max_variable_storage_size);
+	UNSIGNED_LONGLONGS_EQUAL(MAX_VARIABLE_SIZE, max_variable_size);
+	UNSIGNED_LONGLONGS_EQUAL(STORE_CAPACITY - expected_output.size(), remaining_variable_storage_size);
 }
 
 TEST(UefiVariableStoreTests, persistentSetGet)
@@ -311,6 +382,22 @@ TEST(UefiVariableStoreTests, persistentSetGet)
 	/* Still expect got variable data to be the same as the set value */
 	UNSIGNED_LONGLONGS_EQUAL(expected_output.size(), output_data.size());
 	LONGS_EQUAL(0, expected_output.compare(output_data));
+
+	/* Expect query_variable_info to return consistent values */
+	size_t max_variable_storage_size = 0;
+	size_t remaining_variable_storage_size = 0;
+	size_t max_variable_size = 0;
+
+	status = query_variable_info(
+		EFI_VARIABLE_NON_VOLATILE,
+		&max_variable_storage_size,
+		&remaining_variable_storage_size,
+		&max_variable_size);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	UNSIGNED_LONGLONGS_EQUAL(STORE_CAPACITY, max_variable_storage_size);
+	UNSIGNED_LONGLONGS_EQUAL(MAX_VARIABLE_SIZE, max_variable_size);
+	UNSIGNED_LONGLONGS_EQUAL(STORE_CAPACITY - expected_output.size(), remaining_variable_storage_size);
 }
 
 TEST(UefiVariableStoreTests, removeVolatile)

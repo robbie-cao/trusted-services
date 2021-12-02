@@ -63,6 +63,13 @@ public:
 		const EFI_GUID &guid,
 		const std::wstring &name);
 
+	/* Query variable info */
+	efi_status_t query_variable_info(
+		uint32_t attributes,
+		size_t *max_variable_storage_size,
+		size_t *remaining_variable_storage_size,
+		size_t *max_variable_size);
+
 	/* Get the next variable name - for enumerating store contents */
 	efi_status_t get_next_variable_name(
 		EFI_GUID &guid,
