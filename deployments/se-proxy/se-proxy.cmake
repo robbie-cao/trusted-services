@@ -19,6 +19,7 @@ add_components(TARGET "se-proxy"
 		"components/config/loader/sp"
 		"components/messaging/ffa/libsp"
 		"components/rpc/ffarpc/endpoint"
+		"components/rpc/psa_ipc"
 		"components/rpc/common/interface"
 		"components/rpc/common/demux"
 		"components/service/common/include"
@@ -44,16 +45,19 @@ add_components(TARGET "se-proxy"
 		"components/service/crypto/factory/full"
 		"components/service/secure_storage/include"
 		"components/service/secure_storage/frontend/secure_storage_provider"
+		"components/service/secure_storage/backend/secure_storage_ipc"
 		"components/service/attestation/include"
 		"components/service/attestation/provider"
 		"components/service/attestation/provider/serializer/packed-c"
+		"components/service/attestation/reporter/psa_ipc"
+		"components/service/attestation/client/psa_ipc"
+		"components/messaging/openamp/sp"
 
 		# Stub service provider backends
 		"components/rpc/dummy"
 		"components/rpc/common/caller"
-		"components/service/attestation/reporter/stub"
-		"components/service/attestation/key_mngr/stub"
-		"components/service/crypto/backend/stub"
+		"components/service/attestation/key_mngr/local"
+		"components/service/crypto/backend/psa_ipc"
 		"components/service/crypto/client/psa"
 		"components/service/secure_storage/backend/mock_store"
 )
@@ -72,6 +76,13 @@ target_sources(se-proxy PRIVATE
 include(../../../external/nanopb/nanopb.cmake)
 target_link_libraries(se-proxy PRIVATE nanopb::protobuf-nanopb-static)
 protobuf_generate_all(TGT "se-proxy" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protocols")
+
+# libmetal
+include(../../../external/openamp/libmetal.cmake)
+
+# OpenAMP
+include(../../../external/openamp/openamp.cmake)
+target_link_libraries(se-proxy PRIVATE openamp libmetal)
 
 #################################################################
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -17,4 +17,26 @@
 	xlat-granule = <0>; /* 4KiB */
 	messaging-method = <3>; /* Direct messaging only */
 	legacy-elf-format = <1>;
+
+	device-regions {
+		compatible = "arm,ffa-manifest-device-regions";
+		mhu-sender {
+			/* Armv8 A Foundation Platform values */
+			base-address = <0x00000000 0x1b820000>;
+			pages-count = <16>;
+			attributes = <0x3>; /* read-write */
+		};
+		mhu-receiver {
+			/* Armv8 A Foundation Platform values */
+			base-address = <0x00000000 0x1b830000>;
+			pages-count = <16>;
+			attributes = <0x3>; /* read-write */
+		};
+		openamp-virtio {
+			/* Armv8 A Foundation Platform values */
+			base-address = <0x00000000 0x88000000>;
+			pages-count = <256>;
+			attributes = <0x3>; /* read-write */
+		};
+	};
 };
