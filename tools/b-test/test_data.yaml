@@ -154,3 +154,13 @@ data:
       os_id : "GNU/Linux"
       params:
           - "-GUnix Makefiles"
+    - name: "uefi-test-pc-linux"
+      src: "$TS_ROOT/deployments/uefi-test/linux-pc"
+      os_id : "GNU/Linux"
+      params:
+          - "-GUnix Makefiles"
+    - name: "uefi-test-arm-linux"
+      src: "$TS_ROOT/deployments/uefi-test/arm-linux"
+      os_id : "GNU/Linux"
+      params:
+          - "-GUnix Makefiles"
