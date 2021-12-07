@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -14,10 +14,6 @@ set(GIT_OPTIONS
 	GIT_REPOSITORY ${PSA_ARCH_TESTS_URL}
 	GIT_TAG ${PSA_ARCH_TESTS_REFSPEC}
 	GIT_SHALLOW FALSE
-	PATCH_COMMAND git stash
-		COMMAND git tag -f ts-before-am
-		COMMAND git am ${CMAKE_CURRENT_LIST_DIR}/0001-Disable-using-hard-coded-attestation-key.patch
-		COMMAND git reset ts-before-am
 )
 
 # Ensure list of defines is separated correctly

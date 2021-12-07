@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2019-2023, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -49,6 +49,10 @@ extern "C" {
 #define TFM_ATTESTATION_SERVICE_SID                                (0x00000020U)
 #define TFM_ATTESTATION_SERVICE_VERSION                            (1U)
 #define TFM_ATTESTATION_SERVICE_HANDLE                             (0x40000103U)
+
+/* Initial Attestation message types that distinguish Attest services. */
+#define TFM_ATTEST_GET_TOKEN       1001
+#define TFM_ATTEST_GET_TOKEN_SIZE  1002
 
 /******** TFM_SP_FWU ********/
 #define TFM_FWU_WRITE_SID                                          (0x000000A0U)
