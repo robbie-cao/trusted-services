@@ -81,7 +81,7 @@ static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t 
 	req.destination_id = this_context->dest_partition_id;
 	req.source_id = own_id;
 	req.args[SP_CALL_ARGS_IFACE_ID_OPCODE] =
-		FFA_CALL_ARGS_COMBINE_IFACE_ID_OPCODE(this_context->dest_partition_id, opcode);
+		FFA_CALL_ARGS_COMBINE_IFACE_ID_OPCODE(this_context->dest_iface_id, opcode);
 	//TODO: downcast problem?
 	req.args[SP_CALL_ARGS_REQ_DATA_LEN] = (uint32_t)this_context->req_len;
 	req.args[SP_CALL_ARGS_ENCODING] = this_context->rpc_caller.encoding;
