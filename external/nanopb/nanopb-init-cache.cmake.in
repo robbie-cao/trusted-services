@@ -1,0 +1,26 @@
+#-------------------------------------------------------------------------------
+# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+#-------------------------------------------------------------------------------
+
+set(CMAKE_INSTALL_PREFIX @BUILD_INSTALL_DIR@ CACHE STRING "")
+set(CMAKE_TOOLCHAIN_FILE @TS_EXTERNAL_LIB_TOOLCHAIN_FILE@ CACHE STRING "")
+set(BUILD_SHARED_LIBS Off CACHE BOOL "")
+set(BUILD_STATIC_LIBS On CACHE BOOL "")
+set(nanopb_BUILD_RUNTIME On CACHE BOOL "")
+set(nanopb_BUILD_GENERATOR On CACHE BOOL "")
+set(nanopb_MSVC_STATIC_RUNTIME Off BOOL "")
+set(nanopb_PROTOC_PATH ${CMAKE_SOURCE_DIR}/generator/protoc CACHE STRING "")
+
+string(TOUPPER @CMAKE_CROSSCOMPILING@ CMAKE_CROSSCOMPILING) # CMake expects TRUE
+if (CMAKE_CROSSCOMPILING)
+	set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY CACHE STRING "")
+endif()
+
+set(NANOPB_EXTERNAL_INCLUDE_PATHS "@NANOPB_EXTERNAL_INCLUDE_PATHS@" CACHE STRING "")
+
+if (NOT "${NANOPB_EXTERNAL_INCLUDE_PATHS}" STREQUAL "")
+	include_directories(${NANOPB_EXTERNAL_INCLUDE_PATHS})
+endif()

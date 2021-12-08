@@ -1,0 +1,20 @@
+#-------------------------------------------------------------------------------
+# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+#-------------------------------------------------------------------------------
+
+set(CMAKE_INSTALL_PREFIX "@BUILD_INSTALL_DIR@" CACHE STRING "")
+set(CMAKE_TOOLCHAIN_FILE "@TS_EXTERNAL_LIB_TOOLCHAIN_FILE@" CACHE STRING "")
+
+set(QCBOR_EXTERNAL_INCLUDE_PATHS "@QCBOR_EXTERNAL_INCLUDE_PATHS@")
+if (QCBOR_EXTERNAL_INCLUDE_PATHS)
+	set(thirdparty_inc "${QCBOR_EXTERNAL_INCLUDE_PATHS}" CACHE STRING "")
+endif()
+
+# Determine floating point configuration
+set(TS_NO_FLOAT_HW "@TS_NO_FLOAT_HW@")
+if (TS_NO_FLOAT_HW)
+	set(thirdparty_def "-DQCBOR_DISABLE_FLOAT_HW_USE" CACHE STRING "")
+endif()

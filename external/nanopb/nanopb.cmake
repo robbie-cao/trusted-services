@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -24,22 +24,16 @@ running this module.
 
 #]===]
 
-# Determine the number of processes to run while running parallel builds.
-# Pass -DPROCESSOR_COUNT=<n> to cmake to override.
-if(NOT DEFINED PROCESSOR_COUNT)
-	include(ProcessorCount)
-	ProcessorCount(PROCESSOR_COUNT)
-	set(PROCESSOR_COUNT ${PROCESSOR_COUNT} CACHE STRING "Number of cores to use for parallel builds.")
-endif()
-
 #### Get the dependency
 
-set(NANOPB_URL "https://github.com/nanopb/nanopb.git" CACHE STRING "nanopb repository URL")
-set(NANOPB_REFSPEC "nanopb-0.4.2" CACHE STRING "nanopb git refspec")
-set(NANOPB_INSTALL_PATH "${CMAKE_CURRENT_BINARY_DIR}/nanopb_install" CACHE PATH "nanopb installation directory")
-set(NANOPB_PACKAGE_PATH "${NANOPB_INSTALL_PATH}/libnanopb/cmake" CACHE PATH "nanopb CMake package directory")
-
-include(FetchContent)
+set(NANOPB_URL "https://github.com/nanopb/nanopb.git"
+		CACHE STRING "nanopb repository URL")
+set(NANOPB_REFSPEC "nanopb-0.4.2"
+		CACHE STRING "nanopb git refspec")
+set(NANOPB_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/nanopb-src"
+		CACHE PATH "nanopb source-code")
+set(NANOPB_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/nanopb_install"
+		CACHE PATH "nanopb installation directory")
 
 # Checking git
 find_program(GIT_COMMAND "git")
@@ -47,101 +41,33 @@ if (NOT GIT_COMMAND)
 	message(FATAL_ERROR "Please install git")
 endif()
 
-# Fetching nanopb
-FetchContent_Declare(
-	nanopb
+set(GIT_OPTIONS
 	GIT_REPOSITORY ${NANOPB_URL}
 	GIT_TAG ${NANOPB_REFSPEC}
 	GIT_SHALLOW TRUE
 	#See the .patch file for details on why it is needed.
 	PATCH_COMMAND git stash
 		COMMAND git apply ${CMAKE_CURRENT_LIST_DIR}/fix-pyhon-name.patch
-)
-
-# FetchContent_GetProperties exports nanopb_SOURCE_DIR and nanopb_BINARY_DIR variables
-FetchContent_GetProperties(nanopb)
-if(NOT nanopb_POPULATED)
-	message(STATUS "Fetching nanopb")
-	FetchContent_Populate(nanopb)
-endif()
-
-#### Build the runtime and the generator.
-
-# Pass extra include paths to nanopb build uning CFLAGS if needed
-if (NOT "${NANOPB_EXTERNAL_INCLUDE_PATHS}" STREQUAL "")
-	string(REPLACE ";" "-I " NANOPB_EXTERNAL_INCLUDE_PATHS "${NANOPB_EXTERNAL_INCLUDE_PATHS}")
-	set(_SAVED_CFLAGS $ENV{CFLAGS})
-	set(ENV{CFLAGS} "$ENV{CFLAGS} -I ${NANOPB_EXTERNAL_INCLUDE_PATHS}")
-endif()
-
-if( NOT CMAKE_CROSSCOMPILING)
-	execute_process(COMMAND
-		${CMAKE_COMMAND}
-				-DBUILD_SHARED_LIBS=Off
-				-DBUILD_STATIC_LIBS=On
-				-Dnanopb_BUILD_RUNTIME=On
-				-Dnanopb_BUILD_GENERATOR=On
-				-Dnanopb_PROTOC_PATH=${nanopb_SOURCE_DIR}/generator/protoc
-				-Dnanopb_MSVC_STATIC_RUNTIME=Off
-				-DCMAKE_INSTALL_PREFIX=${NANOPB_INSTALL_PATH}
-				-DCMAKE_TOOLCHAIN_FILE=${TS_EXTERNAL_LIB_TOOLCHAIN_FILE}
-				-GUnix\ Makefiles
-				${nanopb_SOURCE_DIR}
-			WORKING_DIRECTORY
-				${nanopb_BINARY_DIR}
-			RESULT_VARIABLE _exec_error
-	)
-else()
-	execute_process(COMMAND
-		${CMAKE_COMMAND}
-				-DBUILD_SHARED_LIBS=Off
-				-DBUILD_STATIC_LIBS=On
-				-Dnanopb_BUILD_RUNTIME=On
-				-Dnanopb_BUILD_GENERATOR=On
-				-Dnanopb_PROTOC_PATH=${nanopb_SOURCE_DIR}/generator/protoc
-				-Dnanopb_MSVC_STATIC_RUNTIME=Off
-				-DCMAKE_INSTALL_PREFIX=${NANOPB_INSTALL_PATH}
-				-DCMAKE_TOOLCHAIN_FILE=${TS_EXTERNAL_LIB_TOOLCHAIN_FILE}
-				-DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY
-				-GUnix\ Makefiles
-				${nanopb_SOURCE_DIR}
-			WORKING_DIRECTORY
-				${nanopb_BINARY_DIR}
-			RESULT_VARIABLE _exec_error
-	)
-endif()
+  )
 
 if (NOT "${NANOPB_EXTERNAL_INCLUDE_PATHS}" STREQUAL "")
-	set($ENV{CFLAGS} ${_SAVED_CFLAGS})
-	unset(_SAVED_CFLAGS)
-	unset(NANOPB_EXTERNAL_INCLUDE_PATHS)
+	string(REPLACE ";" " " NANOPB_EXTERNAL_INCLUDE_PATHS "${NANOPB_EXTERNAL_INCLUDE_PATHS}")
 endif()
 
-if (_exec_error)
-	message(FATAL_ERROR "Configuration step of nanopb runtime failed with ${_exec_error}.")
-endif()
+include(${TS_ROOT}/tools/cmake/common/LazyFetch.cmake REQUIRED)
+LazyFetch_MakeAvailable(DEP_NAME nanopb
+	FETCH_OPTIONS ${GIT_OPTIONS}
+	INSTALL_DIR ${NANOPB_INSTALL_DIR}
+	PACKAGE_DIR ${NANOPB_INSTALL_DIR}
+	CACHE_FILE "${TS_ROOT}/external/nanopb/nanopb-init-cache.cmake.in"
+	SOURCE_DIR "${NANOPB_SOURCE_DIR}"
+  )
 
-execute_process(COMMAND
-		${CMAKE_COMMAND} --build ${nanopb_BINARY_DIR} --parallel ${PROCESSOR_COUNT} --target install
-		RESULT_VARIABLE _exec_error
-	)
-if (_exec_error)
-	message(FATAL_ERROR "Build step of nanopb runtime failed with ${_exec_error}.")
-endif()
-
-#### Include Nanopb runtime in the build.
-find_package(Nanopb
-			PATHS "${NANOPB_INSTALL_PATH}"
-			NO_DEFAULT_PATH
-		)
+#set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${NANOPB_INSTALL_DIR}/)
 
 #### Build access to the protobuf compiler
 #TODO: verify protoc dependencies: python3-protobuf
-find_package(Python3 COMPONENTS Interpreter)
-
-if (NOT Python3_Interpreter_FOUND)
-	message(FATAL_ERROR "Failed to find python3 interpreter.")
-endif()
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
 find_file(NANOPB_GENERATOR_PATH
 			NAMES nanopb_generator.py
