@@ -28,9 +28,8 @@ static psa_status_t secure_storage_ipc_set(void *context, uint32_t client_id,
 
 	ipc->client.rpc_status = TS_RPC_CALL_ACCEPTED;
 
-	psa_status = psa_call_client_id(caller,
-					TFM_PROTECTED_STORAGE_SERVICE_HANDLE,
-					client_id, TFM_PS_SET, in_vec,
+	psa_status = psa_call_client_id(caller, ipc->service_handle, client_id,
+					TFM_PS_ITS_SET, in_vec,
 					IOVEC_LEN(in_vec), NULL, 0);
 	if (psa_status < 0)
 		EMSG("ipc_set: psa_call failed: %d", psa_status);
@@ -63,9 +62,8 @@ static psa_status_t secure_storage_ipc_get(void *context,
 		return PSA_ERROR_INVALID_ARGUMENT;
 	}
 
-	psa_status = psa_call_client_id(caller,
-					TFM_PROTECTED_STORAGE_SERVICE_HANDLE,
-					client_id, TFM_PS_GET, in_vec,
+	psa_status = psa_call_client_id(caller, ipc->service_handle, client_id,
+					TFM_PS_ITS_GET, in_vec,
 					IOVEC_LEN(in_vec), out_vec,
 					IOVEC_LEN(out_vec));
 	if (psa_status == PSA_SUCCESS)
@@ -89,9 +87,8 @@ static psa_status_t secure_storage_ipc_get_info(void *context,
 		{ .base = psa_ptr_to_u32(p_info), .len = sizeof(*p_info) },
 	};
 
-	psa_status = psa_call_client_id(caller,
-					TFM_PROTECTED_STORAGE_SERVICE_HANDLE,
-					client_id, TFM_PS_GET_INFO, in_vec,
+	psa_status = psa_call_client_id(caller, ipc->service_handle, client_id,
+					TFM_PS_ITS_GET_INFO, in_vec,
 					IOVEC_LEN(in_vec), out_vec,
 					IOVEC_LEN(out_vec));
 	if (psa_status != PSA_SUCCESS)
@@ -111,9 +108,8 @@ static psa_status_t secure_storage_ipc_remove(void *context,
 		{ .base = psa_ptr_to_u32(&uid), .len = sizeof(uid) },
 	};
 
-	psa_status = psa_call_client_id(caller,
-					TFM_PROTECTED_STORAGE_SERVICE_HANDLE,
-					client_id, TFM_PS_REMOVE, in_vec,
+	psa_status = psa_call_client_id(caller, ipc->service_handle, client_id,
+					TFM_PS_ITS_REMOVE, in_vec,
 					IOVEC_LEN(in_vec), NULL, 0);
 	if (psa_status != PSA_SUCCESS)
 		EMSG("ipc_remove: failed to psa_call: %d", psa_status);
@@ -163,9 +159,8 @@ static uint32_t secure_storage_get_support(void *context, uint32_t client_id)
 		{ .base = psa_ptr_to_u32(&support_flags), .len =  sizeof(support_flags) },
 	};
 
-	psa_status = psa_call_client_id(caller,
-					TFM_PROTECTED_STORAGE_SERVICE_HANDLE,
-					client_id, TFM_PS_GET_SUPPORT, NULL, 0,
+	psa_status = psa_call_client_id(caller, ipc->service_handle, client_id,
+					TFM_PS_ITS_GET_SUPPORT, NULL, 0,
 					out_vec, IOVEC_LEN(out_vec));
 	if (psa_status != PSA_SUCCESS)
 		EMSG("ipc_get_support: failed to psa_call: %d", psa_status);
