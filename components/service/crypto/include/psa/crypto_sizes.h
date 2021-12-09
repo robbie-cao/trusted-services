@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2018-2023, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -81,7 +81,7 @@
 #define PSA_HASH_MAX_SIZE 64
 #define PSA_HMAC_MAX_HASH_BLOCK_SIZE 128
 #else
-#define PSA_HASH_MAX_SIZE 32
+#define PSA_HASH_MAX_SIZE 64
 #define PSA_HMAC_MAX_HASH_BLOCK_SIZE 64
 #endif
 
