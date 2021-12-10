@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -24,7 +24,7 @@ extern "C" {
 struct ffa_call_ep {
 	struct rpc_interface *iface;
 	unsigned long shmem_buf_handle[NUM_MAX_SESS];
-	volatile uint8_t *shmem_buf[NUM_MAX_SESS];
+	uint8_t *shmem_buf[NUM_MAX_SESS];
 	size_t shmem_buf_size[NUM_MAX_SESS];
 	uint16_t src_id[NUM_MAX_SESS];
  };
