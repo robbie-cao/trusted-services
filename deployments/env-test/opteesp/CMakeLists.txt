@@ -59,7 +59,7 @@ target_sources(env-test PRIVATE
 #  Set target platform to provide drivers needed by the deployment
 #
 #-------------------------------------------------------------------------------
-add_platform(TARGET "env_test")
+add_platform(TARGET env-test)
 
 if(CMAKE_CROSSCOMPILING)
 	target_link_libraries(env-test PRIVATE stdc++ gcc m)
