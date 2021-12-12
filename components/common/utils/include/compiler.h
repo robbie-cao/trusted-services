@@ -7,7 +7,15 @@
 #ifndef COMPILER_H
 #define COMPILER_H
 
+/* Some standard library implementations define some macros defined in this
+ * file without protection against redefinition. Depending on inclusion order
+ * through other file this results in compiler warnings being triggered.
+ * Including cdefs.h here makes the standard library implementation the
+ * definitive owner and thus solves the problem.
+ */
+#ifdef ENABLE_CDEFSH_FIX
 #include <sys/cdefs.h>
+#endif
 
 /*
  * Macros that should be used instead of using __attribute__ directly to

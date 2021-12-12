@@ -229,6 +229,7 @@ set_property(TARGET c PROPERTY IMPORTED_LOCATION "${NEWLIB_LIBC_PATH}")
 set_property(TARGET c PROPERTY
 		INTERFACE_INCLUDE_DIRECTORIES "${NEWLIB_INSTALL_DIR}/${COMPILER_PREFIX}/include")
 target_compile_options(c INTERFACE -nostdinc)
+target_compile_definitions(c INTERFACE ENABLE_CDEFSH_FIX)
 target_link_options(c INTERFACE -nostartfiles -nodefaultlibs)
 target_include_directories(c SYSTEM INTERFACE ${_gcc_include_dirs})
 
