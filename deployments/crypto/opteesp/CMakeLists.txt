@@ -87,7 +87,7 @@ add_platform(TARGET "crypto-sp")
 #-------------------------------------------------------------------------------
 
 # Get libc include dir
-get_property(LIBC_INCLUDE_PATH TARGET c PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+get_property(LIBC_INCLUDE_PATH TARGET stdlib::c PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
 
 # Nanopb
 list(APPEND NANOPB_EXTERNAL_INCLUDE_PATHS ${LIBC_INCLUDE_PATH})
@@ -99,11 +99,8 @@ protobuf_generate_all(TGT "crypto-sp" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/
 list(APPEND MBEDTLS_EXTRA_INCLUDES ${LIBC_INCLUDE_PATH})
 include(../../../external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(crypto-sp PRIVATE mbedcrypto)
-target_link_libraries(mbedcrypto INTERFACE c)
+target_link_libraries(mbedcrypto INTERFACE stdlib::c)
 
-if(CMAKE_CROSSCOMPILING)
-	target_link_libraries(crypto-sp PRIVATE stdc++ gcc m)
-endif()
 
 #################################################################
 

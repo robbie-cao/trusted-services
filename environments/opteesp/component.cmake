@@ -11,9 +11,6 @@ endif()
 
 target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/optee_sp_header.c"
-	"${CMAKE_CURRENT_LIST_DIR}/newlib_init.c"
-	"${CMAKE_CURRENT_LIST_DIR}/newlib_sp_assert.c"
-	"${CMAKE_CURRENT_LIST_DIR}/newlib_sp_heap.c"
 	"${CMAKE_CURRENT_LIST_DIR}/sp_entry.c"
 	"${CMAKE_CURRENT_LIST_DIR}/sp_trace.c"
 )
@@ -36,8 +33,7 @@ target_compile_definitions(${TGT} PRIVATE
 include(../../../external/newlib/newlib.cmake)
 
 target_link_libraries(${TGT} PRIVATE
-	c
-	nosys
+ 	stdlib::c
 )
 
 target_link_options(${TGT} PRIVATE

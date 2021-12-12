@@ -22,9 +22,4 @@ include($ENV{TS_ROOT}/tools/cmake/compiler/config_iface.cmake REQUIRED)
 string(APPEND CMAKE_C_FLAGS_INIT " -fpic")
 #   - Disable startup files and default libraries.
 #   - Link position independent executable
-string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " -nostartfiles -nodefaultlibs -pie")
-
-#   -link libgcc with full PATH to work around disabled linker search paths.
-gcc_get_lib_location("libgcc.a" _TMP_VAR)
-string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " ${_TMP_VAR} ")
-unset(_TMP_VAR)
+string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " -pie")
