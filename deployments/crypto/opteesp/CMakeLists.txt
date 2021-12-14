@@ -154,7 +154,11 @@ install(FILES ${STRIPPED_ELF} DESTINATION ${TS_ENV}/bin)
 get_property(_PROTO_FILES TARGET crypto-sp PROPERTY PROTOBUF_FILES)
 install(FILES ${_PROTO_FILES} DESTINATION ${TS_ENV}/lib/protobuf)
 
-
-set(EXPORT_SP_NAME "crypto")
-set(EXPORT_SP_UUID ${SP_UUID})
-include(${TS_ROOT}/environments/opteesp/ExportSp.cmake)
+include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
+export_sp(
+	SP_UUID ${SP_UUID}
+	SP_NAME "crypto"
+	MK_IN ${TS_ROOT}/environments/opteesp/sp.mk.in
+	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_crypto.dts.in
+	JSON_IN ${TS_ROOT}/environments/opteesp/sp_pkg.json.in
+)

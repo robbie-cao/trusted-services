@@ -89,6 +89,11 @@ install(TARGETS internal-trusted-storage
 		)
 install(FILES ${STRIPPED_ELF} DESTINATION ${TS_ENV}/bin)
 
-set(EXPORT_SP_NAME "internal-trusted-storage")
-set(EXPORT_SP_UUID ${SP_UUID})
-include(${TS_ROOT}/environments/opteesp/ExportSp.cmake)
+include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
+export_sp(
+	SP_UUID ${SP_UUID}
+	SP_NAME "internal-trusted-storage"
+	MK_IN ${TS_ROOT}/environments/opteesp/sp.mk.in
+	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_internal-trusted-storage.dts.in
+	JSON_IN ${TS_ROOT}/environments/opteesp/sp_pkg.json.in
+)

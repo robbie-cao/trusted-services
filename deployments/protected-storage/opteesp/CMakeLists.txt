@@ -91,6 +91,11 @@ install(TARGETS protected-storage
 		)
 install(FILES ${STRIPPED_ELF} DESTINATION ${TS_ENV}/bin)
 
-set(EXPORT_SP_NAME "protected-storage")
-set(EXPORT_SP_UUID ${SP_UUID})
-include(${TS_ROOT}/environments/opteesp/ExportSp.cmake)
+include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
+export_sp(
+	SP_UUID ${SP_UUID}
+	SP_NAME "protected-storage"
+	MK_IN ${TS_ROOT}/environments/opteesp/sp.mk.in
+	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_protected-storage.dts.in
+	JSON_IN ${TS_ROOT}/environments/opteesp/sp_pkg.json.in
+)
