@@ -47,15 +47,7 @@ add_components(TARGET "env-test"
 #  env-test
 #
 #-------------------------------------------------------------------------------
-include(../env_test.cmake REQUIRED)
-
-#-------------------------------------------------------------------------------
-#  Deployment specific source files
-#-------------------------------------------------------------------------------
-target_sources(env-test PRIVATE
-	env_test.c
-	env_test_tests.c
-)
+include(../env-test.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
 #  Set target platform to provide drivers needed by the deployment
@@ -74,8 +66,6 @@ target_compile_definitions(env-test PRIVATE
 )
 
 target_include_directories(env-test PRIVATE
-	${TS_ROOT}
-	${TS_ROOT}/components
 	${TS_ROOT}/deployments/env-test/opteesp
 )
 

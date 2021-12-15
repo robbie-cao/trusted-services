@@ -3,13 +3,13 @@
  * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  */
 
-#ifndef SP_HEADER_DEFINES_H
-#define SP_HEADER_DEFINES_H
+#ifndef OPTEE_SP_USER_DEFINES_H
+#define OPTEE_SP_USER_DEFINES_H
 
-/* To get UUID definition */
-#include "crypto_sp.h"
+#define OPTEE_SP_UUID \
+	{0xd9df52d5, 0x16a2, 0x4bb2, \
+		{0x9a, 0xa4, 0xd2, 0x6d, 0x3b, 0x84, 0xe8, 0xc0}}
 
-#define OPTEE_SP_UUID             CRYPTO_SP_UUID
 #define OPTEE_SP_FLAGS			0
 
 /* Provisioned stack size */

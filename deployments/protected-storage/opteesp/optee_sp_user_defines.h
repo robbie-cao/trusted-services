@@ -3,11 +3,12 @@
  * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  */
 
-#ifndef SP_HEADER_DEFINES_H
-#define SP_HEADER_DEFINES_H
+#ifndef OPTEE_SP_USER_DEFINES_H
+#define OPTEE_SP_USER_DEFINES_H
 
-/* To get UUID definition */
-#include "sp.h"
+#define OPTEE_SP_UUID \
+	{ 0x751bf801, 0x3dde, 0x4768, \
+		{ 0xa5, 0x14, 0x0f, 0x10, 0xae, 0xed, 0x17, 0x90 } }
 
 #define OPTEE_SP_FLAGS			0
 

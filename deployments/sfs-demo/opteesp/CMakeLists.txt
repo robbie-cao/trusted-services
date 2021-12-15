@@ -23,33 +23,16 @@ set(TRACE_PREFIX "SFSDEMO" CACHE STRING "Trace prefix")
 add_components(TARGET "sfs-demo"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
-		components/common/trace
-		components/common/utils
-		components/messaging/ffa/libsp
-		components/rpc/common/interface
-		components/rpc/common/caller
-		components/rpc/ffarpc/caller/sp
-		components/service/common/include
-		components/service/common/client
-		components/service/secure_storage/include
-		components/service/secure_storage/frontend/psa/its
-		components/service/secure_storage/backend/secure_storage_client
-		protocols/rpc/common/packed-c
-		protocols/service/secure_storage/packed-c
 		environments/opteesp
 )
 
-target_sources(sfs-demo PRIVATE
-	sp.c
-)
+include(../sfs-demo.cmake REQUIRED)
 
 target_compile_definitions(sfs-demo PRIVATE
 	ARM64=1
 )
 
 target_include_directories(sfs-demo PRIVATE
-	${TS_ROOT}
-	${TS_ROOT}/components
 	${TS_ROOT}/deployments/sfs-demo/opteesp
 )
 

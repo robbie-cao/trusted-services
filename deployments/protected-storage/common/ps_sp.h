@@ -1,0 +1,14 @@
+/*
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#ifndef PS_SP_H
+#define PS_SP_H
+
+#define PS_SP_UUID_BYTES \
+	{ 0x75, 0x1b, 0xf8, 0x01, 0x3d, 0xde, 0x47, 0x68, \
+	  0xa5, 0x14, 0x0f, 0x10, 0xae, 0xed, 0x17, 0x90 }
+
+#endif /* PS_SP_H */

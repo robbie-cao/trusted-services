@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #include <rpc/ffarpc/endpoint/ffarpc_call_ep.h>
-#include <deployments/smm-gateway/smm_gateway.h>
+#include "smm_gateway.h"
 #include <config/ramstore/config_ramstore.h>
 #include "config/interface/config_store.h"
 #include <config/loader/sp/sp_config_loader.h>

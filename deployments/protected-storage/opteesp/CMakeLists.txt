@@ -24,37 +24,16 @@ set(TRACE_PREFIX "PS" CACHE STRING "Trace prefix")
 add_components(TARGET "protected-storage"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
-		components/common/trace
-		components/common/utils
-		components/messaging/ffa/libsp
-		components/rpc/ffarpc/endpoint
-		components/rpc/common/interface
-		components/rpc/ffarpc/caller/sp
-		components/rpc/common/caller
-		components/service/common/include
-		components/service/common/client
-		components/service/common/provider
-		components/service/secure_storage/include
-		components/service/secure_storage/frontend/secure_storage_provider
-		components/service/secure_storage/backend/secure_storage_client
-		components/service/secure_storage/backend/null_store
-		components/service/secure_storage/factory/sp/optee_trusted_store
-		protocols/rpc/common/packed-c
-		protocols/service/secure_storage/packed-c
 		environments/opteesp
 )
 
-target_sources(protected-storage PRIVATE
-	sp.c
-)
+include(../protected-storage.cmake REQUIRED)
 
 target_compile_definitions(protected-storage PRIVATE
 	ARM64=1
 )
 
 target_include_directories(protected-storage PRIVATE
-	${TS_ROOT}
-	${TS_ROOT}/components
 	${TS_ROOT}/deployments/protected-storage/opteesp
 )
 

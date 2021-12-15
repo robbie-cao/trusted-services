@@ -3,13 +3,13 @@
  * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  */
 
-#ifndef SP_HEADER_DEFINES_H
-#define SP_HEADER_DEFINES_H
+#ifndef OPTEE_SP_USER_DEFINES_H
+#define OPTEE_SP_USER_DEFINES_H
 
-/* To get UUID definition */
-#include "env_test.h"
+#define OPTEE_SP_UUID \
+	{0x33c75baf, 0xac6a, 0x4fe4, \
+		{0x8a, 0xc7, 0xe9, 0x90, 0x9b, 0xee, 0x2d, 0x17}}
 
-#define OPTEE_SP_UUID             ENV_TEST_SP_UUID
 #define OPTEE_SP_FLAGS				0
 
 /* Provisioned stack size */

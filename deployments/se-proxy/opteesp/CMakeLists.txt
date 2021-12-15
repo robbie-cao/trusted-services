@@ -23,6 +23,7 @@ add_executable(se-proxy)
 target_include_directories(se-proxy PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID "46bb39d1-b4d9-45b5-88ff-040027dab249")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
+set(TRACE_PREFIX "SEPROXY" CACHE STRING "Trace prefix")
 
 #-------------------------------------------------------------------------------
 #  Components that are specific to deployment in the opteesp environment.
@@ -31,59 +32,10 @@ set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 add_components(TARGET "se-proxy"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
-		"components/common/fdt"
-		"components/common/trace"
-		"components/common/utils"
-		"protocols/rpc/common/packed-c"
-		"protocols/service/secure_storage/packed-c"
-		"protocols/service/crypto/protobuf"
 		"environments/opteesp"
-		"components/common/tlv"
-		"components/config/ramstore"
-		"components/config/loader/sp"
-		"components/messaging/ffa/libsp"
-		"components/rpc/ffarpc/endpoint"
-		"components/rpc/common/interface"
-		"components/rpc/common/demux"
-		"components/service/common/include"
-		"components/service/common/serializer/protobuf"
-		"components/service/common/client"
-		"components/service/common/provider"
-		"components/service/discovery/provider"
-		"components/service/discovery/provider/serializer/packed-c"
-		"components/service/crypto/include"
-		"components/service/crypto/provider"
-		"components/service/crypto/provider/serializer/protobuf"
-		"components/service/crypto/provider/serializer/packed-c"
-		"components/service/crypto/provider/extension/hash"
-		"components/service/crypto/provider/extension/hash/serializer/packed-c"
-		"components/service/crypto/provider/extension/cipher"
-		"components/service/crypto/provider/extension/cipher/serializer/packed-c"
-		"components/service/crypto/provider/extension/key_derivation"
-		"components/service/crypto/provider/extension/key_derivation/serializer/packed-c"
-		"components/service/crypto/provider/extension/mac"
-		"components/service/crypto/provider/extension/mac/serializer/packed-c"
-		"components/service/crypto/factory/full"
-		"components/service/secure_storage/include"
-		"components/service/secure_storage/frontend/secure_storage_provider"
-		"components/service/attestation/include"
-		"components/service/attestation/provider"
-		"components/service/attestation/provider/serializer/packed-c"
-
-		# Stub service provider backends
-		"components/rpc/dummy"
-		"components/rpc/common/caller"
-		"components/service/attestation/reporter/stub"
-		"components/service/attestation/key_mngr/stub"
-		"components/service/crypto/backend/stub"
-		"components/service/crypto/client/psa"
-		"components/service/secure_storage/backend/mock_store"
 )
 
-target_sources(se-proxy PRIVATE
-	se_proxy_sp.c
-	service_proxy_factory.c
-)
+include(../se-proxy.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
 #  Set target platform to provide drivers needed by the deployment
@@ -91,29 +43,12 @@ target_sources(se-proxy PRIVATE
 #-------------------------------------------------------------------------------
 add_platform(TARGET "se-proxy")
 
-#-------------------------------------------------------------------------------
-#  Components used from external projects
-#
-#-------------------------------------------------------------------------------
-
-# Get libc include dir
-get_property(LIBC_INCLUDE_PATH TARGET c PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
-
-# Nanopb
-list(APPEND NANOPB_EXTERNAL_INCLUDE_PATHS ${LIBC_INCLUDE_PATH})
-include(../../../external/nanopb/nanopb.cmake)
-target_link_libraries(se-proxy PRIVATE nanopb::protobuf-nanopb-static)
-protobuf_generate_all(TGT "se-proxy" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protocols")
-
-#################################################################
 
 target_compile_definitions(se-proxy PRIVATE
 	ARM64=1
 )
 
 target_include_directories(se-proxy PRIVATE
-	${TS_ROOT}
-	${TS_ROOT}/components
 	${TS_ROOT}/deployments/se-proxy/opteesp
 )
 

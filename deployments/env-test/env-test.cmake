@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -19,6 +19,7 @@ add_components(
 	TARGET "env-test"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+	"components/common/fdt"
 	"components/common/tlv"
 	"components/config/ramstore"
 	"components/rpc/common/interface"
@@ -37,6 +38,19 @@ add_components(
 	"components/service/secure_storage/frontend/psa/its"
 	"components/service/secure_storage/backend/secure_storage_client"
 	"protocols/rpc/common/packed-c"
+)
+
+#-------------------------------------------------------------------------------
+#  Deployment specific source files
+#-------------------------------------------------------------------------------
+target_sources(env-test PRIVATE
+	${CMAKE_CURRENT_LIST_DIR}/common/env_test.c
+	${CMAKE_CURRENT_LIST_DIR}/common/env_test_tests.c
+)
+
+target_include_directories(env-test PRIVATE
+	${TS_ROOT}
+	${TS_ROOT}/components
 )
 
 #-------------------------------------------------------------------------------

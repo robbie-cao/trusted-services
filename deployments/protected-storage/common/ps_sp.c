@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "sp.h"
 #include <ffa_api.h>
 #include <components/rpc/common/endpoint/rpc_interface.h>
 #include <components/rpc/ffarpc/endpoint/ffarpc_call_ep.h>

@@ -6,10 +6,10 @@
 #ifndef SP_HEADER_DEFINES_H
 #define SP_HEADER_DEFINES_H
 
-/* To get UUID definition */
-#include "smm_gateway_sp.h"
+#define OPTEE_SP_UUID \
+	{0xed32d533, 0x99e6, 0x4209, \
+		{ 0x9c, 0xc0, 0x2d, 0x72, 0xcd, 0xd9, 0x98, 0xa7 }}
 
-#define OPTEE_SP_UUID				SMM_GATEWAY_UUID
 #define OPTEE_SP_FLAGS				0
 
 /* Provisioned stack size */

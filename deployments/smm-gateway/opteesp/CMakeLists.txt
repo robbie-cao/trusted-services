@@ -22,6 +22,7 @@ add_executable(smm-gateway)
 target_include_directories(smm-gateway PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID "ed32d533-99e6-4209-9cc0-2d72cdd998a7")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
+set(TRACE_PREFIX "SMMGW" CACHE STRING "Trace prefix")
 
 # Setting the MM communication buffer parameters
 set(MM_COMM_BUFFER_ADDRESS "0x00000008 0x81000000" CACHE STRING "Address of MM communicte buffer in 64 bit DTS format")
@@ -34,40 +35,10 @@ set(MM_COMM_BUFFER_PAGE_COUNT "8" CACHE STRING "Size of the MM communicate buffe
 add_components(TARGET "smm-gateway"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
-		"components/common/fdt"
-		"components/common/trace"
-		"components/common/utils"
-		"components/common/uuid"
-		"components/config/ramstore"
-		"components/config/loader/sp"
-		"components/messaging/ffa/libsp"
-		"components/rpc/ffarpc/endpoint"
-		"components/rpc/ffarpc/caller/sp"
-		"components/rpc/mm_communicate/endpoint/sp"
-		"components/rpc/common/caller"
-		"components/rpc/common/interface"
-		"components/service/common/include"
-		"components/service/common/client"
-		"components/service/common/provider"
-		"components/service/locator"
-		"components/service/locator/interface"
-		"components/service/locator/sp"
-		"components/service/locator/sp/ffa"
-		"components/service/smm_variable/backend"
-		"components/service/smm_variable/frontend/mm_communicate"
-		"components/service/smm_variable/provider"
-		"components/service/secure_storage/include"
-		"components/service/secure_storage/backend/secure_storage_client"
-		"components/service/secure_storage/backend/mock_store"
-		"protocols/rpc/common/packed-c"
-		"protocols/service/secure_storage/packed-c"
 		"environments/opteesp"
 )
 
-target_sources(smm-gateway PRIVATE
-	smm_gateway_sp.c
-	../smm_gateway.c
-)
+include(../smm-gateway.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
 #  Set target platform to provide drivers needed by the deployment
@@ -82,8 +53,6 @@ target_compile_definitions(smm-gateway PRIVATE
 )
 
 target_include_directories(smm-gateway PRIVATE
-	${TS_ROOT}
-	${TS_ROOT}/components
 	${TS_ROOT}/deployments/smm-gateway/opteesp
 )
 
