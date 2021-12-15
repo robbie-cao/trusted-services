@@ -1,0 +1,7 @@
+{
+	"@EXPORT_SP_NAME@": {
+		"image": "../bin/@EXPORT_SP_UUID@.bin",
+		"pm": "../manifest/@EXPORT_SP_UUID@.dts",
+		"uuid": "@EXPORT_SP_UUID@"
+	}
+}

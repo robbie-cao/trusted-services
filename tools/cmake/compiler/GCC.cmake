@@ -182,7 +182,7 @@ endfunction()
 #]===]
 function(compiler_generate_binary_output)
 	set(options)
-	set(oneValueArgs TARGET)
+	set(oneValueArgs TARGET NAME RES)
 	set(multiValueArgs)
 	cmake_parse_arguments(MY "${options}" "${oneValueArgs}"
 						"${multiValueArgs}" ${ARGN} )
@@ -190,9 +190,9 @@ function(compiler_generate_binary_output)
 		TARGET ${MY_TARGET} POST_BUILD
 		COMMAND ${CMAKE_OBJCOPY} -O binary
 				$<TARGET_FILE:${MY_TARGET}>
-				$<TARGET_FILE_DIR:${MY_TARGET}>/${MY_TARGET}.bin)
+				$<TARGET_FILE_DIR:${MY_TARGET}>/${MY_NAME})
 	if (MY_RES)
-		set(${MY_RES} $<TARGET_FILE_DIR:${MY_TARGET}>/${MY_TARGET}.bin PARENT_SCOPE)
+		set(${MY_RES} $<TARGET_FILE_DIR:${MY_TARGET}>/${MY_NAME} PARENT_SCOPE)
 	endif()
 
 endfunction()
