@@ -10,7 +10,13 @@
 
 	.. code:: cmake
 
-		export_sp(SP_UUID <uuid> SP_NAME <name> MK_IN <.mk path> DTS_IN <DTS path> JSON_IN <JSON path>)
+		export_sp(
+			SP_UUID <uuid> SP_NAME
+			<name> MK_IN <.mk path>
+			DTS_IN <DTS path>
+			DTS_MEM_REGIONS <Memory region manifest path>
+			JSON_IN <JSON path>
+		)
 
 	INPUTS:
 
@@ -26,13 +32,16 @@
 	``DTS_IN``
 	Manifest file template
 
+	`DTS_MEM_REGIONS`
+	Optional, Memory region manifest file
+
 	``JSON_IN``
 	Optional, SP layout JSON file template for TF-A
 
 #]===]
 function (export_sp)
 	set(options)
-	set(oneValueArgs SP_UUID SP_NAME MK_IN DTS_IN JSON_IN)
+	set(oneValueArgs SP_UUID SP_NAME MK_IN DTS_IN DTS_MEM_REGIONS JSON_IN)
 	set(multiValueArgs)
 	cmake_parse_arguments(EXPORT "${options}" "${oneValueArgs}"
 						"${multiValueArgs}" ${ARGN} )
@@ -73,6 +82,10 @@ function (export_sp)
 	set(DTS_NODE "/")
 	configure_file(${EXPORT_DTS_IN} ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID}.dts @ONLY NEWLINE_STYLE UNIX)
 	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID}.dts DESTINATION ${TS_ENV}/manifest)
+
+	if (DEFINED EXPORT_DTS_MEM_REGIONS)
+		install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_DTS_MEM_REGIONS} DESTINATION ${TS_ENV}/manifest)
+	endif()
 
 	if (DEFINED EXPORT_JSON_IN)
 		configure_file(${EXPORT_JSON_IN} ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_NAME}.json @ONLY NEWLINE_STYLE UNIX)
