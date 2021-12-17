@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  */
 
-#include <assert.h>
+#include "assert_fail_handler.h"
 #include "compiler.h"
-#include "trace.h"
+#include <assert.h>
 
 /*
- * The generic trace function called on assert fail.
+ * This function implements newlib's assert fail handler function by calling the
+ * generic assert fail handler function that should be implemented by the
+ * environment.
  */
-void __noreturn __assert_func(const char *file, int line, const char *func, const char *failedexpr)
+void __noreturn __assert_func(const char *file, int line, const char *func,
+			      const char *failedexpr)
 {
-#if TRACE_LEVEL >= TRACE_LEVEL_ERROR
-	trace_printf(func, line, TRACE_LEVEL_ERROR, "assertion %s failed", failedexpr);
-#endif /* TRACE_LEVEL */
-
+	assert_fail_handler(file, line, func, failedexpr);
 	while (1)
 		;
 }
