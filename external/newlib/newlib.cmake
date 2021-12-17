@@ -10,6 +10,13 @@ if (NOT DEFINED TGT)
 	message(FATAL_ERROR "mandatory parameter TGT is not defined.")
 endif()
 
+# Adding libc interface
+add_components(TARGET ${TGT}
+	BASE_DIR ${TS_ROOT}
+	COMPONENTS
+		components/common/libc
+)
+
 # Compile TS specific newlib porting files.
 target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/newlib_init.c"
