@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #ifndef OPTEE_SP_INTERNAL_API_H_
@@ -13,7 +13,6 @@
  * The SP code base should also contain a header file named
  * "optee_sp_user_defines.h" for passing the following definitions to the SP dev
  * kit:
- * * OPTEE_SP_HEAP_SIZE: Heap size in bytes
  * * OPTEE_SP_UUID: UUID of the SP as an sp_uuid structure
  * * OPTEE_SP_STACK_SIZE: Stack size in bytes
  * * OPTEE_SP_FLAGS: SP attributes (currently none available, set to zero)

@@ -1,20 +1,19 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #include "compiler.h"
-#include "optee_sp_user_defines.h"
 #include <errno.h>
 #include <stdint.h>
 #include <unistd.h>
 
 /* Allocating heap area */
-#ifndef OPTEE_SP_HEAP_SIZE
-#error "OPTEE_SP_HEAP_SIZE is not defined in SP"
+#ifndef SP_HEAP_SIZE
+#error "SP_HEAP_SIZE is undefined, please define it in the build system"
 #endif
 
-static uint8_t sp_heap[OPTEE_SP_HEAP_SIZE] __aligned(16);
+static uint8_t sp_heap[SP_HEAP_SIZE] __aligned(16);
 static uint8_t *program_break = sp_heap;
 
 /**

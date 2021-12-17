@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -21,6 +21,7 @@ project(trusted-services LANGUAGES C ASM)
 add_executable(crypto-sp)
 target_include_directories(crypto-sp PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID "d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0")
+set(SP_HEAP_SIZE "490 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "CRYPTO" CACHE STRING "Trace prefix")
 
 #-------------------------------------------------------------------------------

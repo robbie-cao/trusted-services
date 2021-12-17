@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -18,6 +18,7 @@ project(trusted-services LANGUAGES C ASM)
 add_executable(internal-trusted-storage)
 target_include_directories(internal-trusted-storage PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID "dc1eef48-b17a-4ccf-ac8b-dfcff7711b14")
+set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "ITS" CACHE STRING "Trace prefix")
 
 add_components(TARGET "internal-trusted-storage"

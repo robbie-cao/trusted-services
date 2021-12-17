@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -25,9 +25,14 @@ target_include_directories(${TGT}
 set(TRACE_PREFIX "SP" CACHE STRING "Trace prefix")
 set(TRACE_LEVEL "TRACE_LEVEL_ERROR" CACHE STRING "Trace level")
 
+if (NOT DEFINED SP_HEAP_SIZE)
+	message(FATAL_ERROR "SP_HEAP_SIZE is not defined")
+endif()
+
 target_compile_definitions(${TGT} PRIVATE
 	TRACE_LEVEL=${TRACE_LEVEL}
 	TRACE_PREFIX="${TRACE_PREFIX}"
+	SP_HEAP_SIZE=${SP_HEAP_SIZE}
 )
 
 include(../../../external/newlib/newlib.cmake)

@@ -1,7 +1,6 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
- *
- * SPDX-License-Identifier: BSD-3-Clause
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #ifndef SP_HEADER_DEFINES_H
@@ -15,8 +14,5 @@
 
 /* Provisioned stack size */
 #define OPTEE_SP_STACK_SIZE			(64 * 1024)
-
-/* Provisioned heap size */
-#define OPTEE_SP_HEAP_SIZE			(490 * 1024)
 
 #endif /* SP_HEADER_DEFINES_H */

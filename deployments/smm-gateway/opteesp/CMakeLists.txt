@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -21,6 +21,7 @@ project(trusted-services LANGUAGES C ASM)
 add_executable(smm-gateway)
 target_include_directories(smm-gateway PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID "ed32d533-99e6-4209-9cc0-2d72cdd998a7")
+set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 
 # Setting the MM communication buffer parameters
 set(MM_COMM_BUFFER_ADDRESS "0x00000008 0x81000000" CACHE STRING "Address of MM communicte buffer in 64 bit DTS format")

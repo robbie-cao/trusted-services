@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -22,6 +22,7 @@ project(trusted-services LANGUAGES C ASM)
 add_executable(se-proxy)
 target_include_directories(se-proxy PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID "46bb39d1-b4d9-45b5-88ff-040027dab249")
+set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 
 #-------------------------------------------------------------------------------
 #  Components that are specific to deployment in the opteesp environment.
