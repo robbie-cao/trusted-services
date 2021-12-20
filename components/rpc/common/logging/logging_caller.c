@@ -87,7 +87,7 @@ static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t 
 
 	if (status == TS_RPC_CALL_ACCEPTED) {
 
-		fprintf(this_instance->log_file, "op_status: %d\n", *opstatus);
+		fprintf(this_instance->log_file, "op_status: %ld\n", *opstatus);
 		fprintf(this_instance->log_file, "resp_len: %ld\n", *resp_len);
 	}
 
