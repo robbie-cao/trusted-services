@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2020-2021, Arm Limited and contributors. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited and contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -23,6 +23,9 @@ TS_ROOT=${TS_ROOT:-$(git rev-parse --show-toplevel)}
 
 # Number of threads to use in parallel
 NUMBER_OF_PROCESSORS=${NUMBER_OF_PROCESSORS:-$(( $(nproc) * 2 )) }
+
+# Global exit code.
+exit_code=0
 
 # Convert test name to build directory
 function name-to-bdir() {
@@ -52,7 +55,7 @@ function _cmake() {
 	if [ "$OS_ID" != "{{config.os_id}}" ]
 	then
 		echo "Test case is not supported on this host."
-		echo "########################## $COLOR_YELOW {{config.name}} skipped $COLOR_RESET"
+		echo "########################## $COLOR_YELLOW {{config.name}} skipped $COLOR_RESET"
 		echo "##################################################################"
 		return
 	fi
@@ -67,27 +70,33 @@ function _cmake() {
 		ccache_option=-DCMAKE_C_COMPILER_LAUNCHER=$_ccache
 	fi
 
-	_cmake "$log_file" -S {{config.src}} -B "$b_dir" $ccache_option {% for param in config.params %} "{{param}}" {%endfor%} || {
+	local retval=0
 
-		echo "For details see: $log_file"
-		echo "########################## $COLOR_RED {{config.name}} failed $COLOR_RESET"
-		return
-	}
-
-	if _cmake "$log_file" --build "$b_dir" -j ${NUMBER_OF_PROCESSORS} --verbose
+	# jinja2 is removing single newlines. Adding a comment stops this behavior.
+	if _cmake "$log_file" -S {{config.src}} -B "$b_dir" $ccache_option {% for param in config.params %} "{{param}}" {% endfor %} #keep newline
 	then
-		if _cmake "$log_file" --install "$b_dir" --prefix ./install
+		if _cmake "$log_file" --build "$b_dir" -j ${NUMBER_OF_PROCESSORS} --verbose
 		then
-			echo "########################## $COLOR_GREEN {{config.name}} passed $COLOR_RESET"
+			if _cmake "$log_file" --install "$b_dir" --prefix ./install
+			then
+				echo "########################## $COLOR_GREEN {{config.name}} passed $COLOR_RESET"
+			else
+				retval=$?
+				echo "For details see: $log_file"
+				echo "########################## $COLOR_RED {{config.name}} failed $COLOR_RESET"
+			fi
 		else
+			retval=$?
 			echo "For details see: $log_file"
 			echo "########################## $COLOR_RED {{config.name}} failed $COLOR_RESET"
 		fi
 	else
+		retval=$?
 		echo "For details see: $log_file"
 		echo "########################## $COLOR_RED {{config.name}} failed $COLOR_RESET"
 	fi
 	echo "##################################################################"
+	return $retval
 }
 
 {% endfor %}
@@ -99,7 +108,7 @@ do_clean() {
 	if [ -d "$b_dir" ]
 	then
 		echo "Removing $b_dir"
-		rm -rf "$b_dir" || true
+		rm -rf "$b_dir"
 	fi
 	{% endfor %}
 }
@@ -143,12 +152,12 @@ OS_ID=$(uname -o )
 
 if [ -n $(which tput) -a -t ]
 then
-	COLOR_YELOW=$(tput setaf 3)
+	COLOR_YELLOW=$(tput setaf 3)
 	COLOR_RESET=$(tput sgr0)
 	COLOR_RED=$(tput setaf 1)
 	COLOR_GREEN=$(tput setaf 2)
 else
-	COLOR_YELOW=
+	COLOR_YELLOW=
 	COLOR_RESET=
 	COLOR_RED=
 	COLOR_GREEN=
@@ -159,21 +168,24 @@ _ccache=$(which ccache)
 case $1 in
 	{% for config in data %}
 	{{config.name}})
-		{{config.name}}
+		{{config.name}} || exit_code=$?
 		;;
 	{% endfor %}
 	clean)
-		do_clean
+		do_clean || exit_code=$?
 		;;
 	help)
 		do_help
 		;;
 	"")
 		{% for config in data %}
-		{{config.name}}
+		{{config.name}} || exit_code=$?
 		{% endfor %}
 		;;
 	*)
 		do_help
+		exit_code=1
 		;;
 esac
+
+exit $exit_code
