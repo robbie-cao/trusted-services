@@ -30,7 +30,7 @@ set(NEWLIB_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/newlib_install"
 # Extracting compiler prefix without the trailing hyphen from the C compiler name
 get_filename_component(COMPILER_PATH ${CMAKE_C_COMPILER} DIRECTORY)
 get_filename_component(COMPILER_NAME ${CMAKE_C_COMPILER} NAME)
-string(REGEX REPLACE "([^-]+-[^-]+-[^-]+).*" "\\1" COMPILER_PREFIX ${COMPILER_NAME})
+string(REGEX REPLACE "(.*)-[^-]+$" "\\1" COMPILER_PREFIX ${COMPILER_NAME})
 
 find_library(NEWLIB_LIBC_PATH
 				NAMES libc.a c.a libc.lib c.lib
