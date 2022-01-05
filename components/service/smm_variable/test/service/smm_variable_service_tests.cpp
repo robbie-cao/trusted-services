@@ -101,7 +101,8 @@ TEST_GROUP(SmmVariableServiceTests)
 			m_common_guid,
 			runtime_var_name,
 			runtime_set_data,
-			EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS);
+			EFI_VARIABLE_NON_VOLATILE |
+			EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS);
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 		/* Expect access to boot variable to be permitted */
@@ -113,12 +114,12 @@ TEST_GROUP(SmmVariableServiceTests)
 		UNSIGNED_LONGS_EQUAL(boot_set_data.size(), get_data.size());
 		LONGS_EQUAL(0, get_data.compare(boot_set_data));
 
-		/* Expect access to the runtime variable to be forbidden during boot */
+		/* Expect access to the runtime variable to also be permitted during boot */
 		efi_status = m_client->get_variable(
 			m_common_guid,
 			runtime_var_name,
 			get_data);
-		UNSIGNED_LONGLONGS_EQUAL(EFI_ACCESS_DENIED, efi_status);
+		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 		/* Exit boot service - access should no longer be permitted */
 		efi_status = m_client->exit_boot_service();
@@ -131,7 +132,7 @@ TEST_GROUP(SmmVariableServiceTests)
 			get_data);
 		UNSIGNED_LONGLONGS_EQUAL(EFI_ACCESS_DENIED, efi_status);
 
-		/* Expect access to the runtime variable to now be permitted */
+		/* Expect access to the runtime variable should still be permitted */
 		efi_status = m_client->get_variable(
 			m_common_guid,
 			runtime_var_name,

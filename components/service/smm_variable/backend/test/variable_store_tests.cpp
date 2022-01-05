@@ -429,6 +429,11 @@ TEST(UefiVariableStoreTests, removePersistent)
 	std::string input_data = "quick brown fox";
 	std::string output_data;
 
+	/* Attempt to remove a non-existed variable */
+	status = set_variable(var_name, std::string(), EFI_VARIABLE_NON_VOLATILE);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
+
+	/* Create a variable */
 	status = set_variable(var_name, input_data, EFI_VARIABLE_NON_VOLATILE);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
@@ -482,17 +487,28 @@ TEST(UefiVariableStoreTests, runtimeAccess)
 	std::string input_data = "a variable with access restricted to runtime";
 	std::string output_data;
 
+	/*
+	 * Client is reponsible for setting bootservice access whenever runtime
+	 * access is specified. This checks the defence against invalid attributes.
+	 */
 	status = set_variable(
 		var_name,
 		input_data,
 		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, status);
+
+	status = set_variable(
+		var_name,
+		input_data,
+		EFI_VARIABLE_NON_VOLATILE |
+		EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* 'Reboot' */
 	power_cycle();
 
 	status = get_variable(var_name, output_data);
-	UNSIGNED_LONGLONGS_EQUAL(EFI_ACCESS_DENIED, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* End of boot phase */
 	status = uefi_variable_store_exit_boot_service(&m_uefi_variable_store);

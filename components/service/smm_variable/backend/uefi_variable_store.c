@@ -228,10 +228,17 @@ efi_status_t uefi_variable_store_set_variable(
 		}
 		else {
 
-			/*  It's a request to create a new variable */
-			variable_index_set_variable(info, var->Attributes);
+			if (var->DataSize) {
 
-			should_sync_index = (var->Attributes & EFI_VARIABLE_NON_VOLATILE);
+				/*  It's a request to create a new variable */
+				variable_index_set_variable(info, var->Attributes);
+				should_sync_index = (var->Attributes & EFI_VARIABLE_NON_VOLATILE);
+			}
+			else {
+
+				/* Attempting to remove a non-existent variable */
+				return EFI_NOT_FOUND;
+			}
 		}
 	}
 
@@ -490,7 +497,16 @@ static efi_status_t sync_variable_index(
 static efi_status_t check_capabilities(
 	const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var)
 {
-	efi_status_t status = EFI_SUCCESS;
+	/* Check if invalid variable attributes have been requested */
+	if ((var->Attributes & EFI_VARIABLE_RUNTIME_ACCESS) &&
+		!(var->Attributes & EFI_VARIABLE_BOOTSERVICE_ACCESS)) {
+
+		/*
+		 * Client is required to explicitly allow bootservice access for runtime
+		 * access variables.
+		 */
+		return EFI_INVALID_PARAMETER;
+	}
 
 	/* Check if any unsupported variable attributes have been requested */
 	if (var->Attributes & ~(
@@ -500,10 +516,10 @@ static efi_status_t check_capabilities(
 		EFI_VARIABLE_APPEND_WRITE)) {
 
 		/* An unsupported attribute has been requested */
-		status = EFI_UNSUPPORTED;
+		return EFI_UNSUPPORTED;
 	}
 
-	return status;
+	return EFI_SUCCESS;
 }
 
 static efi_status_t check_access_permitted(
@@ -512,15 +528,22 @@ static efi_status_t check_access_permitted(
 {
 	efi_status_t status = EFI_SUCCESS;
 
-	if (info->is_variable_set) {
+	if (info->is_variable_set &&
+		(info->metadata.attributes &
+			(EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS))) {
 
-		if (info->metadata.attributes & EFI_VARIABLE_BOOTSERVICE_ACCESS) {
+		/* Access is controlled */
+		status = EFI_ACCESS_DENIED;
 
-			if (!context->is_boot_service) status = EFI_ACCESS_DENIED;
+		if (context->is_boot_service) {
+
+			if (info->metadata.attributes & EFI_VARIABLE_BOOTSERVICE_ACCESS)
+				status = EFI_SUCCESS;
 		}
-		else if (info->metadata.attributes & EFI_VARIABLE_RUNTIME_ACCESS) {
+		else {
 
-			if (context->is_boot_service) status = EFI_ACCESS_DENIED;
+			if (info->metadata.attributes & EFI_VARIABLE_RUNTIME_ACCESS)
+				status = EFI_SUCCESS;
 		}
 	}
 

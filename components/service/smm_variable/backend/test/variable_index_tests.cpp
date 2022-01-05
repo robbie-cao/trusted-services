@@ -99,7 +99,8 @@ TEST_GROUP(UefiVariableIndexTests)
 		CHECK_TRUE(info);
 		variable_index_set_variable(
 			info,
-			EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS);
+			EFI_VARIABLE_NON_VOLATILE |
+			EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS);
 	}
 
 	static const size_t MAX_VARIABLES = 10;
@@ -230,7 +231,8 @@ TEST(UefiVariableIndexTests, enumerateStore)
 		info->metadata.name_size,
 		info->metadata.name);
 	CHECK_TRUE(info);
-	LONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS, info->metadata.attributes);
+	LONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE |
+		EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS, info->metadata.attributes);
 	MEMCMP_EQUAL(&guid_1, &info->metadata.guid, sizeof(EFI_GUID));
 	MEMCMP_EQUAL(name_3.data(), info->metadata.name, name_3.size());
 
@@ -290,7 +292,8 @@ TEST(UefiVariableIndexTests, dumpLoadRoadtrip)
 		info->metadata.name_size,
 		info->metadata.name);
 	CHECK_TRUE(info);
-	UNSIGNED_LONGLONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS,
+	UNSIGNED_LONGLONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE |
+		EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS,
 		info->metadata.attributes);
 
 	info = variable_index_find_next(
@@ -528,7 +531,8 @@ TEST(UefiVariableIndexTests, setCheckConstraintsExistingVar)
 		info->metadata.name_size,
 		info->metadata.name);
 	CHECK_TRUE(info);
-	UNSIGNED_LONGLONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS,
+	UNSIGNED_LONGLONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE |
+		EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS,
 		info->metadata.attributes);
 
 	info = variable_index_find_next(
@@ -609,7 +613,8 @@ TEST(UefiVariableIndexTests, setCheckConstraintsNonExistingVar)
 	CHECK_TRUE(info->is_constraints_set);
 
 	/* Updating the variable should cause the variable to be marked as set */
-	variable_index_set_variable(info, EFI_VARIABLE_RUNTIME_ACCESS);
+	variable_index_set_variable(info,
+		EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS);
 
 	CHECK_TRUE(info->is_variable_set);
 	CHECK_TRUE(info->is_constraints_set);
