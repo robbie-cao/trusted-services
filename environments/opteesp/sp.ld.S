@@ -2,7 +2,7 @@
 /*
  * Copyright (c) 2014, STMicroelectronics International N.V. All rights reserved.
  * Copyright (c) 2015, Linaro Limited. All rights reserved.
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  */
 #ifdef ARM32
 OUTPUT_FORMAT("elf32-littlearm")
@@ -51,6 +51,7 @@ SECTIONS {
 	.dynsym : { *(.dynsym) }
 	.dynstr : { *(.dynstr) }
 	.hash : { *(.hash) }
+	.note.gnu.build-id : { *(.note.gnu.build-id) }
 
 	/* Page align to allow dropping execute bit for RW data */
 	. = ALIGN(4096);
@@ -92,3 +93,6 @@ SECTIONS {
 
 	/DISCARD/ : { *(.interp) }
 }
+
+ASSERT(sp_head == 0,
+	"sp_head must be at address 0. Please check input sections and linker settings.");
