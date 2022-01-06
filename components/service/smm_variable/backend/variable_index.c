@@ -153,9 +153,11 @@ struct variable_info *variable_index_find_next(
 	const struct variable_index *context,
 	const EFI_GUID *guid,
 	size_t name_size,
-	const int16_t *name)
+	const int16_t *name,
+	efi_status_t *status)
 {
 	struct variable_info *result = NULL;
+	*status = EFI_NOT_FOUND;
 
 	if (name_size >= sizeof(int16_t)) {
 
@@ -178,11 +180,17 @@ struct variable_info *variable_index_find_next(
 						context->entries[pos].info.is_variable_set) {
 
 						result = &context->entries[pos].info;
+						*status = EFI_SUCCESS;
 						break;
 					}
 
 					++pos;
 				}
+			}
+			else {
+
+				/* A non-empty name was provided but it wasn't found */
+				*status = EFI_INVALID_PARAMETER;
 			}
 		}
 		else {
@@ -196,6 +204,7 @@ struct variable_info *variable_index_find_next(
 					context->entries[pos].info.is_variable_set) {
 
 					result = &context->entries[pos].info;
+					*status = EFI_SUCCESS;
 					break;
 				}
 

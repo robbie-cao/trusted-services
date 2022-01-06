@@ -132,6 +132,7 @@ struct variable_info *variable_index_find(
  * @param[in]  guid The variable's guid
  * @param[in]  name_size The name parameter's size
  * @param[in]  name The variable's name
+ * @param[out] status Provides error status
  *
  * @return     Pointer to variable_info or NULL
  */
@@ -139,7 +140,8 @@ struct variable_info *variable_index_find_next(
 	const struct variable_index *context,
 	const EFI_GUID *guid,
 	size_t name_size,
-	const int16_t *name);
+	const int16_t *name,
+	efi_status_t *status);
 
 /**
  * @brief      Add a new entry to the index

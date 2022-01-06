@@ -115,6 +115,7 @@ TEST_GROUP(UefiVariableIndexTests)
 
 TEST(UefiVariableIndexTests, emptyIndexOperations)
 {
+	efi_status_t status = EFI_SUCCESS;
 	struct variable_info *info = NULL;
 
 	/* Expect not to find a variable */
@@ -125,13 +126,15 @@ TEST(UefiVariableIndexTests, emptyIndexOperations)
 		name_1.data());
 	POINTERS_EQUAL(NULL, info);
 
-	/* Expect also not to find the next variable */
+	/* Expect also find next to be rejected */
 	info = variable_index_find_next(
 		&m_variable_index,
 		&guid_1,
 		name_1.size() * sizeof(int16_t),
-		name_1.data());
+		name_1.data(),
+		&status);
 	POINTERS_EQUAL(NULL, info);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, status);
 
 	/* Remove should silently return */
 	variable_index_clear_variable(
@@ -202,6 +205,7 @@ TEST(UefiVariableIndexTests, enumerateStore)
 {
 	const struct variable_info *info = NULL;
 	const std::vector<int16_t> null_name = to_variable_name(L"");
+	efi_status_t status = EFI_NOT_FOUND;
 
 	create_variables();
 
@@ -209,8 +213,10 @@ TEST(UefiVariableIndexTests, enumerateStore)
 		&m_variable_index,
 		&guid_1,
 		null_name.size() * sizeof(int16_t),
-		null_name.data());
+		null_name.data(),
+		&status);
 	CHECK_TRUE(info);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	LONGS_EQUAL(EFI_VARIABLE_BOOTSERVICE_ACCESS, info->metadata.attributes);
 	MEMCMP_EQUAL(&guid_1, &info->metadata.guid, sizeof(EFI_GUID));
 	MEMCMP_EQUAL(name_1.data(), info->metadata.name, name_1.size());
@@ -219,8 +225,10 @@ TEST(UefiVariableIndexTests, enumerateStore)
 		&m_variable_index,
 		&info->metadata.guid,
 		info->metadata.name_size,
-		info->metadata.name);
+		info->metadata.name,
+		&status);
 	CHECK_TRUE(info);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	LONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS, info->metadata.attributes);
 	MEMCMP_EQUAL(&guid_2, &info->metadata.guid, sizeof(EFI_GUID));
 	MEMCMP_EQUAL(name_2.data(), info->metadata.name, name_2.size());
@@ -229,8 +237,10 @@ TEST(UefiVariableIndexTests, enumerateStore)
 		&m_variable_index,
 		&info->metadata.guid,
 		info->metadata.name_size,
-		info->metadata.name);
+		info->metadata.name,
+		&status);
 	CHECK_TRUE(info);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	LONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE |
 		EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS, info->metadata.attributes);
 	MEMCMP_EQUAL(&guid_1, &info->metadata.guid, sizeof(EFI_GUID));
@@ -240,8 +250,10 @@ TEST(UefiVariableIndexTests, enumerateStore)
 		&m_variable_index,
 		&info->metadata.guid,
 		info->metadata.name_size,
-		info->metadata.name);
+		info->metadata.name,
+		&status);
 	POINTERS_EQUAL(NULL, info);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 }
 
 TEST(UefiVariableIndexTests, dumpLoadRoadtrip)
@@ -274,6 +286,7 @@ TEST(UefiVariableIndexTests, dumpLoadRoadtrip)
 	UNSIGNED_LONGS_EQUAL(dump_len, load_len);
 
 	/* Enumerate and now expect only NV variables to be present */
+	status = EFI_NOT_FOUND;
 	const struct variable_info *info = NULL;
 	std::vector<int16_t> null_name = to_variable_name(L"");
 
@@ -281,8 +294,10 @@ TEST(UefiVariableIndexTests, dumpLoadRoadtrip)
 		&m_variable_index,
 		&guid_1,
 		null_name.size() * sizeof(int16_t),
-		null_name.data());
+		null_name.data(),
+		&status);
 	CHECK_TRUE(info);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS,
 		info->metadata.attributes);
 
@@ -290,8 +305,10 @@ TEST(UefiVariableIndexTests, dumpLoadRoadtrip)
 		&m_variable_index,
 		&info->metadata.guid,
 		info->metadata.name_size,
-		info->metadata.name);
+		info->metadata.name,
+		&status);
 	CHECK_TRUE(info);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE |
 		EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS,
 		info->metadata.attributes);
@@ -300,8 +317,10 @@ TEST(UefiVariableIndexTests, dumpLoadRoadtrip)
 		&m_variable_index,
 		&info->metadata.guid,
 		info->metadata.name_size,
-		info->metadata.name);
+		info->metadata.name,
+		&status);
 	POINTERS_EQUAL(NULL, info);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 }
 
 TEST(UefiVariableIndexTests, dumpBufferTooSmall)
@@ -385,14 +404,17 @@ TEST(UefiVariableIndexTests, removeVariable)
 
 	/* Enumerate and now expect an empty index */
 	info = NULL;
+	efi_status_t status = EFI_SUCCESS;
 	std::vector<int16_t> null_name = to_variable_name(L"");
 
 	info = variable_index_find_next(
 		&m_variable_index,
 		&guid_1,
 		null_name.size() * sizeof(int16_t),
-		null_name.data());
+		null_name.data(),
+		&status);
 	POINTERS_EQUAL(NULL, info);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 }
 
 TEST(UefiVariableIndexTests, checkIterator)
@@ -515,22 +537,27 @@ TEST(UefiVariableIndexTests, setCheckConstraintsExistingVar)
 
 	/* Enumerate over variables, only expecting to find the two remaining 'set' variables. */
 	info = NULL;
+	efi_status_t status = EFI_NOT_FOUND;
 	std::vector<int16_t> null_name = to_variable_name(L"");
 
 	info = variable_index_find_next(
 		&m_variable_index,
 		&guid_1,
 		null_name.size() * sizeof(int16_t),
-		null_name.data());
+		null_name.data(),
+		&status);
 	CHECK_TRUE(info);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_VARIABLE_BOOTSERVICE_ACCESS, info->metadata.attributes);
 
 	info = variable_index_find_next(
 		&m_variable_index,
 		&info->metadata.guid,
 		info->metadata.name_size,
-		info->metadata.name);
+		info->metadata.name,
+		&status);
 	CHECK_TRUE(info);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE |
 		EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS,
 		info->metadata.attributes);
@@ -539,8 +566,10 @@ TEST(UefiVariableIndexTests, setCheckConstraintsExistingVar)
 		&m_variable_index,
 		&info->metadata.guid,
 		info->metadata.name_size,
-		info->metadata.name);
+		info->metadata.name,
+		&status);
 	CHECK_FALSE(info);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 
 	/* Iterating over the index should still return all three because the set constraints
 	 * for variable 2 still persist.

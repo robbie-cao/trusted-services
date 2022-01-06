@@ -549,14 +549,28 @@ TEST(UefiVariableStoreTests, enumerateStoreContents)
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Prepare to enumerate */
+	size_t total_len = 0;
 	uint8_t msg_buffer[VARIABLE_BUFFER_SIZE];
 	SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *next_name =
 		(SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME*)msg_buffer;
 	size_t max_name_len = VARIABLE_BUFFER_SIZE -
 		SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET;
 
+	/* First check handling of invalid variable name */
+	std::vector<int16_t> bogus_name = to_variable_name( L"bogus_variable");
+	size_t bogus_name_size = bogus_name.size() * sizeof(uint16_t);
+	next_name->Guid = m_common_guid;
+	next_name->NameSize = bogus_name_size;
+	memcpy(next_name->Name, bogus_name.data(), bogus_name_size);
+
+	status = uefi_variable_store_get_next_variable_name(
+		&m_uefi_variable_store,
+		next_name,
+		max_name_len,
+		&total_len);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, status);
+
 	/* Enumerate store contents */
-	size_t total_len = 0;
 	next_name->NameSize = sizeof(int16_t);
 	next_name->Name[0] = 0;
 

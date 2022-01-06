@@ -309,24 +309,29 @@ efi_status_t uefi_variable_store_get_next_variable_name(
 	efi_status_t status = check_name_terminator(cur->Name, cur->NameSize);
 	if (status != EFI_SUCCESS) return status;
 
-	status = EFI_NOT_FOUND;
 	*total_length = 0;
 
 	const struct variable_info *info = variable_index_find_next(
 		&context->variable_index,
 		&cur->Guid,
 		cur->NameSize,
-		cur->Name);
+		cur->Name,
+		&status);
 
-	if (info && (info->metadata.name_size <= max_name_len)) {
+	if (info && (status == EFI_SUCCESS)) {
 
-		cur->Guid = info->metadata.guid;
-		cur->NameSize = info->metadata.name_size;
-		memcpy(cur->Name, info->metadata.name, info->metadata.name_size);
+		if (info->metadata.name_size <= max_name_len) {
 
-		*total_length = SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_TOTAL_SIZE(cur);
+			cur->Guid = info->metadata.guid;
+			cur->NameSize = info->metadata.name_size;
+			memcpy(cur->Name, info->metadata.name, info->metadata.name_size);
 
-		status = EFI_SUCCESS;
+			*total_length = SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_TOTAL_SIZE(cur);
+		}
+		else {
+
+			status = EFI_BUFFER_TOO_SMALL;
+		}
 	}
 
 	return status;
