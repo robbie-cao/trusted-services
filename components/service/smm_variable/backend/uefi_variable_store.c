@@ -79,8 +79,10 @@ static efi_status_t check_name_terminator(
 	const int16_t *name,
 	size_t name_size);
 
-/* Private UID for storing the variable index */
-#define VARIABLE_INDEX_STORAGE_UID			(1)
+/* Private UID for storing the variable index - may be overridden at build-time */
+#ifndef SMM_VARIABLE_INDEX_STORAGE_UID
+#define SMM_VARIABLE_INDEX_STORAGE_UID			(1)
+#endif
 
 /* Default maximum variable size -
  * may be overridden using uefi_variable_store_set_storage_limits()
@@ -451,7 +453,7 @@ static void load_variable_index(
 		psa_status_t psa_status = persistent_store->interface->get(
 			persistent_store->context,
 			context->owner_id,
-			VARIABLE_INDEX_STORAGE_UID,
+			SMM_VARIABLE_INDEX_STORAGE_UID,
 			0,
 			context->index_sync_buffer_size,
 			context->index_sync_buffer,
@@ -487,7 +489,7 @@ static efi_status_t sync_variable_index(
 			psa_status_t psa_status = persistent_store->interface->set(
 				persistent_store->context,
 				context->owner_id,
-				VARIABLE_INDEX_STORAGE_UID,
+				SMM_VARIABLE_INDEX_STORAGE_UID,
 				data_len,
 				context->index_sync_buffer,
 				PSA_STORAGE_FLAG_NONE);
