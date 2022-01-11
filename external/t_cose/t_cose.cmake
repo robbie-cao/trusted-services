@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -16,7 +16,7 @@ endif()
 
 # External component details
 set(T_COSE_URL "https://github.com/laurencelundblade/t_cose.git" CACHE STRING "t_cose repository URL")
-set(T_COSE_REFSPEC "master" CACHE STRING "t_cose git refspec")
+set(T_COSE_REFSPEC "fc3a4b2c7196ff582e8242de8bd4a1bc4eec577f" CACHE STRING "t_cose git refspec")
 set(T_COSE_INSTALL_PATH "${CMAKE_CURRENT_BINARY_DIR}/t_cose_install" CACHE PATH "t_cose installation directory")
 set(T_COSE_PACKAGE_PATH "${T_COSE_INSTALL_PATH}/libt_cose/cmake" CACHE PATH "t_cose CMake package directory")
 
@@ -37,7 +37,6 @@ FetchContent_Declare(
 
 	PATCH_COMMAND git stash
 		COMMAND git am ${CMAKE_CURRENT_LIST_DIR}/0001-add-install-definition.patch
-		COMMAND git apply ${CMAKE_CURRENT_LIST_DIR}/0002-add-tls3_0_0-compatibility.patch
 		COMMAND git reset HEAD~1
 
 )
