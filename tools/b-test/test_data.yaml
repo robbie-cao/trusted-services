@@ -1,13 +1,17 @@
 #
-# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
 
 $schema: ./test_data.schema.json,
 data:
-    - name: "attestation-optee-arm"
+    - name: "attestation-opteesp-arm"
       src: "$TS_ROOT/deployments/attestation/opteesp"
+      params:
+            - "-GUnix Makefiles"
+    - name: "attestation-sp-arm"
+      src: "$TS_ROOT/deployments/attestation/sp"
       params:
             - "-GUnix Makefiles"
     - name: "component-test-arm-linux"
@@ -20,16 +24,29 @@ data:
       src: "$TS_ROOT/deployments/component-test/linux-pc"
       params:
           - "-GUnix Makefiles"
-    - name: "crypto-optee-arm"
+    - name: "crypto-opteesp-arm"
       src: "$TS_ROOT/deployments/crypto/opteesp"
       params:
           - "-GUnix Makefiles"
-    - name: "env-test-optee-arm"
+    - name: "crypto-sp-arm"
+      src: "$TS_ROOT/deployments/crypto/sp"
+      params:
+          - "-GUnix Makefiles"
+    - name: "env-test-opteesp-arm"
       src: "$TS_ROOT/deployments/env-test/opteesp"
       params:
           - "-GUnix Makefiles"
-    - name: "internal-trusted-storage-optee-arm"
+    - name: "env-test-sp-arm"
+      src: "$TS_ROOT/deployments/env-test/sp"
+      params:
+          - "-GUnix Makefiles"
+    - name: "internal-trusted-storage-opteesp-arm"
       src: "$TS_ROOT/deployments/internal-trusted-storage/opteesp"
+      params:
+            - "-GUnix Makefiles"
+            - "-DCMAKE_VERBOSE_MAKEFILE=y"
+    - name: "internal-trusted-storage-sp-arm"
+      src: "$TS_ROOT/deployments/internal-trusted-storage/sp"
       params:
             - "-GUnix Makefiles"
             - "-DCMAKE_VERBOSE_MAKEFILE=y"
@@ -62,8 +79,13 @@ data:
       os_id : "GNU/Linux"
       params:
           - "-GUnix Makefiles"
-    - name: "protected-storage-optee-arm"
+    - name: "protected-storage-opteesp-arm"
       src: "$TS_ROOT/deployments/protected-storage/opteesp"
+      params:
+            - "-GUnix Makefiles"
+            - "-DCMAKE_VERBOSE_MAKEFILE=y"
+    - name: "protected-storage-sp-arm"
+      src: "$TS_ROOT/deployments/protected-storage/sp"
       params:
             - "-GUnix Makefiles"
             - "-DCMAKE_VERBOSE_MAKEFILE=y"
@@ -107,20 +129,33 @@ data:
       os_id : "GNU/Linux"
       params:
             - "-GUnix Makefiles"
-    - name: "se-proxy-optee-arm"
+    - name: "se-proxy-opteesp-arm"
       src: "$TS_ROOT/deployments/se-proxy/opteesp"
       params:
             - "-GUnix Makefiles"
-    - name: "sfs-demo-optee-arm"
+    - name: "se-proxy-sp-arm"
+      src: "$TS_ROOT/deployments/se-proxy/sp"
+      params:
+            - "-GUnix Makefiles"
+    - name: "sfs-demo-opteesp-arm"
       src: "$TS_ROOT/deployments/sfs-demo/opteesp"
+      params:
+          - "-GUnix Makefiles"
+    - name: "sfs-demo-sp-arm"
+      src: "$TS_ROOT/deployments/sfs-demo/sp"
       params:
           - "-GUnix Makefiles"
     - name: "smm-gateway-pc-linux"
       src: "$TS_ROOT/deployments/smm-gateway/linux-pc"
       params:
             - "-GUnix Makefiles"
-    - name: "smm-gateway-optee-arm"
+    - name: "smm-gateway-opteesp-arm"
       src: "$TS_ROOT/deployments/smm-gateway/opteesp"
+      params:
+            - "-GUnix Makefiles"
+            - "-DCMAKE_VERBOSE_MAKEFILE=y"
+    - name: "smm-gateway-sp-arm"
+      src: "$TS_ROOT/deployments/smm-gateway/sp"
       params:
             - "-GUnix Makefiles"
             - "-DCMAKE_VERBOSE_MAKEFILE=y"
