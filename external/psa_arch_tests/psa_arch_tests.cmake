@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -14,7 +14,7 @@ if(NOT DEFINED PROCESSOR_COUNT)
 endif()
 
 set(PSA_ARCH_TESTS_URL "https://github.com/ARM-software/psa-arch-tests.git" CACHE STRING "psa-arch-tests repository URL")
-set(PSA_ARCH_TESTS_REFSPEC "master" CACHE STRING "psa-arch-tests git refspec")
+set(PSA_ARCH_TESTS_REFSPEC "2a1852252a9b9af655cbe02d5d3c930952d0d798" CACHE STRING "psa-arch-tests v22.01_API1.4_ADAC_BETA")
 set(PSA_ARCH_TESTS_INSTALL_PATH "${CMAKE_CURRENT_BINARY_DIR}/psa-arch-tests_install" CACHE PATH "psa-arch-tests installation directory")
 set(PSA_ARCH_TESTS_PACKAGE_PATH "${PSA_ARCH_TESTS_INSTALL_PATH}/libpsa-arch-tests/cmake" CACHE PATH "psa-arch-tests CMake package directory")
 
