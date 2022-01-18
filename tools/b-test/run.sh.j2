@@ -18,6 +18,9 @@ fi
 # Default to non-verbose mode.
 VERBOSE=${VERBOSE:-0}
 
+# Additional environment specific CMake flags
+CMAKE_EXTRA_FLAGS=${CMAKE_EXTRA_FLAGS:-""}
+
 # Get root of TS repo.
 TS_ROOT=${TS_ROOT:-$(git rev-parse --show-toplevel)}
 
@@ -73,7 +76,7 @@ function _cmake() {
 	local retval=0
 
 	# jinja2 is removing single newlines. Adding a comment stops this behavior.
-	if _cmake "$log_file" -S {{config.src}} -B "$b_dir" $ccache_option {% for param in config.params %} "{{param}}" {% endfor %} #keep newline
+	if _cmake "$log_file" -S {{config.src}} -B "$b_dir" $ccache_option {% for param in config.params %} "{{param}}" {% endfor %} ${CMAKE_EXTRA_FLAGS} #keep newline
 	then
 		if _cmake "$log_file" --build "$b_dir" -j ${NUMBER_OF_PROCESSORS} --verbose
 		then
@@ -133,6 +136,8 @@ Some variables to note
 	- NUMBER_OF_PROCESSORS: number of processors in the system. Used for setting the number of
 		parallel processes during build
 		NUMBER_OF_PROCESSORS=$NUMBER_OF_PROCESSORS
+	- CMAKE_EXTRA_FLAGS: additional environment specific CMake flags
+		CMAKE_EXTRA_FLAGS=-DNEWLIB_LIBC_PATH=/path/to/newlib
 
 Available commands:
 	""      - no command/default -> run all test cases
