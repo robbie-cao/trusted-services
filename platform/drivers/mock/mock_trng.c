@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -24,13 +24,11 @@ static int mock_poll(void *context, unsigned char *output, size_t nbyte, size_t 
     return 0;
 }
 
-int platform_trng_create(struct platform_trng_driver *driver,
-                            const struct device_region *device_region)
+int platform_trng_create(struct platform_trng_driver *driver, int instance)
 {
     static const struct platform_trng_iface iface =  { .poll = mock_poll };
 
-    (void)device_region;
-
+    (void)instance;
     driver->context = NULL;
     driver->iface = &iface;
 

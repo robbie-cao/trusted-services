@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -51,12 +51,11 @@ struct platform_trng_driver
  * \brief Factory method to construct a platform specific trng driver
  *
  * \param driver    Pointer to driver structure to initialize on construction.
- * \param device_region Pointer a device region object or NULL if none.
+ * \param instance    Deployment specific trng instance.
  *
  * \return          0 if successful.
  */
-int platform_trng_create(struct platform_trng_driver *driver,
-                           const struct device_region *device_region);
+int platform_trng_create(struct platform_trng_driver *driver, int instance);
 
 /**
  * \brief Destroy a driver constructed using the factory method

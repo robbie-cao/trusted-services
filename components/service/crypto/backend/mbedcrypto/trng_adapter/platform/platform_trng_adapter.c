@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <mbedtls/entropy.h>
 #include <platform/interface/trng.h>
 #include <service/crypto/backend/mbedcrypto/trng_adapter/trng_adapter.h>
-#include <config/interface/config_store.h>
 #include <psa/error.h>
 #include <stddef.h>
 
@@ -19,17 +18,7 @@ static struct platform_trng_driver driver = {0};
 
 int trng_adapter_init(int instance)
 {
-	int status = PSA_STATUS_HARDWARE_FAILURE;
-	struct device_region device_region;
-
-	if (config_store_query(CONFIG_CLASSIFIER_DEVICE_REGION,
-		"trng", instance,
-		&device_region, sizeof(device_region))) {
-
-		status = platform_trng_create(&driver, &device_region);
-	}
-
-	return status;
+	return platform_trng_create(&driver,instance);
 }
 
 void trng_adapter_deinit()
