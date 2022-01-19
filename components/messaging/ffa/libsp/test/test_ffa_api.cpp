@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2020-2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited. All rights reserved.
  */
 
 #include <CppUTest/TestHarness.h>
@@ -169,7 +169,7 @@ TEST(ffa_api, ffa_rxtx_map)
 	const uint64_t page_count = (1 << 6) - 1;
 
 	svc_result.a0 = 0x84000061;
-	expect_ffa_svc(0x84000066, tx_buffer, rx_buffer, page_count, 0, 0, 0, 0,
+	expect_ffa_svc(0xc4000066, tx_buffer, rx_buffer, page_count, 0, 0, 0, 0,
 		       &svc_result);
 
 	ffa_result result = ffa_rxtx_map((const void *)tx_buffer,
@@ -184,7 +184,7 @@ TEST(ffa_api, ffa_rxtx_map_error)
 	const uint64_t page_count = (1 << 6) - 1;
 
 	setup_error_response(-1);
-	expect_ffa_svc(0x84000066, tx_buffer, rx_buffer, page_count, 0, 0, 0, 0,
+	expect_ffa_svc(0xc4000066, tx_buffer, rx_buffer, page_count, 0, 0, 0, 0,
 		       &svc_result);
 
 	ffa_result result = ffa_rxtx_map((const void *)tx_buffer,
@@ -200,7 +200,7 @@ TEST(ffa_api, ffa_rxtx_map_unknown_response)
 	assert_environment_t assert_env;
 
 	svc_result.a0 = 0x12345678;
-	expect_ffa_svc(0x84000066, tx_buffer, rx_buffer, page_count, 0, 0, 0, 0,
+	expect_ffa_svc(0xc4000066, tx_buffer, rx_buffer, page_count, 0, 0, 0, 0,
 		       &svc_result);
 
 	if (SETUP_ASSERT_ENVIRONMENT(assert_env)) {
@@ -762,7 +762,7 @@ TEST(ffa_api, ffa_mem_donate)
 	svc_result.a0 = 0x84000061;
 	svc_result.a2 = (handle_result & 0xffffffffULL);
 	svc_result.a3 = (handle_result >> 32);
-	expect_ffa_svc(0x84000071, total_length, fragment_length,
+	expect_ffa_svc(0xc4000071, total_length, fragment_length,
 		       buffer_address, page_count, 0, 0, 0, &svc_result);
 
 	ffa_result result =
@@ -782,7 +782,7 @@ TEST(ffa_api, ffa_mem_donate_error)
 	const uint64_t handle_result = 0xaabbccdd11223344ULL;
 
 	setup_error_response(-1);
-	expect_ffa_svc(0x84000071, total_length, fragment_length,
+	expect_ffa_svc(0xc4000071, total_length, fragment_length,
 		       buffer_address, page_count, 0, 0, 0, &svc_result);
 
 	ffa_result result =
@@ -803,7 +803,7 @@ TEST(ffa_api, ffa_mem_donate_unknown_response)
 	assert_environment_t assert_env;
 
 	svc_result.a0 = 0x12345678;
-	expect_ffa_svc(0x84000071, total_length, fragment_length,
+	expect_ffa_svc(0xc4000071, total_length, fragment_length,
 		       buffer_address, page_count, 0, 0, 0, &svc_result);
 
 	if (SETUP_ASSERT_ENVIRONMENT(assert_env)) {
@@ -843,7 +843,7 @@ TEST(ffa_api, ffa_mem_lend)
 	svc_result.a0 = 0x84000061;
 	svc_result.a2 = (handle_result & 0xffffffffULL);
 	svc_result.a3 = (handle_result >> 32);
-	expect_ffa_svc(0x84000072, total_length, fragment_length,
+	expect_ffa_svc(0xc4000072, total_length, fragment_length,
 		       buffer_address, page_count, 0, 0, 0, &svc_result);
 
 	ffa_result result =
@@ -863,7 +863,7 @@ TEST(ffa_api, ffa_mem_lend_error)
 	const uint64_t handle_result = 0xaabbccdd11223344ULL;
 
 	setup_error_response(-1);
-	expect_ffa_svc(0x84000072, total_length, fragment_length,
+	expect_ffa_svc(0xc4000072, total_length, fragment_length,
 		       buffer_address, page_count, 0, 0, 0, &svc_result);
 
 	ffa_result result =
@@ -884,7 +884,7 @@ TEST(ffa_api, ffa_mem_lend_unknown_response)
 	assert_environment_t assert_env;
 
 	svc_result.a0 = 0x12345678;
-	expect_ffa_svc(0x84000072, total_length, fragment_length,
+	expect_ffa_svc(0xc4000072, total_length, fragment_length,
 		       buffer_address, page_count, 0, 0, 0, &svc_result);
 
 	if (SETUP_ASSERT_ENVIRONMENT(assert_env)) {
@@ -924,7 +924,7 @@ TEST(ffa_api, ffa_mem_share)
 	svc_result.a0 = 0x84000061;
 	svc_result.a2 = (handle_result & 0xffffffffULL);
 	svc_result.a3 = (handle_result >> 32);
-	expect_ffa_svc(0x84000073, total_length, fragment_length,
+	expect_ffa_svc(0xc4000073, total_length, fragment_length,
 		       buffer_address, page_count, 0, 0, 0, &svc_result);
 
 	ffa_result result =
@@ -944,7 +944,7 @@ TEST(ffa_api, ffa_mem_share_error)
 	const uint64_t handle_result = 0xaabbccdd11223344ULL;
 
 	setup_error_response(-1);
-	expect_ffa_svc(0x84000073, total_length, fragment_length,
+	expect_ffa_svc(0xc4000073, total_length, fragment_length,
 		       buffer_address, page_count, 0, 0, 0, &svc_result);
 
 	ffa_result result =
@@ -965,7 +965,7 @@ TEST(ffa_api, ffa_mem_share_unknown_response)
 	assert_environment_t assert_env;
 
 	svc_result.a0 = 0x12345678;
-	expect_ffa_svc(0x84000073, total_length, fragment_length,
+	expect_ffa_svc(0xc4000073, total_length, fragment_length,
 		       buffer_address, page_count, 0, 0, 0, &svc_result);
 
 	if (SETUP_ASSERT_ENVIRONMENT(assert_env)) {
@@ -1007,7 +1007,7 @@ TEST(ffa_api, ffa_mem_retrieve_req)
 	svc_result.a0 = 0x84000075;
 	svc_result.a1 = resp_total_length_result;
 	svc_result.a2 = resp_frament_length_result;
-	expect_ffa_svc(0x84000074, total_length, fragment_length,
+	expect_ffa_svc(0xc4000074, total_length, fragment_length,
 		       buffer_address, page_count, 0, 0, 0, &svc_result);
 
 	ffa_result result =
@@ -1031,7 +1031,7 @@ TEST(ffa_api, ffa_mem_retrieve_req_error)
 	const uint32_t resp_frament_length_result = 0x11223344;
 
 	setup_error_response(-1);
-	expect_ffa_svc(0x84000074, total_length, fragment_length,
+	expect_ffa_svc(0xc4000074, total_length, fragment_length,
 		       buffer_address, page_count, 0, 0, 0, &svc_result);
 
 	ffa_result result =
@@ -1056,7 +1056,7 @@ TEST(ffa_api, ffa_mem_retrieve_req_unknown_response)
 	assert_environment_t assert_env;
 
 	svc_result.a0 = 0x12345678;
-	expect_ffa_svc(0x84000074, total_length, fragment_length,
+	expect_ffa_svc(0xc4000074, total_length, fragment_length,
 		       buffer_address, page_count, 0, 0, 0, &svc_result);
 
 	if (SETUP_ASSERT_ENVIRONMENT(assert_env)) {

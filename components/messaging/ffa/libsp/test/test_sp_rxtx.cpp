@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2020-2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited. All rights reserved.
  */
 
 #include <CppUTest/TestHarness.h>
@@ -40,7 +40,7 @@ TEST_GROUP(sp_rxtx)
 			[FFA_FEATURES_RXTX_MAP_GRANULARITY_INDEX] =
 			(granularity & FFA_FEATURES_RXTX_MAP_GRANULARITY_MASK)
 			<< FFA_FEATURES_RXTX_MAP_GRANULARITY_SHIFT;
-		expect_ffa_features(FFA_RXTX_MAP_32, &props, result);
+		expect_ffa_features(FFA_RXTX_MAP_64, &props, result);
 	}
 
 	void do_successful_mapping()
@@ -318,7 +318,7 @@ TEST(sp_rxtx, sp_rxtx_buffer_alignment_boundary_get_ffa_error)
 
 	props.interface_properties[FFA_FEATURES_RXTX_MAP_GRANULARITY_INDEX] =
 		0 << FFA_FEATURES_RXTX_MAP_GRANULARITY_SHIFT;
-	expect_ffa_features(FFA_RXTX_MAP_32, &props, result);
+	expect_ffa_features(FFA_RXTX_MAP_64, &props, result);
 
 	LONGS_EQUAL(SP_RESULT_FFA(result),
 		    sp_rxtx_buffer_alignment_boundary_get(&alignment));
@@ -332,7 +332,7 @@ TEST(sp_rxtx, sp_rxtx_buffer_alignment_boundary_get_4k)
 
 	props.interface_properties[FFA_FEATURES_RXTX_MAP_GRANULARITY_INDEX] =
 		0 << FFA_FEATURES_RXTX_MAP_GRANULARITY_SHIFT;
-	expect_ffa_features(FFA_RXTX_MAP_32, &props, FFA_OK);
+	expect_ffa_features(FFA_RXTX_MAP_64, &props, FFA_OK);
 
 	LONGS_EQUAL(SP_RESULT_OK,
 		    sp_rxtx_buffer_alignment_boundary_get(&alignment));
@@ -346,7 +346,7 @@ TEST(sp_rxtx, sp_rxtx_buffer_alignment_boundary_get_64k)
 
 	props.interface_properties[FFA_FEATURES_RXTX_MAP_GRANULARITY_INDEX] =
 		1 << FFA_FEATURES_RXTX_MAP_GRANULARITY_SHIFT;
-	expect_ffa_features(FFA_RXTX_MAP_32, &props, FFA_OK);
+	expect_ffa_features(FFA_RXTX_MAP_64, &props, FFA_OK);
 
 	LONGS_EQUAL(SP_RESULT_OK,
 		    sp_rxtx_buffer_alignment_boundary_get(&alignment));
@@ -360,7 +360,7 @@ TEST(sp_rxtx, sp_rxtx_buffer_alignment_boundary_get_16k)
 
 	props.interface_properties[FFA_FEATURES_RXTX_MAP_GRANULARITY_INDEX] =
 		2 << FFA_FEATURES_RXTX_MAP_GRANULARITY_SHIFT;
-	expect_ffa_features(FFA_RXTX_MAP_32, &props, FFA_OK);
+	expect_ffa_features(FFA_RXTX_MAP_64, &props, FFA_OK);
 
 	LONGS_EQUAL(SP_RESULT_OK,
 		    sp_rxtx_buffer_alignment_boundary_get(&alignment));
@@ -375,7 +375,7 @@ TEST(sp_rxtx, sp_rxtx_buffer_alignment_boundary_get_reserved)
 
 	props.interface_properties[FFA_FEATURES_RXTX_MAP_GRANULARITY_INDEX] =
 		3 << FFA_FEATURES_RXTX_MAP_GRANULARITY_SHIFT;
-	expect_ffa_features(FFA_RXTX_MAP_32, &props, FFA_OK);
+	expect_ffa_features(FFA_RXTX_MAP_64, &props, FFA_OK);
 
 	LONGS_EQUAL(SP_RESULT_INTERNAL_ERROR,
 		    sp_rxtx_buffer_alignment_boundary_get(&alignment));

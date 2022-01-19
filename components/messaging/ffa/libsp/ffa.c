@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #include <assert.h>            // for assert
@@ -133,13 +133,17 @@ ffa_result ffa_rxtx_map(const void *tx_buffer, const void *rx_buffer,
 	page_count = SHIFT_U32(page_count & FFA_RXTX_MAP_PAGE_COUNT_MASK,
 			       FFA_RXTX_MAP_PAGE_COUNT_SHIFT);
 
-	ffa_svc(FFA_RXTX_MAP_32, (uintptr_t)tx_buffer, (uintptr_t)rx_buffer,
+	ffa_svc(FFA_RXTX_MAP_64, (uintptr_t)tx_buffer, (uintptr_t)rx_buffer,
 		page_count, FFA_PARAM_MBZ, FFA_PARAM_MBZ, FFA_PARAM_MBZ,
 		FFA_PARAM_MBZ, &result);
 
 	if (result.a0 == FFA_ERROR)
 		return ffa_get_errorcode(&result);
 
+	/*
+	 * There are no 64-bit parameters returned with FFA_SUCCESS, the SPMC
+	 * will use the default 32-bit version.
+	 */
 	assert(result.a0 == FFA_SUCCESS_32);
 	return FFA_OK;
 }
@@ -283,15 +287,20 @@ ffa_result ffa_mem_donate(uint32_t total_length, uint32_t fragment_length,
 {
 	struct ffa_params result = {0};
 
-	ffa_svc(FFA_MEM_DONATE_32, total_length, fragment_length,
-		(uintptr_t)buffer_address, page_count, FFA_PARAM_MBZ,
-		FFA_PARAM_MBZ, FFA_PARAM_MBZ, &result);
+	ffa_svc((buffer_address) ? FFA_MEM_DONATE_64 : FFA_MEM_DONATE_32,
+		total_length, fragment_length, (uintptr_t)buffer_address,
+		page_count, FFA_PARAM_MBZ, FFA_PARAM_MBZ, FFA_PARAM_MBZ,
+		&result);
 
 	if (result.a0 == FFA_ERROR) {
 		*handle = 0U;
 		return ffa_get_errorcode(&result);
 	}
 
+	/*
+	 * There are no 64-bit parameters returned with FFA_SUCCESS, the SPMC
+	 * will use the default 32-bit version.
+	 */
 	assert(result.a0 == FFA_SUCCESS_32);
 	*handle = reg_pair_to_64(result.a3, result.a2);
 	return FFA_OK;
@@ -309,15 +318,20 @@ ffa_result ffa_mem_lend(uint32_t total_length, uint32_t fragment_length,
 {
 	struct ffa_params result = {0};
 
-	ffa_svc(FFA_MEM_LEND_32, total_length, fragment_length,
-		(uintptr_t)buffer_address, page_count, FFA_PARAM_MBZ,
-		FFA_PARAM_MBZ, FFA_PARAM_MBZ, &result);
+	ffa_svc((buffer_address) ? FFA_MEM_LEND_64 : FFA_MEM_LEND_32,
+		total_length, fragment_length, (uintptr_t)buffer_address,
+		page_count, FFA_PARAM_MBZ, FFA_PARAM_MBZ, FFA_PARAM_MBZ,
+		&result);
 
 	if (result.a0 == FFA_ERROR) {
 		*handle = 0U;
 		return ffa_get_errorcode(&result);
 	}
 
+	/*
+	 * There are no 64-bit parameters returned with FFA_SUCCESS, the SPMC
+	 * will use the default 32-bit version.
+	 */
 	assert(result.a0 == FFA_SUCCESS_32);
 	*handle = reg_pair_to_64(result.a3, result.a2);
 	return FFA_OK;
@@ -335,15 +349,20 @@ ffa_result ffa_mem_share(uint32_t total_length, uint32_t fragment_length,
 {
 	struct ffa_params result = {0};
 
-	ffa_svc(FFA_MEM_SHARE_32, total_length, fragment_length,
-		(uintptr_t)buffer_address, page_count, FFA_PARAM_MBZ,
-		FFA_PARAM_MBZ, FFA_PARAM_MBZ, &result);
+	ffa_svc((buffer_address) ? FFA_MEM_SHARE_64 : FFA_MEM_SHARE_32,
+		total_length, fragment_length, (uintptr_t)buffer_address,
+		page_count, FFA_PARAM_MBZ, FFA_PARAM_MBZ, FFA_PARAM_MBZ,
+		&result);
 
 	if (result.a0 == FFA_ERROR) {
 		*handle = 0U;
 		return ffa_get_errorcode(&result);
 	}
 
+	/*
+	 * There are no 64-bit parameters returned with FFA_SUCCESS, the SPMC
+	 * will use the default 32-bit version.
+	 */
 	assert(result.a0 == FFA_SUCCESS_32);
 	*handle = reg_pair_to_64(result.a3, result.a2);
 	return FFA_OK;
@@ -362,9 +381,10 @@ ffa_result ffa_mem_retrieve_req(uint32_t total_length, uint32_t fragment_length,
 {
 	struct ffa_params result = {0};
 
-	ffa_svc(FFA_MEM_RETRIEVE_REQ_32, total_length, fragment_length,
-		(uintptr_t)buffer_address, page_count, FFA_PARAM_MBZ,
-		FFA_PARAM_MBZ, FFA_PARAM_MBZ, &result);
+	ffa_svc((buffer_address) ? FFA_MEM_RETRIEVE_REQ_64 : FFA_MEM_RETRIEVE_REQ_32,
+		total_length, fragment_length, (uintptr_t)buffer_address,
+		page_count, FFA_PARAM_MBZ, FFA_PARAM_MBZ, FFA_PARAM_MBZ,
+		&result);
 
 	if (result.a0 == FFA_ERROR) {
 		*resp_total_length = 0U;

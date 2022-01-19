@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #include "sp_rxtx.h"
@@ -99,7 +99,7 @@ sp_result sp_rxtx_buffer_alignment_boundary_get(uintptr_t *alignment)
 		return SP_RESULT_INVALID_PARAMETERS;
 
 	/* Querying FFX_RXTX_MAP features */
-	result = ffa_features(FFA_RXTX_MAP_32, &interface_props);
+	result = ffa_features(FFA_RXTX_MAP_64, &interface_props);
 	if (result != FFA_OK) {
 		*alignment = 0;
 		return SP_RESULT_FFA(result);
