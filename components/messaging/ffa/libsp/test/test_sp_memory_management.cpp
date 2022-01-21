@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2020-2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited. All rights reserved.
  */
 
 #include <CppUTestExt/MockSupport.h>
@@ -1121,6 +1121,7 @@ TEST(sp_memory_management, sp_memory_retrieve_ffa_error)
 
 	expect_sp_rxtx_buffer_tx_get(&tx_buffer, &buffer_size, SP_RESULT_OK);
 	expect_sp_rxtx_buffer_rx_get(&rx_buffer, &buffer_size, SP_RESULT_OK);
+	expect_ffa_rx_release(FFA_OK);
 	expect_ffa_mem_retrieve_req_rxtx(expected_size, expected_size,
 					 &resp_total_length,
 					 &resp_fragment_length, result);
@@ -1129,6 +1130,40 @@ TEST(sp_memory_management, sp_memory_retrieve_ffa_error)
 				       in_region_count, &out_region_count,
 				       handle));
 	UNSIGNED_LONGS_EQUAL(0, out_region_count);
+}
+
+TEST(sp_memory_management, sp_memory_retrieve_ffa_rx_release_error)
+{
+	struct sp_memory_descriptor desc = SP_MEM_DESC_C(sender_id, tag);
+	struct sp_memory_access_descriptor acc_desc = { .receiver_id =
+								receiver_id };
+	struct sp_memory_region regions = { .address = ptr,
+					    .page_count = page_count };
+	uint32_t in_region_count = 1;
+	uint32_t out_region_count = 1;
+	ffa_result result = FFA_ABORTED;
+	const uint32_t expected_size = get_expected_size(in_region_count);
+	const uint32_t resp_total_length = expected_size;
+	const uint32_t resp_fragment_length = expected_size;
+
+	/* Filling RX buffer */
+	ffa_init_mem_transaction_desc(&rx_mem_transaction_buffer, sender_id + 1,
+				      0, 0, handle, tag);
+	ffa_add_mem_access_desc(&rx_mem_transaction_buffer, receiver_id + 1, 0,
+				0);
+	ffa_add_memory_region(&rx_mem_transaction_buffer, ptr, page_count);
+
+	/* Exercising */
+	expect_sp_rxtx_buffer_tx_get(&tx_buffer, &buffer_size, SP_RESULT_OK);
+	expect_sp_rxtx_buffer_rx_get(&rx_buffer, &buffer_size, SP_RESULT_OK);
+	expect_ffa_rx_release(FFA_DENIED);
+	expect_ffa_mem_retrieve_req_rxtx(expected_size, expected_size,
+					 &resp_total_length,
+					 &resp_fragment_length, FFA_OK);
+	LONGS_EQUAL(SP_RESULT_FFA(FFA_DENIED),
+		    sp_memory_retrieve(&desc, &acc_desc, &regions,
+				       in_region_count, &out_region_count,
+				       handle));
 }
 
 TEST(sp_memory_management, sp_memory_retrieve_fragmented_response)
@@ -1144,6 +1179,7 @@ TEST(sp_memory_management, sp_memory_retrieve_fragmented_response)
 
 	expect_sp_rxtx_buffer_tx_get(&tx_buffer, &buffer_size, SP_RESULT_OK);
 	expect_sp_rxtx_buffer_rx_get(&rx_buffer, &buffer_size, SP_RESULT_OK);
+	expect_ffa_rx_release(FFA_OK);
 	expect_ffa_mem_retrieve_req_rxtx(expected_size, expected_size,
 					 &resp_total_length,
 					 &resp_fragment_length, FFA_OK);
@@ -1178,6 +1214,7 @@ TEST(sp_memory_management, sp_memory_retrieve_in_out)
 	/* Exercising */
 	expect_sp_rxtx_buffer_tx_get(&tx_buffer, &buffer_size, SP_RESULT_OK);
 	expect_sp_rxtx_buffer_rx_get(&rx_buffer, &buffer_size, SP_RESULT_OK);
+	expect_ffa_rx_release(FFA_OK);
 	expect_ffa_mem_retrieve_req_rxtx(expected_size, expected_size,
 					 &resp_total_length,
 					 &resp_fragment_length, FFA_OK);

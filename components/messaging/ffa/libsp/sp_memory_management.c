@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #include "sp_memory_management.h"
@@ -560,14 +560,23 @@ sp_result sp_memory_retrieve(struct sp_memory_descriptor *descriptor,
 	/* Fragmentation is not supported currently */
 	if (resp_total_length != resp_fragment_length) {
 		*out_region_count = UINT32_C(0);
-		return SP_RESULT_INTERNAL_ERROR;
+		sp_res = SP_RESULT_INTERNAL_ERROR;
+		goto out;
 	}
 
 	rx_buffer.used = resp_total_length;
 	parse_descriptors(&rx_buffer, descriptor, acc_desc, 1, regions,
 			  out_region_count);
 
-	return SP_RESULT_OK;
+out:
+	ffa_res = ffa_rx_release();
+	if (ffa_res != FFA_OK) {
+		/* Keep original error when there was already an error.*/
+		if (sp_res == SP_RESULT_OK)
+			return SP_RESULT_FFA(ffa_res);
+	}
+
+	return sp_res;
 }
 
 sp_result
