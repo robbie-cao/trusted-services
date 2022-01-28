@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -519,8 +519,7 @@ psa_status_t protobuf_crypto_client::asymmetric_encrypt(psa_key_id_t id, psa_alg
 	size_t req_len;
 	pb_bytes_array_t *plaintext_byte_array =
 		pb_malloc_byte_array_containing_bytes(input, input_length);
-	pb_bytes_array_t *salt_byte_array =
-		pb_malloc_byte_array_containing_bytes(salt, salt_length);
+	pb_bytes_array_t *salt_byte_array = NULL;
 	psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
 	ts_crypto_AsymmetricEncryptIn req_msg = ts_crypto_AsymmetricEncryptIn_init_default;
 
@@ -529,7 +528,12 @@ psa_status_t protobuf_crypto_client::asymmetric_encrypt(psa_key_id_t id, psa_alg
 	req_msg.id = id;
 	req_msg.alg = alg;
 	req_msg.plaintext = pb_out_byte_array(plaintext_byte_array);
-	req_msg.salt = pb_out_byte_array(salt_byte_array);
+
+	if (salt && salt_length) {
+		/* Optional parameter */
+		salt_byte_array = pb_malloc_byte_array_containing_bytes(salt, salt_length);
+		req_msg.salt = pb_out_byte_array(salt_byte_array);
+	}
 
 	if (pb_get_encoded_size(&req_len, ts_crypto_AsymmetricEncryptIn_fields, &req_msg)) {
 
@@ -603,8 +607,7 @@ psa_status_t protobuf_crypto_client::asymmetric_decrypt(psa_key_id_t id, psa_alg
 	size_t req_len;
 	pb_bytes_array_t *ciphertext_byte_array =
 		pb_malloc_byte_array_containing_bytes(input, input_length);
-	pb_bytes_array_t *salt_byte_array =
-		pb_malloc_byte_array_containing_bytes(salt, salt_length);
+	pb_bytes_array_t *salt_byte_array = NULL;
 	psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
 	ts_crypto_AsymmetricDecryptIn req_msg = ts_crypto_AsymmetricDecryptIn_init_default;
 
@@ -613,7 +616,12 @@ psa_status_t protobuf_crypto_client::asymmetric_decrypt(psa_key_id_t id, psa_alg
 	req_msg.id = id;
 	req_msg.alg = alg;
 	req_msg.ciphertext = pb_out_byte_array(ciphertext_byte_array);
-	req_msg.salt = pb_out_byte_array(salt_byte_array);
+
+	if (salt && salt_length) {
+		/* Optional parameter */
+		salt_byte_array = pb_malloc_byte_array_containing_bytes(salt, salt_length);
+		req_msg.salt = pb_out_byte_array(salt_byte_array);
+	}
 
 	if (pb_get_encoded_size(&req_len, ts_crypto_AsymmetricDecryptIn_fields, &req_msg)) {
 
