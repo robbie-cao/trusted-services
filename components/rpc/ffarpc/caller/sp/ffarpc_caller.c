@@ -43,7 +43,7 @@ static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_l
 	this_context->is_call_transaction_in_progess = true;
 	handle = this_context;
 
-	*req_buf = (req_len > 0) ? this_context->req_buf : NULL;
+	*req_buf = (req_len > 0) ? shared_buffer : NULL;
 
 	this_context->req_buf = *req_buf;
 	this_context->req_len = req_len;
