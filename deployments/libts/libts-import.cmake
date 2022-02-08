@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -32,9 +32,9 @@ execute_process(COMMAND
 	${CMAKE_COMMAND}
 		-DCMAKE_INSTALL_PREFIX=${LIBTS_INSTALL_PATH}
 		-GUnix\ Makefiles
-		${LIBTS_SOURCE_DIR}
-	WORKING_DIRECTORY
-		${LIBTS_BINARY_DIR}
+		-S ${LIBTS_SOURCE_DIR}
+		-B ${LIBTS_BINARY_DIR}
+	RESULT_VARIABLE _exec_error
 )
 
 if (_exec_error)
