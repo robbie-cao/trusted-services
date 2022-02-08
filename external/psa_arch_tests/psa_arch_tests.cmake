@@ -16,7 +16,9 @@ set(GIT_OPTIONS
 	GIT_TAG ${PSA_ARCH_TESTS_REFSPEC}
 	GIT_SHALLOW FALSE
 	PATCH_COMMAND git stash
-		COMMAND git apply ${CMAKE_CURRENT_LIST_DIR}/modify_attest_config.patch
+		COMMAND git tag -f ts-before-am
+		COMMAND git am ${CMAKE_CURRENT_LIST_DIR}/0001-Disable-using-hard-coded-attestation-key.patch
+		COMMAND git reset ts-before-am
 )
 
 # Ensure list of defines is separated correctly
@@ -27,7 +29,7 @@ LazyFetch_MakeAvailable(DEP_NAME psa_arch_tests
 	FETCH_OPTIONS "${GIT_OPTIONS}"
 	SOURCE_DIR ${PSA_ARCH_TESTS_SOURCE_DIR}
 	SOURCE_SUBDIR "api-tests"
-	CACHE_FILE "${CMAKE_CURRENT_LIST_DIR}/pas-arch-test-init-cache.cmake.in"
+	CACHE_FILE "${CMAKE_CURRENT_LIST_DIR}/psa-arch-test-init-cache.cmake.in"
 	)
 
 # Create targets for generated libraries
