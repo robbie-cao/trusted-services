@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -13,6 +13,12 @@ psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
 	psa_key_id_t key,
 	psa_algorithm_t alg)
 {
+	if (psa_crypto_client_instance.init_status != PSA_SUCCESS)
+		return psa_crypto_client_instance.init_status;
+
+	if (operation->handle)
+		return PSA_ERROR_BAD_STATE;
+
 	return crypto_caller_cipher_encrypt_setup(&psa_crypto_client_instance.base,
 		&operation->handle,
 		key, alg);
@@ -22,6 +28,12 @@ psa_status_t psa_cipher_decrypt_setup(psa_cipher_operation_t *operation,
 	psa_key_id_t key,
 	psa_algorithm_t alg)
 {
+	if (psa_crypto_client_instance.init_status != PSA_SUCCESS)
+		return psa_crypto_client_instance.init_status;
+
+	if (operation->handle)
+		return PSA_ERROR_BAD_STATE;
+
 	return crypto_caller_cipher_decrypt_setup(&psa_crypto_client_instance.base,
 		&operation->handle,
 		key, alg);
