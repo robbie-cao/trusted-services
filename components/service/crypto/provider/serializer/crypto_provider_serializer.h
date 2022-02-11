@@ -79,15 +79,15 @@ struct crypto_provider_serializer {
                                         const psa_key_attributes_t *attributes);
 
     /* Operation: sign_hash */
-    rpc_status_t (*deserialize_sign_hash_req)(const struct call_param_buf *req_buf,
+    rpc_status_t (*deserialize_asymmetric_sign_req)(const struct call_param_buf *req_buf,
                                         psa_key_id_t *id, psa_algorithm_t *alg,
                                         uint8_t *hash, size_t *hash_len);
 
-    rpc_status_t (*serialize_sign_hash_resp)(struct call_param_buf *resp_buf,
+    rpc_status_t (*serialize_asymmetric_sign_resp)(struct call_param_buf *resp_buf,
                                         const uint8_t *sig, size_t sig_len);
 
     /* Operation: verify_hash */
-    rpc_status_t (*deserialize_verify_hash_req)(const struct call_param_buf *req_buf,
+    rpc_status_t (*deserialize_asymmetric_verify_req)(const struct call_param_buf *req_buf,
                                         psa_key_id_t *id, psa_algorithm_t *alg,
                                         uint8_t *hash, size_t *hash_len,
                                         uint8_t *sig, size_t *sig_len);

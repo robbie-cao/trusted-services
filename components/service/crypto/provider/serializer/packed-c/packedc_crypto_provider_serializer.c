@@ -333,7 +333,7 @@ static rpc_status_t serialize_get_key_attributes_resp(struct call_param_buf *res
 }
 
 /* Operation: sign_hash */
-static rpc_status_t deserialize_sign_hash_req(const struct call_param_buf *req_buf,
+static rpc_status_t deserialize_asymmetric_sign_req(const struct call_param_buf *req_buf,
                             psa_key_id_t *id, psa_algorithm_t *alg,
                             uint8_t *hash, size_t *hash_len)
 {
@@ -378,7 +378,7 @@ static rpc_status_t deserialize_sign_hash_req(const struct call_param_buf *req_b
     return rpc_status;
 }
 
-static rpc_status_t serialize_sign_hash_resp(struct call_param_buf *resp_buf,
+static rpc_status_t serialize_asymmetric_sign_resp(struct call_param_buf *resp_buf,
                             const uint8_t *sig, size_t sig_len)
 {
     rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
@@ -401,7 +401,7 @@ static rpc_status_t serialize_sign_hash_resp(struct call_param_buf *resp_buf,
 }
 
 /* Operation: verify_hash */
-static rpc_status_t deserialize_verify_hash_req(const struct call_param_buf *req_buf,
+static rpc_status_t deserialize_asymmetric_verify_req(const struct call_param_buf *req_buf,
                                 psa_key_id_t *id, psa_algorithm_t *alg,
                                 uint8_t *hash, size_t *hash_len,
                                 uint8_t *sig, size_t *sig_len)
@@ -695,9 +695,9 @@ const struct crypto_provider_serializer *packedc_crypto_provider_serializer_inst
         deserialize_purge_key_req,
         deserialize_get_key_attributes_req,
         serialize_get_key_attributes_resp,
-        deserialize_sign_hash_req,
-        serialize_sign_hash_resp,
-        deserialize_verify_hash_req,
+        deserialize_asymmetric_sign_req,
+        serialize_asymmetric_sign_resp,
+        deserialize_asymmetric_verify_req,
         deserialize_asymmetric_decrypt_req,
         serialize_asymmetric_decrypt_resp,
         deserialize_asymmetric_encrypt_req,

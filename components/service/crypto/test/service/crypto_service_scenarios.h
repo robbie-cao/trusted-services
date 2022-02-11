@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -24,6 +24,7 @@ public:
 	void asymEncryptDecrypt();
 	void asymEncryptDecryptWithSalt();
 	void signAndVerifyHash();
+	void signAndVerifyMessage();
 	void signAndVerifyEat();
 	void exportAndImportKeyPair();
 	void exportPublicKey();

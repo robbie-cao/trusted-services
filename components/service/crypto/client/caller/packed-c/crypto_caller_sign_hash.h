@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -20,7 +20,8 @@
 extern "C" {
 #endif
 
-static inline psa_status_t crypto_caller_sign_hash(struct service_client *context,
+static inline psa_status_t crypto_caller_asym_sign_commom(struct service_client *context,
+	uint32_t opcode,
 	psa_key_id_t id,
 	psa_algorithm_t alg,
 	const uint8_t *hash, size_t hash_length,
@@ -60,7 +61,7 @@ static inline psa_status_t crypto_caller_sign_hash(struct service_client *contex
 
 		context->rpc_status =
 			rpc_caller_invoke(context->caller, call_handle,
-						TS_CRYPTO_OPCODE_SIGN_HASH, &opstatus, &resp_buf, &resp_len);
+						opcode, &opstatus, &resp_buf, &resp_len);
 
 		if (context->rpc_status == TS_RPC_CALL_ACCEPTED) {
 
@@ -96,6 +97,28 @@ static inline psa_status_t crypto_caller_sign_hash(struct service_client *contex
 	}
 
 	return psa_status;
+}
+
+static inline psa_status_t crypto_caller_sign_hash(struct service_client *context,
+	psa_key_id_t id,
+	psa_algorithm_t alg,
+	const uint8_t *hash, size_t hash_length,
+	uint8_t *signature, size_t signature_size, size_t *signature_length)
+{
+	return crypto_caller_asym_sign_commom(context, TS_CRYPTO_OPCODE_SIGN_HASH,
+		id, alg, hash, hash_length,
+		signature, signature_size, signature_length);
+}
+
+static inline psa_status_t crypto_caller_sign_message(struct service_client *context,
+	psa_key_id_t id,
+	psa_algorithm_t alg,
+	const uint8_t *hash, size_t hash_length,
+	uint8_t *signature, size_t signature_size, size_t *signature_length)
+{
+	return crypto_caller_asym_sign_commom(context, TS_CRYPTO_OPCODE_SIGN_MESSAGE,
+		id, alg, hash, hash_length,
+		signature, signature_size, signature_length);
 }
 
 #ifdef __cplusplus

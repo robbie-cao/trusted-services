@@ -1,32 +1,26 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #include <psa/crypto.h>
+#include "psa_crypto_client.h"
+#include "crypto_caller_selector.h"
 
 psa_status_t psa_verify_message(
-	psa_key_id_t key,
+	psa_key_id_t id,
 	psa_algorithm_t alg,
 	const uint8_t *input,
 	size_t input_length,
 	const uint8_t * signature,
 	size_t signature_length)
 {
-	size_t hash_len;
-	uint8_t hash[PSA_HASH_MAX_SIZE];
+	if (psa_crypto_client_instance.init_status != PSA_SUCCESS)
+		return psa_crypto_client_instance.init_status;
 
-	psa_status_t psa_status = psa_hash_compute(PSA_ALG_SIGN_GET_HASH(alg),
+	return crypto_caller_verify_message(&psa_crypto_client_instance.base,
+		id, alg,
 		input, input_length,
-		hash, sizeof(hash), &hash_len);
-
-	if (psa_status == PSA_SUCCESS) {
-
-		psa_status = psa_verify_hash(key, alg,
-			hash, hash_len,
-			signature, signature_length);
-	}
-
-	return psa_status;
+		signature, signature_length);
 }

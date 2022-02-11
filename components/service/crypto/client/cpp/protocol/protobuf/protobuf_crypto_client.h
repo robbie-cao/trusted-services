@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -54,7 +54,7 @@ public:
 		psa_key_id_t id,
 		uint8_t *data, size_t data_size, size_t *data_length);
 
-	/* Sign/verify methods */
+	/* Sign/verify hash methods */
 	psa_status_t sign_hash(
 		psa_key_id_t id,
 		psa_algorithm_t alg,
@@ -65,6 +65,19 @@ public:
 		psa_key_id_t id,
 		psa_algorithm_t alg,
 		const uint8_t *hash, size_t hash_length,
+		const uint8_t *signature, size_t signature_length);
+
+	/* Sign/verify message methods */
+	psa_status_t sign_message(
+		psa_key_id_t id,
+		psa_algorithm_t alg,
+		const uint8_t *message, size_t message_length,
+		uint8_t *signature, size_t signature_size, size_t *signature_length);
+
+	psa_status_t verify_message(
+		psa_key_id_t id,
+		psa_algorithm_t alg,
+		const uint8_t *message, size_t message_length,
 		const uint8_t *signature, size_t signature_length);
 
 	/* Asymmetric encrypt/decrypt */
@@ -220,6 +233,16 @@ public:
 		uint8_t *output, size_t output_size, size_t *output_length);
 
 private:
+
+	psa_status_t asym_sign(uint32_t opcode,
+		psa_key_id_t id, psa_algorithm_t alg,
+		const uint8_t *hash, size_t hash_length,
+		uint8_t *signature, size_t signature_size, size_t *signature_length);
+
+	psa_status_t asym_verify(uint32_t opcode,
+		psa_key_id_t id, psa_algorithm_t alg,
+		const uint8_t *hash, size_t hash_length,
+		const uint8_t *signature, size_t signature_length);
 
 	void translate_key_attributes(
 		ts_crypto_KeyAttributes &proto_attributes,

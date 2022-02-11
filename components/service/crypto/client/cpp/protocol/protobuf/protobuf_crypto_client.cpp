@@ -387,6 +387,25 @@ psa_status_t protobuf_crypto_client::sign_hash(psa_key_id_t id, psa_algorithm_t 
 							const uint8_t *hash, size_t hash_length,
 							uint8_t *signature, size_t signature_size, size_t *signature_length)
 {
+	return asym_sign(ts_crypto_Opcode_SIGN_HASH, id, alg,
+				hash, hash_length,
+				signature, signature_size, signature_length);
+}
+
+psa_status_t protobuf_crypto_client::sign_message(psa_key_id_t id, psa_algorithm_t alg,
+							const uint8_t *message, size_t message_length,
+							uint8_t *signature, size_t signature_size, size_t *signature_length)
+{
+	return asym_sign(ts_crypto_Opcode_SIGN_MESSAGE, id, alg,
+				message, message_length,
+				signature, signature_size, signature_length);
+}
+
+psa_status_t protobuf_crypto_client::asym_sign(uint32_t opcode,
+							psa_key_id_t id, psa_algorithm_t alg,
+							const uint8_t *hash, size_t hash_length,
+							uint8_t *signature, size_t signature_size, size_t *signature_length)
+{
 	size_t req_len;
 	pb_bytes_array_t *hash_byte_array =
 		pb_malloc_byte_array_containing_bytes(hash, hash_length);
@@ -416,7 +435,7 @@ psa_status_t protobuf_crypto_client::sign_hash(psa_key_id_t id, psa_algorithm_t 
 			pb_encode(&ostream, ts_crypto_SignHashIn_fields, &req_msg);
 
 			m_client.rpc_status = rpc_caller_invoke(m_client.caller, call_handle,
-						ts_crypto_Opcode_SIGN_HASH, &opstatus, &resp_buf, &resp_len);
+						opcode, &opstatus, &resp_buf, &resp_len);
 
 			if (m_client.rpc_status == TS_RPC_CALL_ACCEPTED) {
 
@@ -462,8 +481,26 @@ psa_status_t protobuf_crypto_client::sign_hash(psa_key_id_t id, psa_algorithm_t 
 	return psa_status;
 }
 
-
 psa_status_t protobuf_crypto_client::verify_hash(psa_key_id_t id, psa_algorithm_t alg,
+						const uint8_t *hash, size_t hash_length,
+						const uint8_t *signature, size_t signature_length)
+{
+	return asym_verify(ts_crypto_Opcode_VERIFY_HASH, id, alg,
+				hash, hash_length,
+				signature, signature_length);
+}
+
+psa_status_t protobuf_crypto_client::verify_message(psa_key_id_t id, psa_algorithm_t alg,
+						const uint8_t *message, size_t message_length,
+						const uint8_t *signature, size_t signature_length)
+{
+	return asym_verify(ts_crypto_Opcode_VERIFY_MESSAGE, id, alg,
+				message, message_length,
+				signature, signature_length);
+}
+
+psa_status_t protobuf_crypto_client::asym_verify(uint32_t opcode,
+						psa_key_id_t id, psa_algorithm_t alg,
 						const uint8_t *hash, size_t hash_length,
 						const uint8_t *signature, size_t signature_length)
 {
@@ -497,7 +534,7 @@ psa_status_t protobuf_crypto_client::verify_hash(psa_key_id_t id, psa_algorithm_
 			pb_encode(&ostream, ts_crypto_VerifyHashIn_fields, &req_msg);
 
 			m_client.rpc_status = rpc_caller_invoke(m_client.caller, call_handle,
-						ts_crypto_Opcode_VERIFY_HASH, &opstatus, &resp_buf, &resp_len);
+						opcode, &opstatus, &resp_buf, &resp_len);
 
 			if (m_client.rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
 

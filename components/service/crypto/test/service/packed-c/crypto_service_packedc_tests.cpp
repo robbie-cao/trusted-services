@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -85,6 +85,11 @@ TEST(CryptoServicePackedcTests, exportAndImportKeyPair)
 TEST(CryptoServicePackedcTests, signAndVerifyHash)
 {
 	m_scenarios->signAndVerifyHash();
+}
+
+TEST(CryptoServicePackedcTests, signAndVerifyMessage)
+{
+	m_scenarios->signAndVerifyMessage();
 }
 
 TEST(CryptoServicePackedcTests, signAndVerifyEat)
