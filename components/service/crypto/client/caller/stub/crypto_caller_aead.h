@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -133,6 +133,16 @@ static inline psa_status_t crypto_caller_aead_abort(struct service_client *conte
 	uint32_t op_handle)
 {
 	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+static inline size_t crypto_caller_aead_max_update_ad_size(const struct service_client *context)
+{
+	return 0;
+}
+
+static inline size_t crypto_caller_aead_max_update_size(const struct service_client *context)
+{
+	return 0;
 }
 
 #ifdef __cplusplus

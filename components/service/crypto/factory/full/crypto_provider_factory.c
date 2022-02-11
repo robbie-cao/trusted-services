@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -17,6 +17,8 @@
 #include <service/crypto/provider/extension/key_derivation/serializer/packed-c/packedc_key_derivation_provider_serializer.h>
 #include <service/crypto/provider/extension/mac/mac_provider.h>
 #include <service/crypto/provider/extension/mac/serializer/packed-c/packedc_mac_provider_serializer.h>
+#include <service/crypto/provider/extension/aead/aead_provider.h>
+#include <service/crypto/provider/extension/aead/serializer/packed-c/packedc_aead_provider_serializer.h>
 #include <service/discovery/provider/discovery_provider.h>
 #include <service/discovery/provider/serializer/packed-c/packedc_discovery_provider_serializer.h>
 
@@ -34,6 +36,7 @@ static struct full_crypto_provider
 	struct cipher_provider cipher_provider;
 	struct key_derivation_provider key_derivation_provider;
 	struct mac_provider mac_provider;
+	struct aead_provider aead_provider;
 
 } instance;
 
@@ -97,6 +100,17 @@ struct crypto_provider *crypto_provider_factory_create(void)
 
 	crypto_provider_extend(&instance.crypto_provider,
 		&instance.mac_provider.base_provider);
+
+	/**
+	 * Extend with aead operations
+	 */
+	aead_provider_init(&instance.aead_provider);
+
+	aead_provider_register_serializer(&instance.aead_provider,
+		TS_RPC_ENCODING_PACKED_C, packedc_aead_provider_serializer_instance());
+
+	crypto_provider_extend(&instance.crypto_provider,
+		&instance.aead_provider.base_provider);
 
 	return &instance.crypto_provider;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -19,38 +19,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-static inline psa_status_t crypto_caller_aead_encrypt(struct service_client *context,
-	psa_key_id_t key,
-	psa_algorithm_t alg,
-	const uint8_t *nonce,
-	size_t nonce_length,
-	const uint8_t *additional_data,
-	size_t additional_data_length,
-	const uint8_t *plaintext,
-	size_t plaintext_length,
-	uint8_t *aeadtext,
-	size_t aeadtext_size,
-	size_t *aeadtext_length)
-{
-	return PSA_ERROR_NOT_SUPPORTED;
-}
-
-static inline psa_status_t crypto_caller_aead_decrypt(struct service_client *context,
-	psa_key_id_t key,
-	psa_algorithm_t alg,
-	const uint8_t *nonce,
-	size_t nonce_length,
-	const uint8_t *additional_data,
-	size_t additional_data_length,
-	const uint8_t *aeadtext,
-	size_t aeadtext_length,
-	uint8_t *plaintext,
-	size_t plaintext_size,
-	size_t *plaintext_length)
-{
-	return PSA_ERROR_NOT_SUPPORTED;
-}
 
 static inline psa_status_t common_aead_setup(struct service_client *context,
 	uint32_t *op_handle,
@@ -247,7 +215,7 @@ static inline psa_status_t crypto_caller_aead_set_lengths(struct service_client 
 {
 	psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
 	struct ts_crypto_aead_set_lengths_in req_msg;
-	size_t req_fixed_len = sizeof(struct ts_crypto_aead_abort_in);
+	size_t req_fixed_len = sizeof(struct ts_crypto_aead_set_lengths_in);
 	size_t req_len = req_fixed_len;
 
 	req_msg.op_handle = op_handle;
@@ -609,6 +577,40 @@ static inline psa_status_t crypto_caller_aead_abort(struct service_client *conte
 	}
 
 	return psa_status;
+}
+
+/**
+ * The maximum data length that may be carried in an update operation will be
+ * constrained by the maximum call payload capacity imposed by the end-to-end
+ * RPC call path. These functions return the maximum update size when serialization
+ * overheads are considered. This allows large paylaods to be processed in
+ * maximum size chunks.
+ */
+static inline size_t crypto_caller_aead_max_update_ad_size(const struct service_client *context)
+{
+	/* Returns the maximum number of bytes of additional data that may be
+	 * carried as a parameter of the aead_update_ad operation
+	 * using the packed-c encoding.
+	 */
+	size_t payload_space = context->service_info.max_payload;
+	size_t overhead = sizeof(struct ts_crypto_aead_update_ad_in) + TLV_HDR_LEN;
+
+	return (payload_space > overhead) ? payload_space - overhead : 0;
+}
+
+static inline size_t crypto_caller_aead_max_update_size(const struct service_client *context)
+{
+	/* Returns the maximum number of bytes that may be
+	 * carried as a parameter of the aead_update operation
+	 * using the packed-c encoding.
+	 */
+	size_t payload_space = context->service_info.max_payload;
+	size_t overhead = sizeof(struct ts_crypto_aead_update_in) + TLV_HDR_LEN;
+
+	/* Allow for output to be a whole number of blocks */
+	overhead += PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE;
+
+	return (payload_space > overhead) ? payload_space - overhead : 0;
 }
 
 #ifdef __cplusplus
