@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -61,6 +61,13 @@ static struct service_context *query(const char *sn, int *status)
 	struct ffa_service_location candidate_locations[MAX_PARTITION_SUGGESTIONS];
 	size_t num_suggestons = 0;
 	size_t suggeston_index;
+	char dev_path[16] = {0};
+
+	if (!ffarpc_caller_check_version())
+		return NULL;
+
+	if (ffarpc_caller_find_dev_path(dev_path, sizeof(dev_path)))
+		return NULL;
 
 	/* Determine one or more candidate partition UUIDs from the specified service name. */
 	if (sn_check_authority(sn, "trustedfirmware.org")) {
@@ -76,7 +83,6 @@ static struct service_context *query(const char *sn, int *status)
 	for (suggeston_index = 0; suggeston_index < num_suggestons; ++suggeston_index) {
 
 		uint16_t partition_id;
-		const char *dev_path = "/sys/kernel/debug/arm_ffa_user";
 
 		if (discover_partition(sn, &candidate_locations[suggeston_index].uuid,
 			dev_path, &partition_id)) {
@@ -179,9 +185,6 @@ static bool discover_partition(const char *sn,
 
 		struct ffarpc_caller ffarpc_caller;
 		unsigned int required_instance = sn_get_service_instance(sn);
-
-		if (!ffarpc_caller_check_version())
-				return false;
 
 		ffarpc_caller_init(&ffarpc_caller, dev_path);
 

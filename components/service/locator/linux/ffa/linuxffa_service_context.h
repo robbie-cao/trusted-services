@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -21,7 +21,7 @@ extern "C" {
 struct linuxffa_service_context
 {
     struct service_context service_context;
-    const char *ffa_dev_path;
+    char *ffa_dev_path;
     uint16_t partition_id;
     uint16_t iface_id;
 };

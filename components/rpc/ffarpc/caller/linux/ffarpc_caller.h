@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -26,16 +26,17 @@ struct ffarpc_caller {
 	const char *device_path;
 	uint16_t dest_partition_id;
 	uint16_t dest_iface_id;
-	uint64_t shared_mem_handle;
+	int shared_mem_id;
 	size_t shared_mem_required_size;
-	uint8_t *req_buf;
-	uint8_t *resp_buf;
+	size_t shared_mem_actual_size;
+	uint8_t *shared_mem_buf;
 	size_t req_len;
 	size_t resp_len;
 	bool is_call_transaction_in_progess;
 };
 
 bool ffarpc_caller_check_version(void);
+int ffarpc_caller_find_dev_path(char *path, size_t path_len);
 struct rpc_caller *ffarpc_caller_init(struct ffarpc_caller *s, const char *device_path);
 void ffarpc_caller_deinit(struct ffarpc_caller *s);
 size_t ffarpc_caller_discover(const struct ffarpc_caller *s, const struct uuid_canonical *uuid,

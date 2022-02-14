@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -7,6 +7,7 @@
 #include "linuxffa_service_context.h"
 #include <rpc/ffarpc/caller/linux/ffarpc_caller.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* Concrete service_context methods */
 static rpc_session_handle linuxffa_service_context_open(void *context, struct rpc_caller **caller);
@@ -21,7 +22,12 @@ struct linuxffa_service_context *linuxffa_service_context_create(const char *dev
         (struct linuxffa_service_context*)malloc(sizeof(struct linuxffa_service_context));
 
     if (new_context) {
-        new_context->ffa_dev_path = dev_path;
+        new_context->ffa_dev_path = strdup(dev_path);
+        if (!new_context->ffa_dev_path) {
+            free(new_context);
+            return NULL;
+        }
+
         new_context->partition_id = partition_id;
         new_context->iface_id = iface_id;
 
@@ -80,5 +86,6 @@ static void linuxffa_service_context_close(void *context, rpc_session_handle ses
 static void linuxffa_service_context_relinquish(void *context)
 {
     struct linuxffa_service_context *this_context = (struct linuxffa_service_context*)context;
+    free(this_context->ffa_dev_path);
     free(this_context);
 }
