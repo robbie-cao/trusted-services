@@ -98,6 +98,7 @@ enum
 struct __attribute__ ((__packed__)) ts_crypto_aead_update_in
 {
   uint32_t op_handle;
+  uint32_t output_size;
 };
 
 /* Variable length input parameter tags */

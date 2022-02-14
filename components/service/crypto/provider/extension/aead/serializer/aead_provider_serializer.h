@@ -51,6 +51,7 @@ struct aead_provider_serializer {
 	/* Operation: aead_update */
 	rpc_status_t (*deserialize_aead_update_req)(const struct call_param_buf *req_buf,
 		uint32_t *op_handle,
+                uint32_t *output_size,
 		const uint8_t **input, size_t *input_len);
 
 	rpc_status_t (*serialize_aead_update_resp)(struct call_param_buf *resp_buf,

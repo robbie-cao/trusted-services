@@ -192,6 +192,7 @@ static rpc_status_t deserialize_aead_update_ad_req(const struct call_param_buf *
 /* Operation: aead_update */
 static rpc_status_t deserialize_aead_update_req(const struct call_param_buf *req_buf,
 	uint32_t *op_handle,
+        uint32_t *output_size,
 	const uint8_t **input, size_t *input_len)
 {
 	rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
@@ -208,6 +209,7 @@ static rpc_status_t deserialize_aead_update_req(const struct call_param_buf *req
 		memcpy(&recv_msg, req_buf->data, expected_fixed_len);
 
 		*op_handle = recv_msg.op_handle;
+                *output_size = recv_msg.output_size;
 
 		tlv_const_iterator_begin(&req_iter,
 			(uint8_t*)req_buf->data + expected_fixed_len,

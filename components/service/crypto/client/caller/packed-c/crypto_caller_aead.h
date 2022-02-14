@@ -309,6 +309,7 @@ static inline psa_status_t crypto_caller_aead_update(struct service_client *cont
 	size_t req_len = req_fixed_len;
 
 	*output_length = 0;
+        req_msg.output_size = output_size;
 	req_msg.op_handle = op_handle;
 
 	/* Mandatory input data parameter */

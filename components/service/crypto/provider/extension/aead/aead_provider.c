@@ -283,10 +283,11 @@ static rpc_status_t aead_update_handler(void *context, struct call_req *req)
 	uint32_t op_handle;
 	const uint8_t *input;
 	size_t input_len;
+        uint32_t recv_output_size;
 
 	if (serializer)
 		rpc_status = serializer->deserialize_aead_update_req(req_buf, &op_handle,
-			&input, &input_len);
+			&recv_output_size, &input, &input_len);
 
 	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
 
@@ -300,9 +301,12 @@ static rpc_status_t aead_update_handler(void *context, struct call_req *req)
 		if (crypto_context) {
 
 			size_t output_len = 0;
-			size_t output_size = PSA_AEAD_UPDATE_OUTPUT_MAX_SIZE(input_len);
+			size_t output_size = PSA_AEAD_UPDATE_OUTPUT_MAX_SIZE(24);
 			uint8_t *output = malloc(output_size);
 
+                        if (recv_output_size < output_size) {
+                            output_size = recv_output_size;
+                        }
 			if (output) {
 
 				psa_status = psa_aead_update(&crypto_context->op.aead,
