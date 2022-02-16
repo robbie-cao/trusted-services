@@ -241,6 +241,10 @@ psa_status_t psa_aead_encrypt(psa_key_id_t key,
 
 			*aeadtext_length = bytes_output + remaining_aead_len + tag_len;
 		}
+		else {
+
+			psa_aead_abort(&operation);
+		}
 	}
 	else {
 
@@ -291,6 +295,10 @@ psa_status_t psa_aead_decrypt(psa_key_id_t key,
 		if (psa_status == PSA_SUCCESS) {
 
 			*plaintext_length = bytes_output + remaining_plaintext_len;
+		}
+		else {
+
+			psa_aead_abort(&operation);
 		}
 	}
 	else {

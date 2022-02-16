@@ -149,6 +149,10 @@ static psa_status_t multi_cipher_update(psa_cipher_operation_t *operation,
 
 				*output_length = bytes_output + finish_output_len;
 			}
+			else {
+
+				psa_cipher_abort(operation);
+			}
 		}
 		else {
 

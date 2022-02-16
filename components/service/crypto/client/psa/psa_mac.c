@@ -129,6 +129,11 @@ psa_status_t psa_mac_verify(psa_key_id_t key,
 	if (psa_status == PSA_SUCCESS) {
 
 		psa_status = psa_mac_verify_finish(&operation, mac, mac_length);
+
+		if (psa_status != PSA_SUCCESS) {
+
+			psa_mac_abort(&operation);
+		}
 	}
 
 	return psa_status;
@@ -153,6 +158,11 @@ psa_status_t psa_mac_compute(psa_key_id_t key,
 	if (psa_status == PSA_SUCCESS) {
 
 		psa_status = psa_mac_sign_finish(&operation, mac, mac_size, mac_length);
+
+		if (psa_status != PSA_SUCCESS) {
+
+			psa_mac_abort(&operation);
+		}
 	}
 
 	return psa_status;

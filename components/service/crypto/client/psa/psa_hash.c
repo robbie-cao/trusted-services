@@ -137,6 +137,11 @@ psa_status_t psa_hash_compare(psa_algorithm_t alg,
 	if (psa_status == PSA_SUCCESS) {
 
 		psa_status = psa_hash_verify(&operation, hash, hash_length);
+
+		if (psa_status != PSA_SUCCESS) {
+
+			psa_hash_abort(&operation);
+		}
 	}
 
 	return psa_status;
@@ -155,6 +160,11 @@ psa_status_t psa_hash_compute(psa_algorithm_t alg,
 	if (psa_status == PSA_SUCCESS) {
 
 		psa_status = psa_hash_finish(&operation, hash, hash_size, hash_length);
+
+		if (psa_status != PSA_SUCCESS) {
+
+			psa_hash_abort(&operation);
+		}
 	}
 
 	return psa_status;
