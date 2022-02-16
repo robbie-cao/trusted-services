@@ -74,10 +74,22 @@ psa_status_t psa_aead_update(psa_aead_operation_t *operation,
 	size_t output_size,
 	size_t *output_length)
 {
-	return crypto_caller_aead_update(&psa_crypto_client_instance.base,
+	psa_status_t status = crypto_caller_aead_update(&psa_crypto_client_instance.base,
 		operation->handle,
 		input, input_length,
 		output, output_size, output_length);
+
+	/*
+	 * If too small a buffer has been provided for the output, the operation
+	 * state will have been updated but the result can't be put anywhere. This
+	 * is an unrecoveral condition so abort the operation.
+	 */
+	if (status == PSA_ERROR_BUFFER_TOO_SMALL) {
+
+		psa_aead_abort(operation);
+	}
+
+	return status;
 }
 
 psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
