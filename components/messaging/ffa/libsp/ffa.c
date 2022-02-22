@@ -439,3 +439,37 @@ ffa_result ffa_mem_reclaim(uint64_t handle, uint32_t flags)
 	assert(result.a0 == FFA_SUCCESS_32);
 	return FFA_OK;
 }
+
+ffa_result ffa_mem_perm_get(const void *base_address, uint32_t *mem_perm)
+{
+	struct ffa_params result = {0};
+
+	ffa_svc(FFA_MEM_PERM_GET, (uintptr_t)base_address, FFA_PARAM_MBZ,
+		FFA_PARAM_MBZ, FFA_PARAM_MBZ, FFA_PARAM_MBZ, FFA_PARAM_MBZ,
+		FFA_PARAM_MBZ, &result);
+
+	if (result.a0 == FFA_ERROR)
+		return ffa_get_errorcode(&result);
+
+	assert(result.a0 == FFA_SUCCESS_32);
+	*mem_perm = result.a2;
+	return FFA_OK;
+}
+
+ffa_result ffa_mem_perm_set(const void *base_address, uint32_t page_count,
+			    uint32_t mem_perm)
+{
+	struct ffa_params result = {0};
+
+	assert((mem_perm & FFA_MEM_PERM_RESERVED_MASK) == 0);
+
+	ffa_svc(FFA_MEM_PERM_SET, (uintptr_t)base_address, page_count, mem_perm,
+		FFA_PARAM_MBZ, FFA_PARAM_MBZ, FFA_PARAM_MBZ, FFA_PARAM_MBZ,
+		&result);
+
+	if (result.a0 == FFA_ERROR)
+		return ffa_get_errorcode(&result);
+
+	assert(result.a0 == FFA_SUCCESS_32);
+	return FFA_OK;
+}

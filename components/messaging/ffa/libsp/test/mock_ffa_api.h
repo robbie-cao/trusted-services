@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /*
- * Copyright (c) 2020-2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited. All rights reserved.
  */
 
 #ifndef LIBSP_TEST_MOCK_FFA_API_H_
@@ -79,5 +79,11 @@ void expect_ffa_mem_retrieve_req_rxtx(uint32_t total_length,
 void expect_ffa_mem_relinquish(ffa_result result);
 
 void expect_ffa_mem_reclaim(uint64_t handle, uint32_t flags, ffa_result result);
+
+void expect_ffa_mem_perm_get(const void *base_address, const uint32_t *mem_perm,
+			     ffa_result result);
+
+void expect_ffa_mem_perm_set(const void *base_address, uint32_t page_count,
+			     uint32_t mem_perm, ffa_result result);
 
 #endif /* FFA_LIBSP_TEST_MOCK_FFA_API_H_ */

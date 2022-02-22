@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2020-2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited. All rights reserved.
  */
 
 #include <assert.h>
@@ -289,4 +289,25 @@ TEST(mock_ffa_api, ffa_mem_reclaim)
 
 	expect_ffa_mem_reclaim(handle, flags, result);
 	LONGS_EQUAL(result, ffa_mem_reclaim(handle, flags));
+}
+
+TEST(mock_ffa_api, ffa_mem_perm_get)
+{
+	const void *base_address = (const void *)0x01234567;
+	uint32_t expected_mem_perm = 0x89abcdef;
+	uint32_t mem_perm = 0;
+
+	expect_ffa_mem_perm_get(base_address, &expected_mem_perm, result);
+	LONGS_EQUAL(result, ffa_mem_perm_get(base_address, &mem_perm));
+	UNSIGNED_LONGS_EQUAL(expected_mem_perm, mem_perm);
+}
+
+TEST(mock_ffa_api, ffa_mem_perm_set)
+{
+	const void *base_address = (const void *)0x01234567;
+	const uint32_t page_count = 0x76543210;
+	const uint32_t mem_perm = 0x89abcdef;
+
+	expect_ffa_mem_perm_set(base_address, page_count, mem_perm, result);
+	LONGS_EQUAL(result, ffa_mem_perm_set(base_address, page_count, mem_perm));
 }

@@ -1137,7 +1137,7 @@ TEST(ffa_api, ffa_mem_reclaim)
 	LONGS_EQUAL(0, result);
 }
 
-TEST(ffa_api, ffa_mem_reclaimerror)
+TEST(ffa_api, ffa_mem_reclaim_error)
 {
 	const uint64_t handle = 0x1234567812345678;
 	const uint32_t flags = 0x87654321;
@@ -1162,5 +1162,108 @@ TEST(ffa_api, ffa_mem_reclaim_unknown_response)
 
 	if (SETUP_ASSERT_ENVIRONMENT(assert_env)) {
 		ffa_mem_reclaim(handle, flags);
+	}
+}
+
+TEST(ffa_api, ffa_mem_perm_get)
+{
+	const void *base_addr = (const void *)0x01234567;
+	const uint32_t expected_mem_perm = 0x87654321;
+	uint32_t mem_perm = 0;
+
+	svc_result.a0 = 0x84000061;
+	svc_result.a2 = expected_mem_perm;
+	expect_ffa_svc(0x84000088, (uintptr_t)base_addr, 0, 0, 0, 0, 0, 0,
+		       &svc_result);
+
+	ffa_result result = ffa_mem_perm_get(base_addr, &mem_perm);
+	LONGS_EQUAL(0, result);
+	UNSIGNED_LONGS_EQUAL(expected_mem_perm, mem_perm);
+}
+
+TEST(ffa_api, ffa_mem_perm_get_error)
+{
+	const void *base_addr = (const void *)0x01234567;
+	const uint32_t expected_mem_perm = 0x87654321;
+	uint32_t mem_perm = 0;
+
+	setup_error_response(-1);
+	expect_ffa_svc(0x84000088, (uintptr_t)base_addr, 0, 0, 0, 0, 0, 0,
+		       &svc_result);
+
+	ffa_result result = ffa_mem_perm_get(base_addr, &mem_perm);
+	LONGS_EQUAL(-1, result);
+	UNSIGNED_LONGS_EQUAL(0, mem_perm);
+}
+
+TEST(ffa_api, ffa_mem_perm_get_unknown_response)
+{
+	const void *base_addr = (const void *)0x01234567;
+	const uint32_t expected_mem_perm = 0x87654321;
+	uint32_t mem_perm = 0;
+	assert_environment_t assert_env;
+
+	svc_result.a0 = 0x12345678;
+	expect_ffa_svc(0x84000088, (uintptr_t)base_addr, 0, 0, 0, 0, 0, 0,
+		       &svc_result);
+
+	if (SETUP_ASSERT_ENVIRONMENT(assert_env)) {
+		ffa_mem_perm_get(base_addr, &mem_perm);
+	}
+}
+
+TEST(ffa_api, ffa_mem_perm_set)
+{
+	const void *base_addr = (const void *)0x01234567;
+	const uint32_t page_count = 0x89abcdef;
+	const uint32_t mem_perm = 0x07;
+
+	svc_result.a0 = 0x84000061;
+	expect_ffa_svc(0x84000089, (uintptr_t)base_addr, page_count, mem_perm,
+		       0, 0, 0, 0, &svc_result);
+
+	ffa_result result = ffa_mem_perm_set(base_addr, page_count, mem_perm);
+	LONGS_EQUAL(0, result);
+}
+
+TEST(ffa_api, ffa_mem_perm_set_error)
+{
+	const void *base_addr = (const void *)0x01234567;
+	const uint32_t page_count = 0x89abcdef;
+	const uint32_t mem_perm = 0x07;
+
+	setup_error_response(-1);
+	expect_ffa_svc(0x84000089, (uintptr_t)base_addr, page_count, mem_perm,
+		       0, 0, 0, 0, &svc_result);
+
+	ffa_result result = ffa_mem_perm_set(base_addr, page_count, mem_perm);
+	LONGS_EQUAL(-1, result);
+}
+
+TEST(ffa_api, ffa_mem_perm_set_unknown_response)
+{
+	const void *base_addr = (const void *)0x01234567;
+	const uint32_t page_count = 0x89abcdef;
+	const uint32_t mem_perm = 0x07;
+	assert_environment_t assert_env;
+
+	svc_result.a0 = 0x12345678;
+	expect_ffa_svc(0x84000089, (uintptr_t)base_addr, page_count, mem_perm,
+		       0, 0, 0, 0, &svc_result);
+
+	if (SETUP_ASSERT_ENVIRONMENT(assert_env)) {
+		ffa_mem_perm_set(base_addr, page_count, mem_perm);
+	}
+}
+
+TEST(ffa_api, ffa_mem_perm_set_invalid_mem_perm)
+{
+	const void *base_addr = (const void *)0x01234567;
+	const uint32_t page_count = 0x89abcdef;
+	const uint32_t mem_perm = 0x08;
+	assert_environment_t assert_env;
+
+	if (SETUP_ASSERT_ENVIRONMENT(assert_env)) {
+		ffa_mem_perm_set(base_addr, page_count, mem_perm);
 	}
 }

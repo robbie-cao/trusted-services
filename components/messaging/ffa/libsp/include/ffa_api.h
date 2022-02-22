@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #ifndef LIBSP_INCLUDE_FFA_API_H_
@@ -290,6 +290,38 @@ ffa_result ffa_mem_relinquish(void);
  * @return     The FF-A error status code
  */
 ffa_result ffa_mem_reclaim(uint64_t handle, uint32_t flags);
+
+/**
+ * @brief       Queries the memory attributes of a memory region. This function
+ *              can only access the regions of the SP's own translation regine.
+ *              Moreover this interface is only available in the boot phase,
+ *              i.e. before invoking FFA_MSG_WAIT interface.
+ *
+ * @param[in]   base_address    Base VA of a translation granule whose
+ *                              permission attributes must be returned.
+ * @param[out]  mem_perm        Permission attributes of the memory region
+ *
+ * @return      The FF-A error status code
+ */
+ffa_result ffa_mem_perm_get(const void *base_address, uint32_t *mem_perm);
+
+/**
+ * @brief       Sets the memory attributes of a memory regions. This function
+ *              can only access the regions of the SP's own translation regine.
+ *              Moreover this interface is only available in the boot phase,
+ *              i.e. before invoking FFA_MSG_WAIT interface.
+ *
+ * @param[in]   base_address    Base VA of a memory region whose permission
+ *                              attributes must be set.
+ * @param[in]   page_count      Number of translation granule size pages
+ *                              starting from the Base address whose permissions
+ *                              must be set.
+ * @param[in]   mem_perm        Permission attributes to be set for the memory
+ *                              region
+ * @return      The FF-A error status code
+ */
+ffa_result ffa_mem_perm_set(const void *base_address, uint32_t page_count,
+			    uint32_t mem_perm);
 
 /**
  * @brief      Interrupt handler prototype. Must be implemented by another

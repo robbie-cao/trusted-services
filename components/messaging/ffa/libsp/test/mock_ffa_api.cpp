@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2020-2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited. All rights reserved.
  */
 
 #include <CppUTestExt/MockSupport.h>
@@ -449,5 +449,43 @@ ffa_result ffa_mem_reclaim(uint64_t handle, uint32_t flags)
 		.actualCall("ffa_mem_reclaim")
 		.withUnsignedLongIntParameter("handle", handle)
 		.withUnsignedIntParameter("flags", flags)
+		.returnIntValue();
+}
+
+void expect_ffa_mem_perm_get(const void *base_address, const uint32_t *mem_perm,
+			     ffa_result result)
+{
+	mock().expectOneCall("ffa_mem_perm_get")
+		.withConstPointerParameter("base_address", base_address)
+		.withOutputParameterReturning("mem_perm", mem_perm,
+					      sizeof(*mem_perm))
+		.andReturnValue(result);
+}
+
+ffa_result ffa_mem_perm_get(const void *base_address, uint32_t *mem_perm)
+{
+	return mock().actualCall("ffa_mem_perm_get")
+		.withConstPointerParameter("base_address", base_address)
+		.withOutputParameter("mem_perm", mem_perm)
+		.returnIntValue();
+}
+
+void expect_ffa_mem_perm_set(const void *base_address, uint32_t page_count,
+			     uint32_t mem_perm, ffa_result result)
+{
+	mock().expectOneCall("ffa_mem_perm_set")
+		.withConstPointerParameter("base_address", base_address)
+		.withUnsignedIntParameter("page_count", page_count)
+		.withUnsignedIntParameter("mem_perm", mem_perm)
+		.andReturnValue(result);
+}
+
+ffa_result ffa_mem_perm_set(const void *base_address, uint32_t page_count,
+			    uint32_t mem_perm)
+{
+	return mock().actualCall("ffa_mem_perm_set")
+		.withConstPointerParameter("base_address", base_address)
+		.withUnsignedIntParameter("page_count", page_count)
+		.withUnsignedIntParameter("mem_perm", mem_perm)
 		.returnIntValue();
 }
