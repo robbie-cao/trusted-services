@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -19,6 +19,11 @@ static inline psa_status_t crypto_caller_copy_key(struct service_client *context
 	const psa_key_attributes_t *attributes,
 	psa_key_id_t *target_key)
 {
+	(void)context;
+	(void)source_key;
+	(void)attributes;
+	(void)target_key;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 

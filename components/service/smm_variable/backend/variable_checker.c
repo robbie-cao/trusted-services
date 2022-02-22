@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -53,6 +53,8 @@ efi_status_t variable_checker_check_on_set(
 	uint32_t attributes,
 	size_t data_size)
 {
+	(void)attributes;
+
 	if (constraints->property & VAR_CHECK_VARIABLE_PROPERTY_READ_ONLY)
 		return EFI_WRITE_PROTECTED;
 

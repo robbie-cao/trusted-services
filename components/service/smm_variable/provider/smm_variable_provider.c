@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -357,7 +357,7 @@ static rpc_status_t get_var_check_property_handler(void *context, struct call_re
 
 static rpc_status_t get_payload_size_handler(void *context, struct call_req *req)
 {
-	struct smm_variable_provider *this_instance = (struct smm_variable_provider*)context;
+	(void)context;
 
 	/* Payload size is constrained by the size of the RPC call buffer.  Because the variable length
 	 * name is also carried in the buffer, the maximum payload size depends on the name size.  This

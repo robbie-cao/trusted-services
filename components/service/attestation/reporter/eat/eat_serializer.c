@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -78,6 +78,8 @@ static bool alloc_encode_buffer(const struct claim_vector *device_claims,
     const struct claim_vector *sw_claims, UsefulBuf *encode_buffer)
 {
     // todo estimate required space
+    (void)device_claims;
+    (void)sw_claims;
 
     encode_buffer->len = 4096;
     encode_buffer->ptr = malloc(encode_buffer->len);

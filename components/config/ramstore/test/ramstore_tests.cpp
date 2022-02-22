@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -70,8 +70,6 @@ TEST(ConfigRamstoreTests, checkSingleConfig)
 
 TEST(ConfigRamstoreTests, checkMultipleConfig)
 {
-	int status;
-
 	/* Add first config object */
 	struct device_region config1;
 

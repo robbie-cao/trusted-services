@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -129,7 +129,6 @@ psa_status_t psa_initial_attest_get_token_size(
         uint8_t *resp_buf;
         size_t resp_len;
         rpc_opstatus_t opstatus;
-        struct tlv_iterator req_iter;
 
         memcpy(req_buf, &req_msg, req_len);
 

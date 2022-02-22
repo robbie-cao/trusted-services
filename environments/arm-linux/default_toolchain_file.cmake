@@ -15,5 +15,12 @@ set(CMAKE_SYSTEM_PROCESSOR arm)
 string(APPEND CMAKE_C_FLAGS_INIT " -fdiagnostics-show-option -gdwarf-2 -mstrict-align -O0 -DARM64=1")
 string(APPEND CMAKE_CXX_FLAGS_INIT " -fdiagnostics-show-option -gdwarf-2 -mstrict-align -O0 -DARM64=1")
 
+# Set compiler warning level for the root build context. External components
+# are responsible for setting their own warning level.
+if(DEFINED TS_ROOT)
+    string(APPEND CMAKE_C_FLAGS_INIT " -Wall")
+    string(APPEND CMAKE_CXX_FLAGS_INIT " -Wall")
+endif()
+
 include($ENV{TS_ROOT}/tools/cmake/compiler/GCC.cmake REQUIRED)
 include($ENV{TS_ROOT}/tools/cmake/compiler/config_iface.cmake REQUIRED)

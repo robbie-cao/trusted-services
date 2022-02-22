@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -21,6 +21,8 @@ static psa_status_t mock_store_set(void *context,
                             const void *p_data,
                             uint32_t create_flags)
 {
+    (void)client_id;
+
     psa_status_t psa_status = PSA_ERROR_INSUFFICIENT_STORAGE;
     struct mock_store *this_context = (struct mock_store*)context;
 
@@ -58,6 +60,9 @@ static psa_status_t mock_store_get(void *context,
                             void *p_data,
                             size_t *p_data_length)
 {
+    (void)client_id;
+    (void)data_offset;
+
     psa_status_t psa_status = PSA_ERROR_DOES_NOT_EXIST;
     struct mock_store *this_context = (struct mock_store*)context;
 
@@ -78,6 +83,8 @@ static psa_status_t mock_store_get_info(void *context,
                             uint64_t uid,
                             struct psa_storage_info_t *p_info)
 {
+    (void)client_id;
+
     psa_status_t psa_status = PSA_ERROR_DOES_NOT_EXIST;
     struct mock_store *this_context = (struct mock_store*)context;
 
@@ -103,6 +110,8 @@ static psa_status_t mock_store_remove(void *context,
                                 uint32_t client_id,
                                 uint64_t uid)
 {
+    (void)client_id;
+
     psa_status_t psa_status = PSA_ERROR_DOES_NOT_EXIST;
     struct mock_store *this_context = (struct mock_store*)context;
 
@@ -123,6 +132,8 @@ static psa_status_t mock_store_create(void *context,
                             size_t capacity,
                             uint32_t create_flags)
 {
+    (void)client_id;
+
     psa_status_t psa_status = PSA_ERROR_ALREADY_EXISTS;
     struct mock_store *this_context = (struct mock_store*)context;
     struct mock_store_slot *slot;
@@ -144,7 +155,7 @@ static psa_status_t mock_store_create(void *context,
                 slot->capacity = capacity;
                 slot->len = 0;
 
-                memset(slot->item, slot->capacity, 0);
+                memset(slot->item, 0, slot->capacity);
                 psa_status = PSA_SUCCESS;
             }
             else  {
@@ -164,6 +175,8 @@ static psa_status_t mock_store_set_extended(void *context,
                             size_t data_length,
                             const void *p_data)
 {
+    (void)client_id;
+
     psa_status_t psa_status = PSA_ERROR_DOES_NOT_EXIST;
     struct mock_store *this_context = (struct mock_store*)context;
     struct mock_store_slot *slot;

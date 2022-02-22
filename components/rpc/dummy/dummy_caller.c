@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -51,6 +51,9 @@ static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_l
 static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t opcode,
 		     	rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len)
 {
+    (void)handle;
+    (void)opcode;
+
     struct dummy_caller *this_context = (struct dummy_caller*)context;
 
     free(this_context->req_buf);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -98,7 +98,6 @@ static int run_qualifying_tests(struct test_runner_provider *context, bool list_
 		        struct test_summary *summary, struct test_result *results, size_t result_limit)
 {
     int test_status = TS_TEST_RUNNER_STATUS_SUCCESS;
-    size_t results_used = 0;
     struct test_runner_backend *backend = context->backend_list;
 
     summary->num_tests = 0;

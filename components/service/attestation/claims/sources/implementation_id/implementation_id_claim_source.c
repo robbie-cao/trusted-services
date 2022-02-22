@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -33,7 +33,7 @@ static bool get_claim(void *context, struct claim *claim)
 		claim->variant_id = CLAIM_VARIANT_ID_BYTE_STRING;
 		claim->raw_data = NULL;
 
-		claim->variant.byte_string.bytes = instance->id_string;
+		claim->variant.byte_string.bytes = (const uint8_t*)instance->id_string;
 		claim->variant.byte_string.len = strlen(instance->id_string);
 	}
 

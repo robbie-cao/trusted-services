@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -19,6 +19,10 @@ int attest_report_create(int32_t client_id,
     const uint8_t *auth_challenge_data, size_t auth_challenge_len,
     const uint8_t **report, size_t *report_len)
 {
+    (void)client_id;
+    (void)auth_challenge_data;
+    (void)auth_challenge_len;
+
     *report = NULL;
     *report_len = 0;
 

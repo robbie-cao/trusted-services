@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -21,6 +21,17 @@ static inline psa_status_t crypto_caller_asymmetric_decrypt(struct service_clien
 	const uint8_t *salt, size_t salt_length,
 	uint8_t *output, size_t output_size, size_t *output_length)
 {
+	(void)context;
+	(void)id;
+	(void)alg;
+	(void)input;
+	(void)input_length;
+	(void)salt;
+	(void)salt_length;
+	(void)output;
+	(void)output_size;
+	(void)output_length;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 

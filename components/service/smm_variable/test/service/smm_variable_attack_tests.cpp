@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <cstring>
 #include <limits>
 #include <service/smm_variable/client/cpp/smm_variable_client.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
@@ -208,7 +209,8 @@ TEST(SmmVariableAttackTests, enumerateWithOversizeName)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
 	std::wstring var_name;
-	EFI_GUID guid = {0};
+	EFI_GUID guid;
+	memset(&guid, 0, sizeof(guid));
 
 	efi_status = m_client->get_next_variable_name(
 		guid,
@@ -223,7 +225,8 @@ TEST(SmmVariableAttackTests, enumerateWithSizeMaxNameSize)
 	efi_status_t efi_status = EFI_SUCCESS;
 	std::wstring var_name_1 = L"varibale_1";
 	std::wstring var_name;
-	EFI_GUID guid = {0};
+	EFI_GUID guid;
+	memset(&guid, 0, sizeof(guid));
 
 	/* Add a variable */
 	efi_status = m_client->set_variable(
@@ -231,6 +234,8 @@ TEST(SmmVariableAttackTests, enumerateWithSizeMaxNameSize)
 		var_name_1,
 		std::string("Some data"),
 		EFI_VARIABLE_NON_VOLATILE);
+
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Initial iteration uses good name length */
 	efi_status = m_client->get_next_variable_name(

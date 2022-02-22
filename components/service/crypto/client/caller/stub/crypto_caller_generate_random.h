@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -17,6 +17,10 @@ extern "C" {
 static inline psa_status_t crypto_caller_generate_random(struct service_client *context,
 	uint8_t *output, size_t output_size)
 {
+	(void)context;
+	(void)output;
+	(void)output_size;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 

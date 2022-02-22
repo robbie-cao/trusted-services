@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -123,7 +123,7 @@ static size_t count_tests(const struct test_spec *spec)
 {
     size_t count = 0;
 
-    for (int group_index = 0; group_index < the_test_runner.num_groups; ++group_index) {
+    for (size_t group_index = 0; group_index < the_test_runner.num_groups; ++group_index) {
 
         count += the_test_runner.groups[group_index]->num_test_cases;
     }

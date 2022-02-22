@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -263,6 +263,8 @@ static void tcg_event2_extract_digest(const void *header,
 
 static size_t tcg_event1_record_size(const void *header, const void *limit)
 {
+	(void)limit;
+
 	size_t record_len = load_u32_le(header, offsetof(tcg_pcr_event_t, event_size));
 	record_len += sizeof(tcg_pcr_event_t);
 	return record_len;
@@ -280,7 +282,7 @@ static void tcg_event2_extract_measurement_id(const void *event_data,
 
 		if (id_size) {
 
-			measurement->id.string = (const uint8_t*)event_data + offsetof(event2_data_t, event);
+			measurement->id.string = (const char*)event_data + offsetof(event2_data_t, event);
 		}
 	}
 }

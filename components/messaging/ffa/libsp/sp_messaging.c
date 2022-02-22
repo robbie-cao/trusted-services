@@ -17,8 +17,6 @@
 static void pack_ffa_direct_msg(const struct sp_msg *msg,
 				struct ffa_direct_msg *ffa_msg)
 {
-	uint32_t i = 0;
-
 	ffa_msg->source_id = msg->source_id;
 	ffa_msg->destination_id = msg->destination_id;
 
@@ -29,8 +27,6 @@ static void pack_ffa_direct_msg(const struct sp_msg *msg,
 static void unpack_ffa_direct_msg(const struct ffa_direct_msg *ffa_msg,
 				  struct sp_msg *msg)
 {
-	uint32_t i = 0;
-
 	if (ffa_msg->function_id != FFA_SUCCESS_32) {
 		/*
 		 * Handling request or response (error is handled before call)

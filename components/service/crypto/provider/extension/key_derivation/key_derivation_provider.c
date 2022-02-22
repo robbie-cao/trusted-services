@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -455,7 +455,6 @@ static rpc_status_t key_derivation_raw_key_agreement_handler(void *context, stru
 	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
 	struct call_param_buf *req_buf = call_req_get_req_buf(req);
 	const struct key_derivation_provider_serializer *serializer = get_serializer(context, req);
-	struct key_derivation_provider *this_instance = (struct key_derivation_provider*)context;
 
 	psa_algorithm_t alg;
 	psa_key_id_t private_key_id;

@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <cstring>
 #include <service/smm_variable/client/cpp/smm_variable_client.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
 #include <service_locator.h>
@@ -425,7 +426,8 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 
 	/* Enumerate store contents - expect the values we added */
 	std::wstring var_name;
-	EFI_GUID guid = {0};
+	EFI_GUID guid;
+	memset(&guid, 0, sizeof(guid));
 
 	efi_status = m_client->get_next_variable_name(guid, var_name);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);

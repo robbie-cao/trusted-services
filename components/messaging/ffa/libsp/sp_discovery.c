@@ -124,7 +124,6 @@ sp_result sp_discovery_partition_id_get(const struct sp_uuid *uuid,
 					uint16_t *id)
 {
 	const struct ffa_partition_information *ffa_info = NULL;
-	uint32_t count = 0;
 	sp_result sp_res = SP_RESULT_OK;
 
 	if (id == NULL)
@@ -145,7 +144,6 @@ sp_result sp_discovery_partition_info_get(const struct sp_uuid *uuid,
 					  struct sp_partition_info *info)
 {
 	const struct ffa_partition_information *ffa_info = NULL;
-	uint32_t count = 0;
 	sp_result sp_res = SP_RESULT_OK;
 
 	if (info == NULL)

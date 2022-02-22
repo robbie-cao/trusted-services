@@ -212,12 +212,18 @@ psa_status_t protobuf_crypto_client::copy_key(
 	const psa_key_attributes_t *attributes,
 	psa_key_id_t *target_key)
 {
+	(void)source_key;
+	(void)attributes;
+	(void)target_key;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
 psa_status_t protobuf_crypto_client::purge_key(
 	psa_key_id_t id)
 {
+	(void)id;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -225,6 +231,9 @@ psa_status_t protobuf_crypto_client::get_key_attributes(
 	psa_key_id_t id,
 	psa_key_attributes_t *attributes)
 {
+	(void)id;
+	(void)attributes;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -798,24 +807,38 @@ size_t protobuf_crypto_client::hash_max_update_size() const
 psa_status_t protobuf_crypto_client::hash_setup(uint32_t *op_handle,
 							psa_algorithm_t alg)
 {
+	(void)op_handle;
+	(void)alg;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
 psa_status_t protobuf_crypto_client::hash_update(uint32_t op_handle,
 							const uint8_t *input, size_t input_length)
 {
+	(void)op_handle;
+	(void)input;
+	(void)input_length;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
 psa_status_t protobuf_crypto_client::hash_finish(uint32_t op_handle,
 							uint8_t *hash, size_t hash_size, size_t *hash_length)
 {
+	(void)op_handle;
+	(void)hash;
+	(void)hash_size;
+	(void)hash_length;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
 psa_status_t protobuf_crypto_client::hash_abort(
 	uint32_t op_handle)
 {
+	(void)op_handle;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -823,6 +846,10 @@ psa_status_t protobuf_crypto_client::hash_verify(
 	uint32_t op_handle,
 	const uint8_t *hash, size_t hash_length)
 {
+	(void)op_handle;
+	(void)hash;
+	(void)hash_length;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -830,6 +857,9 @@ psa_status_t protobuf_crypto_client::hash_clone(
 	uint32_t source_op_handle,
 	uint32_t *target_op_handle)
 {
+	(void)source_op_handle;
+	(void)target_op_handle;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -844,6 +874,10 @@ psa_status_t protobuf_crypto_client::cipher_encrypt_setup(
 	psa_key_id_t key,
 	psa_algorithm_t alg)
 {
+	(void)op_handle;
+	(void)key;
+	(void)alg;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -852,6 +886,10 @@ psa_status_t protobuf_crypto_client::cipher_decrypt_setup(
 	psa_key_id_t key,
 	psa_algorithm_t alg)
 {
+	(void)op_handle;
+	(void)key;
+	(void)alg;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -859,6 +897,11 @@ psa_status_t protobuf_crypto_client::cipher_generate_iv(
 	uint32_t op_handle,
 	uint8_t *iv, size_t iv_size, size_t *iv_length)
 {
+	(void)op_handle;
+	(void)iv;
+	(void)iv_size;
+	(void)iv_length;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -866,6 +909,10 @@ psa_status_t protobuf_crypto_client::cipher_set_iv(
 	uint32_t op_handle,
 	const uint8_t *iv, size_t iv_length)
 {
+	(void)op_handle;
+	(void)iv;
+	(void)iv_length;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -874,6 +921,13 @@ psa_status_t protobuf_crypto_client::cipher_update(
 	const uint8_t *input, size_t input_length,
 	uint8_t *output, size_t output_size, size_t *output_length)
 {
+	(void)op_handle;
+	(void)input;
+	(void)input_length;
+	(void)output;
+	(void)output_size;
+	(void)output_length;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -881,12 +935,19 @@ psa_status_t protobuf_crypto_client::cipher_finish(
 	uint32_t op_handle,
 	uint8_t *output, size_t output_size, size_t *output_length)
 {
+	(void)op_handle;
+	(void)output;
+	(void)output_size;
+	(void)output_length;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
 psa_status_t protobuf_crypto_client::cipher_abort(
 	uint32_t op_handle)
 {
+	(void)op_handle;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -901,6 +962,10 @@ psa_status_t protobuf_crypto_client::mac_sign_setup(
 	psa_key_id_t key,
 	psa_algorithm_t alg)
 {
+	(void)op_handle;
+	(void)key;
+	(void)alg;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -909,6 +974,10 @@ psa_status_t protobuf_crypto_client::mac_verify_setup(
 	psa_key_id_t key,
 	psa_algorithm_t alg)
 {
+	(void)op_handle;
+	(void)key;
+	(void)alg;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -916,6 +985,10 @@ psa_status_t protobuf_crypto_client::mac_update(
 	uint32_t op_handle,
 	const uint8_t *input, size_t input_length)
 {
+	(void)op_handle;
+	(void)input;
+	(void)input_length;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -923,6 +996,11 @@ psa_status_t protobuf_crypto_client::mac_sign_finish(
 	uint32_t op_handle,
 	uint8_t *mac, size_t mac_size, size_t *mac_length)
 {
+	(void)op_handle;
+	(void)mac;
+	(void)mac_size;
+	(void)mac_length;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -930,12 +1008,18 @@ psa_status_t protobuf_crypto_client::mac_verify_finish(
 	uint32_t op_handle,
 	const uint8_t *mac, size_t mac_length)
 {
+	(void)op_handle;
+	(void)mac;
+	(void)mac_length;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
 psa_status_t protobuf_crypto_client::mac_abort(
 	uint32_t op_handle)
 {
+	(void)op_handle;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -944,6 +1028,9 @@ psa_status_t protobuf_crypto_client::key_derivation_setup(
 	uint32_t *op_handle,
 	psa_algorithm_t alg)
 {
+	(void)op_handle;
+	(void)alg;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -951,6 +1038,9 @@ psa_status_t protobuf_crypto_client::key_derivation_get_capacity(
 	const uint32_t op_handle,
 	size_t *capacity)
 {
+	(void)op_handle;
+	(void)capacity;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -958,6 +1048,9 @@ psa_status_t protobuf_crypto_client::key_derivation_set_capacity(
 	uint32_t op_handle,
 	size_t capacity)
 {
+	(void)op_handle;
+	(void)capacity;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -966,6 +1059,11 @@ psa_status_t protobuf_crypto_client::key_derivation_input_bytes(
 	psa_key_derivation_step_t step,
 	const uint8_t *data, size_t data_length)
 {
+	(void)op_handle;
+	(void)step;
+	(void)data;
+	(void)data_length;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -974,6 +1072,10 @@ psa_status_t protobuf_crypto_client::key_derivation_input_key(
 	psa_key_derivation_step_t step,
 	psa_key_id_t key)
 {
+	(void)op_handle;
+	(void)step;
+	(void)key;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -981,6 +1083,10 @@ psa_status_t protobuf_crypto_client::key_derivation_output_bytes(
 	uint32_t op_handle,
 	uint8_t *output, size_t output_length)
 {
+	(void)op_handle;
+	(void)output;
+	(void)output_length;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -989,12 +1095,18 @@ psa_status_t protobuf_crypto_client::key_derivation_output_key(
 	uint32_t op_handle,
 	psa_key_id_t *key)
 {
+	(void)attributes;
+	(void)op_handle;
+	(void)key;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
 psa_status_t protobuf_crypto_client::key_derivation_abort(
 	uint32_t op_handle)
 {
+	(void)op_handle;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -1004,6 +1116,12 @@ psa_status_t protobuf_crypto_client::key_derivation_key_agreement(
 	psa_key_id_t private_key,
 	const uint8_t *peer_key, size_t peer_key_length)
 {
+	(void)op_handle;
+	(void)step;
+	(void)private_key;
+	(void)peer_key;
+	(void)peer_key_length;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -1012,5 +1130,13 @@ psa_status_t protobuf_crypto_client::raw_key_agreement(psa_algorithm_t alg,
 	const uint8_t *peer_key, size_t peer_key_length,
 	uint8_t *output, size_t output_size, size_t *output_length)
 {
+	(void)alg;
+	(void)private_key;
+	(void)peer_key;
+	(void)peer_key_length;
+	(void)output;
+	(void)output_size;
+	(void)output_length;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }

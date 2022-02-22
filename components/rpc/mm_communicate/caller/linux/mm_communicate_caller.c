@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -310,7 +310,7 @@ static rpc_status_t call_invoke(
 				if (mm_return_code == MM_RETURN_CODE_SUCCESS) {
 
 					mm_communicate_serializer_header_decode(s->serializer,
-						s->comm_buffer, opstatus, resp_buf, resp_len);
+						s->comm_buffer, (efi_status_t*)opstatus, resp_buf, resp_len);
 
 					if (*resp_len > s->req_len) {
 

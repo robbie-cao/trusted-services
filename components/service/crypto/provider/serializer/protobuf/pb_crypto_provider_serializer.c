@@ -238,12 +238,19 @@ static rpc_status_t deserialize_copy_key_req(const struct call_param_buf *req_bu
 									psa_key_attributes_t *attributes,
 									psa_key_id_t *source_id)
 {
+	(void)req_buf;
+	(void)attributes;
+	(void)source_id;
+
 	return TS_RPC_ERROR_INVALID_REQ_BODY;
 }
 
 static rpc_status_t serialize_copy_key_resp(struct call_param_buf *resp_buf,
 									psa_key_id_t target_id)
 {
+	(void)resp_buf;
+	(void)target_id;
+
 	return TS_RPC_ERROR_INTERNAL;
 }
 
@@ -251,6 +258,9 @@ static rpc_status_t serialize_copy_key_resp(struct call_param_buf *resp_buf,
 static rpc_status_t deserialize_purge_key_req(const struct call_param_buf *req_buf,
 									psa_key_id_t *id)
 {
+	(void)req_buf;
+	(void)id;
+
 	return TS_RPC_ERROR_INVALID_REQ_BODY;
 }
 
@@ -258,12 +268,18 @@ static rpc_status_t deserialize_purge_key_req(const struct call_param_buf *req_b
 static rpc_status_t deserialize_get_key_attributes_req(const struct call_param_buf *req_buf,
 									psa_key_id_t *id)
 {
+	(void)req_buf;
+	(void)id;
+
 	return TS_RPC_ERROR_INVALID_REQ_BODY;
 }
 
 static rpc_status_t serialize_get_key_attributes_resp(struct call_param_buf *resp_buf,
 									const psa_key_attributes_t *attributes)
 {
+	(void)resp_buf;
+	(void)attributes;
+
 	return TS_RPC_ERROR_INTERNAL;
 }
 

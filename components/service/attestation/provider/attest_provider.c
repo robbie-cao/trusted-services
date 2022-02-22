@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -145,9 +145,8 @@ static rpc_status_t get_token_size_handler(void *context, struct call_req* req)
 
 static rpc_status_t export_iak_public_key_handler(void *context, struct call_req* req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
-	const struct attest_provider_serializer *serializer = get_attest_serializer(context, req);
+    rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
+    const struct attest_provider_serializer *serializer = get_attest_serializer(context, req);
 
 	if (serializer) {
 
@@ -218,7 +217,9 @@ static rpc_status_t import_iak_handler(void *context, struct call_req* req)
 
 static rpc_status_t iak_exists_handler(void *context, struct call_req* req)
 {
-	rpc_opstatus_t opstatus = PSA_ERROR_DOES_NOT_EXIST;
+    (void)context;
+
+    rpc_opstatus_t opstatus = PSA_ERROR_DOES_NOT_EXIST;
 
 	if (attest_key_mngr_iak_exists()) {
 

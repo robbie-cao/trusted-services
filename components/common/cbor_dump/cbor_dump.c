@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -24,7 +24,7 @@ static void dump_indent(struct dump_context *dump_ctx, const QCBORItem *item);
 static void dump_label(struct dump_context *dump_ctx, const QCBORItem *item);
 static void dump_value_separator(struct dump_context *dump_ctx, const QCBORItem *item);
 static void dump_value(struct dump_context *dump_ctx, const QCBORItem *item);
-static void dump_text_string(struct dump_context *dump_ctx, const uint8_t *data, size_t len);
+static void dump_text_string(struct dump_context *dump_ctx, const char *data, size_t len);
 static void dump_byte_string(struct dump_context *dump_ctx, const uint8_t *data, size_t len);
 static const char *dictionary_lookup(struct dump_context *dump_ctx, int64_t id);
 
@@ -147,7 +147,7 @@ static void dump_value(struct dump_context *dump_ctx, const QCBORItem *item)
     }
     else if (item->uDataType == QCBOR_TYPE_BYTE_STRING) {
 
-        dump_byte_string(dump_ctx, (const char*)item->val.string.ptr, item->val.string.len);
+        dump_byte_string(dump_ctx, (const uint8_t*)item->val.string.ptr, item->val.string.len);
         fprintf(dump_ctx->outfile, "\n");
     }
     else if (item->uDataType == QCBOR_TYPE_INT64) {
@@ -167,7 +167,7 @@ static void dump_value(struct dump_context *dump_ctx, const QCBORItem *item)
     }
 }
 
-static void dump_text_string(struct dump_context *dump_ctx, const uint8_t *data, size_t len)
+static void dump_text_string(struct dump_context *dump_ctx, const char *data, size_t len)
 {
     char text_buf[len + 1];
 

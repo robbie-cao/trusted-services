@@ -20,6 +20,14 @@ static inline psa_status_t crypto_caller_verify_hash(struct service_client *cont
 	const uint8_t *hash, size_t hash_length,
 	const uint8_t *signature, size_t signature_length)
 {
+	(void)context;
+	(void)id;
+	(void)alg;
+	(void)hash;
+	(void)hash_length;
+	(void)signature;
+	(void)signature_length;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 

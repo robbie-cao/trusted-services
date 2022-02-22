@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -111,9 +111,6 @@ void hash_service_scenarios::hashAbort()
 	static const size_t input_size = 15999;
 
 	create_ref_input(input_size);
-
-	uint8_t hash[PSA_HASH_MAX_SIZE];
-	size_t hash_len;
 
 	uint32_t op_handle = 0;
 	psa_status_t status;

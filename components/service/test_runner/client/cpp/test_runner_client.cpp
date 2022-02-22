@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -208,10 +208,8 @@ int test_runner_client::deserialize_result(
         struct ts_test_runner_test_result packed_result;
         memcpy(&packed_result, value_buf, fixed_size);
 
+        memset(&result, 0, sizeof(result));
         result.run_state = (enum test_run_state)packed_result.run_state;
-        result.name[0] = 0;
-        result.group[0] = 0;
-        result.failure = {0};
 
         /* Deserialize name and group if present */
         struct tlv_const_iterator req_iter;

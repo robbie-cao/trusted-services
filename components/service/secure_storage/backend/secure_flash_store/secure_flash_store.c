@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2019-2022, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -58,6 +58,8 @@ static psa_status_t sfs_set(void *context,
                          const void *p_data,
                          uint32_t create_flags)
 {
+    (void)context;
+
     psa_status_t status;
     size_t write_size;
     size_t offset;
@@ -151,11 +153,11 @@ static psa_status_t sfs_get(void *context,
                          void *p_data,
                          size_t *p_data_length)
 {
+    (void)context;
+
     psa_status_t status;
     size_t read_size;
-      uint8_t *data = p_data;
-
-    data = (uint8_t *)p_data;
+    uint8_t *data = (uint8_t *)p_data;
 
     /* Check that the UID is valid */
     if (uid == SFS_INVALID_UID) {
@@ -212,6 +214,8 @@ static psa_status_t sfs_get(void *context,
 static psa_status_t sfs_get_info(void *context, uint32_t client_id, uint64_t uid,
                               struct psa_storage_info_t *p_info)
 {
+    (void)context;
+
     psa_status_t status;
 
     /* Check that the UID is valid */
@@ -238,6 +242,8 @@ static psa_status_t sfs_get_info(void *context, uint32_t client_id, uint64_t uid
 
 static psa_status_t sfs_remove(void *context, uint32_t client_id, uint64_t uid)
 {
+    (void)context;
+
     psa_status_t status;
 
     /* Check that the UID is valid */
@@ -270,6 +276,8 @@ static psa_status_t sfs_create(void *context,
                             size_t capacity,
                             uint32_t create_flags)
 {
+    (void)context;
+
     psa_status_t status;
 
     /* Check that the UID is valid */

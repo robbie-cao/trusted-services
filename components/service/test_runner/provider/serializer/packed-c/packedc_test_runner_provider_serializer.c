@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -77,7 +77,7 @@ static uint8_t *serialize_test_result(const struct test_result *result, size_t *
             struct tlv_record record;
             record.tag = TS_TEST_RUNNER_TEST_RESULT_TAG_NAME;
             record.length = name_len;
-            record.value = result->name;
+            record.value = (const uint8_t*)result->name;
             tlv_encode(&tlv_iter, &record);
         }
 
@@ -86,7 +86,7 @@ static uint8_t *serialize_test_result(const struct test_result *result, size_t *
             struct tlv_record record;
             record.tag = TS_TEST_RUNNER_TEST_RESULT_TAG_GROUP;
             record.length = group_len;
-            record.value = result->group;
+            record.value = (const uint8_t*)result->group;
             tlv_encode(&tlv_iter, &record);
         }
 
@@ -131,7 +131,7 @@ static rpc_status_t serialize_test_results(struct call_param_buf *resp_buf,
         struct tlv_iterator resp_iter;
         tlv_iterator_begin(&resp_iter, (uint8_t*)resp_buf->data + space_used, resp_buf->size - space_used);
 
-        for (int i = 0; (i < summary->num_results) && (rpc_status == TS_RPC_CALL_ACCEPTED); ++i) {
+        for (size_t i = 0; (i < summary->num_results) && (rpc_status == TS_RPC_CALL_ACCEPTED); ++i) {
 
             size_t serialised_len;
             uint8_t *serialize_buf = serialize_test_result(&results[i], &serialised_len);

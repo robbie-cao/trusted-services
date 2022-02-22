@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -29,7 +29,7 @@ static uint64_t name_hash(
 	}
 
 	/* Extend to cover name up to but not including null terminator */
-	for (int i = 0; i < name_size / sizeof(int16_t); ++i) {
+	for (size_t i = 0; i < name_size / sizeof(int16_t); ++i) {
 
 		if (!name[i]) break;
 		hash = ((hash << 5) + hash) + name[i];
@@ -61,7 +61,7 @@ static int find_variable(
 	int found_pos = -1;
 	uint64_t uid = name_hash(guid, name_size, name);
 
-	for (int pos = 0; pos < context->max_variables; pos++) {
+	for (size_t pos = 0; pos < context->max_variables; pos++) {
 
 		if ((context->entries[pos].in_use) &&
 			(uid == context->entries[pos].info.metadata.uid)) {
@@ -79,7 +79,7 @@ static int find_free(
 {
 	int free_pos = -1;
 
-	for (int pos = 0; pos < context->max_variables; pos++) {
+	for (size_t pos = 0; pos < context->max_variables; pos++) {
 
 		if (!context->entries[pos].in_use) {
 
@@ -174,7 +174,7 @@ struct variable_info *variable_index_find_next(
 
 				/* Iterate to next used entry */
 				++pos;
-				while (pos < context->max_variables) {
+				while (pos < (int)context->max_variables) {
 
 					if (context->entries[pos].in_use &&
 						context->entries[pos].info.is_variable_set) {
@@ -198,7 +198,7 @@ struct variable_info *variable_index_find_next(
 			/* Find first */
 			int pos = 0;
 
-			while (pos < context->max_variables) {
+			while (pos < (int)context->max_variables) {
 
 				if (context->entries[pos].in_use &&
 					context->entries[pos].info.is_variable_set) {
@@ -293,6 +293,8 @@ void variable_index_remove_unused_entry(
 	struct variable_index *context,
 	struct variable_info *info)
 {
+	(void)context;
+
 	if (info &&
 		!info->is_constraints_set &&
 		!info->is_variable_set) {
@@ -320,6 +322,8 @@ void variable_index_clear_variable(
 	struct variable_index *context,
 	struct variable_info *info)
 {
+	(void)context;
+
 	if (info) {
 
 		struct variable_entry *entry = containing_entry(info);
@@ -351,7 +355,7 @@ bool variable_index_dump(
 	uint8_t *dump_pos = buffer;
 	size_t bytes_dumped = 0;
 
-	for (int pos = 0; pos < context->max_variables; pos++) {
+	for (size_t pos = 0; pos < context->max_variables; pos++) {
 
 		struct variable_entry *entry = &context->entries[pos];
 		struct variable_metadata *metadata = &entry->info.metadata;

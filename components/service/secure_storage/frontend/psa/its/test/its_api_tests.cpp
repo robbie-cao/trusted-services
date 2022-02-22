@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -55,7 +55,6 @@ void its_api_tests::storageLimitTest(size_t size_limit)
     struct psa_storage_info_t storage_info;
     static const size_t MAX_ITEM_SIZE = 10000;
     uint8_t item[MAX_ITEM_SIZE];
-    uint8_t read_item[MAX_ITEM_SIZE];
 
     memset(item, 0x55, sizeof(item));
 
