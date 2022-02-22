@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -55,7 +55,7 @@ static rpc_status_t get_handler(void *context, struct call_req *req)
 	request_desc = (struct secure_storage_request_get *)(req->req_buf.data);
 
 	/* Clip the requested data size if it's too big for the response buffer */
-	size_t data_size = (req->resp_buf.size < data_size) ?
+	size_t data_size = (req->resp_buf.size < request_desc->data_size) ?
 		req->resp_buf.size :
 		request_desc->data_size;
 
