@@ -1,15 +1,14 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <mbedtls/entropy.h>
 #include <service/crypto/backend/mbedcrypto/trng_adapter/trng_adapter.h>
+#include <psa/error.h>
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <errno.h>
-#include <sys/syscall.h>
-#include <unistd.h>
 
 /*
  * An mbed tls compatibile hardware entropy source that adapts the mbed tls hardware poll
@@ -19,6 +18,7 @@
 int trng_adapter_init(int instance)
 {
     (void)instance;
+    return PSA_SUCCESS;
 }
 
 void trng_adapter_deinit()
@@ -28,6 +28,8 @@ void trng_adapter_deinit()
 
 int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t *olen)
 {
+    (void)data;
+
     int status = MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
     *olen = 0;
 
