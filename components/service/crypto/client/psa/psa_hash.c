@@ -71,6 +71,11 @@ psa_status_t psa_hash_suspend(psa_hash_operation_t *operation,
 	size_t hash_state_size,
 	size_t *hash_state_length)
 {
+	(void)operation;
+	(void)hash_state;
+	(void)hash_state_size;
+	(void)hash_state_length;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 
@@ -78,6 +83,10 @@ psa_status_t psa_hash_resume(psa_hash_operation_t *operation,
 	const uint8_t *hash_state,
 	size_t hash_state_length)
 {
+	(void)operation;
+	(void)hash_state;
+	(void)hash_state_length;
+
 	return PSA_ERROR_NOT_SUPPORTED;
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -321,23 +321,6 @@ static inline psa_status_t crypto_caller_hash_clone(struct service_client *conte
 	}
 
 	return psa_status;
-}
-
-static inline psa_status_t crypto_caller_hash_suspend(struct service_client *context,
-	uint32_t op_handle,
-	uint8_t *hash_state,
-	size_t hash_state_size,
-	size_t *hash_state_length)
-{
-	return PSA_ERROR_NOT_SUPPORTED;
-}
-
-static inline psa_status_t crypto_caller_hash_resume(struct service_client *context,
-	uint32_t op_handle,
-	const uint8_t *hash_state,
-	size_t hash_state_length)
-{
-	return PSA_ERROR_NOT_SUPPORTED;
 }
 
 static inline size_t crypto_caller_hash_max_update_size(const struct service_client *context)
