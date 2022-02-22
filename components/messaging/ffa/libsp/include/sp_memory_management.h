@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #ifndef LIBSP_INCLUDE_SP_MEMORY_MANAGEMENT_H_
@@ -244,6 +244,36 @@ struct sp_memory_region {
 };
 
 /**
+ * @brief	Enum for describing data access permissions in
+ *		sp_memory_permission_get/set calls (FFA_MEM_PERM_GET/SET).
+ */
+enum sp_mem_perm_data_access_permission {
+	sp_mem_perm_data_perm_no_access = 0x00,
+	sp_mem_perm_data_perm_read_write = 0x01,
+	sp_mem_perm_data_perm_reserved = 0x02,
+	sp_mem_perm_data_perm_read_only = 0x03
+};
+
+/**
+ * @brief	Enum for describing instruction access permissions in
+ *		sp_memory_permission_get/set calls (FFA_MEM_PERM_GET/SET).
+ */
+enum sp_mem_perm_instruction_access_permission {
+	sp_mem_perm_instruction_perm_executable = 0x00,
+	sp_mem_perm_instruction_perm_non_executable = 0x01
+};
+
+/**
+ * @brief	Struct for describing memory access setting in
+ *		sp_memory_permission_get/set calls (FFA_MEM_PERM_GET/SET).
+ *
+ */
+struct sp_mem_perm {
+	enum sp_mem_perm_data_access_permission data_access;
+	enum sp_mem_perm_instruction_access_permission instruction_access;
+};
+
+/**
  * @brief      Starts a transaction to transfer of ownership of a memory region
  *             from a Sender endpoint to a Receiver endpoint.
  *
@@ -408,6 +438,37 @@ sp_result sp_memory_relinquish(uint64_t handle, const uint16_t endpoints[],
  * @return     The SP API result
  */
 sp_result sp_memory_reclaim(uint64_t handle, uint32_t flags);
+
+/**
+ * @brief       Queries the memory attributes of a memory region. It can only
+ *              access the regions of the SP's own translation regine. Moreover
+ *              this function is only available in the boot phase, i.e. before
+ *              calling sp_msg_wait.
+ *
+ *
+ * @param[in]   base_address    Base VA of a translation granule whose
+ *                              permission attributes must be returned.
+ * @param[out]  mem_perm        Permission attributes of the memory region
+ * @return      The SP API result
+ */
+sp_result sp_memory_permission_get(const void *base_address,
+				   struct sp_mem_perm *mem_perm);
+
+/**
+ * @brief       Sets the memory attributes of a memory regions. It can only
+ *              access the regions of the SP's own translation regine. Moreover
+ *              this function is only available in the boot phase, i.e. before
+ *              calling sp_msg_wait.
+ *
+ * @param[in]   base_address    Base VA of a memory region whose permission
+ *                              attributes must be set.
+ * @param[in]   region_size     Memory regions size in bytes
+ * @param[in]   mem_perm        Permission attributes to be set for the memory
+ *                              region
+ * @return      The SP API result
+ */
+sp_result sp_memory_permission_set(const void *base_address, size_t region_size,
+				   const struct sp_mem_perm *mem_perm);
 
 #ifdef __cplusplus
 }

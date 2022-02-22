@@ -1550,3 +1550,203 @@ TEST(sp_memory_management, sp_memory_reclaim)
 	expect_ffa_mem_reclaim(handle, flags, FFA_OK);
 	LONGS_EQUAL(SP_RESULT_OK, sp_memory_reclaim(handle, flags));
 }
+
+TEST_GROUP(sp_memory_permission) {
+	TEST_SETUP()
+	{
+		memset(&mem_perm, 0x00, sizeof(mem_perm));
+	}
+
+	TEST_TEARDOWN()
+	{
+		mock().checkExpectations();
+		mock().clear();
+	}
+
+	const void *valid_base_address = (const void *)0xfffff000;
+	const void *invalid_base_address = (const void *)0xfffff800;
+	size_t valid_size = 0x0000f000;
+	size_t invalid_size = 0x0000f800;
+	struct sp_mem_perm mem_perm;
+};
+
+TEST(sp_memory_permission, sp_memory_permission_get_base_null)
+{
+	LONGS_EQUAL(SP_RESULT_INVALID_PARAMETERS,
+		    sp_memory_permission_get(NULL, &mem_perm));
+}
+
+TEST(sp_memory_permission, sp_memory_permission_get_mem_perm_null)
+{
+	LONGS_EQUAL(SP_RESULT_INVALID_PARAMETERS,
+		    sp_memory_permission_get(valid_base_address, NULL));
+}
+
+TEST(sp_memory_permission, sp_memory_permission_get_invalid_address)
+{
+	LONGS_EQUAL(SP_RESULT_INVALID_PARAMETERS,
+		    sp_memory_permission_get(invalid_base_address, &mem_perm));
+}
+
+TEST(sp_memory_permission, sp_memory_permission_get_ffa_error)
+{
+	ffa_result result = FFA_ABORTED;
+	const uint32_t raw_perm = 0x7;
+
+	expect_ffa_mem_perm_get(valid_base_address, &raw_perm, result);
+	LONGS_EQUAL(SP_RESULT_FFA(result),
+		    sp_memory_permission_get(valid_base_address, &mem_perm));
+}
+
+TEST(sp_memory_permission, sp_memory_permission_get_reserved_data_perm)
+{
+	const uint32_t raw_perm = 0x02;
+
+	expect_ffa_mem_perm_get(valid_base_address, &raw_perm, FFA_OK);
+	LONGS_EQUAL(SP_RESULT_INTERNAL_ERROR,
+		    sp_memory_permission_get(valid_base_address, &mem_perm));
+}
+
+TEST(sp_memory_permission, sp_memory_permission_get_no_data_access)
+{
+	const uint32_t raw_perm = 0x00;
+
+	expect_ffa_mem_perm_get(valid_base_address, &raw_perm, FFA_OK);
+	LONGS_EQUAL(SP_RESULT_OK,
+		    sp_memory_permission_get(valid_base_address, &mem_perm));
+	CHECK_EQUAL(sp_mem_perm_data_perm_no_access, mem_perm.data_access);
+	CHECK_EQUAL(sp_mem_perm_instruction_perm_executable, mem_perm.instruction_access);
+}
+
+TEST(sp_memory_permission, sp_memory_permission_get_rw_data_access)
+{
+	const uint32_t raw_perm = 0x01;
+
+	expect_ffa_mem_perm_get(valid_base_address, &raw_perm, FFA_OK);
+	LONGS_EQUAL(SP_RESULT_OK,
+		    sp_memory_permission_get(valid_base_address, &mem_perm));
+	CHECK_EQUAL(sp_mem_perm_data_perm_read_write, mem_perm.data_access);
+	CHECK_EQUAL(sp_mem_perm_instruction_perm_executable, mem_perm.instruction_access);
+}
+
+TEST(sp_memory_permission, sp_memory_permission_get_ro_data_access)
+{
+	const uint32_t raw_perm = 0x03;
+
+	expect_ffa_mem_perm_get(valid_base_address, &raw_perm, FFA_OK);
+	LONGS_EQUAL(SP_RESULT_OK,
+		    sp_memory_permission_get(valid_base_address, &mem_perm));
+	CHECK_EQUAL(sp_mem_perm_data_perm_read_only, mem_perm.data_access);
+	CHECK_EQUAL(sp_mem_perm_instruction_perm_executable, mem_perm.instruction_access);
+}
+
+TEST(sp_memory_permission, sp_memory_permission_get_non_executable)
+{
+	const uint32_t raw_perm = 0x07;
+
+	expect_ffa_mem_perm_get(valid_base_address, &raw_perm, FFA_OK);
+	LONGS_EQUAL(SP_RESULT_OK,
+		    sp_memory_permission_get(valid_base_address, &mem_perm));
+	CHECK_EQUAL(sp_mem_perm_data_perm_read_only, mem_perm.data_access);
+	CHECK_EQUAL(sp_mem_perm_instruction_perm_non_executable, mem_perm.instruction_access);
+}
+
+TEST(sp_memory_permission, sp_memory_permission_set_base_null)
+{
+	LONGS_EQUAL(SP_RESULT_INVALID_PARAMETERS,
+		    sp_memory_permission_set(NULL, valid_size, &mem_perm));
+}
+
+TEST(sp_memory_permission, sp_memory_permission_set_size_zero)
+{
+	LONGS_EQUAL(SP_RESULT_INVALID_PARAMETERS,
+		    sp_memory_permission_set(valid_base_address, 0, &mem_perm));
+}
+
+TEST(sp_memory_permission, sp_memory_permission_set_mem_perm_null)
+{
+	LONGS_EQUAL(SP_RESULT_INVALID_PARAMETERS,
+		    sp_memory_permission_set(valid_base_address, valid_size, NULL));
+}
+
+TEST(sp_memory_permission, sp_memory_permission_set_mem_perm_rwx)
+{
+	mem_perm.data_access = sp_mem_perm_data_perm_read_write;
+	mem_perm.instruction_access = sp_mem_perm_instruction_perm_executable;
+
+	LONGS_EQUAL(SP_RESULT_INVALID_PARAMETERS,
+		    sp_memory_permission_set(valid_base_address, valid_size, &mem_perm));
+}
+
+TEST(sp_memory_permission, sp_memory_permission_set_invalid_data_perm)
+{
+	mem_perm.data_access = sp_mem_perm_data_perm_reserved;
+
+	LONGS_EQUAL(SP_RESULT_INVALID_PARAMETERS,
+		    sp_memory_permission_set(valid_base_address, valid_size, &mem_perm));
+}
+
+TEST(sp_memory_permission, sp_memory_permission_set_invalid_instruction_perm)
+{
+	mem_perm.instruction_access = (sp_mem_perm_instruction_access_permission)0xff;
+
+	LONGS_EQUAL(SP_RESULT_INVALID_PARAMETERS,
+		    sp_memory_permission_set(valid_base_address, valid_size, &mem_perm));
+}
+
+TEST(sp_memory_permission, sp_memory_permission_set_invalid_base_addr)
+{
+	mem_perm.data_access = sp_mem_perm_data_perm_read_write;
+	mem_perm.instruction_access = sp_mem_perm_instruction_perm_non_executable;
+
+	LONGS_EQUAL(SP_RESULT_INVALID_PARAMETERS,
+		    sp_memory_permission_set(invalid_base_address, valid_size, &mem_perm));
+}
+
+TEST(sp_memory_permission, sp_memory_permission_set_invalid_region_size)
+{
+	mem_perm.data_access = sp_mem_perm_data_perm_read_write;
+	mem_perm.instruction_access = sp_mem_perm_instruction_perm_non_executable;
+
+	LONGS_EQUAL(SP_RESULT_INVALID_PARAMETERS,
+		    sp_memory_permission_set(valid_base_address, invalid_size, &mem_perm));
+}
+
+TEST(sp_memory_permission, sp_memory_permission_set_too_large_region_size)
+{
+	mem_perm.data_access = sp_mem_perm_data_perm_read_write;
+	mem_perm.instruction_access = sp_mem_perm_instruction_perm_non_executable;
+
+	LONGS_EQUAL(SP_RESULT_INVALID_PARAMETERS,
+		    sp_memory_permission_set(valid_base_address, 0x100000000000UL, &mem_perm));
+}
+
+TEST(sp_memory_permission, sp_memory_permission_set_ronx)
+{
+	mem_perm.data_access = sp_mem_perm_data_perm_read_only;
+	mem_perm.instruction_access = sp_mem_perm_instruction_perm_non_executable;
+
+	expect_ffa_mem_perm_set(valid_base_address, valid_size / 4096, 0x07, FFA_OK);
+	LONGS_EQUAL(SP_RESULT_OK,
+		    sp_memory_permission_set(valid_base_address, valid_size, &mem_perm));
+}
+
+TEST(sp_memory_permission, sp_memory_permission_set_rwnx)
+{
+	mem_perm.data_access = sp_mem_perm_data_perm_read_write;
+	mem_perm.instruction_access = sp_mem_perm_instruction_perm_non_executable;
+
+	expect_ffa_mem_perm_set(valid_base_address, valid_size / 4096, 0x05, FFA_OK);
+	LONGS_EQUAL(SP_RESULT_OK,
+		    sp_memory_permission_set(valid_base_address, valid_size, &mem_perm));
+}
+
+TEST(sp_memory_permission, sp_memory_permission_set_rox)
+{
+	mem_perm.data_access = sp_mem_perm_data_perm_read_only;
+	mem_perm.instruction_access = sp_mem_perm_instruction_perm_executable;
+
+	expect_ffa_mem_perm_set(valid_base_address, valid_size / 4096, 0x03, FFA_OK);
+	LONGS_EQUAL(SP_RESULT_OK,
+		    sp_memory_permission_set(valid_base_address, valid_size, &mem_perm));
+}

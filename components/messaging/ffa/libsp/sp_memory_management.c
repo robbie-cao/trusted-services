@@ -673,3 +673,104 @@ sp_result sp_memory_reclaim(uint64_t handle, uint32_t flags)
 {
 	return SP_RESULT_FFA(ffa_mem_reclaim(handle, flags));
 }
+
+sp_result sp_memory_permission_get(const void *base_address,
+				   struct sp_mem_perm *mem_perm)
+{
+	sp_result sp_res = SP_RESULT_OK;
+	ffa_result result = FFA_OK;
+	uint32_t raw_mem_perm = 0;
+
+	/* Checking for invalid parameters*/
+	if (!base_address || !mem_perm)
+		return SP_RESULT_INVALID_PARAMETERS;
+
+	/* Checking address alignment */
+	if (((uintptr_t)base_address & FFA_MEM_PERM_PAGE_MASK) != 0)
+		return SP_RESULT_INVALID_PARAMETERS;
+
+	/* Mapping the buffers */
+	result = ffa_mem_perm_get(base_address, &raw_mem_perm);
+	if (result != FFA_OK)
+		return SP_RESULT_FFA(result);
+
+	/* Parsing permissions */
+	switch (raw_mem_perm & FFA_MEM_PERM_DATA_ACCESS_PERM_MASK) {
+	case FFA_MEM_PERM_DATA_ACCESS_PERM_NO_ACCESS:
+		mem_perm->data_access = sp_mem_perm_data_perm_no_access;
+		break;
+	case FFA_MEM_PERM_DATA_ACCESS_PERM_RW:
+		mem_perm->data_access = sp_mem_perm_data_perm_read_write;
+		break;
+	case FFA_MEM_PERM_DATA_ACCESS_PERM_RO:
+		mem_perm->data_access = sp_mem_perm_data_perm_read_only;
+		break;
+	default:
+		return SP_RESULT_INTERNAL_ERROR;
+	}
+
+	if ((raw_mem_perm & FFA_MEM_PERM_INSTRUCTION_ACCESS_PERM_MASK) ==
+	    FFA_MEM_PERM_INSTRUCTION_ACCESS_PERM_X)
+		mem_perm->instruction_access = sp_mem_perm_instruction_perm_executable;
+	else
+		mem_perm->instruction_access = sp_mem_perm_instruction_perm_non_executable;
+
+	return SP_RESULT_OK;
+}
+
+sp_result sp_memory_permission_set(const void *base_address, size_t region_size,
+				   const struct sp_mem_perm *mem_perm)
+{
+	sp_result sp_res = SP_RESULT_OK;
+	uint32_t raw_mem_perm = 0;
+
+	/* Checking for invalid parameters*/
+	if (!base_address || !region_size || !mem_perm)
+		return SP_RESULT_INVALID_PARAMETERS;
+
+	/* RW and X permissions is prohibited */
+	if (mem_perm->data_access == sp_mem_perm_data_perm_read_write &&
+	    mem_perm->instruction_access == sp_mem_perm_instruction_perm_executable)
+		return SP_RESULT_INVALID_PARAMETERS;
+
+	switch (mem_perm->data_access) {
+	case sp_mem_perm_data_perm_no_access:
+		raw_mem_perm |= FFA_MEM_PERM_DATA_ACCESS_PERM_NO_ACCESS <<
+				FFA_MEM_ACCESS_PERM_DATA_SHIFT;
+		break;
+	case sp_mem_perm_data_perm_read_write:
+		raw_mem_perm |= FFA_MEM_PERM_DATA_ACCESS_PERM_RW <<
+				FFA_MEM_ACCESS_PERM_DATA_SHIFT;
+		break;
+	case sp_mem_perm_data_perm_read_only:
+		raw_mem_perm |= FFA_MEM_PERM_DATA_ACCESS_PERM_RO <<
+				FFA_MEM_ACCESS_PERM_DATA_SHIFT;
+		break;
+	default:
+		return SP_RESULT_INVALID_PARAMETERS;
+	}
+
+	switch (mem_perm->instruction_access) {
+	case sp_mem_perm_instruction_perm_executable:
+		raw_mem_perm |= FFA_MEM_PERM_INSTRUCTION_ACCESS_PERM_X;
+		break;
+	case sp_mem_perm_instruction_perm_non_executable:
+		raw_mem_perm |= FFA_MEM_PERM_INSTRUCTION_ACCESS_PERM_NX;
+		break;
+	default:
+		return SP_RESULT_INVALID_PARAMETERS;
+	}
+
+	/* Checking address alignment */
+	if (((uintptr_t)base_address & FFA_MEM_PERM_PAGE_MASK) != 0 ||
+	    (region_size & FFA_MEM_PERM_PAGE_MASK) != 0)
+		return SP_RESULT_INVALID_PARAMETERS;
+
+	/* Calculating page count */
+	region_size /= FFA_MEM_PERM_PAGE_SIZE;
+	if (region_size > FFA_MEM_PERM_PAGE_COUNT_MAX)
+		return SP_RESULT_INVALID_PARAMETERS;
+
+	/* Changing memory permissions */
+	return SP_RESULT_FFA(ffa_mem_perm_set(base_address, region_size, raw_mem_perm));
+}
