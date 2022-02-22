@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -72,7 +72,7 @@ void config_ramstore_deinit(void)
 	while (ramstore.object_list) {
 
 		struct config_container *next = ramstore.object_list->next;
-		free(ramstore.object_list);
+		config_container_destroy(ramstore.object_list);
 		ramstore.object_list = next;
 	}
 }
