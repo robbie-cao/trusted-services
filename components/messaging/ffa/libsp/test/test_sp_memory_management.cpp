@@ -1121,7 +1121,6 @@ TEST(sp_memory_management, sp_memory_retrieve_ffa_error)
 
 	expect_sp_rxtx_buffer_tx_get(&tx_buffer, &buffer_size, SP_RESULT_OK);
 	expect_sp_rxtx_buffer_rx_get(&rx_buffer, &buffer_size, SP_RESULT_OK);
-	expect_ffa_rx_release(FFA_OK);
 	expect_ffa_mem_retrieve_req_rxtx(expected_size, expected_size,
 					 &resp_total_length,
 					 &resp_fragment_length, result);
