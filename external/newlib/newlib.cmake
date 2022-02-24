@@ -52,6 +52,24 @@ find_library(NEWLIB_LIBNOSYS_PATH
 set(NEWLIB_LIBNOSYS_PATH ${NEWLIB_LIBNOSYS_PATH})
 unset(NEWLIB_LIBNOSYS_PATH CACHE)
 
+# -noxxx options require explicitly naming GCC specific library on the
+# linker command line.
+include(${TS_ROOT}/tools/cmake/compiler/GCC.cmake)
+gcc_get_lib_location(LIBRARY_NAME "libgcc.a" RES _TMP_VAR)
+set(_LIBGCC_PATH ${_TMP_VAR})
+# Moreover the GCC specific header file include directory is also required.
+# There is no way to stop cmake from filtering out built in compiler include paths
+# from compiler command line (see https://gitlab.kitware.com/cmake/cmake/-/issues/19227)
+# As a workaround copy headers to build directory and set include path to the new
+# location.
+get_filename_component(_TMP_VAR "${_TMP_VAR}" DIRECTORY)
+file(COPY "${_TMP_VAR}/include" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/gcc_include)
+file(COPY "${_TMP_VAR}/include-fixed" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/gcc-include)
+set(_libgcc_includes
+	"${CMAKE_CURRENT_BINARY_DIR}/gcc_include/include"
+	"${CMAKE_CURRENT_BINARY_DIR}/gcc-include/include-fixed")
+unset(_TMP_VAR)
+
 if (NOT NEWLIB_LIBC_PATH)
 	# Determine the number of processes to run while running parallel builds.
 	# Pass -DPROCESSOR_COUNT=<n> to cmake to override.
@@ -108,6 +126,9 @@ if (NOT NEWLIB_LIBC_PATH)
 		set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${NEWLIB_SOURCE_DIR})
 	endif()
 
+	string(REPLACE ";" " -isystem " CFLAGS_FOR_TARGET "${_libgcc_includes}")
+	set(CFLAGS_FOR_TARGET "-isystem ${CFLAGS_FOR_TARGET} -fpic")
+
 	# Newlib configure step
 	# CC env var must be unset otherwise configure will assume the cross compiler is the host
 	# compiler.
@@ -122,7 +143,7 @@ if (NOT NEWLIB_LIBC_PATH)
 			--enable-newlib-reent-small
 			--enable-newlib-global-atexit
 			--disable-multilib
-			CFLAGS_FOR_TARGET=-fpic
+			CFLAGS_FOR_TARGET=${CFLAGS_FOR_TARGET}
 			LDFLAGS_FOR_TARGET=-fpie
 		WORKING_DIRECTORY
 			${NEWLIB_SOURCE_DIR}
@@ -167,11 +188,17 @@ set_property(DIRECTORY ${CMAKE_SOURCE_DIR}
 
 # libc
 add_library(c STATIC IMPORTED)
+target_link_libraries(c INTERFACE "${_LIBGCC_PATH}")
+unset(_LIBGCC_PATH)
 set_property(TARGET c PROPERTY IMPORTED_LOCATION "${NEWLIB_LIBC_PATH}")
 set_property(TARGET c PROPERTY
 		INTERFACE_INCLUDE_DIRECTORIES "${NEWLIB_INSTALL_DIR}/${COMPILER_PREFIX}/include")
 target_compile_options(c INTERFACE -nostdinc)
 target_link_options(c INTERFACE -nostartfiles -nodefaultlibs)
+target_include_directories(c SYSTEM INTERFACE ${_libgcc_includes})
+
+# Make standard library available in the build system.
+add_library(stdlib::c ALIAS c)
 
 # libnosys
 add_library(nosys STATIC IMPORTED)
@@ -181,23 +208,3 @@ set_property(TARGET nosys PROPERTY
 target_compile_options(nosys INTERFACE -nostdinc)
 target_link_options(nosys INTERFACE -nostartfiles -nodefaultlibs)
 target_link_libraries(c INTERFACE nosys)
-
-# Make standard library available in the build system.
-add_library(stdlib::c ALIAS c)
-
-# -noxxx options above require explicitly naming GCC specific library on the
-# linker command line.
-include(${TS_ROOT}/tools/cmake/compiler/GCC.cmake)
-gcc_get_lib_location(LIBRARY_NAME "libgcc.a" RES _TMP_VAR)
-link_libraries(${_TMP_VAR})
-# Moreover the GCC specific header file include directory is also required.
-# There is no way to stop cmake from filtering out built in compiler include paths
-# from compiler command line (see https://gitlab.kitware.com/cmake/cmake/-/issues/19227)
-# As a workaround copy headers to build directory and set include path to the new
-# location.
-get_filename_component(_TMP_VAR "${_TMP_VAR}" DIRECTORY)
-file(COPY "${_TMP_VAR}/include" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/gcc_include)
-file(COPY "${_TMP_VAR}/include-fixed" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/gcc-include)
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/gcc_include/include")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/gcc-include/include-fixed")
-unset(_TMP_VAR)
