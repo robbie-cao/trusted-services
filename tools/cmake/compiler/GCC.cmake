@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2019-2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2019-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -275,7 +275,12 @@ function(gcc_get_lib_location)
 		)
 
 	if(_GCC_ERROR_CODE GREATER 0)
-		message(WARNING "GCC (${CMAKE_C_COMPILER}) invocation failed, can not determine location of library ${MY_LIBRARY_NAME}.")
+		message(WARNING "GCC (${CMAKE_C_COMPILER}) invocation failed, cannot determine location of library \"${MY_LIBRARY_NAME}\".")
+		set(_RES "${LIBRARY_NAME}-NOTFOUND")
+	endif()
+
+	if (NOT IS_ABSOLUTE "${_RES}")
+		message(WARNING "GCC (${CMAKE_C_COMPILER}) failed to return the location of file \"${MY_LIBRARY_NAME}\".")
 		set(_RES "${LIBRARY_NAME}-NOTFOUND")
 	endif()
 
