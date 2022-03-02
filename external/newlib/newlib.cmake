@@ -52,22 +52,51 @@ find_library(NEWLIB_LIBNOSYS_PATH
 set(NEWLIB_LIBNOSYS_PATH ${NEWLIB_LIBNOSYS_PATH})
 unset(NEWLIB_LIBNOSYS_PATH CACHE)
 
-# -noxxx options require explicitly naming GCC specific library on the
+# -noxxx options require explicitly specifying GCC specific library on the
 # linker command line.
-include(${TS_ROOT}/tools/cmake/compiler/GCC.cmake)
-gcc_get_lib_location(LIBRARY_NAME "libgcc.a" RES _TMP_VAR)
-set(_LIBGCC_PATH ${_TMP_VAR})
+# Use LIBGCC_PATH to manually override the search process below.
+if (NOT DEFINED LIBGCC_PATH)
+	include(${TS_ROOT}/tools/cmake/compiler/GCC.cmake)
+	gcc_get_lib_location(LIBRARY_NAME "libgcc.a" RES _TMP_VAR)
+
+	if (NOT _TMP_VAR)
+		message(FATAL_ERROR "Location of libgcc.a can not be determined. Please set LIBGCC_PATH on the command line.")
+	endif()
+	set(LIBGCC_PATH ${_TMP_VAR} CACHE PATH "location of libgcc.a")
+	unset(_TMP_VAR)
+endif()
+
+if(NOT EXISTS "${LIBGCC_PATH}" OR IS_DIRECTORY "${LIBGCC_PATH}")
+	message(FATAL_ERROR "LIBGCC_PATH \"${LIBGCC_PATH}\" must be the full path of a library file."
+						" Either set LIBGCC_PATH on the command line, or fix the value if already set.")
+endif()
+message(STATUS "libgcc.a is used from ${LIBGCC_PATH}")
+
 # Moreover the GCC specific header file include directory is also required.
+# Specify LIBGCC_INCLUDE_DIRS in the command line to manually override the libgcc relative location below.
+if(NOT DEFINED LIBGCC_INCLUDE_DIRS)
+	get_filename_component(_TMP_VAR "${LIBGCC_PATH}" DIRECTORY)
+	set(LIBGCC_INCLUDE_DIRS
+		"${_TMP_VAR}/include"
+		"${_TMP_VAR}/include-fixed" CACHE STRING "GCC specific include PATHs")
+	unset(_TMP_VAR)
+endif()
+
 # There is no way to stop cmake from filtering out built in compiler include paths
 # from compiler command line (see https://gitlab.kitware.com/cmake/cmake/-/issues/19227)
 # As a workaround copy headers to build directory and set include path to the new
 # location.
-get_filename_component(_TMP_VAR "${_TMP_VAR}" DIRECTORY)
-file(COPY "${_TMP_VAR}/include" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/gcc_include)
-file(COPY "${_TMP_VAR}/include-fixed" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/gcc-include)
-set(_libgcc_includes
-	"${CMAKE_CURRENT_BINARY_DIR}/gcc_include/include"
-	"${CMAKE_CURRENT_BINARY_DIR}/gcc-include/include-fixed")
+foreach(_dir IN LISTS LIBGCC_INCLUDE_DIRS)
+	if(NOT IS_DIRECTORY "${_dir}")
+		message(FATAL_ERROR "GCC specific include PATH \"${_dir}\" does not exist. Try setting LIBGCC_INCLUDE_DIRS"
+							" on the command line.")
+	endif()
+	file(COPY "${_dir}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/gcc-include")
+	get_filename_component(_TMP_VAR "${_dir}" NAME)
+	list(APPEND _gcc_include_dirs "${CMAKE_CURRENT_BINARY_DIR}/gcc-include/${_TMP_VAR}")
+	message(STATUS "Using compiler specific include path \"${_dir}\" mirrored to"
+					"  \"${CMAKE_CURRENT_BINARY_DIR}/gcc-include/${_TMP_VAR}\".")
+endforeach()
 unset(_TMP_VAR)
 
 if (NOT NEWLIB_LIBC_PATH)
@@ -126,7 +155,7 @@ if (NOT NEWLIB_LIBC_PATH)
 		set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${NEWLIB_SOURCE_DIR})
 	endif()
 
-	string(REPLACE ";" " -isystem " CFLAGS_FOR_TARGET "${_libgcc_includes}")
+	string(REPLACE ";" " -isystem " CFLAGS_FOR_TARGET "${_gcc_include_dirs}")
 	set(CFLAGS_FOR_TARGET "-isystem ${CFLAGS_FOR_TARGET} -fpic")
 
 	# Newlib configure step
@@ -188,14 +217,13 @@ set_property(DIRECTORY ${CMAKE_SOURCE_DIR}
 
 # libc
 add_library(c STATIC IMPORTED)
-target_link_libraries(c INTERFACE "${_LIBGCC_PATH}")
-unset(_LIBGCC_PATH)
+link_libraries(c INTERFACE ${LIBGCC_PATH})
 set_property(TARGET c PROPERTY IMPORTED_LOCATION "${NEWLIB_LIBC_PATH}")
 set_property(TARGET c PROPERTY
 		INTERFACE_INCLUDE_DIRECTORIES "${NEWLIB_INSTALL_DIR}/${COMPILER_PREFIX}/include")
 target_compile_options(c INTERFACE -nostdinc)
 target_link_options(c INTERFACE -nostartfiles -nodefaultlibs)
-target_include_directories(c SYSTEM INTERFACE ${_libgcc_includes})
+target_include_directories(c SYSTEM INTERFACE ${_gcc_include_dirs})
 
 # Make standard library available in the build system.
 add_library(stdlib::c ALIAS c)
