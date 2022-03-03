@@ -79,6 +79,17 @@ compiler_generate_stripped_elf(TARGET sfs-demo NAME "${SP_UUID}.stripped.elf" RE
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "location to install build output to." FORCE)
 endif()
-#TODO: API header, protobuf files?
-install(TARGETS sfs-demo DESTINATION ${TS_ENV}/bin)
+install(TARGETS sfs-demo
+			PUBLIC_HEADER DESTINATION ${TS_ENV}/include
+			RUNTIME DESTINATION ${TS_ENV}/bin
+		)
 install(FILES ${STRIPPED_ELF} DESTINATION ${TS_ENV}/bin)
+
+include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
+export_sp(
+	SP_UUID ${SP_UUID}
+	SP_NAME "sfs-demo"
+	MK_IN ${TS_ROOT}/environments/opteesp/sp.mk.in
+	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_sfs-demo.dts.in
+	JSON_IN ${TS_ROOT}/environments/opteesp/sp_pkg.json.in
+)
