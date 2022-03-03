@@ -16,6 +16,7 @@
 	execution-state = <0>; /* AArch64 */
 	xlat-granule = <0>; /* 4KiB */
 	messaging-method = <0>; /* Direct messaging only */
+	legacy-elf-format = <1>;
 
 	boot-params {
 		compatible = "arm,ffa-manifest-boot-params";
