@@ -10,7 +10,7 @@ include(../../deployment.cmake REQUIRED)
 #-------------------------------------------------------------------------------
 #  The CMakeLists.txt for building the libsp deployment for opteesp
 #
-#  Used for building the libsp library that provides FFA related functons
+#  Used for building the libsp library that provides FFA related functions
 #  for applications deployed in a secure partition.
 #-------------------------------------------------------------------------------
 include(${TS_ROOT}/environments/opteesp/env.cmake)
@@ -25,21 +25,32 @@ project(trusted-services
 
 add_library(sp STATIC)
 
-add_components(TARGET "sp"
+add_components(TARGET sp
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		components/messaging/ffa/libsp
 		components/common/utils
 )
 
-target_compile_definitions("sp" PRIVATE
+# Include newlib into the build, but do no add SP executable specific files to libsp.
+# Use a dummy target which will never be built.
+add_library(dummy EXCLUDE_FROM_ALL)
+add_components(TARGET dummy
+	BASE_DIR ${TS_ROOT}
+	COMPONENTS
+		environments/opteesp
+)
+
+# Get libc specific settings from newlib.
+target_link_libraries(sp PRIVATE stdlib::c)
+
+target_compile_definitions(sp PRIVATE
 	ARM64=1
 )
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
-	target_compile_options("sp" PRIVATE
+	target_compile_options(sp PRIVATE
 		-fdiagnostics-show-option
-		-fpic
 		-gdwarf-2
 		-mstrict-align
 		-O0
