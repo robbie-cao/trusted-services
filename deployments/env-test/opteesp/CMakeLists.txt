@@ -32,6 +32,7 @@ set(TRACE_PREFIX "ENVTEST" CACHE STRING "Trace prefix")
 add_components(TARGET "env-test"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+		"components/common/fdt"
 		"components/common/trace"
 		"components/common/utils"
 		"components/config/loader/sp"

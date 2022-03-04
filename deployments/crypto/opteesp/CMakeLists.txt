@@ -31,6 +31,7 @@ set(TRACE_PREFIX "CRYPTO" CACHE STRING "Trace prefix")
 add_components(TARGET "crypto-sp"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+		"components/common/fdt"
 		"components/common/tlv"
 		"components/common/trace"
 		"components/common/utils"

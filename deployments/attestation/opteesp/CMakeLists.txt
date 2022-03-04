@@ -37,6 +37,7 @@ set(TS_NO_FLOAT_HW ON)
 add_components(TARGET "attestation"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+		"components/common/fdt"
 		"components/common/tlv"
 		"components/common/trace"
 		"components/common/utils"

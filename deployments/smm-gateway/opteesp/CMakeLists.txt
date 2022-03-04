@@ -34,6 +34,7 @@ set(MM_COMM_BUFFER_PAGE_COUNT "8" CACHE STRING "Size of the MM communicate buffe
 add_components(TARGET "smm-gateway"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+		"components/common/fdt"
 		"components/common/trace"
 		"components/common/utils"
 		"components/common/uuid"

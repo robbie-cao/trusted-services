@@ -31,6 +31,7 @@ set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 add_components(TARGET "se-proxy"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+		"components/common/fdt"
 		"components/common/trace"
 		"components/common/utils"
 		"protocols/rpc/common/packed-c"
