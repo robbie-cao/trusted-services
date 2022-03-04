@@ -50,9 +50,12 @@ set(GIT_OPTIONS
 		COMMAND git apply ${CMAKE_CURRENT_LIST_DIR}/fix-pyhon-name.patch
   )
 
-if (NOT "${NANOPB_EXTERNAL_INCLUDE_PATHS}" STREQUAL "")
-	string(REPLACE ";" " " NANOPB_EXTERNAL_INCLUDE_PATHS "${NANOPB_EXTERNAL_INCLUDE_PATHS}")
-endif()
+# Convert include path list to string
+foreach(_var IN ITEMS NANOPB_EXTERNAL_INCLUDE_PATHS NANOPB_EXTERNAL_SYSTEM_INCLUDE_PATHS)
+	if (NOT "${${_var}}" STREQUAL "")
+		string(REPLACE ";" " " ${_var} "${${_var}}")
+	endif()
+endforeach()
 
 include(${TS_ROOT}/tools/cmake/common/LazyFetch.cmake REQUIRED)
 LazyFetch_MakeAvailable(DEP_NAME nanopb
