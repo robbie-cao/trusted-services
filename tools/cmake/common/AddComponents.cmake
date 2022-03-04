@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -50,11 +50,10 @@ function(add_components)
 		set(MY_PARAMS_BASE_DIR "${MY_PARAMS_BASE_DIR}/")
 	endif()
 
-	set(TGT ${MY_PARAMS_TARGET} CACHE STRING "")
+	set(TGT ${MY_PARAMS_TARGET})
 	foreach(_comp IN ITEMS ${MY_PARAMS_COMPONENTS})
 		set(_file ${MY_PARAMS_BASE_DIR}${_comp}/component.cmake)
 		include(${_file})
 		set(CMAKE_CONFIGURE_DEPENDS ${_file})
 	endforeach()
-	unset(TGT CACHE)
 endfunction()
