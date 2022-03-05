@@ -19,12 +19,35 @@ set(GIT_OPTIONS
 	PATCH_COMMAND git stash
 		COMMAND git branch -f bf-patch
 		COMMAND git am ${CMAKE_CURRENT_LIST_DIR}/0001-add-install-definition.patch
+						${CMAKE_CURRENT_LIST_DIR}/0002-Fix-stop-overriding-C_FLAGS-from-environment.patch
 		COMMAND git reset bf-patch
 )
 
+include(${TS_ROOT}/tools/cmake/common/PropertyCopy.cmake)
+
+# Only pass libc settings to t-cose if needed. For environments where the standard
+# library is not overridden, this is not needed.
+if(TARGET stdlib::c)
+	# Save libc settings
+	save_interface_target_properties(TGT stdlib::c PREFIX LIBC)
+	# Translate libc settings to cmake code fragment. Will be inserted into
+	# t_cose-init-cache.cmake.in when LazyFetch configures the file.
+	translate_interface_target_properties(PREFIX LIBC RES _cmake_fragment)
+	unset_saved_properties(LIBC)
+endif()
+
 # Prepare include paths for dependencies that t_codse has on external components
-get_target_property(_qcbor_inc qcbor INTERFACE_INCLUDE_DIRECTORIES)
-list(APPEND TCOSE_EXTERNAL_INCLUDE_PATHS ${_qcbor_inc} ${PSA_CRYPTO_API_INCLUDE})
+save_interface_target_properties(TGT qcbor PREFIX QCBOR)
+translate_interface_target_properties(PREFIX QCBOR RES _cmake_fragment1)
+unset_saved_properties(QCBOR)
+string(APPEND _cmake_fragment "\n${_cmake_fragment1}")
+unset(_cmake_fragment1)
+
+translate_value_as_property(VALUE "${PSA_CRYPTO_API_INCLUDE}"
+							PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+							RES _cmake_fragment1)
+string(APPEND _cmake_fragment "\n${_cmake_fragment1}")
+unset(_cmake_fragment1)
 
 include(${TS_ROOT}/tools/cmake/common/LazyFetch.cmake REQUIRED)
 LazyFetch_MakeAvailable(DEP_NAME t_cose
@@ -33,8 +56,7 @@ LazyFetch_MakeAvailable(DEP_NAME t_cose
 	CACHE_FILE "${CMAKE_CURRENT_LIST_DIR}/t_cose-init-cache.cmake.in"
 	SOURCE_DIR "${T_COSE_SOURCE_DIR}"
 	)
-
-unset(TCOSE_EXTERNAL_INCLUDE_PATHS)
+unset(_cmake_fragment)
 
 # Create an imported target to have clean abstraction in the build-system.
 add_library(t_cose STATIC IMPORTED)
