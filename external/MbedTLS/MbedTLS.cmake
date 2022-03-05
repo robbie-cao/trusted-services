@@ -99,6 +99,26 @@ if (NOT MBEDCRYPTO_LIB_FILE)
 	# Advertise Mbed TLS as the provider of the psa crypto API
 	set(PSA_CRYPTO_API_INCLUDE "${MBEDTLS_INSTALL_DIR}/include" CACHE STRING "PSA Crypto API include path")
 
+	include(${TS_ROOT}/tools/cmake/common/PropertyCopy.cmake)
+
+	# Only pass libc settings to MbedTLS if needed. For environments where the standard
+	# library is not overridden, this is not needed.
+	if(TARGET stdlib::c)
+		# Save libc settings
+		save_interface_target_properties(TGT stdlib::c PREFIX MBEDTLS)
+		# Translate libc settings to set of lists. _lists is not used since we know exactly which translated
+		# variables we need to pass to MbedTLS.
+		translate_interface_target_properties(PREFIX MBEDTLS RES _lists TO_LIST)
+		unset_saved_properties(MBEDTLS)
+		string(REPLACE ";" " " MBEDTLS_CMAKE_C_FLAGS_INIT "${MBEDTLS_CMAKE_C_FLAGS_INIT}")
+		string(REPLACE ";" " " MBEDTLS_CMAKE_EXE_LINKER_FLAGS_INIT "${MBEDTLS_CMAKE_EXE_LINKER_FLAGS_INIT}")
+	else()
+		set(MBEDTLS_CMAKE_C_FLAGS_INIT "")
+		set(MBEDTLS_CMAKE_EXE_LINKER_FLAGS_INIT "")
+		# _lists is set to allow namespace clean-up by calling unset_translated_lists()
+		set(_lists "MBEDTLS_CMAKE_C_FLAGS_INIT;MBEDTLS_CMAKE_EXE_LINKER_FLAGS_INIT")
+	endif()
+
 	#Configure the library
 	execute_process(COMMAND
 		${CMAKE_COMMAND} -E env "CROSS_COMPILE=${CROSS_COMPILE}"
@@ -111,11 +131,14 @@ if (NOT MBEDCRYPTO_LIB_FILE)
 				-DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY
 				-DEXTERNAL_DEFINITIONS=-DMBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}"
 				-DEXTERNAL_INCLUDE_PATHS=${MBEDTLS_EXTRA_INCLUDES}
+				-DCMAKE_C_FLAGS_INIT=${MBEDTLS_CMAKE_C_FLAGS_INIT}
+				-DCMAKE_EXE_LINKER_FLAGS_INIT=${MBEDTLS_CMAKE_EXE_LINKER_FLAGS_INIT}
 				-GUnix\ Makefiles
 				-S ${MBEDTLS_SOURCE_DIR}
 		 		-B ${MBEDTLS_BINARY_DIR}
 		RESULT_VARIABLE _exec_error
 	)
+	unset_translated_lists(_lists)
 
 	if (_exec_error)
 		message(FATAL_ERROR "Configuration step of Mbed TLS failed with ${_exec_error}.")

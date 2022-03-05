@@ -58,10 +58,6 @@ target_include_directories(env-test PRIVATE
 #
 #-------------------------------------------------------------------------------
 
-# Get libc include dir
-get_property(LIBC_INCLUDE_PATH TARGET c PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
-
 # Mbed TLS provides libmbedcrypto
-list(APPEND MBEDTLS_EXTRA_INCLUDES ${LIBC_INCLUDE_PATH})
 include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(env-test PRIVATE mbedcrypto)
