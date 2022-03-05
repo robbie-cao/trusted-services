@@ -1,19 +1,21 @@
-From cb011e7c8ad650bb0dd24930bf19da4a4620e30b Mon Sep 17 00:00:00 2001
+From f118cb26ec8f13e9ff0e0edb1550664d86ecb49a Mon Sep 17 00:00:00 2001
 From: Gyorgy Szing <Gyorgy.Szing@arm.com>
 Date: Mon, 5 Jul 2021 06:45:47 +0000
-Subject: [PATCH 2/2] Add install definition
+Subject: [PATCH 2/3] Add install definition
 
 Add install() calls to define stable way to access build artifacts.
+
+Signed-off-by: Gyorgy Szing <Gyorgy.Szing@arm.com>
 ---
  CMakeLists.txt | 17 +++++++++++++++++
  1 file changed, 17 insertions(+)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 4e4756d..b26edce 100644
+index 1b4c95c..c4d91c5 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -20,3 +20,20 @@ set(SOURCE
- ) 
+@@ -19,3 +19,20 @@ set(SOURCE
+ )
  
  add_library(qcbor ${SOURCE})
 +
@@ -34,5 +36,5 @@ index 4e4756d..b26edce 100644
 +               COMPONENT qcbor
 +)
 -- 
-2.17.1
+2.35.0.windows.1
 

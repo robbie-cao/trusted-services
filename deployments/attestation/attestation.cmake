@@ -59,7 +59,6 @@ target_sources(attestation PRIVATE
 get_property(LIBC_INCLUDE_PATH TARGET c PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
 
 # Qcbor
-set (QCBOR_EXTERNAL_INCLUDE_PATHS ${LIBC_INCLUDE_PATH})
 include(${TS_ROOT}/external/qcbor/qcbor.cmake)
 target_link_libraries(attestation PRIVATE qcbor)
 

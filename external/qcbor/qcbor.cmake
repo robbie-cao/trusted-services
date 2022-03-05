@@ -18,10 +18,24 @@ set(GIT_OPTIONS
 
 	PATCH_COMMAND git stash
 		COMMAND git branch -f bf-patch
-		COMMAND git am ${CMAKE_CURRENT_LIST_DIR}/0001-Add-3rd-party-settings.patch ${CMAKE_CURRENT_LIST_DIR}/0002-Add-install-definition.patch
+		COMMAND git am ${CMAKE_CURRENT_LIST_DIR}/0001-Introduce-a-way-to-allow-setting-macro-definitions-e.patch
+					   ${CMAKE_CURRENT_LIST_DIR}/0002-Add-install-definition.patch
+					   ${CMAKE_CURRENT_LIST_DIR}/0003-Fix-stop-overriding-C_FLAGS-from-environment.patch
 		COMMAND git reset bf-patch
 )
 
+# Only pass libc settings to qcbor if needed. For environments where the standard
+# library is not overridden, this is not needed.
+if(TARGET stdlib::c)
+	include(${TS_ROOT}/tools/cmake/common/PropertyCopy.cmake)
+
+	# Save libc settings
+	save_interface_target_properties(TGT stdlib::c PREFIX LIBC)
+	# Translate libc settings to cmake code fragment. Will be inserted into
+	# qcbor-init-cache.cmake.in when LazyFetch configures the file.
+	translate_interface_target_properties(PREFIX LIBC RES _cmake_fragment)
+	unset_saved_properties(LIBC)
+endif()
 
 include(${TS_ROOT}/tools/cmake/common/LazyFetch.cmake REQUIRED)
 LazyFetch_MakeAvailable(DEP_NAME qcbor
@@ -30,6 +44,7 @@ LazyFetch_MakeAvailable(DEP_NAME qcbor
 	CACHE_FILE "${CMAKE_CURRENT_LIST_DIR}/qcbor-init-cache.cmake.in"
 	SOURCE_DIR "${QCBOR_SOURCE_DIR}"
 	)
+unset(_cmake_fragment)
 
 # Create an imported target to have clean abstraction in the build-system.
 add_library(qcbor STATIC IMPORTED)
