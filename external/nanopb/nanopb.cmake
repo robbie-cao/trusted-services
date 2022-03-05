@@ -50,12 +50,18 @@ set(GIT_OPTIONS
 		COMMAND git apply ${CMAKE_CURRENT_LIST_DIR}/fix-pyhon-name.patch
   )
 
-# Convert include path list to string
-foreach(_var IN ITEMS NANOPB_EXTERNAL_INCLUDE_PATHS NANOPB_EXTERNAL_SYSTEM_INCLUDE_PATHS)
-	if (NOT "${${_var}}" STREQUAL "")
-		string(REPLACE ";" " " ${_var} "${${_var}}")
-	endif()
-endforeach()
+# Only pass libc settings to nanopb if needed. For environments where the standard
+# library is not overridden, this is not needed.
+if(TARGET stdlib::c)
+	include(${TS_ROOT}/tools/cmake/common/PropertyCopy.cmake)
+
+	# Save libc settings
+	save_interface_target_properties(TGT stdlib::c PREFIX LIBC)
+	# Translate libc settings to cmake code fragment. Will be inserted into
+	# nanopb-init-cache.cmake.in when LazyFetch configures the file.
+	translate_interface_target_properties(PREFIX LIBC RES _cmake_fragment)
+	unset_saved_properties(LIBC)
+endif()
 
 include(${TS_ROOT}/tools/cmake/common/LazyFetch.cmake REQUIRED)
 LazyFetch_MakeAvailable(DEP_NAME nanopb
@@ -65,6 +71,7 @@ LazyFetch_MakeAvailable(DEP_NAME nanopb
 	CACHE_FILE "${TS_ROOT}/external/nanopb/nanopb-init-cache.cmake.in"
 	SOURCE_DIR "${NANOPB_SOURCE_DIR}"
   )
+unset(_cmake_fragment)
 
 #set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${NANOPB_INSTALL_DIR}/)
 

@@ -65,8 +65,6 @@ get_property(LIBC_INCLUDE_PATH TARGET stdlib::c PROPERTY INTERFACE_INCLUDE_DIREC
 get_property(LIBC_SYSTEM_INCLUDE_PATH TARGET stdlib::c PROPERTY INTERFACE_SYSTEM_INCLUDE_DIRECTORIES)
 
 # Nanopb
-list(APPEND NANOPB_EXTERNAL_INCLUDE_PATHS ${LIBC_INCLUDE_PATH})
-list(APPEND NANOPB_EXTERNAL_SYSTEM_INCLUDE_PATHS ${LIBC_SYSTEM_INCLUDE_PATH})
 include(../../../external/nanopb/nanopb.cmake)
 target_link_libraries(crypto PRIVATE nanopb::protobuf-nanopb-static)
 protobuf_generate_all(TGT "crypto" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protocols")
