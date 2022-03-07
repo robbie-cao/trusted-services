@@ -7,7 +7,7 @@
 #-------------------------------------------------------------------------------
 
 set(QCBOR_URL "https://github.com/laurencelundblade/QCBOR.git" CACHE STRING "qcbor repository URL")
-set(QCBOR_REFSPEC "master" CACHE STRING "qcbor git refspec")
+set(QCBOR_REFSPEC "v1.0" CACHE STRING "qcbor git refspec")
 set(QCBOR_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/qcbor-src" CACHE PATH "qcbor installation directory")
 set(QCBOR_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/qcbor_install" CACHE PATH "qcbor installation directory")
 
