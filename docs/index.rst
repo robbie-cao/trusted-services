@@ -23,6 +23,13 @@ system integrators.
             <p></p>
         </li>
         <li class="grid-item">
+            <a href="quickstart/index.html">
+                <img alt="" src="_static/images/tfm-documentation.png"/>
+                <h2>Quick Start Guides</h2>
+            </a>
+            <p></p>
+        </li>
+        <li class="grid-item">
             <a href="services/index.html">
                 <img alt="" src="_static/images/tfm-integration.png"/>
                 <h2>Services</h2>
@@ -66,6 +73,7 @@ system integrators.
 
    overview/index
    project/index
+   quickstart/index
    developer/index
    services/index
    environments/index

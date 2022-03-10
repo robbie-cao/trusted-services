@@ -6,8 +6,8 @@ Secure Partitions
     :caption: Contents:
 
     libsp
-    fvp-deployment-guide.rst
-    opteesp-deployment-guide.rst
+    userspace-programs-on-fvp
+    opteesp-deployment-guide
 
 --------------
 

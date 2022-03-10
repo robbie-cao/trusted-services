@@ -155,10 +155,10 @@ Some example deployment methods are:
     directly accessible by the target.
   * Installed files are incorporated into a third-party build process e.g. OP-TEE.
 
-The following guides provide instructions on deploying to different environments:
+The following guides provide instructions on deploying services and running programs on FVP:
 
 * :ref:`Deploying trusted services in S-EL0 Secure Partitions under OP-TEE`
-* :ref:`Deploying Programs on FVP`
+* :ref:`Running User-space Programs on FVP`
 
 Batch Building
 --------------
