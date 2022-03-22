@@ -226,5 +226,25 @@ static bool load_fdt(const struct ffa_name_value_pair *value_pair)
 		}
 	}
 
+	/* Find TPM event log */
+	node = fdt_node_offset_by_compatible(fdt, root, "arm,tpm_event_log");
+	if (node >= 0) {
+		uint64_t tpm_event_log_addr = 0;
+		uint32_t tpm_event_log_size = 0;
+
+		rc = dt_get_u64(fdt, node, "tpm_event_log_addr", &tpm_event_log_addr);
+		if (rc)
+			return false;
+
+		rc = dt_get_u32(fdt, node, "tpm_event_log_size", &tpm_event_log_size);
+		if (rc)
+			return false;
+
+		if (!config_store_add(CONFIG_CLASSIFIER_BLOB, "EVENT_LOG", 0,
+				      (void *)tpm_event_log_addr, tpm_event_log_size)) {
+			return false;
+		}
+	}
+
 	return true;
 }
