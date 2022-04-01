@@ -25,7 +25,7 @@ endif()
 set(GIT_OPTIONS
 	GIT_REPOSITORY ${LINUX_FFA_USER_SHIM_URL}
 	GIT_TAG ${LINUX_FFA_USER_SHIM_REFSPEC}
-	GIT_SHALLOW TRUE
+	GIT_SHALLOW FALSE
 	)
 	include(${TS_ROOT}/tools/cmake/common/LazyFetch.cmake REQUIRED)
 	LazyFetch_MakeAvailable(

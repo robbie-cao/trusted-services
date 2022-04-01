@@ -65,7 +65,7 @@ if (NOT MBEDCRYPTO_LIB_FILE)
 			BINARY_DIR ${MBEDTLS_BINARY_DIR}
 			GIT_REPOSITORY ${MBEDTLS_URL}
 			GIT_TAG ${MBEDTLS_REFSPEC}
-			GIT_SHALLOW TRUE
+			GIT_SHALLOW FALSE
 		)
 
 		# FetchContent_GetProperties exports mbedtls_SOURCE_DIR and mbedtls_BINARY_DIR variables

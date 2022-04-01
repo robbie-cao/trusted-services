@@ -44,7 +44,7 @@ endif()
 set(GIT_OPTIONS
 	GIT_REPOSITORY ${NANOPB_URL}
 	GIT_TAG ${NANOPB_REFSPEC}
-	GIT_SHALLOW TRUE
+	GIT_SHALLOW FALSE
 	#See the .patch file for details on why it is needed.
 	PATCH_COMMAND git stash
 		COMMAND git apply ${CMAKE_CURRENT_LIST_DIR}/fix-pyhon-name.patch

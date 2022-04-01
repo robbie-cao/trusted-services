@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -16,7 +16,7 @@ FetchContent_Declare(
 	arm-tztrng
 	GIT_REPOSITORY ${ARM_TZTRNG_URL}
 	GIT_TAG ${ARM_TZTRNG_REFSPEC}
-	GIT_SHALLOW TRUE
+	GIT_SHALLOW FALSE
 )
 
 # FetchContent_GetProperties exports arm-tztrng_SOURCE_DIR and arm-tztrng_BINARY_DIR variables
