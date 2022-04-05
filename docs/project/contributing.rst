@@ -23,18 +23,18 @@ Making Changes
 - Make sure your commit messages are in the proper format. Please keel the 50/72 rule (for details see `Tim Popes blog entry`_.)
 - Where appropriate, please update the documentation.
 
-   - Consider whether the this document or other in-source documentation
-     needs updating.
+   - Consider which documents or other in-source documentation needs updating.
    - Ensure that each changed file has the correct copyright and license information. Files that entirely consist of
      contributions to this project should have a copyright notice and BSD-3-Clause SPDX license identifier of the form
-     as shown in :ref:`license`. Files that contain changes to imported Third Party IP files should retain their
-     original copyright and license notices. For significant contributions you may add your own copyright notice in
-     following format::
+     as shown in :ref:`license`. Example copyright and license comment blocks are shown in :ref:`Coding Style & Guidelines`.
+     Files that contain changes to imported Third Party IP files should retain their original copyright and license
+     notices. For significant contributions you may add your own copyright notice in following format::
 
         Portions copyright (c) [XXXX-]YYYY, <OWNER>. All rights reserved.
 
      where XXXX is the year of first contribution (if different to YYYY) and YYYY is the year of most recent
      contribution. *<OWNER>* is your name or your company name.
+   - For any change, ensure that YYYY is updated if a contribution is made in a year more recent than the previous YYYY.
    - If you are submitting new files that you intend to be the technical sub-maintainer for (for example, a new platform
      port), then also update the :ref:`maintainers` file.
    - For topics with multiple commits, you should make all documentation changes (and nothing else) in the last commit
@@ -83,6 +83,6 @@ Submitting Changes
 .. _`Tim Popes blog entry`: https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
 
 
-*Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

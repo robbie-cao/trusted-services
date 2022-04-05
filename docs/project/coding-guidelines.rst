@@ -1,26 +1,23 @@
 Coding Style & Guidelines
 =========================
 
-The following sections contain |TS| coding guidelines. They are continually evolving and should not be considered "set
-in stone". Feel free to question them and provide feedback.
-
-The |TS| project uses multiple "domains" (textual content types, like programming languages) and each defines its own
-rules.
+The following sections contain |TS| coding guidelines for different types of file. They are continually evolving
+and should not be considered "set in stone". Feel free to question them and provide feedback.
 
 To help configuring text editors the project comes with "`EditorConfig`_" file(s). (:download:`../../.editorconfig`).
 
-Shared rules
+Common Rules
 ------------
 
-The following rules are common for all domains, except where noted otherwise:
+The following rules are common for all types of text file, except where noted otherwise:
 
 #. Files shall be **UTF-8** encoded.
 #. Use **Unix** style line endings (``LF`` character)
 #. The primary language of the project is English. All comments and documentation must be in this language.
 #. Trailing whitespace is not welcome, please trim these.
 
-C Domain
---------
+C Rules
+-------
 
 C source code rules are base on the *Linux Coding Style* (See: |LCS|). The following deviations apply:
 
@@ -33,13 +30,23 @@ C source code rules are base on the *Linux Coding Style* (See: |LCS|). The follo
    alphabetically in the above two groups.
 #. All variables must be initialized.
 
+C source files should include a copyright and license comment block at the head of each file. Here is an example::
+
+   /*
+    * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+    *
+    * SPDX-License-Identifier: BSD-3-Clause
+    */
+
 Boring stuff is not for smart people and the project uses the `Uncrustify`_ code beautifier to easy formatting the
 source. (See :download:`../../.uncrustify.cfg`)
 
-CMake domain
-------------
+CMake Rules
+-----------
 
-11. CMake file names use `CamelCase`_ style.
+Cmake files (e.g. CMakeLists.txt and .cmake) should conform to the following rules:
+
+1.  CMake file names use `CamelCase`_ style.
 #. Indent with tabs and otherwise use spaces. Use 4 spaces for tab size.
 #. Use LF as line end in CMake files.
 #. Remove trailing whitespace.
@@ -53,10 +60,19 @@ CMake domain
 #. Use the Sphinx CMake domain for in-line documentation of CMake scripts. For details please refer to the
    `CMake Documentation`_.
 
+Each file should include a copyright and license comment block at the head of each file. Here is an example::
+
+   #-------------------------------------------------------------------------------
+   # Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+   #
+   # SPDX-License-Identifier: BSD-3-Clause
+   #
+   #-------------------------------------------------------------------------------
+
 .. todo:: Explain CMake return values and parent scope concept in more detail.
 
-Restructured Text Domain
-------------------------
+Restructured Text Rules
+-----------------------
 
 Please refer to :doc:`/developer/writing-documentation`.
 
@@ -68,6 +84,6 @@ Please refer to :doc:`/developer/writing-documentation`.
 .. _`EditorConfig`: https://editorconfig.org/
 .. _`Uncrustify`: https://github.com/uncrustify/uncrustify
 
-*Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause
