@@ -8,7 +8,7 @@ For background information on |PSA| please visit the `PSA homepage`_. If you are
 please visit `www.psacertified.org`_
 
 For a list of PSA specific components refer to deployments targeting the ``opteesp`` environment on the
-:doc:`/developer/deployments` page.
+:doc:`/developer/deployments/index` page.
 
 --------------
 
@@ -16,6 +16,6 @@ For a list of PSA specific components refer to deployments targeting the ``optee
 .. _`www.psacertified.org`: https://www.psacertified.org/certified-products/
 .. _`Hafnium project`: https://www.trustedfirmware.org/projects/hafnium/
 
-*Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

@@ -10,7 +10,7 @@ Developer Docs
     portability-model
     service-access-protocols
     service-locator
-    deployments
+    deployments/index
     service-descriptions/index
     software-requirements
     build-instructions
@@ -21,6 +21,6 @@ Developer Docs
 
 --------------
 
-*Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause
