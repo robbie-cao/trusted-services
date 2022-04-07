@@ -6,14 +6,15 @@ Security Model
     :caption: Contents:
 
     self
+    threat-model
 
-TODO:
-SDL
-Threat Modell
-etc..
+The security model of Trusted Services build on the `Platform Security Model`_ v1.1 beta. For a concept level overview
+please refer to this document.
 
 --------------
 
-*Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.*
+.. _`Platform Security Model`: https://developer.arm.com/documentation/den0128/1-1/?lang=en
+
+*Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

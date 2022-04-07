@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -82,4 +82,20 @@
    line-height: 1.8;
    font-size: 6rem;
    color: #343131;
+}
+
+/* override table width restrictions */
+.wy-table-responsive table td, .wy-table-responsive table th {
+    white-space: normal;
+}
+
+.wy-table-responsive {
+    margin-bottom: 24px;
+    max-width: 100;
+    overflow: visible;
+}
+
+wy-table-bordered-all, .rst-content table.docutils {
+    max-width: 100%;
+    min-width: 100%;
 }
