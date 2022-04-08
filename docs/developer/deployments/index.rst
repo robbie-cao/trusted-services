@@ -15,8 +15,7 @@ Supported deployments are described on the following pages:
     secure-partitions
     test-executables
     libraries
-    tools
-    demo-apps
+    tools-demo-apps
 
 Related deployments:
 
