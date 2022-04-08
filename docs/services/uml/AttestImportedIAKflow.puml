@@ -1,5 +1,5 @@
 '-------------------------------------------------------------------------------
-' Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+' Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
 '
 ' SPDX-License-Identifier: BSD-3-Clause
 '
@@ -11,12 +11,11 @@ participant "attestation service"
 participant "keystore"
 
 hnote over "keystore": empty
-"factory app" -> "attestation service" : export_iak_public_key
+"factory app" -> "attestation service" : import_iak
 "attestation service" -> "keystore" : check_exists
 "attestation service" <-- "keystore" : false
-"attestation service" -> "attestation service" : generate_key
 "attestation service" -> "keystore" : store_key
 hnote over "keystore": provisioned
-"factory app" <-- "attestation service" : public_key
+"factory app" <-- "attestation service" : success
 
 @enduml

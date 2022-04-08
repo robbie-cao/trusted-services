@@ -1,12 +1,12 @@
-Secure Partitions
-=================
+Secure Partition Images
+=======================
 Secure partition (SP) deployments are concerned with building SP images that can
 be loaded and run under a secure partition manager such as Hafnium or OP-TEE.
 SP images will usually include service provider components that expose a
 service interface that may be reached using FF-A messages. A set of SP images
 will be loaded and verified by device firmware to provide the required services.
 
-The following SP deployments are currently supported:
+The following deployments that create SP images are currently supported:
 
 crypto
 ------
@@ -15,7 +15,7 @@ perform cryptographic operations on behalf of clients running in different
 partitions. Backend crypto operations are implemented by the crypto library
 component of MbedTLS. This deployment provides the cryptographic facilities
 needed for PSA certification. For more information, see:
-:ref:`Crypto Service Description`.
+:ref:`Crypto Service`.
 
 .. list-table::
   :widths: 1 2
@@ -34,7 +34,7 @@ to support remote attestation use-cases. The service provider obtains a
 trusted view of the boot state of device firmware from the TPM event log
 collected by the boot loader. This deployment provides the initial attestation
 facility needed for PSA certification. For more information, see:
-:ref:`Attestation Service Description`.
+:ref:`Attestation Service`.
 
 .. list-table::
   :widths: 1 2
@@ -54,7 +54,7 @@ the secure storage service provider with a storage backend. To allow
 different security trade-offs to be made and to support different hardware,
 a system integrator may configure which storage backend to use. Secure storage
 is a requirement for PSA certification. For more information, see:
-:ref:`Secure Storage Service Description`.
+:ref:`Secure Storage Service`.
 
 .. list-table::
   :widths: 1 2

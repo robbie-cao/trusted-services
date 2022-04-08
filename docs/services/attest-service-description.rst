@@ -1,7 +1,7 @@
-Attestation Service Description
-===============================
-Service Overview
-----------------
+Attestation Service
+===================
+Overview
+--------
 The Attestation service is responsible for reporting on the security state of a device.
 Because information is signed, a remote party may verify that the information is intact
 and authentic.  The Attestation service can be used as part of an infrastructure for
@@ -264,6 +264,6 @@ Tests included in the *env_test* SP deployment may be invoked from Linux user-sp
 
 --------------
 
-*Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

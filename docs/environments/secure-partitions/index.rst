@@ -1,14 +1,13 @@
-Service Descriptions
-====================
+Secure Partitions
+=================
 
 .. toctree::
     :maxdepth: 1
     :caption: Contents:
 
-    attest-service-description
-    crypto-service-description
-    secure-storage-service-description
-    uefi-smm-services
+    libsp
+    fvp-deployment-guide.rst
+    opteesp-deployment-guide.rst
 
 --------------
 

@@ -1,7 +1,7 @@
-Crypto Service Description
-==========================
-Service Overview
-----------------
+Crypto Service
+==============
+Overview
+--------
 The Crypto service provides a rich set of cryptographic operations with the backing
 of a private key store.  Clients identify keys using opaque key handles, enabling
 cryptographic operations to be performed without exposing key values beyond the
@@ -80,6 +80,6 @@ only implementation is provided.
 
 --------------
 
-*Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

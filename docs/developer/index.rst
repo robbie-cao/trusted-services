@@ -1,5 +1,5 @@
-Developer Docs
-==============
+Developer Documents
+===================
 
 .. toctree::
     :maxdepth: 1
@@ -10,8 +10,6 @@ Developer Docs
     portability-model
     service-access-protocols
     service-locator
-    deployments/index
-    service-descriptions/index
     software-requirements
     build-instructions
     running-tests

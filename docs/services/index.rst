@@ -1,11 +1,14 @@
-Environments
-============
+Services
+========
 
 .. toctree::
     :maxdepth: 1
     :caption: Contents:
 
-    secure-partitions/index
+    attest-service-description
+    crypto-service-description
+    secure-storage-service-description
+    uefi-smm-services
 
 --------------
 

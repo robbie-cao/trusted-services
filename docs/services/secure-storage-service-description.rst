@@ -1,7 +1,7 @@
-Secure Storage Service Description
-==================================
-Service Overview
-----------------
+Secure Storage Service
+======================
+Overview
+--------
 The Secure Storage service provides a generic persistent object store for valuable
 assets such as cryptographic keys.  The confidentiality and integrity of stored data
 is typically achieved using keys that are bound to the device.  The backend object
@@ -167,6 +167,6 @@ access is brokered by an S-EL0 proxy:
 
 --------------
 
-*Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

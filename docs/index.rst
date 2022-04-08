@@ -1,51 +1,59 @@
 Trusted Services Documentation
 ==============================
 The Trusted Services project provides a framework for developing and deploying device
-root-of-trust services across a range of secure processing environments such as those
-provided by OP-TEE and Hafnium.
+root-of-trust services for A-profile devices. Alternative secure processing environments
+are supported to accommodate the diverse range of isolation technologies available to
+system integrators.
 
 .. raw:: html
 
     <ul class="grid">
         <li class="grid-item">
             <a href="overview/index.html">
-                <img alt="" src="_static/images/tfm.png"/>
-                <h2>About trusted services</h2>
+                <img alt="" src="_static/images/tfm-introduction.png"/>
+                <h2>Introduction</h2>
             </a>
             <p></p>
         </li>
         <li class="grid-item">
             <a href="project/index.html">
-               <img alt="" src="_static/images/tfm.png"/>
-               <h2>About the project</h2>
+               <img alt="" src="_static/images/tfm-contribution.png"/>
+               <h2>About the Project</h2>
             </a>
             <p></p>
         </li>
         <li class="grid-item">
-            <a href="developer/index.html">
-                <img alt="" src="_static/images/tfm.png"/>
-                <h2>Developer Docs</h2>
+            <a href="services/index.html">
+                <img alt="" src="_static/images/tfm-integration.png"/>
+                <h2>Services</h2>
             </a>
             <p></p>
         </li>
         <li class="grid-item">
             <a href="environments/index.html">
                 <img alt="" src="_static/images/tfm.png"/>
-                <h2>Processing Environments</h2>
+                <h2>Secure Processing Environments</h2>
             </a>
             <p></p>
         </li>
         <li class="grid-item">
-            <a href="security/index.html">
-                <img alt="" src="_static/images/tfm.png"/>
-                <h2>Security Model</h2>
+            <a href="deployments/index.html">
+                <img alt="" src="_static/images/tfm-release.png"/>
+                <h2>Deployments</h2>
             </a>
             <p></p>
         </li>
         <li class="grid-item">
-            <a href="standards/index.html">
+            <a href="developer/index.html">
+                <img alt="" src="_static/images/tfm-reference.png"/>
+                <h2>Developer Documents</h2>
+            </a>
+            <p></p>
+        </li>
+        <li class="grid-item">
+            <a href="certification/index.html">
                 <img alt="" src="_static/images/tfm.png"/>
-                <h2>Standards Compliance</h2>
+                <h2>Platform Certification</h2>
             </a>
             <p></p>
         </li>
@@ -59,12 +67,14 @@ provided by OP-TEE and Hafnium.
    overview/index
    project/index
    developer/index
+   services/index
    environments/index
    security/index
-   standards/index
+   deployments/index
+   certification/index
 
 --------------
 
-*Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

@@ -7,9 +7,6 @@ specification. For details on FF-A support in TS please see the :doc:`ff-a` page
 For background information on |PSA| please visit the `PSA homepage`_. If you are looking for information on certified products
 please visit `www.psacertified.org`_
 
-For a list of PSA specific components refer to deployments targeting the ``opteesp`` environment on the
-:doc:`/developer/deployments/index` page.
-
 --------------
 
 .. _`PSA homepage`: https://developer.arm.com/architectures/security-architectures/platform-security-architecture
