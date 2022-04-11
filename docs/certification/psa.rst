@@ -2,7 +2,7 @@ Platform Security Architecture
 ==============================
 
 Trusted Services is the home of the |PSA| reference implementation. The PSA partitions are implemented based on the |FF-A|
-specification. For details on FF-A support in TS please see the :doc:`ff-a` page.
+specification.
 
 For background information on |PSA| please visit the `PSA homepage`_. If you are looking for information on certified products
 please visit `www.psacertified.org`_

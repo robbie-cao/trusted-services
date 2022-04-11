@@ -1,9 +1,15 @@
 Environments
 ============
 
+Depending on Arm architecture and SoC capabilities, there may be different options for
+implementing hardware-backed isolation for protecting security sensitive workloads. The
+Trusted Services project decouples service related components from any particular
+environment, enabling services to be deployed in different environments. This section
+provides information about supported secure processing environments.
+
 .. toctree::
     :maxdepth: 1
-    :caption: Contents:
+    :caption: Supported Environments:
 
     secure-partitions/index
 

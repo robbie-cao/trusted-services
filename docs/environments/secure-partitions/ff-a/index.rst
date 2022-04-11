@@ -11,10 +11,6 @@ running at S-SEL1 integrated into OP-TEE OS.
 
 --------------
 
-.. _`PSA homepage`: https://developer.arm.com/architectures/security-architectures/platform-security-architecture
-.. _`www.psacertified.org`: https://www.psacertified.org/certified-products/
-.. _`Hafnium project`: https://www.trustedfirmware.org/projects/hafnium/
-
-*Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause
