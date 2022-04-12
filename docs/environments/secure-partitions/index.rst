@@ -4,15 +4,15 @@ Secure Partitions
 :term:`Secure Partitions<Secure Partition>` are defined by the :term:`FF-A` standard
 
 Secure partitions are isolated processing environments managed by a Secure Partition Manager (SPM).
-An SPM performs the role of hypervisor for the Arm Secure state and is responsible for managing
+An SPM performs the role of hypervisor for the Arm Secure State and is responsible for managing
 SP initialization, memory management and messaging. The Arm Firmware Framework for A-Profile (FF-A)
 specification (`FF-A Specification`_) defines the set of firmware features that enable the use of
 secure partitions for protecting sensitive workloads.
 
 The Armv8.4 architecture introduces the virtualization extension in the Secure state. For silicon
 based on Armv8.4 (or above) that implement the Secure-EL2 extension, the `Hafnium Project`_
-provides a reference SPM implementation. For pre-Arm8.4 silicon, the `OP-TEE Project`_ provides
-an alternative reference SPM implementation.
+provides a reference SPMC implementation. For pre-Arm8.4 silicon, the `OP-TEE Project`_ provides
+an alternative reference SPMC implementation.
 
 Within the Trusted Services, the environments realized by the two reference SPM implementations
 are named as follows:
