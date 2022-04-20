@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2020-2021, Arm Limited. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -171,6 +171,7 @@ function(coverage_generate)
 			--directory ${BINARY_DIR}
 			--base-directory ${SOURCE_DIR}
 			--output-file ${TEMP_FILE}
+			--rc lcov_branch_coverage=1
 		COMMAND ${CPICKER_COVERAGE_MAPPER_COMMAND}
 			--input ${TEMP_FILE}
 			--output ${OUTPUT_FILE}
@@ -229,6 +230,7 @@ function(coverage_filter)
 		COMMAND ${LCOV_COMMAND}
 			--extract ${INPUT_FILE} \"${INCLUDE_DIRECTORY_ABSPATH}\"
 			--output-file ${OUTPUT_FILE}
+			--rc lcov_branch_coverage=1
 		DEPENDS ${INPUT_FILE}
 	)
 
@@ -275,6 +277,7 @@ function(coverage_generate_report)
 		OUTPUT ${OUTPUT_DIRECTORY}
 		COMMAND genhtml ${INPUT_FILE}
 			--show-details
+			--branch-coverage
 			--output-directory ${OUTPUT_DIRECTORY}
 		DEPENDS ${INPUT_FILE}
 	)
