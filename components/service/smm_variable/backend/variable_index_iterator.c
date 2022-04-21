@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -47,13 +47,16 @@ struct variable_info *variable_index_iterator_current(
 void variable_index_iterator_next(
 	struct variable_index_iterator *iter)
 {
-	size_t next_pos = iter->current_pos;
+	if (iter->current_pos < iter->variable_index->max_variables) {
+		size_t next_pos = iter->current_pos + 1;
 
-	while (next_pos < iter->variable_index->max_variables) {
+		while (next_pos < iter->variable_index->max_variables) {
+			if (iter->variable_index->entries[next_pos].in_use)
+				break;
 
-		++next_pos;
-		if (iter->variable_index->entries[next_pos].in_use) break;
+			++next_pos;
+		}
+
+		iter->current_pos = next_pos;
 	}
-
-	iter->current_pos = next_pos;
 }
