@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -45,6 +45,8 @@ TEST_GROUP(UefiVariableStoreTests)
 	void teardown()
 	{
 		uefi_variable_store_deinit(&m_uefi_variable_store);
+		mock_store_reset(&m_persistent_store);
+		mock_store_reset(&m_volatile_store);
 	}
 
 	void setup_common_guid()
