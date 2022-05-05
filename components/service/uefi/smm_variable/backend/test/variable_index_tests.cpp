@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -8,8 +8,8 @@
 #include <string>
 #include <vector>
 #include <CppUTest/TestHarness.h>
-#include <service/smm_variable/backend/variable_index.h>
-#include <service/smm_variable/backend/variable_index_iterator.h>
+#include <service/uefi/smm_variable/backend/variable_index.h>
+#include <service/uefi/smm_variable/backend/variable_index_iterator.h>
 
 
 TEST_GROUP(UefiVariableIndexTests)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -10,7 +10,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <service/locator/standalone/standalone_service_context.h>
-#include <service/smm_variable/provider/smm_variable_provider.h>
+#include <service/uefi/smm_variable/provider/smm_variable_provider.h>
 #include <service/secure_storage/backend/secure_storage_client/secure_storage_client.h>
 #include <service/secure_storage/backend/mock_store/mock_store.h>
 

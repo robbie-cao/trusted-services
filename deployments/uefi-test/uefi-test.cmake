@@ -28,8 +28,8 @@ add_components(
 	TARGET "uefi-test"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
-		"components/service/smm_variable/client/cpp"
-		"components/service/smm_variable/test/service"
+		"components/service/uefi/smm_variable/client/cpp"
+		"components/service/uefi/smm_variable/test/service"
 )
 
 #-------------------------------------------------------------------------------

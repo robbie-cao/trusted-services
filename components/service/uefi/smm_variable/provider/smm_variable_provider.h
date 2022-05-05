@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -9,7 +9,7 @@
 
 #include "rpc/common/endpoint/rpc_service_interface.h"
 #include "service/common/provider/service_provider.h"
-#include "service/smm_variable/backend/uefi_variable_store.h"
+#include "service/uefi/smm_variable/backend/uefi_variable_store.h"
 
 #ifdef __cplusplus
 extern "C" {

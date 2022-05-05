@@ -6,7 +6,7 @@
 
 #include <cstring>
 #include <limits>
-#include <service/smm_variable/client/cpp/smm_variable_client.h>
+#include <service/uefi/smm_variable/client/cpp/smm_variable_client.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
 #include <service_locator.h>
 #include <CppUTest/TestHarness.h>

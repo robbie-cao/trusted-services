@@ -52,4 +52,4 @@ endif()
 
 include(${TS_ROOT}/components/rpc/common/tests.cmake)
 include(${TS_ROOT}/components/rpc/mm_communicate/endpoint/sp/tests.cmake)
-include(${TS_ROOT}/components/service/smm_variable/frontend/mm_communicate/tests.cmake)
+include(${TS_ROOT}/components/service/uefi/smm_variable/frontend/mm_communicate/tests.cmake)

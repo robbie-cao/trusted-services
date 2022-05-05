@@ -8,7 +8,7 @@
 #include <vector>
 #include <string.h>
 #include <CppUTest/TestHarness.h>
-#include <service/smm_variable/backend/uefi_variable_store.h>
+#include <service/uefi/smm_variable/backend/uefi_variable_store.h>
 #include <service/secure_storage/backend/mock_store/mock_store.h>
 
 TEST_GROUP(UefiVariableStoreTests)
