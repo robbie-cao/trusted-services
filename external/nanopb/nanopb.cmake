@@ -172,9 +172,12 @@ function(protobuf_generate)
 		target_include_directories(${PARAMS_TGT} PRIVATE ${_OUT_DIR_BASE})
 	endif()
 
+	get_filename_component(NANOPB_GENERATOR_DIR "${NANOPB_GENERATOR_PATH}" DIRECTORY CACHE "Location of nanopb generator.")
 	#Append a protobuf generator command to the nanopb_generate target.
 	add_custom_command(OUTPUT "${_OUT_C}" "${_OUT_H}"
-					   COMMAND ${Python3_EXECUTABLE} ${NANOPB_GENERATOR_PATH}
+					   COMMAND
+					   ${CMAKE_COMMAND} -E env PYTHONPATH=${NANOPB_GENERATOR_DIR}
+					   ${Python3_EXECUTABLE} ${NANOPB_GENERATOR_PATH}
 						  -I ${PARAMS_BASE_DIR}
 						  -D ${_OUT_DIR_BASE}
 						  ${_SRC_REL}
