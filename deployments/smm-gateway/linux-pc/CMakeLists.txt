@@ -1,10 +1,10 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
 #-------------------------------------------------------------------------------
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 include(../../deployment.cmake REQUIRED)
 
 project(smm-gateway-unit-tests LANGUAGES CXX C)
