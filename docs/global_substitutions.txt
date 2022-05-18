@@ -12,13 +12,13 @@
 .. |PSA| replace:: :term:`PSA`
 .. |FF-A| replace:: :term:`FF-A`
 
-.. _`TS Mailing List`: https://lists.trustedfirmware.org/mailman/listinfo/trusted-services
+.. _`TS Mailing List`: https://lists.trustedfirmware.org/mailman3/lists/trusted-services.lists.trustedfirmware.org/
 .. _`TS repository`: https://review.trustedfirmware.org/admin/repos/TS/trusted-services
 .. _`Semantic Versioning`: https://semver.org/spec/v2.0.0.html
 
 ..
    --------------
 
-   *Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.*
+   *Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
 
    SPDX-License-Identifier: BSD-3-Clause
