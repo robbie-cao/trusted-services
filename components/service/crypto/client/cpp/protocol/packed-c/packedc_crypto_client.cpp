@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -104,6 +104,26 @@ psa_status_t packedc_crypto_client::verify_hash(
 {
 	return crypto_caller_verify_hash(&m_client, id, alg,
 		hash, hash_length,
+		signature, signature_length);
+}
+
+psa_status_t packedc_crypto_client::sign_message(
+	psa_key_id_t id, psa_algorithm_t alg,
+	const uint8_t *message, size_t message_length,
+	uint8_t *signature, size_t signature_size, size_t *signature_length)
+{
+	return crypto_caller_sign_message(&m_client, id, alg,
+		message, message_length,
+		signature, signature_size, signature_length);
+}
+
+psa_status_t packedc_crypto_client::verify_message(
+	psa_key_id_t id, psa_algorithm_t alg,
+	const uint8_t *message, size_t message_length,
+	const uint8_t *signature, size_t signature_length)
+{
+	return crypto_caller_verify_message(&m_client, id, alg,
+		message, message_length,
 		signature, signature_length);
 }
 

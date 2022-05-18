@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -15,6 +15,15 @@ extern "C" {
 #endif
 
 static inline psa_status_t crypto_caller_sign_hash(struct service_client *context,
+	psa_key_id_t id,
+	psa_algorithm_t alg,
+	const uint8_t *hash, size_t hash_length,
+	uint8_t *signature, size_t signature_size, size_t *signature_length)
+{
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+static inline psa_status_t crypto_caller_sign_message(struct service_client *context,
 	psa_key_id_t id,
 	psa_algorithm_t alg,
 	const uint8_t *hash, size_t hash_length,

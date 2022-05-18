@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -290,6 +290,56 @@ void crypto_service_scenarios::signAndVerifyHash()
 	CHECK_EQUAL(PSA_SUCCESS, status);
 }
 
+void crypto_service_scenarios::signAndVerifyMessage()
+{
+	psa_status_t status;
+	psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+	psa_key_id_t key_id;
+
+	psa_set_key_id(&attributes, 14);
+	psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_MESSAGE | PSA_KEY_USAGE_VERIFY_MESSAGE);
+	psa_set_key_algorithm(&attributes, PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256));
+	psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
+	psa_set_key_bits(&attributes, 256);
+
+	/* Generate a key */
+	status = m_crypto_client->generate_key(&attributes, &key_id);
+	CHECK_EQUAL(PSA_SUCCESS, status);
+
+	psa_reset_key_attributes(&attributes);
+
+	/* Sign a message */
+	uint8_t message[21];
+	uint8_t signature[PSA_SIGNATURE_MAX_SIZE];
+	size_t signature_length;
+
+	memset(message, 0x99, sizeof(message));
+
+	status = m_crypto_client->sign_message(key_id,
+		PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256), message, sizeof(message),
+		signature, sizeof(signature), &signature_length);
+
+	CHECK_EQUAL(PSA_SUCCESS, status);
+	CHECK(signature_length > 0);
+
+	/* Verify the signature */
+	status = m_crypto_client->verify_message(key_id,
+		PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256), message, sizeof(message),
+		signature, signature_length);
+	CHECK_EQUAL(PSA_SUCCESS, status);
+
+	/* Change the message and expect verify to fail */
+	message[0] = 0x72;
+	status = m_crypto_client->verify_message(key_id,
+		PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256), message, sizeof(message),
+		signature, signature_length);
+	CHECK_EQUAL(PSA_ERROR_INVALID_SIGNATURE, status);
+
+	/* Remove the key */
+	status = m_crypto_client->destroy_key(key_id);
+	CHECK_EQUAL(PSA_SUCCESS, status);
+}
+
 void crypto_service_scenarios::signAndVerifyEat()
 {
 	/* Sign and verify a hash using EAT key type and algorithm */
@@ -348,7 +398,7 @@ void crypto_service_scenarios::asymEncryptDecrypt()
 	psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 	psa_key_id_t key_id;
 
-	psa_set_key_id(&attributes, 14);
+	psa_set_key_id(&attributes, 15);
 	psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT);
 	psa_set_key_algorithm(&attributes, PSA_ALG_RSA_PKCS1V15_CRYPT);
 	psa_set_key_type(&attributes, PSA_KEY_TYPE_RSA_KEY_PAIR);
@@ -394,7 +444,7 @@ void crypto_service_scenarios::asymEncryptDecryptWithSalt()
 	psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 	psa_key_id_t key_id;
 
-	psa_set_key_id(&attributes, 15);
+	psa_set_key_id(&attributes, 16);
 	psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT);
 	psa_set_key_algorithm(&attributes,  PSA_ALG_RSA_OAEP(PSA_ALG_SHA_256));
 	psa_set_key_type(&attributes, PSA_KEY_TYPE_RSA_KEY_PAIR);

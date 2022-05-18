@@ -6,7 +6,9 @@
 #-------------------------------------------------------------------------------
 
 set(PSA_ARCH_TESTS_URL "https://github.com/ARM-software/psa-arch-tests.git" CACHE STRING "psa-arch-tests repository URL")
-set(PSA_ARCH_TESTS_REFSPEC "2a1852252a9b9af655cbe02d5d3c930952d0d798" CACHE STRING "psa-arch-tests v22.01_API1.4_ADAC_BETA")
+set(PSA_ARCH_TESTS_REFSPEC "451aa087a40d02c7d04778235014c5619d126471" CACHE STRING "A tested SHA from main having the AEAD fixes.")
+set(PSA_ARCH_TESTS_INSTALL_PATH "${CMAKE_CURRENT_BINARY_DIR}/psa-arch-tests_install" CACHE PATH "psa-arch-tests installation directory")
+set(PSA_ARCH_TESTS_PACKAGE_PATH "${PSA_ARCH_TESTS_INSTALL_PATH}/libpsa-arch-tests/cmake" CACHE PATH "psa-arch-tests CMake package directory")
 set(PSA_ARCH_TESTS_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/psa_arch_tests-src" CACHE PATH "psa-arch-tests source.")
 
 set(GIT_OPTIONS
@@ -16,9 +18,6 @@ set(GIT_OPTIONS
 	PATCH_COMMAND git stash
 		COMMAND git apply ${CMAKE_CURRENT_LIST_DIR}/modify_attest_config.patch
 )
-
-# Ensure list of include paths is separated correctly
-#string(REPLACE ";" "\\;" PSA_ARCH_TESTS_EXTERNAL_INCLUDE_PATHS "${PSA_ARCH_TESTS_EXTERNAL_INCLUDE_PATHS}")
 
 # Ensure list of defines is separated correctly
 string(REPLACE ";" " " PSA_ARCH_TEST_EXTERNAL_DEFS "${PSA_ARCH_TEST_EXTERNAL_DEFS}")

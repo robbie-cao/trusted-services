@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -16,8 +16,8 @@ static rpc_status_t destroy_key_handler(void *context, struct call_req* req);
 static rpc_status_t export_key_handler(void *context, struct call_req* req);
 static rpc_status_t export_public_key_handler(void *context, struct call_req* req);
 static rpc_status_t import_key_handler(void *context, struct call_req* req);
-static rpc_status_t sign_hash_handler(void *context, struct call_req* req);
-static rpc_status_t verify_hash_handler(void *context, struct call_req* req);
+static rpc_status_t asymmetric_sign_handler(void *context, struct call_req* req);
+static rpc_status_t asymmetric_verify_handler(void *context, struct call_req* req);
 static rpc_status_t asymmetric_decrypt_handler(void *context, struct call_req* req);
 static rpc_status_t asymmetric_encrypt_handler(void *context, struct call_req* req);
 static rpc_status_t generate_random_handler(void *context, struct call_req* req);
@@ -32,14 +32,16 @@ static const struct service_handler handler_table[] = {
 	{TS_CRYPTO_OPCODE_EXPORT_KEY,           export_key_handler},
 	{TS_CRYPTO_OPCODE_EXPORT_PUBLIC_KEY,    export_public_key_handler},
 	{TS_CRYPTO_OPCODE_IMPORT_KEY,           import_key_handler},
-	{TS_CRYPTO_OPCODE_SIGN_HASH,            sign_hash_handler},
-	{TS_CRYPTO_OPCODE_VERIFY_HASH,          verify_hash_handler},
+	{TS_CRYPTO_OPCODE_SIGN_HASH,            asymmetric_sign_handler},
+	{TS_CRYPTO_OPCODE_VERIFY_HASH,          asymmetric_verify_handler},
 	{TS_CRYPTO_OPCODE_ASYMMETRIC_DECRYPT,   asymmetric_decrypt_handler},
 	{TS_CRYPTO_OPCODE_ASYMMETRIC_ENCRYPT,   asymmetric_encrypt_handler},
 	{TS_CRYPTO_OPCODE_GENERATE_RANDOM,      generate_random_handler},
 	{TS_CRYPTO_OPCODE_COPY_KEY,          	copy_key_handler},
 	{TS_CRYPTO_OPCODE_PURGE_KEY,          	purge_key_handler},
 	{TS_CRYPTO_OPCODE_GET_KEY_ATTRIBUTES, 	get_key_attributes_handler},
+	{TS_CRYPTO_OPCODE_SIGN_MESSAGE,         asymmetric_sign_handler},
+	{TS_CRYPTO_OPCODE_VERIFY_MESSAGE,       asymmetric_verify_handler},
 };
 
 struct rpc_interface *crypto_provider_init(struct crypto_provider *context)
@@ -272,7 +274,7 @@ static rpc_status_t import_key_handler(void *context, struct call_req* req)
 	return rpc_status;
 }
 
-static rpc_status_t sign_hash_handler(void *context, struct call_req* req)
+static rpc_status_t asymmetric_sign_handler(void *context, struct call_req* req)
 {
 	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
 	struct call_param_buf *req_buf = call_req_get_req_buf(req);
@@ -284,7 +286,7 @@ static rpc_status_t sign_hash_handler(void *context, struct call_req* req)
 	uint8_t hash_buffer[PSA_HASH_MAX_SIZE];
 
 	if (serializer)
-		rpc_status = serializer->deserialize_sign_hash_req(req_buf, &id, &alg, hash_buffer, &hash_len);
+		rpc_status = serializer->deserialize_asymmetric_sign_req(req_buf, &id, &alg, hash_buffer, &hash_len);
 
 	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
 
@@ -292,14 +294,16 @@ static rpc_status_t sign_hash_handler(void *context, struct call_req* req)
 		size_t sig_len;
 		uint8_t sig_buffer[PSA_SIGNATURE_MAX_SIZE];
 
-		psa_status = psa_sign_hash(id, alg,
-					hash_buffer, hash_len,
-					sig_buffer, sizeof(sig_buffer), &sig_len);
+		psa_status = (call_req_get_opcode(req) == TS_CRYPTO_OPCODE_SIGN_HASH) ?
+			psa_sign_hash(id, alg, hash_buffer, hash_len,
+				sig_buffer, sizeof(sig_buffer), &sig_len) :
+			psa_sign_message(id, alg, hash_buffer, hash_len,
+				sig_buffer, sizeof(sig_buffer), &sig_len);
 
 		if (psa_status == PSA_SUCCESS) {
 
 			struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
-			rpc_status = serializer->serialize_sign_hash_resp(resp_buf, sig_buffer, sig_len);
+			rpc_status = serializer->serialize_asymmetric_sign_resp(resp_buf, sig_buffer, sig_len);
 		}
 
 		call_req_set_opstatus(req, psa_status);
@@ -308,7 +312,7 @@ static rpc_status_t sign_hash_handler(void *context, struct call_req* req)
 	return rpc_status;
 }
 
-static rpc_status_t verify_hash_handler(void *context, struct call_req* req)
+static rpc_status_t asymmetric_verify_handler(void *context, struct call_req* req)
 {
 	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
 	struct call_param_buf *req_buf = call_req_get_req_buf(req);
@@ -322,7 +326,7 @@ static rpc_status_t verify_hash_handler(void *context, struct call_req* req)
 	uint8_t sig_buffer[PSA_SIGNATURE_MAX_SIZE];
 
 	if (serializer)
-		rpc_status = serializer->deserialize_verify_hash_req(req_buf, &id, &alg,
+		rpc_status = serializer->deserialize_asymmetric_verify_req(req_buf, &id, &alg,
 											hash_buffer, &hash_len,
 											sig_buffer, &sig_len);
 
@@ -330,9 +334,13 @@ static rpc_status_t verify_hash_handler(void *context, struct call_req* req)
 
 		psa_status_t psa_status;
 
-		psa_status = psa_verify_hash(id, alg,
-					hash_buffer, hash_len,
-					sig_buffer, sig_len);
+		psa_status = (call_req_get_opcode(req) == TS_CRYPTO_OPCODE_VERIFY_HASH) ?
+			psa_verify_hash(id, alg,
+				hash_buffer, hash_len,
+				sig_buffer, sig_len) :
+			psa_verify_message(id, alg,
+				hash_buffer, hash_len,
+				sig_buffer, sig_len);
 
 		call_req_set_opstatus(req, psa_status);
 	}

@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -85,6 +85,8 @@ add_components(
 		"components/service/crypto/provider/extension/key_derivation/serializer/packed-c"
 		"components/service/crypto/provider/extension/mac"
 		"components/service/crypto/provider/extension/mac/serializer/packed-c"
+		"components/service/crypto/provider/extension/aead"
+		"components/service/crypto/provider/extension/aead/serializer/packed-c"
 		"components/service/crypto/provider/test"
 		"components/service/crypto/backend/mbedcrypto"
 		"components/service/crypto/factory/full"

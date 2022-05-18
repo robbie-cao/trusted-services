@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -524,7 +524,7 @@ static inline psa_status_t crypto_caller_raw_key_agreement(struct service_client
 					}
 					else {
 						/* Insufficient buffer space */
-						psa_status = PSA_ERROR_INVALID_ARGUMENT;
+						psa_status = PSA_ERROR_BUFFER_TOO_SMALL;
 					}
 				}
 				else {

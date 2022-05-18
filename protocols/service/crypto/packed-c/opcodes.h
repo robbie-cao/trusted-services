@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -25,6 +25,8 @@
 #define TS_CRYPTO_OPCODE_COPY_KEY               (TS_CRYPTO_OPCODE_BASE + 13)
 #define TS_CRYPTO_OPCODE_PURGE_KEY              (TS_CRYPTO_OPCODE_BASE + 14)
 #define TS_CRYPTO_OPCODE_GET_KEY_ATTRIBUTES     (TS_CRYPTO_OPCODE_BASE + 15)
+#define TS_CRYPTO_OPCODE_SIGN_MESSAGE           (TS_CRYPTO_OPCODE_BASE + 16)
+#define TS_CRYPTO_OPCODE_VERIFY_MESSAGE         (TS_CRYPTO_OPCODE_BASE + 17)
 
 /* Hash operations */
 #define TS_CRYPTO_OPCODE_HASH_BASE              (0x0200)

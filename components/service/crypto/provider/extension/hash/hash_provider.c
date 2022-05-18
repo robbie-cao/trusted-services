@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -179,9 +179,9 @@ static rpc_status_t hash_finish_handler(void *context, struct call_req* req)
 
 				struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
 				rpc_status = serializer->serialize_hash_finish_resp(resp_buf, hash, hash_len);
-			}
 
-			crypto_context_pool_free(&this_instance->context_pool, crypto_context);
+				crypto_context_pool_free(&this_instance->context_pool, crypto_context);
+			}
 		}
 
 		call_req_set_opstatus(req, psa_status);
@@ -252,6 +252,9 @@ static rpc_status_t hash_verify_handler(void *context, struct call_req* req)
 		if (crypto_context) {
 
 			psa_status = psa_hash_verify(&crypto_context->op.hash, hash, hash_len);
+
+			if (psa_status == PSA_SUCCESS)
+				crypto_context_pool_free(&this_instance->context_pool, crypto_context);
 		}
 
 		call_req_set_opstatus(req, psa_status);
