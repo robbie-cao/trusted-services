@@ -44,6 +44,8 @@ target_link_libraries(crypto PRIVATE nanopb::protobuf-nanopb-static)
 protobuf_generate_all(TGT "crypto" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protocols")
 
 # Mbed TLS provides libmbedcrypto
+set(MBEDTLS_USER_CONFIG_FILE "${TS_ROOT}/external/MbedTLS/config/crypto_isolated.h"
+	CACHE STRING "Configuration file for Mbed TLS" FORCE)
 include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(crypto PRIVATE MbedTLS::mbedcrypto)
 

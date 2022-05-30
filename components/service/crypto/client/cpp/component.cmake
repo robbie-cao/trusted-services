@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -11,11 +11,3 @@ endif()
 target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/crypto_client.cpp"
 	)
-
-# The crypto client presents the PSA Crypto API and hence has a dependency on mbedcrypto for functions
-# related to setting key attributes.  A minimal configuration is provided to allow a minimal library
-# to be built.  This configuration may be overridden by other components that have their own
-# dependency on mbedcrypto.
-set(MBEDTLS_USER_CONFIG_FILE
-	"${CMAKE_CURRENT_LIST_DIR}/config_mbedtls_user.h"
-	CACHE STRING "Configuration file for Mbed TLS")

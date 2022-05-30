@@ -1,16 +1,15 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef CONFIG_MBEDTLS_USER_H
-#define CONFIG_MBEDTLS_USER_H
+#ifndef CONFIG_CRYPTO_POSIX_H
+#define CONFIG_CRYPTO_POSIX_H
 
-/* Mbed TLS configuration for using libmbedcrypto in
- * a Posix environment.  Supported crypto operations
- * are configured separately via the PSA crypto build
- * interface (PSA_WANT_xxx).
+/*
+ * Mbed TLS configuration for using libmbedcrypto in
+ * a Posix environment (normal world demo and test applications).
  */
 #define MBEDTLS_PSA_CRYPTO_CONFIG
 #define MBEDTLS_NO_UDBL_DIVISION
@@ -25,4 +24,4 @@
 #undef MBEDTLS_PSA_ITS_FILE_C
 #undef MBEDTLS_TIMING_C
 
-#endif /* CONFIG_MBEDTLS_USER_H */
+#endif /* CONFIG_CRYPTO_POSIX_H */
