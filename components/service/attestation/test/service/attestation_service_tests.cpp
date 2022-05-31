@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -42,11 +42,15 @@ TEST_GROUP(AttestationServiceTests)
     {
         psa_iat_client_deinit();
 
-        service_context_close(m_attest_service_context, m_rpc_session_handle);
-        m_rpc_session_handle = NULL;
+	if (m_attest_service_context) {
+		if (m_rpc_session_handle) {
+			service_context_close(m_attest_service_context, m_rpc_session_handle);
+			m_rpc_session_handle = NULL;
+		}
 
-        service_context_relinquish(m_attest_service_context);
-        m_attest_service_context = NULL;
+		service_context_relinquish(m_attest_service_context);
+		m_attest_service_context = NULL;
+	}
     }
 
     rpc_session_handle m_rpc_session_handle;

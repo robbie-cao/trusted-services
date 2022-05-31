@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -44,11 +44,15 @@ TEST_GROUP(SmmVariableAttackTests)
 		delete m_client;
 		m_client = NULL;
 
-		service_context_close(m_service_context, m_rpc_session_handle);
-		m_rpc_session_handle = NULL;
+		if (m_service_context) {
+			if (m_rpc_session_handle) {
+				service_context_close(m_service_context, m_rpc_session_handle);
+				m_rpc_session_handle = NULL;
+			}
 
-		service_context_relinquish(m_service_context);
-		m_service_context = NULL;
+			service_context_relinquish(m_service_context);
+			m_service_context = NULL;
+		}
 	}
 
 	void setup_common_guid()

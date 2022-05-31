@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -44,11 +44,15 @@ TEST_GROUP(CryptoServiceLimitTests)
         delete m_crypto_client;
         m_crypto_client = NULL;
 
-        service_context_close(m_crypto_service_context, m_rpc_session_handle);
-        m_rpc_session_handle = NULL;
+	if (m_crypto_service_context) {
+	        if (m_rpc_session_handle) {
+                        service_context_close(m_crypto_service_context, m_rpc_session_handle);
+                        m_rpc_session_handle = NULL;
+	        }
 
-        service_context_relinquish(m_crypto_service_context);
-        m_crypto_service_context = NULL;
+                service_context_relinquish(m_crypto_service_context);
+                m_crypto_service_context = NULL;
+	}
     }
 
     psa_status_t generateVolatileEccKeyPair(std::vector<psa_key_id_t> &key_ids)
