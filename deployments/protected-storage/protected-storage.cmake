@@ -20,9 +20,10 @@ add_components(TARGET "protected-storage"
 		components/service/common/provider
 		components/service/secure_storage/include
 		components/service/secure_storage/frontend/secure_storage_provider
-		components/service/secure_storage/backend/secure_storage_client
-		components/service/secure_storage/backend/null_store
-		components/service/secure_storage/factory/sp/optee_trusted_store
+		components/service/secure_storage/backend/secure_flash_store
+		components/service/secure_storage/backend/secure_flash_store/flash_fs
+		components/service/secure_storage/backend/secure_flash_store/flash
+		components/service/secure_storage/factory/common/sfs
 		protocols/rpc/common/packed-c
 		protocols/service/secure_storage/packed-c
 )
