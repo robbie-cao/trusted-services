@@ -90,7 +90,7 @@ void uefi_variable_store_deinit(struct uefi_variable_store *context);
  * @param[in]  total_capacity The total storage capacity in bytes
  * @param[in]  max_variable_size Variable size limit
  */
-void uefi_variable_store_set_storage_limits(struct uefi_variable_store *context,
+void uefi_variable_store_set_storage_limits(const struct uefi_variable_store *context,
 					    uint32_t attributes, size_t total_capacity,
 					    size_t max_variable_size);
 

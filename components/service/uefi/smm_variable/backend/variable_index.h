@@ -23,7 +23,7 @@ extern "C" {
 /**
  * Implementation limits
  */
-#define VARIABLE_INDEX_MAX_NAME_SIZE (32)
+#define VARIABLE_INDEX_MAX_NAME_SIZE (64)
 
 /**
  * \brief variable_metadata structure definition

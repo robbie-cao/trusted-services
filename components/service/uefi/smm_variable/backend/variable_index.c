@@ -26,9 +26,7 @@ static uint64_t name_hash(const EFI_GUID *guid, size_t name_size, const int16_t 
 	}
 
 	/* Extend to cover name up to but not including null terminator */
-	for (size_t i = 0; i < name_size / sizeof(int16_t); ++i) {
-		if (!name[i])
-			break;
+	for (size_t i = 0; i < (name_size - sizeof(int16_t)) / sizeof(int16_t); ++i) {
 		hash = ((hash << 5) + hash) + name[i];
 	}
 
@@ -181,25 +179,6 @@ struct variable_info *variable_index_find_next(const struct variable_index *cont
 	return result;
 }
 
-static void set_variable_name(struct variable_info *info, size_t name_size, const int16_t *name)
-{
-	size_t trimmed_size = 0;
-
-	/* Trim the saved name to only include a single null terminator.
-	 * Any additional terminators included in the client-set name size
-	 * are discarded.
-	 */
-	for (size_t i = 0; i < name_size; i++) {
-		++trimmed_size;
-		info->metadata.name[i] = name[i];
-
-		if (!name[i])
-			break;
-	}
-
-	info->metadata.name_size = trimmed_size * sizeof(int16_t);
-}
-
 static struct variable_entry *add_entry(const struct variable_index *context, const EFI_GUID *guid,
 					size_t name_size, const int16_t *name)
 {
@@ -217,7 +196,8 @@ static struct variable_entry *add_entry(const struct variable_index *context, co
 			info->metadata.uid = generate_uid(context, guid, name_size, name);
 			info->metadata.guid = *guid;
 			info->metadata.attributes = 0;
-			set_variable_name(info, name_size, name);
+			info->metadata.name_size = name_size;
+			memcpy(info->metadata.name, name, name_size);
 
 			info->is_constraints_set = false;
 			info->is_variable_set = false;

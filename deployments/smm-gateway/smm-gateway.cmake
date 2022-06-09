@@ -8,6 +8,8 @@
 add_components(TARGET "smm-gateway"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+		"components/common/trace"
+		"components/common/utils"
 		"components/common/uuid"
 		"components/rpc/common/interface"
 		"components/service/common/include"
