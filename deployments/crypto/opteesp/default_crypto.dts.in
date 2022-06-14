@@ -15,7 +15,7 @@
 	exception-level = <1>; /* S-EL0 */
 	execution-state = <0>; /* AArch64 */
 	xlat-granule = <0>; /* 4KiB */
-	messaging-method = <0>; /* Direct messaging only */
+	messaging-method = <3>; /* Direct messaging only */
 	legacy-elf-format = <1>;
 
 	device-regions {
