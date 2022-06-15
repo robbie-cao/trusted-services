@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -98,9 +98,31 @@ static void init_shmem_buf(struct ffa_call_ep *call_ep, uint16_t source_id,
 				    &out_region_count, handle);
 
 	if (sp_res == SP_RESULT_OK) {
+		size_t shmem_size = (size_t)req_args[SP_CALL_ARGS_SHARE_MEM_SIZE];
+
+		if (shmem_size > region.page_count * FFA_MEM_TRANSACTION_PAGE_SIZE) {
+			/*
+			 * The shared memory's size is smaller than the size
+			 * value forwarded in the direct message argument.
+			 */
+			uint16_t endpoints[1] = { own_id };
+			struct sp_memory_transaction_flags flags = {
+				.zero_memory = false,
+				.operation_time_slicing = false,
+			};
+
+			sp_res = sp_memory_relinquish(handle, endpoints, ARRAY_SIZE(endpoints),
+						      &flags);
+			if (sp_res)
+				EMSG("memory relinquish error: %d", sp_res);
+
+			rpc_status = TS_RPC_ERROR_INVALID_PARAMETER;
+			goto out;
+		}
+
 		call_ep->shmem_buf[idx] = region.address;
 		call_ep->shmem_buf_handle[idx] = handle;
-		call_ep->shmem_buf_size[idx] = (size_t)req_args[SP_CALL_ARGS_SHARE_MEM_SIZE];
+		call_ep->shmem_buf_size[idx] = shmem_size;
 		call_ep->src_id[idx] = source_id;
 		rpc_status = TS_RPC_CALL_ACCEPTED;
 	} else {
