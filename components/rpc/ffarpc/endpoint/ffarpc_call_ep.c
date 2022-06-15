@@ -188,6 +188,9 @@ static void handle_service_msg(struct ffa_call_ep *call_ep, uint16_t source_id,
 
 	if (idx >= 0 && call_ep->shmem_buf[idx]) {
 		/* A shared buffer is available for call parameters */
+		if (call_req.req_buf.data_len > call_ep->shmem_buf_size[idx])
+			goto out;
+
 		call_req.req_buf.data = call_ep->shmem_buf[idx];
 		call_req.req_buf.size = call_ep->shmem_buf_size[idx];
 
