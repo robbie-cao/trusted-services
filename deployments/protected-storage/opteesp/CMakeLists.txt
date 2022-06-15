@@ -17,7 +17,8 @@ include(${TS_ROOT}/environments/opteesp/env.cmake)
 project(trusted-services LANGUAGES C ASM)
 add_executable(protected-storage)
 target_include_directories(protected-storage PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
-set(SP_UUID "751bf801-3dde-4768-a514-0f10aeed1790")
+set(SP_UUID_CANON "751bf801-3dde-4768-a514-0f10aeed1790")
+set(SP_UUID_LE "0x01f81b75 0x6847de3d 0x100f14a5 0x9017edae")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "PS" CACHE STRING "Trace prefix")
 
@@ -58,7 +59,7 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	)
 endif()
 
-compiler_generate_stripped_elf(TARGET protected-storage NAME "${SP_UUID}.stripped.elf" RES STRIPPED_ELF)
+compiler_generate_stripped_elf(TARGET protected-storage NAME "${SP_UUID_CANON}.stripped.elf" RES STRIPPED_ELF)
 
 ######################################## install
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -72,7 +73,8 @@ install(FILES ${STRIPPED_ELF} DESTINATION ${TS_ENV}/bin)
 
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
 export_sp(
-	SP_UUID ${SP_UUID}
+	SP_UUID_CANON ${SP_UUID_CANON}
+	SP_UUID_LE ${SP_UUID_LE}
 	SP_NAME "protected-storage"
 	MK_IN ${TS_ROOT}/environments/opteesp/sp.mk.in
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_protected-storage.dts.in

@@ -11,8 +11,9 @@
 	.. code:: cmake
 
 		export_sp(
-			SP_UUID <uuid> SP_NAME
-			<name> MK_IN <.mk path>
+			SP_UUID_CANON <uuid_str_canon>
+			SP_UUID_LE <uuid_le_bytes>
+			SP_NAME <name> MK_IN <.mk path>
 			DTS_IN <DTS path>
 			DTS_MEM_REGIONS <Memory region manifest path>
 			JSON_IN <JSON path>
@@ -20,8 +21,11 @@
 
 	INPUTS:
 
-	``SP_UUID``
-	The UUID of the SP as a string.
+	``SP_UUID_CANON``
+	The UUID of the SP as a canonical string.
+
+	``SP_UUID_LE``
+	The UUID of the SP as four 32 bit little-endian unsigned integers.
 
 	``SP_NAME``
 	The name of the SP.
@@ -41,13 +45,16 @@
 #]===]
 function (export_sp)
 	set(options)
-	set(oneValueArgs SP_UUID SP_NAME MK_IN DTS_IN DTS_MEM_REGIONS JSON_IN)
+	set(oneValueArgs SP_UUID_CANON SP_UUID_LE SP_NAME MK_IN DTS_IN DTS_MEM_REGIONS JSON_IN)
 	set(multiValueArgs)
 	cmake_parse_arguments(EXPORT "${options}" "${oneValueArgs}"
 						"${multiValueArgs}" ${ARGN} )
 
-	if(NOT DEFINED EXPORT_SP_UUID)
-		message(FATAL_ERROR "export_sp: mandatory parameter SP_UUID not defined!")
+	if(NOT DEFINED EXPORT_SP_UUID_CANON)
+		message(FATAL_ERROR "export_sp: mandatory parameter SP_UUID_CANON not defined!")
+	endif()
+	if(NOT DEFINED EXPORT_SP_UUID_LE)
+		message(FATAL_ERROR "export_sp: mandatory parameter SP_UUID_LE not defined!")
 	endif()
 	if(NOT DEFINED EXPORT_SP_NAME)
 		message(FATAL_ERROR "export_sp: mandatory parameter SP_NAME not defined!")
@@ -61,27 +68,22 @@ function (export_sp)
 		install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_NAME}.mk DESTINATION ${TS_ENV}/lib/make)
 	endif()
 
-	# Converting UUID from the canonical string format to four 32 bit unsigned integers.
-	# The first byte of the UUID is the MSB of the first integer.
-	# 01234567-89ab-cdef-0123-456789abcdef -> 0x01234567 0x89abcdef 0x01234567 0x89abcdef
-	string(REGEX REPLACE
-		"([a-f0-9]+)-([a-f0-9]+)-([a-f0-9]+)-([a-f0-9]+)-([a-f0-9][a-f0-9][a-f0-9][a-f0-9])([a-f0-9]+)"
-		"0x\\1 0x\\2\\3 0x\\4\\5 0x\\6"
-		EXPORT_SP_UUID_DT ${EXPORT_SP_UUID})
+	# In the SP manifest DT the UUID format is four uint32 numbers (little-endian)
+	set(EXPORT_SP_UUID_DT "${EXPORT_SP_UUID_LE}")
 
 	# As the .dtsi is meant to be included in .dts file, it shouldn't contain a separate
 	# /dts-v1/ tag and its node should be unique, i.e. the SP name.
 	set(DTS_TAG "")
 	set(DTS_NODE "${EXPORT_SP_NAME}")
-	configure_file(${EXPORT_DTS_IN} ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID}.dtsi @ONLY NEWLINE_STYLE UNIX)
-	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID}.dtsi DESTINATION ${TS_ENV}/manifest)
+	configure_file(${EXPORT_DTS_IN} ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}.dtsi @ONLY NEWLINE_STYLE UNIX)
+	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}.dtsi DESTINATION ${TS_ENV}/manifest)
 
 	# The .dts file is a standalone structure, thus it should have the /dts-v1/ tag and it
 	# starts with the root node.
 	set(DTS_TAG "/dts-v1/;")
 	set(DTS_NODE "/")
-	configure_file(${EXPORT_DTS_IN} ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID}.dts @ONLY NEWLINE_STYLE UNIX)
-	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID}.dts DESTINATION ${TS_ENV}/manifest)
+	configure_file(${EXPORT_DTS_IN} ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}.dts @ONLY NEWLINE_STYLE UNIX)
+	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}.dts DESTINATION ${TS_ENV}/manifest)
 
 	if (DEFINED EXPORT_DTS_MEM_REGIONS)
 		install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_DTS_MEM_REGIONS} DESTINATION ${TS_ENV}/manifest)

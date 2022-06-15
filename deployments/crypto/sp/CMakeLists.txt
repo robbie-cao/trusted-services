@@ -23,7 +23,8 @@ project(trusted-services LANGUAGES C ASM)
 add_executable(crypto)
 target_include_directories(crypto PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_NAME "crypto")
-set(SP_UUID "d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0")
+set(SP_UUID_CANON "d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0")
+set(SP_UUID_LE "0xd552dfd9 0xb24ba216 0x6dd2a49a 0xc0e8843b")
 set(TRACE_PREFIX "CRYPTO" CACHE STRING "Trace prefix")
 set(SP_STACK_SIZE "64 * 1024" CACHE STRING "Stack size")
 set(SP_HEAP_SIZE "490 * 1024" CACHE STRING "Heap size")
@@ -71,11 +72,11 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	)
 endif()
 
-compiler_generate_binary_output(TARGET crypto NAME "${SP_UUID}.bin" SP_BINARY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SP_UUID}.bin DESTINATION ${TS_ENV}/bin)
+compiler_generate_binary_output(TARGET crypto NAME "${SP_UUID_CANON}.bin" SP_BINARY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SP_UUID_CANON}.bin DESTINATION ${TS_ENV}/bin)
 
 include(${TS_ROOT}/tools/cmake/common/ExportMemoryRegionsToManifest.cmake REQUIRED)
-export_memory_regions_to_manifest(TARGET crypto NAME "${SP_UUID}_memory_regions.dtsi" RES EXPORT_MEMORY_REGIONS_DTSI)
+export_memory_regions_to_manifest(TARGET crypto NAME "${SP_UUID_CANON}_memory_regions.dtsi" RES EXPORT_MEMORY_REGIONS_DTSI)
 
 ######################################## install
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -88,9 +89,10 @@ install(TARGETS crypto
 
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake REQUIRED)
 export_sp(
-	SP_UUID ${SP_UUID}
+	SP_UUID_CANON ${SP_UUID_CANON}
+	SP_UUID_LE ${SP_UUID_LE}
 	SP_NAME ${SP_NAME}
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_${SP_NAME}.dts.in
-	DTS_MEM_REGIONS ${SP_UUID}_memory_regions.dtsi
+	DTS_MEM_REGIONS ${SP_UUID_CANON}_memory_regions.dtsi
 	JSON_IN ${TS_ROOT}/environments/sp/sp_pkg.json.in
 )

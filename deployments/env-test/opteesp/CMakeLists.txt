@@ -21,7 +21,8 @@ include(${TS_ROOT}/environments/opteesp/env.cmake)
 project(trusted-services LANGUAGES C ASM)
 add_executable(env-test)
 target_include_directories(env-test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
-set(SP_UUID "33c75baf-ac6a-4fe4-8ac7-e9909bee2d17")
+set(SP_UUID_CANON "33c75baf-ac6a-4fe4-8ac7-e9909bee2d17")
+set(SP_UUID_LE "0xaf5bc733 0xe44f6aac 0x90e9c78a 0x172dee9b")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "ENVTEST" CACHE STRING "Trace prefix")
 
@@ -91,7 +92,7 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	)
 endif()
 
-compiler_generate_stripped_elf(TARGET env-test NAME "${SP_UUID}.stripped.elf" RES STRIPPED_ELF)
+compiler_generate_stripped_elf(TARGET env-test NAME "${SP_UUID_CANON}.stripped.elf" RES STRIPPED_ELF)
 
 ######################################## install
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -110,7 +111,8 @@ install(FILES ${_PROTO_FILES} DESTINATION ${TS_ENV}/lib/protobuf)
 
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
 export_sp(
-	SP_UUID ${SP_UUID}
+	SP_UUID_CANON ${SP_UUID_CANON}
+	SP_UUID_LE ${SP_UUID_LE}
 	SP_NAME "env-test"
 	MK_IN ${TS_ROOT}/environments/opteesp/sp.mk.in
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_env-test.dts.in

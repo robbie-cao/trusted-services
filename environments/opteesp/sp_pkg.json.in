@@ -1,7 +1,7 @@
 {
 	"@EXPORT_SP_NAME@": {
-		"image": "../bin/@EXPORT_SP_UUID@.stripped.elf",
-		"pm": "../manifest/@EXPORT_SP_UUID@.dts",
-		"uuid": "@EXPORT_SP_UUID@"
+		"image": "../bin/@EXPORT_SP_UUID_CANON@.stripped.elf",
+		"pm": "../manifest/@EXPORT_SP_UUID_CANON@.dts",
+		"uuid": "@EXPORT_SP_UUID_CANON@"
 	}
 }

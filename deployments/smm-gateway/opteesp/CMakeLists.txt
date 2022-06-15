@@ -20,7 +20,8 @@ include(${TS_ROOT}/environments/opteesp/env.cmake)
 project(trusted-services LANGUAGES C ASM)
 add_executable(smm-gateway)
 target_include_directories(smm-gateway PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
-set(SP_UUID "ed32d533-99e6-4209-9cc0-2d72cdd998a7")
+set(SP_UUID_CANON "ed32d533-99e6-4209-9cc0-2d72cdd998a7")
+set(SP_UUID_LE "0x33d532ed 0x0942e699 0x722dc09c 0xa798d9cd")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "SMMGW" CACHE STRING "Trace prefix")
 
@@ -77,7 +78,7 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	)
 endif()
 
-compiler_generate_stripped_elf(TARGET smm-gateway NAME "${SP_UUID}.stripped.elf" RES STRIPPED_ELF)
+compiler_generate_stripped_elf(TARGET smm-gateway NAME "${SP_UUID_CANON}.stripped.elf" RES STRIPPED_ELF)
 
 ######################################## install
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -96,7 +97,8 @@ install(FILES ${_PROTO_FILES} DESTINATION ${TS_ENV}/lib/protobuf)
 
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
 export_sp(
-	SP_UUID ${SP_UUID}
+	SP_UUID_CANON ${SP_UUID_CANON}
+	SP_UUID_LE ${SP_UUID_LE}
 	SP_NAME "smm-gateway"
 	MK_IN ${TS_ROOT}/environments/opteesp/sp.mk.in
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_smm-gateway.dts.in

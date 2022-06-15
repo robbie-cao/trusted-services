@@ -16,7 +16,8 @@ include(../../deployment.cmake REQUIRED)
 include(${TS_ROOT}/environments/opteesp/env.cmake)
 project(trusted-services LANGUAGES C ASM)
 add_executable(sfs-demo)
-set(SP_UUID "01109cf8-e5ca-446f-9b55-f3cdc65110c8")
+set(SP_UUID_CANON "01109cf8-e5ca-446f-9b55-f3cdc65110c8")
+set(SP_UUID_LE "0xf89c1001 0x6f44cae5 0xcdf3559b 0xc81051c6")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "SFSDEMO" CACHE STRING "Trace prefix")
 
@@ -57,7 +58,7 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	)
 endif()
 
-compiler_generate_stripped_elf(TARGET sfs-demo NAME "${SP_UUID}.stripped.elf" RES STRIPPED_ELF)
+compiler_generate_stripped_elf(TARGET sfs-demo NAME "${SP_UUID_CANON}.stripped.elf" RES STRIPPED_ELF)
 
 ######################################## install
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -71,7 +72,8 @@ install(FILES ${STRIPPED_ELF} DESTINATION ${TS_ENV}/bin)
 
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
 export_sp(
-	SP_UUID ${SP_UUID}
+	SP_UUID_CANON ${SP_UUID_CANON}
+	SP_UUID_LE ${SP_UUID_LE}
 	SP_NAME "sfs-demo"
 	MK_IN ${TS_ROOT}/environments/opteesp/sp.mk.in
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_sfs-demo.dts.in

@@ -20,7 +20,8 @@ include(${TS_ROOT}/environments/opteesp/env.cmake)
 project(trusted-services LANGUAGES C ASM)
 add_executable(crypto)
 target_include_directories(crypto PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
-set(SP_UUID "d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0")
+set(SP_UUID_CANON "d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0")
+set(SP_UUID_LE "0xd552dfd9 0xb24ba216 0x6dd2a49a 0xc0e8843b")
 set(SP_HEAP_SIZE "490 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "CRYPTO" CACHE STRING "Trace prefix")
 
@@ -73,7 +74,7 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	)
 endif()
 
-compiler_generate_stripped_elf(TARGET crypto NAME "${SP_UUID}.stripped.elf" RES STRIPPED_ELF)
+compiler_generate_stripped_elf(TARGET crypto NAME "${SP_UUID_CANON}.stripped.elf" RES STRIPPED_ELF)
 
 ######################################## install
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -92,7 +93,8 @@ install(FILES ${_PROTO_FILES} DESTINATION ${TS_ENV}/lib/protobuf)
 
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
 export_sp(
-	SP_UUID ${SP_UUID}
+	SP_UUID_CANON ${SP_UUID_CANON}
+	SP_UUID_LE ${SP_UUID_LE}
 	SP_NAME "crypto"
 	MK_IN ${TS_ROOT}/environments/opteesp/sp.mk.in
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_crypto.dts.in
