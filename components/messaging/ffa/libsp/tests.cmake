@@ -177,6 +177,20 @@ unit_test_add_suite(
 )
 
 unit_test_add_suite(
+	NAME libsp_mock_sp_messaging
+	SOURCES
+		${CMAKE_CURRENT_LIST_DIR}/mock/test/test_mock_sp_messaging.cpp
+		${CMAKE_CURRENT_LIST_DIR}/mock/mock_sp_messaging.cpp
+	INCLUDE_DIRECTORIES
+		${CMAKE_CURRENT_LIST_DIR}/include/
+		${CMAKE_CURRENT_LIST_DIR}/mock
+		${UNIT_TEST_PROJECT_PATH}/components/common/utils/include
+	COMPILE_DEFINITIONS
+		-DARM64
+		-DFFA_DIRECT_MSG_ROUTING_EXTENSION=1
+)
+
+unit_test_add_suite(
 	NAME libsp_sp_messaging_with_routing_extension
 	SOURCES
 		${CMAKE_CURRENT_LIST_DIR}/test/test_sp_messaging.cpp
