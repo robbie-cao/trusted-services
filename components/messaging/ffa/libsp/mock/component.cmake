@@ -13,6 +13,7 @@ target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/mock_ffa_api.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/mock_ffa_internal_api.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/mock_sp_discovery.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/mock_sp_memory_management.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/mock_sp_rxtx.cpp"
 	)
 

@@ -381,7 +381,7 @@ sp_result sp_memory_share_dynamic_is_supported(bool *supported);
  *
  * @param[in]      descriptor        The memory descriptor
  * @param[in,out]  acc_desc          Access descriptor
- * @param[in,out   regions           Memory region array
+ * @param[in,out]  regions           Memory region array
  * @param[in]      in_region_count   Count of the specified regions, can be 0
  * @param[in,out]  out_region_count  Count of the reserved space of in the
  *                                   regions buffer for retrieved regions. After
