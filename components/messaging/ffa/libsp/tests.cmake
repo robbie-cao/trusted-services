@@ -105,6 +105,19 @@ unit_test_add_suite(
 )
 
 unit_test_add_suite(
+	NAME libsp_mock_sp_discovery
+	SOURCES
+		${CMAKE_CURRENT_LIST_DIR}/mock/test/test_mock_sp_discovery.cpp
+		${CMAKE_CURRENT_LIST_DIR}/mock/mock_sp_discovery.cpp
+	INCLUDE_DIRECTORIES
+		${CMAKE_CURRENT_LIST_DIR}/include/
+		${CMAKE_CURRENT_LIST_DIR}/mock
+		${UNIT_TEST_PROJECT_PATH}/components/common/utils/include
+	COMPILE_DEFINITIONS
+		-DARM64
+)
+
+unit_test_add_suite(
 	NAME libsp_sp_memory_management
 	SOURCES
 		${CMAKE_CURRENT_LIST_DIR}/test/test_sp_memory_management.cpp
