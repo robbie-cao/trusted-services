@@ -21,16 +21,21 @@ add_components(
 		"components/common/uuid/test"
 		"components/common/tlv"
 		"components/common/tlv/test"
+		"components/common/trace"
 		"components/common/endian"
 		"components/common/endian/test"
 		"components/config/ramstore"
 		"components/config/ramstore/test"
+		"components/messaging/ffa/libsp/mock"
 		"components/rpc/common/caller"
 		"components/rpc/common/interface"
 		"components/rpc/common/demux"
+		"components/rpc/common/test"
 		"components/rpc/common/test/protocol"
 		"components/rpc/direct"
 		"components/rpc/dummy"
+		"components/rpc/ffarpc/endpoint"
+		"components/rpc/ffarpc/endpoint/test"
 		"components/service/common/include"
 		"components/service/common/serializer/protobuf"
 		"components/service/common/client"
@@ -129,6 +134,15 @@ add_components(
 		"protocols/service/crypto/packed-c"
 		"protocols/service/crypto/protobuf"
 		"protocols/service/secure_storage/packed-c"
+)
+
+#-------------------------------------------------------------------------------
+#  Component configurations
+#
+#-------------------------------------------------------------------------------
+target_compile_definitions(component-test PRIVATE
+	"TRACE_PREFIX=\"TEST\""
+	"TRACE_LEVEL=0"
 )
 
 #-------------------------------------------------------------------------------

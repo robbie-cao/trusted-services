@@ -36,7 +36,7 @@ static void set_mgmt_resp_args(uint32_t *resp_args, uint32_t ifaceid_opcode,
 
 static int find_free_shm(struct ffa_call_ep *call_ep)
 {
-	int i;
+	int i = 0;
 
 	if (!call_ep)
 		return -1;
@@ -53,7 +53,7 @@ static int find_free_shm(struct ffa_call_ep *call_ep)
 
 static int find_shm(struct ffa_call_ep *call_ep, uint16_t source_id)
 {
-	int i;
+	int i = 0;
 
 	if (!call_ep)
 		return -1;
@@ -173,7 +173,7 @@ static void handle_service_msg(struct ffa_call_ep *call_ep, uint16_t source_id,
 			       const uint32_t *req_args, uint32_t *resp_args)
 {
 	rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_PARAMETER;
-	struct call_req call_req;
+	struct call_req call_req = { 0 };
 
 	uint32_t ifaceid_opcode = req_args[SP_CALL_ARGS_IFACE_ID_OPCODE];
 	int idx = find_shm(call_ep, source_id);
@@ -245,7 +245,7 @@ static void handle_mgmt_msg(struct ffa_call_ep *call_ep, uint16_t source_id,
 void ffa_call_ep_init(struct ffa_call_ep *ffa_call_ep,
 		      struct rpc_interface *iface, uint16_t own_id)
 {
-	int i;
+	int i = 0;
 
 	ffa_call_ep->iface = iface;
 	ffa_call_ep->own_id = own_id;
