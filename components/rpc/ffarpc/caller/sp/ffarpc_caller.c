@@ -177,19 +177,19 @@ uint32_t ffarpc_caller_discover(const uint8_t *uuid, uint16_t *sp_ids, uint32_t 
 
 	if (uuid == NULL || sp_ids == NULL || sp_max_cnt == 0) {
 		EMSG("invalid arguments");
-		goto out;
+		return 0;
 	}
 
 	ffa_res = ffa_partition_info_get((struct ffa_uuid *)uuid, &sp_cnt);
 	if (ffa_res != FFA_OK) {
 		EMSG("ffa_partition_info_get(): error %"PRId32, ffa_res);
-		goto out;
+		return 0;
 	}
 
 	sp_res = sp_rxtx_buffer_rx_get(&rx_buf_addr, &rx_buf_size);
 	if (sp_res != SP_RESULT_OK) {
 		EMSG("sp_rxtx_buffer_rx_get(): error %"PRId32, sp_res);
-		goto out;
+		return 0;
 	}
 
 	partitions = (const struct ffa_partition_information *)rx_buf_addr;
@@ -199,9 +199,9 @@ uint32_t ffarpc_caller_discover(const uint8_t *uuid, uint16_t *sp_ids, uint32_t 
 	ffa_res = ffa_rx_release();
 	if (ffa_res != FFA_OK) {
 		EMSG("ffa_rx_release(): error %"PRId32, ffa_res);
-		goto out;
+		return 0;
 	}
-out:
+
 	return sp_cnt;
 }
 
@@ -217,6 +217,13 @@ int ffarpc_caller_open(struct ffarpc_caller *caller, uint16_t dest_partition_id,
 	struct sp_memory_region region = { 0 };
 
 	uint64_t handle = 0;
+
+	rpc_status_t status = TS_RPC_ERROR_INTERNAL;
+
+	if (caller->dest_partition_id) {
+		EMSG("the caller is already open");
+		return -1;
+	}
 
 	if (caller->shared_mem_required_size > UINT32_MAX) {
 		EMSG("memory is too large to share");
@@ -256,6 +263,17 @@ int ffarpc_caller_open(struct ffarpc_caller *caller, uint16_t dest_partition_id,
 		return -1;
 	}
 
+	status = (rpc_status_t)resp.args.args32[SP_CALL_ARGS_RESP_RPC_STATUS];
+	if (status != TS_RPC_CALL_ACCEPTED) {
+		EMSG("RPC endpoint error: %"PRId32, status);
+
+		sp_res = sp_memory_reclaim(handle, 0);
+		if (sp_res != SP_RESULT_OK)
+			EMSG("sp_memory_reclaim(): error %"PRId32, sp_res);
+
+		return -1;
+	}
+
 	caller->dest_partition_id = dest_partition_id;
 	caller->dest_iface_id = dest_iface_id;
 	caller->shared_mem_handle = handle;
@@ -269,6 +287,12 @@ int ffarpc_caller_close(struct ffarpc_caller *caller)
 	struct sp_msg req = { 0 };
 	struct sp_msg resp = { 0 };
 	uint32_t handle_lo = 0, handle_hi = 0;
+	rpc_status_t status = TS_RPC_ERROR_INTERNAL;
+
+	if (caller->dest_partition_id == 0) {
+		EMSG("the caller is already closed");
+		return -1;
+	}
 
 	handle_lo = (uint32_t)(caller->shared_mem_handle & UINT32_MAX);
 	handle_hi = (uint32_t)(caller->shared_mem_handle >> 32);
@@ -285,6 +309,16 @@ int ffarpc_caller_close(struct ffarpc_caller *caller)
 	if (sp_res != SP_RESULT_OK) {
 		EMSG("sp_msg_send_direct_req(): error %"PRId32, sp_res);
 		return -1;
+	}
+
+	status = (rpc_status_t)resp.args.args32[SP_CALL_ARGS_RESP_RPC_STATUS];
+	if (status) {
+		/*
+		 * The RPC endpoint failed to relinquish the shared memory but
+		 * still worth trying to reclaim the memory beside emiting an
+		 * error message.
+		 */
+		EMSG("RPC endpoint error %"PRId32, status);
 	}
 
 	sp_res = sp_memory_reclaim(caller->shared_mem_handle, 0);

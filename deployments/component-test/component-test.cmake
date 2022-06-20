@@ -34,6 +34,8 @@ add_components(
 		"components/rpc/common/test/protocol"
 		"components/rpc/direct"
 		"components/rpc/dummy"
+		"components/rpc/ffarpc/caller/sp"
+		"components/rpc/ffarpc/caller/sp/test"
 		"components/rpc/ffarpc/endpoint"
 		"components/rpc/ffarpc/endpoint/test"
 		"components/service/common/include"
