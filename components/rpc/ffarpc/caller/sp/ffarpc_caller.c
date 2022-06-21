@@ -39,6 +39,11 @@ static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_l
 		goto out;
 	}
 
+	if (this_context->dest_partition_id == 0) {
+		EMSG("the caller is not open");
+		goto out;
+	}
+
 	this_context->is_call_transaction_in_progess = true;
 	handle = this_context;
 
@@ -60,8 +65,8 @@ static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t 
 	struct sp_msg resp = { 0 };
 	rpc_status_t status = TS_RPC_ERROR_INTERNAL;
 
-	if (handle != this_context || opstatus == NULL ||
-		resp_buf == NULL || resp_len == NULL) {
+	if (context == NULL || handle != this_context || opstatus == NULL ||
+	    resp_buf == NULL || resp_len == NULL) {
 		EMSG("invalid arguments");
 		status = TS_RPC_ERROR_INVALID_PARAMETER;
 		goto out;
@@ -99,13 +104,13 @@ static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t 
 	}
 
 	this_context->resp_len = (size_t)resp.args.args32[SP_CALL_ARGS_RESP_DATA_LEN];
-	status = resp.args.args32[SP_CALL_ARGS_RESP_RPC_STATUS];
-	*opstatus = (rpc_status_t)((int32_t)resp.args.args32[SP_CALL_ARGS_RESP_OP_STATUS]);
-
 	if (this_context->resp_len > this_context->shared_mem_required_size) {
 		EMSG("invalid response length");
 		goto out;
 	}
+
+	status = resp.args.args32[SP_CALL_ARGS_RESP_RPC_STATUS];
+	*opstatus = (rpc_status_t)((int32_t)resp.args.args32[SP_CALL_ARGS_RESP_OP_STATUS]);
 
 	if (this_context->resp_len > 0)
 		this_context->resp_buf = shared_buffer;
@@ -122,7 +127,7 @@ static void call_end(void *context, rpc_call_handle handle)
 {
 	struct ffarpc_caller *this_context = (struct ffarpc_caller *)context;
 
-	if (handle != this_context) {
+	if (context == NULL || handle != this_context) {
 		EMSG("invalid arguments");
 		return;
 	}

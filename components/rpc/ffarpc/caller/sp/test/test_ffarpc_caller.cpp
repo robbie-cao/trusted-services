@@ -321,3 +321,302 @@ TEST(ffarpc_caller, close_success)
 	expect_sp_memory_reclaim(caller.shared_mem_handle, 0, SP_RESULT_OK);
 	LONGS_EQUAL(0, ffarpc_caller_close(&caller));
 }
+
+TEST(ffarpc_caller, begin_null_context)
+{
+	uint8_t *buffer = NULL;
+
+	rpc_caller_instance->context = NULL;
+
+	POINTERS_EQUAL(NULL,  rpc_caller_begin(rpc_caller_instance, &buffer, 0));
+}
+
+TEST(ffarpc_caller, begin_null_buffer)
+{
+	POINTERS_EQUAL(NULL, rpc_caller_begin(rpc_caller_instance, NULL, 0));
+}
+
+TEST(ffarpc_caller, begin_transaction_in_progress)
+{
+	uint8_t *buffer = NULL;
+
+	caller.is_call_transaction_in_progess = true;
+	POINTERS_EQUAL(NULL, rpc_caller_begin(rpc_caller_instance, &buffer, 0));
+}
+
+TEST(ffarpc_caller, begin_too_large_req)
+{
+	uint8_t *buffer = NULL;
+
+	POINTERS_EQUAL(NULL, rpc_caller_begin(rpc_caller_instance, &buffer,
+					      sizeof(shared_buffer) + 1));
+}
+
+TEST(ffarpc_caller, begin_not_opened)
+{
+	uint8_t *buffer = NULL;
+
+	rpc_call_handle handle = rpc_caller_begin(rpc_caller_instance, &buffer,
+						  0);
+	POINTERS_EQUAL(NULL, handle);
+}
+
+TEST(ffarpc_caller, begin_with_buffer)
+{
+	uint8_t *buffer = NULL;
+
+	caller.dest_partition_id = 1;
+	rpc_call_handle handle = rpc_caller_begin(rpc_caller_instance, &buffer,
+						  sizeof(shared_buffer));
+	CHECK_TRUE(handle != NULL);
+	POINTERS_EQUAL(shared_buffer, buffer);
+}
+
+TEST(ffarpc_caller, begin_without_buffer)
+{
+	uint8_t *buffer = NULL;
+
+	caller.dest_partition_id = 1;
+	rpc_call_handle handle = rpc_caller_begin(rpc_caller_instance, &buffer,
+						  0);
+	CHECK_TRUE(handle != NULL);
+	POINTERS_EQUAL(NULL, buffer);
+}
+
+TEST(ffarpc_caller, invoke_null_context)
+{
+	rpc_call_handle handle = &caller;
+	rpc_opstatus_t opstatus = 0;
+	uint8_t *resp_buf = NULL;
+	size_t resp_len = 0;
+
+	rpc_caller_instance->context = NULL;
+	LONGS_EQUAL(TS_RPC_ERROR_INVALID_PARAMETER,
+		    rpc_caller_invoke(rpc_caller_instance, NULL, 0, &opstatus,
+				      &resp_buf, &resp_len));
+}
+
+TEST(ffarpc_caller, invoke_handle_context_diff)
+{
+	rpc_opstatus_t opstatus = 0;
+	uint8_t *resp_buf = NULL;
+	size_t resp_len = 0;
+
+	LONGS_EQUAL(TS_RPC_ERROR_INVALID_PARAMETER,
+		    rpc_caller_invoke(rpc_caller_instance, NULL, 0, &opstatus,
+				      &resp_buf, &resp_len));
+}
+
+TEST(ffarpc_caller, invoke_opstatus_null)
+{
+	rpc_call_handle handle = &caller;
+	uint8_t *resp_buf = NULL;
+	size_t resp_len = 0;
+
+	LONGS_EQUAL(TS_RPC_ERROR_INVALID_PARAMETER,
+		    rpc_caller_invoke(rpc_caller_instance, handle, 0, NULL,
+				      &resp_buf, &resp_len));
+}
+
+TEST(ffarpc_caller, invoke_resp_buf_null)
+{
+	rpc_call_handle handle = &caller;
+	rpc_opstatus_t opstatus = 0;
+	size_t resp_len = 0;
+
+	LONGS_EQUAL(TS_RPC_ERROR_INVALID_PARAMETER,
+		    rpc_caller_invoke(rpc_caller_instance, handle, 0,
+				      &opstatus, NULL, &resp_len));
+}
+
+TEST(ffarpc_caller, invoke_resp_len_null)
+{
+	rpc_call_handle handle = &caller;
+	rpc_opstatus_t opstatus = 0;
+	uint8_t *resp_buf = NULL;
+
+	LONGS_EQUAL(TS_RPC_ERROR_INVALID_PARAMETER,
+		    rpc_caller_invoke(rpc_caller_instance, handle, 0,
+				      &opstatus, &resp_buf, NULL));
+}
+
+TEST(ffarpc_caller, invoke_resp_no_begin)
+{
+	rpc_call_handle handle = &caller;
+	rpc_opstatus_t opstatus = 0;
+	uint8_t *resp_buf = NULL;
+	size_t resp_len = 0;
+
+	LONGS_EQUAL(TS_RPC_ERROR_NOT_READY,
+		    rpc_caller_invoke(rpc_caller_instance, handle, 0,
+				      &opstatus, &resp_buf, &resp_len));
+}
+
+TEST(ffarpc_caller, invoke_resp_long_req)
+{
+	rpc_call_handle handle = &caller;
+	rpc_opstatus_t opstatus = 0;
+	uint8_t *resp_buf = NULL;
+	size_t resp_len = 0;
+
+	caller.is_call_transaction_in_progess = true;
+	caller.req_len = (size_t)UINT32_MAX + 1;
+	LONGS_EQUAL(TS_RPC_ERROR_INTERNAL,
+		    rpc_caller_invoke(rpc_caller_instance, handle, 0,
+				      &opstatus, &resp_buf, &resp_len));
+}
+
+TEST(ffarpc_caller, invoke_send_direct_req_fail)
+{
+	rpc_call_handle handle = &caller;
+	uint16_t opcode = 0xfedc;
+	rpc_opstatus_t opstatus = 0;
+	uint8_t *resp_buf = NULL;
+	size_t resp_len = 0;
+
+	caller.is_call_transaction_in_progess = true;
+	caller.shared_mem_handle = 0x56789abcdef01234ULL;
+	caller.dest_partition_id = 0x1234;
+	caller.req_len = 0x3456789a;
+	caller.rpc_caller.encoding = 0xabcdef12;
+
+	req.source_id = own_id;
+	req.destination_id = caller.dest_partition_id;
+	req.args.args32[0] = opcode;
+	req.args.args32[1] = caller.req_len;
+	req.args.args32[2] = 0;
+	req.args.args32[3] = caller.rpc_caller.encoding;
+
+	expect_sp_msg_send_direct_req(&req, &resp, SP_RESULT_INTERNAL_ERROR);
+	LONGS_EQUAL(TS_RPC_ERROR_INTERNAL,
+		    rpc_caller_invoke(rpc_caller_instance, handle, opcode,
+				      &opstatus, &resp_buf, &resp_len));
+}
+
+TEST(ffarpc_caller, invoke_invalid_resp_len)
+{
+	rpc_call_handle handle = &caller;
+	uint16_t opcode = 0xfedc;
+	rpc_opstatus_t opstatus = 0;
+	uint8_t *resp_buf = NULL;
+	size_t resp_len = 0;
+
+	caller.is_call_transaction_in_progess = true;
+	caller.shared_mem_handle = 0x56789abcdef01234ULL;
+	caller.dest_partition_id = 0x1234;
+	caller.req_len = 0x3456789a;
+	caller.rpc_caller.encoding = 0xabcdef12;
+
+	req.source_id = own_id;
+	req.destination_id = caller.dest_partition_id;
+	req.args.args32[0] = opcode;
+	req.args.args32[1] = caller.req_len;
+	req.args.args32[2] = 0;
+	req.args.args32[3] = caller.rpc_caller.encoding;
+
+	resp.source_id = caller.dest_partition_id;
+	resp.destination_id = own_id;
+	resp.args.args32[0] = opcode;
+	resp.args.args32[1] = sizeof(shared_buffer) + 1;
+	resp.args.args32[2] = TS_RPC_CALL_ACCEPTED;
+	resp.args.args32[3] = 0;
+
+	expect_sp_msg_send_direct_req(&req, &resp, SP_RESULT_OK);
+	LONGS_EQUAL(TS_RPC_ERROR_INTERNAL,
+		    rpc_caller_invoke(rpc_caller_instance, handle, opcode,
+				      &opstatus, &resp_buf, &resp_len));
+}
+
+TEST(ffarpc_caller, invoke_with_response)
+{
+	rpc_call_handle handle = &caller;
+	uint16_t opcode = 0xfedc;
+	rpc_opstatus_t opstatus = 0;
+	uint8_t *resp_buf = NULL;
+	size_t resp_len = 0;
+
+	caller.is_call_transaction_in_progess = true;
+	caller.shared_mem_handle = 0x56789abcdef01234ULL;
+	caller.dest_partition_id = 0x1234;
+	caller.req_len = 0x3456789a;
+	caller.rpc_caller.encoding = 0xabcdef12;
+
+	req.source_id = own_id;
+	req.destination_id = caller.dest_partition_id;
+	req.args.args32[0] = opcode;
+	req.args.args32[1] = caller.req_len;
+	req.args.args32[2] = 0;
+	req.args.args32[3] = caller.rpc_caller.encoding;
+
+	resp.source_id = caller.dest_partition_id;
+	resp.destination_id = own_id;
+	resp.args.args32[0] = opcode;
+	resp.args.args32[1] = sizeof(shared_buffer);
+	resp.args.args32[2] = TS_RPC_CALL_ACCEPTED;
+	resp.args.args32[3] = 0;
+
+	expect_sp_msg_send_direct_req(&req, &resp, SP_RESULT_OK);
+	LONGS_EQUAL(TS_RPC_CALL_ACCEPTED,
+		    rpc_caller_invoke(rpc_caller_instance, handle, opcode,
+				      &opstatus, &resp_buf, &resp_len));
+	POINTERS_EQUAL(shared_buffer, resp_buf);
+	UNSIGNED_LONGS_EQUAL(sizeof(shared_buffer), resp_len);
+}
+
+TEST(ffarpc_caller, invoke_without_response)
+{
+	rpc_call_handle handle = &caller;
+	uint16_t opcode = 0xfedc;
+	rpc_opstatus_t opstatus = 0;
+	uint8_t *resp_buf = (uint8_t *)0x123;
+	size_t resp_len = 1;
+
+	caller.is_call_transaction_in_progess = true;
+	caller.shared_mem_handle = 0x56789abcdef01234ULL;
+	caller.dest_partition_id = 0x1234;
+	caller.req_len = 0x3456789a;
+	caller.rpc_caller.encoding = 0xabcdef12;
+
+	req.source_id = own_id;
+	req.destination_id = caller.dest_partition_id;
+	req.args.args32[0] = opcode;
+	req.args.args32[1] = caller.req_len;
+	req.args.args32[2] = 0;
+	req.args.args32[3] = caller.rpc_caller.encoding;
+
+	resp.source_id = caller.dest_partition_id;
+	resp.destination_id = own_id;
+	resp.args.args32[0] = opcode;
+	resp.args.args32[1] = 0;
+	resp.args.args32[2] = TS_RPC_CALL_ACCEPTED;
+	resp.args.args32[3] = 0;
+
+	expect_sp_msg_send_direct_req(&req, &resp, SP_RESULT_OK);
+	LONGS_EQUAL(TS_RPC_CALL_ACCEPTED,
+		    rpc_caller_invoke(rpc_caller_instance, handle, opcode,
+				      &opstatus, &resp_buf, &resp_len));
+	POINTERS_EQUAL(NULL, resp_buf);
+	UNSIGNED_LONGS_EQUAL(0, resp_len);
+}
+
+TEST(ffarpc_caller, end_null_context)
+{
+	rpc_call_handle handle = &caller;
+
+	caller.rpc_caller.context = NULL;
+	rpc_caller_end(rpc_caller_instance, handle);
+}
+
+TEST(ffarpc_caller, end_null_handle)
+{
+	rpc_caller_end(rpc_caller_instance, NULL);
+}
+
+TEST(ffarpc_caller, end)
+{
+	rpc_call_handle handle = &caller;
+
+	caller.is_call_transaction_in_progess = true;
+	rpc_caller_end(rpc_caller_instance, handle);
+	CHECK_FALSE(caller.is_call_transaction_in_progess);
+}
