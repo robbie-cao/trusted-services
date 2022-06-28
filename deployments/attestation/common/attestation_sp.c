@@ -95,7 +95,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	attest_provider_register_serializer(&attest_provider,
 		TS_RPC_ENCODING_PACKED_C, packedc_attest_provider_serializer_instance());
 
-	ffa_call_ep_init(&ffarpc_call_ep, attest_iface);
+	ffa_call_ep_init(&ffarpc_call_ep, attest_iface, own_id);
 
 	/*********************************************************
 	 * End of boot phase

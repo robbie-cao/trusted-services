@@ -33,7 +33,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	sp_config_load(init_info);
 
 	rpc_iface = rpc_demux_init(&rpc_demux);
-	ffa_call_ep_init(&ffarpc_call_ep, rpc_iface);
+	ffa_call_ep_init(&ffarpc_call_ep, rpc_iface, own_id);
 
 	/* Create service proxies */
 	rpc_iface = its_proxy_create();

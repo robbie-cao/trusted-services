@@ -44,7 +44,7 @@ void sp_main(struct ffa_init_info *init_info)
 
 	storage_backend = storage_factory_create(storage_factory_security_class_INTERNAL_TRUSTED);
 	secure_storage_iface = secure_storage_provider_init(&secure_storage_provider, storage_backend);
-	ffa_call_ep_init(&ffa_call_ep, secure_storage_iface);
+	ffa_call_ep_init(&ffa_call_ep, secure_storage_iface, own_id);
 
 	/* End of boot phase */
 	sp_msg_wait(&req_msg);

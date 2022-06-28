@@ -51,7 +51,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 		crypto_iface = service_provider_get_rpc_interface(&crypto_provider->base_provider);
 	}
 
-	ffa_call_ep_init(&ffarpc_call_ep, crypto_iface);
+	ffa_call_ep_init(&ffarpc_call_ep, crypto_iface, own_id);
 
 	/* End of boot phase */
 	sp_msg_wait(&req_msg);

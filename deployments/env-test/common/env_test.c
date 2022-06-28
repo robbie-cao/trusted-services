@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #include <rpc/ffarpc/caller/sp/ffarpc_caller.h>
@@ -44,7 +44,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 
 	env_test_register_tests(&test_runner_provider);
 
-	ffa_call_ep_init(&ffarpc_call_ep, test_runner_iface);
+	ffa_call_ep_init(&ffarpc_call_ep, test_runner_iface, own_id);
 
  	/* End of boot phase */
 	sp_msg_wait(&req_msg);

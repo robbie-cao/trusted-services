@@ -23,13 +23,15 @@ extern "C" {
 
 struct ffa_call_ep {
 	struct rpc_interface *iface;
+	uint16_t own_id;
 	unsigned long shmem_buf_handle[NUM_MAX_SESS];
 	uint8_t *shmem_buf[NUM_MAX_SESS];
 	size_t shmem_buf_size[NUM_MAX_SESS];
 	uint16_t src_id[NUM_MAX_SESS];
  };
 
-void ffa_call_ep_init(struct ffa_call_ep *ffa_call_ep, struct rpc_interface *iface);
+void ffa_call_ep_init(struct ffa_call_ep *ffa_call_ep,
+		      struct rpc_interface *iface, uint16_t own_id);
 void ffa_call_ep_receive(struct ffa_call_ep *call_ep,
 			 const struct sp_msg *req_msg,
 			 struct sp_msg *resp_msg);

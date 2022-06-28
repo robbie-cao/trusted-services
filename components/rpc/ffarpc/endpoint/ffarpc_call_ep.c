@@ -14,9 +14,6 @@
 #include <stddef.h>
 #include <string.h>
 
-/* TODO: remove this when own ID will be available in libsp */
-extern uint16_t own_id;
-
 static void set_resp_args(uint32_t *resp_args, uint32_t ifaceid_opcode, uint32_t data_len,
 			  rpc_status_t rpc_status, rpc_opstatus_t opstatus)
 {
@@ -90,7 +87,7 @@ static void init_shmem_buf(struct ffa_call_ep *call_ep, uint16_t source_id,
 	desc.sender_id = source_id;
 	desc.memory_type = sp_memory_type_not_specified;
 	desc.flags.transaction_type = sp_memory_transaction_type_share;
-	acc_desc.receiver_id = own_id;
+	acc_desc.receiver_id = call_ep->own_id;
 	acc_desc.data_access = sp_data_access_read_write;
 	handle = req_args[SP_CALL_ARGS_SHARE_MEM_HANDLE_MSW];
 	handle = (handle << 32) | req_args[SP_CALL_ARGS_SHARE_MEM_HANDLE_LSW];
@@ -106,7 +103,7 @@ static void init_shmem_buf(struct ffa_call_ep *call_ep, uint16_t source_id,
 			 * The shared memory's size is smaller than the size
 			 * value forwarded in the direct message argument.
 			 */
-			uint16_t endpoints[1] = { own_id };
+			uint16_t endpoints[1] = { call_ep->own_id };
 			struct sp_memory_transaction_flags flags = {
 				.zero_memory = false,
 				.operation_time_slicing = false,
@@ -139,8 +136,8 @@ static void deinit_shmem_buf(struct ffa_call_ep *call_ep, uint16_t source_id,
 {
 	sp_result sp_res = SP_RESULT_INTERNAL_ERROR;
 	rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
-	uint64_t handle;
-	uint16_t endpoints[1] = { own_id };
+	uint64_t handle = 0;
+	uint16_t endpoints[1] = { 0 };
 	uint32_t endpoint_cnt = 1;
 	struct sp_memory_transaction_flags flags = {
 		.zero_memory = false,
@@ -152,6 +149,8 @@ static void deinit_shmem_buf(struct ffa_call_ep *call_ep, uint16_t source_id,
 		EMSG("shm deinit error");
 		goto out;
 	}
+
+	endpoints[0] = call_ep->own_id;
 
 	handle = call_ep->shmem_buf_handle[idx];
 
@@ -243,11 +242,13 @@ static void handle_mgmt_msg(struct ffa_call_ep *call_ep, uint16_t source_id,
 	}
 }
 
-void ffa_call_ep_init(struct ffa_call_ep *ffa_call_ep, struct rpc_interface *iface)
+void ffa_call_ep_init(struct ffa_call_ep *ffa_call_ep,
+		      struct rpc_interface *iface, uint16_t own_id)
 {
 	int i;
 
 	ffa_call_ep->iface = iface;
+	ffa_call_ep->own_id = own_id;
 
 	for (i = 0; i < NUM_MAX_SESS; i++) {
 		ffa_call_ep->shmem_buf_handle[i] = 0;
