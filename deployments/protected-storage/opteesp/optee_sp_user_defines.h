@@ -6,10 +6,6 @@
 #ifndef OPTEE_SP_USER_DEFINES_H
 #define OPTEE_SP_USER_DEFINES_H
 
-#define OPTEE_SP_UUID \
-	{ 0x751bf801, 0x3dde, 0x4768, \
-		{ 0xa5, 0x14, 0x0f, 0x10, 0xae, 0xed, 0x17, 0x90 } }
-
 #define OPTEE_SP_FLAGS			0
 
 /* Provisioned stack size */

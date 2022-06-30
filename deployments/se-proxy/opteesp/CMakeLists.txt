@@ -22,9 +22,13 @@ project(trusted-services LANGUAGES C ASM)
 add_executable(se-proxy)
 target_include_directories(se-proxy PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID_CANON "46bb39d1-b4d9-45b5-88ff-040027dab249")
-set(SP_UUID_LE "0xd139bb46 0xb545d9b4 0x0004ff88 0x49b2da27")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "SEPROXY" CACHE STRING "Trace prefix")
+include(${TS_ROOT}/tools/cmake/common/TargetCompileDefinitions.cmake)
+set_target_uuids(
+	SP_UUID ${SP_UUID_CANON}
+	SP_NAME "se-proxy"
+)
 
 #-------------------------------------------------------------------------------
 #  Components that are specific to deployment in the opteesp environment.

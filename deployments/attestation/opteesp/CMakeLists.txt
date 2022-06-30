@@ -21,9 +21,13 @@ project(trusted-services LANGUAGES C ASM)
 add_executable(attestation)
 target_include_directories(attestation PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID_CANON "a1baf155-8876-4695-8f7c-54955e8db974")
-set(SP_UUID_LE "0x55f1baa1 0x95467688 0x95547c8f 0x74b98d5e")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "ATT" CACHE STRING "Trace prefix")
+include(${TS_ROOT}/tools/cmake/common/TargetCompileDefinitions.cmake)
+set_target_uuids(
+	SP_UUID ${SP_UUID_CANON}
+	SP_NAME "attestation"
+)
 
 #-------------------------------------------------------------------------------
 #  Default deployment specific configuration

@@ -18,9 +18,13 @@ project(trusted-services LANGUAGES C ASM)
 add_executable(protected-storage)
 target_include_directories(protected-storage PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID_CANON "751bf801-3dde-4768-a514-0f10aeed1790")
-set(SP_UUID_LE "0x01f81b75 0x6847de3d 0x100f14a5 0x9017edae")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "PS" CACHE STRING "Trace prefix")
+include(${TS_ROOT}/tools/cmake/common/TargetCompileDefinitions.cmake)
+set_target_uuids(
+	SP_UUID ${SP_UUID_CANON}
+	SP_NAME "protected-storage"
+)
 
 add_components(TARGET "protected-storage"
 	BASE_DIR ${TS_ROOT}

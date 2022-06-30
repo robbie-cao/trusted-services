@@ -21,9 +21,13 @@ project(trusted-services LANGUAGES C ASM)
 add_executable(crypto)
 target_include_directories(crypto PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID_CANON "d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0")
-set(SP_UUID_LE "0xd552dfd9 0xb24ba216 0x6dd2a49a 0xc0e8843b")
 set(SP_HEAP_SIZE "490 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "CRYPTO" CACHE STRING "Trace prefix")
+include(${TS_ROOT}/tools/cmake/common/TargetCompileDefinitions.cmake)
+set_target_uuids(
+	SP_UUID ${SP_UUID_CANON}
+	SP_NAME "crypto"
+)
 
 #-------------------------------------------------------------------------------
 #  Components that are specific to deployment in the opteesp environment.

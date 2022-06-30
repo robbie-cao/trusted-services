@@ -17,9 +17,13 @@ include(${TS_ROOT}/environments/opteesp/env.cmake)
 project(trusted-services LANGUAGES C ASM)
 add_executable(sfs-demo)
 set(SP_UUID_CANON "01109cf8-e5ca-446f-9b55-f3cdc65110c8")
-set(SP_UUID_LE "0xf89c1001 0x6f44cae5 0xcdf3559b 0xc81051c6")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "SFSDEMO" CACHE STRING "Trace prefix")
+include(${TS_ROOT}/tools/cmake/common/TargetCompileDefinitions.cmake)
+set_target_uuids(
+	SP_UUID ${SP_UUID_CANON}
+	SP_NAME "sfs-demo"
+)
 
 add_components(TARGET "sfs-demo"
 	BASE_DIR ${TS_ROOT}

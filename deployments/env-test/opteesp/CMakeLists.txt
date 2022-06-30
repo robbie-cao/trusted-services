@@ -22,9 +22,13 @@ project(trusted-services LANGUAGES C ASM)
 add_executable(env-test)
 target_include_directories(env-test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID_CANON "33c75baf-ac6a-4fe4-8ac7-e9909bee2d17")
-set(SP_UUID_LE "0xaf5bc733 0xe44f6aac 0x90e9c78a 0x172dee9b")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "ENVTEST" CACHE STRING "Trace prefix")
+include(${TS_ROOT}/tools/cmake/common/TargetCompileDefinitions.cmake)
+set_target_uuids(
+	SP_UUID ${SP_UUID_CANON}
+	SP_NAME "env-test"
+)
 
 #-------------------------------------------------------------------------------
 #  Components that are env-test specific to deployment in the opteesp
