@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #include "spffa_service_context.h"
 #include <rpc/ffarpc/caller/sp/ffarpc_caller.h>
+#include "sp_discovery.h"
 #include <stdlib.h>
 
 /* Concrete service_context methods */
@@ -41,8 +42,15 @@ static rpc_session_handle spffa_service_context_open(void *context, struct rpc_c
 		(struct ffarpc_caller*)malloc(sizeof(struct ffarpc_caller));
 
 	if (ffarpc_caller) {
+		uint16_t own_id = 0;
 
-		*caller = ffarpc_caller_init(ffarpc_caller);
+		if (sp_discovery_own_id_get(&own_id) != SP_RESULT_OK)
+			return NULL;
+
+		*caller = ffarpc_caller_init(ffarpc_caller, own_id);
+		if (!*caller)
+			return NULL;
+
 		int status = ffarpc_caller_open(ffarpc_caller,
 			this_context->partition_id, this_context->iface_id);
 

@@ -154,7 +154,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info) {
 	}
 	IMSG("Test SP ID: 0x%x", own_id);
 
-	caller = ffarpc_caller_init(&ffa_caller);
+	caller = ffarpc_caller_init(&ffa_caller, own_id);
 	sp_id_cnt = ffarpc_caller_discover(its_uuid, sp_ids, 3);
 
 	if (sp_id_cnt == 0) {

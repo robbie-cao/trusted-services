@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -20,6 +20,7 @@
 #include <service/secure_storage/backend/null_store/null_store.h>
 #include <service/secure_storage/factory/storage_factory.h>
 #include <ffa_api.h>
+#include "sp_discovery.h"
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -51,9 +52,8 @@ static struct rot_store backend_instance = { .in_use = false };
 /* Used on failure if no association with a storage provider is established */
 static struct null_store null_store;
 
-static int select_candidate_uuids(const uint8_t *candidates[],
-							int max_candidates,
-							enum storage_factory_security_class security_class);
+static int select_candidate_uuids(const uint8_t *candidates[], int max_candidates,
+				  enum storage_factory_security_class security_class);
 
 
 struct storage_backend *storage_factory_create(
@@ -63,25 +63,33 @@ struct storage_backend *storage_factory_create(
 	uint16_t storage_sp_ids[1];
 	struct rot_store *new_backend = &backend_instance;
 	const uint8_t *candidate_uuids[MAX_CANDIDATE_UUIDS];
-	int num_candidate_uuids = select_candidate_uuids(candidate_uuids,
-										MAX_CANDIDATE_UUIDS, security_class);
+	int num_candidate_uuids = select_candidate_uuids(candidate_uuids, MAX_CANDIDATE_UUIDS,
+							 security_class);
 
 	struct storage_backend *result = NULL;
 
 	if (num_candidate_uuids && !new_backend->in_use) {
+		uint16_t own_id = 0;
 
-		storage_caller = ffarpc_caller_init(&new_backend->ffarpc_caller);
+		if (sp_discovery_own_id_get(&own_id) != SP_RESULT_OK)
+			return NULL;
+
+		storage_caller = ffarpc_caller_init(&new_backend->ffarpc_caller, own_id);
+		if (!storage_caller)
+			return NULL;
 
 		for (int i = 0; i < num_candidate_uuids; i++) {
 
 			/* Try discovering candidate endpoints in preference order */
 			if (ffarpc_caller_discover(candidate_uuids[i], storage_sp_ids,
-									sizeof(storage_sp_ids)/sizeof(uint16_t))) {
+						   sizeof(storage_sp_ids)/sizeof(uint16_t))) {
 
-				if (ffarpc_caller_open(&new_backend->ffarpc_caller, storage_sp_ids[0], 0) == 0) {
+				if (ffarpc_caller_open(&new_backend->ffarpc_caller,
+						       storage_sp_ids[0], 0) == 0) {
 
-					result = secure_storage_client_init(&new_backend->secure_storage_client,
-														storage_caller);
+					result = secure_storage_client_init(
+						&new_backend->secure_storage_client,
+						storage_caller);
 				}
 
 				break;

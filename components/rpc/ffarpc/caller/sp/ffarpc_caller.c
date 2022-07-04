@@ -18,7 +18,6 @@
 #include <stdio.h>
 
 uint8_t shared_buffer[4096] __aligned(4096);
-extern uint16_t own_id; //TODO: replace this with nicer solution
 
 static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_len)
 {
@@ -80,7 +79,7 @@ static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t 
 	}
 
 	req.destination_id = this_context->dest_partition_id;
-	req.source_id = own_id;
+	req.source_id = this_context->own_id;
 	req.is_64bit_message = false;
 	req.args.args32[SP_CALL_ARGS_IFACE_ID_OPCODE] =
 		FFA_CALL_ARGS_COMBINE_IFACE_ID_OPCODE(this_context->dest_iface_id, opcode);
@@ -135,7 +134,7 @@ static void call_end(void *context, rpc_call_handle handle)
 	this_context->is_call_transaction_in_progess = false;
 }
 
-struct rpc_caller *ffarpc_caller_init(struct ffarpc_caller *caller)
+struct rpc_caller *ffarpc_caller_init(struct ffarpc_caller *caller, uint16_t own_id)
 {
 	struct rpc_caller *base = &caller->rpc_caller;
 
@@ -144,6 +143,7 @@ struct rpc_caller *ffarpc_caller_init(struct ffarpc_caller *caller)
 	base->call_invoke = call_invoke;
 	base->call_end = call_end;
 
+	caller->own_id = own_id;
 	caller->dest_partition_id = 0;
 	caller->dest_iface_id = 0;
 	caller->shared_mem_handle = 0;
@@ -223,7 +223,7 @@ int ffarpc_caller_open(struct ffarpc_caller *caller, uint16_t dest_partition_id,
 		return -1;
 	}
 
-	desc.sender_id = own_id;
+	desc.sender_id = caller->own_id;
 	desc.memory_type = sp_memory_type_normal_memory;
 	desc.mem_region_attr.normal_memory.cacheability = sp_cacheability_write_back;
 	desc.mem_region_attr.normal_memory.shareability = sp_shareability_inner_shareable;
@@ -241,7 +241,7 @@ int ffarpc_caller_open(struct ffarpc_caller *caller, uint16_t dest_partition_id,
 		return -1;
 	}
 
-	req.source_id = own_id;
+	req.source_id = caller->own_id;
 	req.destination_id = dest_partition_id;
 	req.is_64bit_message = false;
 	req.args.args32[SP_CALL_ARGS_IFACE_ID_OPCODE] =
@@ -273,7 +273,7 @@ int ffarpc_caller_close(struct ffarpc_caller *caller)
 	handle_lo = (uint32_t)(caller->shared_mem_handle & UINT32_MAX);
 	handle_hi = (uint32_t)(caller->shared_mem_handle >> 32);
 
-	req.source_id = own_id;
+	req.source_id = caller->own_id;
 	req.destination_id = caller->dest_partition_id;
 	req.is_64bit_message = false;
 	req.args.args32[SP_CALL_ARGS_IFACE_ID_OPCODE] =

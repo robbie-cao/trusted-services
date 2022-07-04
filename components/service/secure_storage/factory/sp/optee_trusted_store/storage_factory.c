@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -19,6 +19,7 @@
 #include <service/secure_storage/backend/null_store/null_store.h>
 #include <service/secure_storage/factory/storage_factory.h>
 #include <ffa_api.h>
+#include "sp_discovery.h"
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -53,17 +54,25 @@ struct storage_backend *storage_factory_create(
 	struct storage_backend *result = NULL;
 
 	if (!new_backend->in_use) {
+		uint16_t own_id = 0;
 
-		storage_caller = ffarpc_caller_init(&new_backend->ffarpc_caller);
+		if (sp_discovery_own_id_get(&own_id) != SP_RESULT_OK)
+			return NULL;
+
+		storage_caller = ffarpc_caller_init(&new_backend->ffarpc_caller, own_id);
+		if (!storage_caller)
+			return NULL;
 
 		/* Try discovering candidate endpoints in preference order */
 		if (ffarpc_caller_discover(default_optee_trusted_store_uuid, storage_sp_ids,
-								sizeof(storage_sp_ids)/sizeof(uint16_t))) {
+					   sizeof(storage_sp_ids)/sizeof(uint16_t))) {
 
-			if (ffarpc_caller_open(&new_backend->ffarpc_caller, storage_sp_ids[0], 0) == 0) {
+			if (ffarpc_caller_open(&new_backend->ffarpc_caller,
+					       storage_sp_ids[0], 0) == 0) {
 
-				result = secure_storage_client_init(&new_backend->secure_storage_client,
-													storage_caller);
+				result = secure_storage_client_init(
+					&new_backend->secure_storage_client,
+					storage_caller);
 			}
 		}
 

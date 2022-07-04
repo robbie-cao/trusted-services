@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include "spffa_location_strategy.h"
 #include "spffa_service_context.h"
+#include "sp_discovery.h"
 #include <common/uuid/uuid.h>
 #include <service/locator/service_name.h>
 #include <rpc/ffarpc/caller/sp/ffarpc_caller.h>
@@ -83,11 +84,15 @@ static bool discover_partition(const struct uuid_octets *uuid, uint16_t *partiti
 	bool discovered = false;
 	struct ffarpc_caller ffarpc_caller;
 	uint16_t discovered_partitions[1];
+	uint16_t own_id = 0;
 
-	ffarpc_caller_init(&ffarpc_caller);
+	if (sp_discovery_own_id_get(&own_id) != SP_RESULT_OK)
+		return false;
 
-	if (ffarpc_caller_discover(uuid->octets,
-			discovered_partitions, sizeof(discovered_partitions)/sizeof(uint16_t))) {
+	ffarpc_caller_init(&ffarpc_caller, own_id);
+
+	if (ffarpc_caller_discover(uuid->octets, discovered_partitions,
+				   sizeof(discovered_partitions)/sizeof(uint16_t))) {
 
 		*partition_id = discovered_partitions[0];
 		discovered = true;
