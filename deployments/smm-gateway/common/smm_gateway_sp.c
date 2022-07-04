@@ -20,8 +20,6 @@
 
 #define CONFIG_NAME_MM_COMM_BUFFER_REGION	"mm-comm-buffer"
 
-uint16_t own_id = 0; /* !!Needs refactoring as parameter to ffarpc_caller_init */
-
 static int sp_init(uint16_t *own_sp_id);
 
 void __noreturn sp_main(struct ffa_init_info *init_info)
@@ -33,6 +31,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	struct mm_communicate_ep mm_communicate_call_ep = { 0 };
 	struct ffa_direct_msg req_msg = { 0 };
 	struct ffa_direct_msg resp_msg = { 0 };
+	uint16_t own_id = 0;
 
 	static const EFI_GUID smm_variable_guid = SMM_VARIABLE_GUID;
 

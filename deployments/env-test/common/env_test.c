@@ -16,10 +16,6 @@
 #include <trace.h>
 #include "env_test_tests.h"
 
-
-uint16_t own_id = 0; /* !!Needs refactoring as parameter to ffarpc_caller_init */
-
-
 static int sp_init(uint16_t *own_sp_id);
 
 void __noreturn sp_main(struct ffa_init_info *init_info)
@@ -29,6 +25,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	struct rpc_interface *test_runner_iface;
 	struct ffarpc_caller ffarpc_caller;
 	struct sp_msg req_msg;
+	uint16_t own_id = 0;
 
 	/* Boot */
 	if (sp_init(&own_id) != 0) goto fatal_error;

@@ -14,7 +14,6 @@
 #include <sp_rxtx.h>
 #include <trace.h>
 
-uint16_t own_id = 0;
 static uint8_t tx_buffer[4096] __aligned(4096);
 static uint8_t rx_buffer[4096] __aligned(4096);
 
@@ -28,6 +27,7 @@ void sp_main(struct ffa_init_info *init_info)
 	struct sp_msg resp_msg = { 0 };
 	struct secure_storage_provider secure_storage_provider;
 	struct storage_backend *storage_backend;
+	uint16_t own_id = 0;
 
 	/* Boot */
 	(void) init_info;

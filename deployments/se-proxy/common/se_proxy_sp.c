@@ -14,9 +14,6 @@
 #include "service_proxy_factory.h"
 #include "../se_proxy_interfaces.h"
 
-uint16_t own_id = 0; /* !!Needs refactoring as parameter to ffarpc_caller_init */
-
-
 static int sp_init(uint16_t *own_sp_id);
 
 void __noreturn sp_main(struct ffa_init_info *init_info)
@@ -25,6 +22,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	struct sp_msg req_msg;
 	struct rpc_demux rpc_demux;
 	struct rpc_interface *rpc_iface;
+	uint16_t own_id = 0;
 
 	/* Boot phase */
 	if (sp_init(&own_id) != 0) goto fatal_error;

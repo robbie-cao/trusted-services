@@ -25,9 +25,6 @@
 #include <sp_rxtx.h>
 #include <trace.h>
 
-uint16_t own_id = 0; /* !!Needs refactoring as parameter to ffarpc_caller_init */
-
-
 static int sp_init(uint16_t *own_sp_id);
 static void locate_crypto_service(void);
 
@@ -38,6 +35,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	struct rpc_interface *attest_iface;
 	struct ffa_call_ep ffarpc_call_ep;
 	struct sp_msg req_msg;
+	uint16_t own_id = 0;
 
 	/* Claim source objects */
 	struct claim_source *claim_source;

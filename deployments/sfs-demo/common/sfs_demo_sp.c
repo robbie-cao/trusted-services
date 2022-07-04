@@ -23,7 +23,6 @@
 	{ 0x48, 0xef, 0x1e, 0xdc, 0x7a, 0xb1, 0xcf, 0x4c, \
 	  0xac, 0x8b, 0xdf, 0xcf, 0xf7, 0x71, 0x1b, 0x14, }
 
-uint16_t own_id = 0;
 static uint8_t tx_buffer[4096] __aligned(4096);
 static uint8_t rx_buffer[4096] __aligned(4096);
 static const uint8_t its_uuid[] = SP_ITS_UUID_BYTES;
@@ -138,6 +137,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info) {
 	struct storage_backend *storage_backend;
 	uint16_t sp_ids[3];
 	uint32_t sp_id_cnt = 0;
+	uint16_t own_id = 0;
 
 	/* Boot */
 	(void) init_info;
