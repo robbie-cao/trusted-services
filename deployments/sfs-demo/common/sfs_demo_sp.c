@@ -4,20 +4,15 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <ffa_api.h>
-#include <components/rpc/ffarpc/caller/sp/ffarpc_caller.h>
-#include <components/service/secure_storage/frontend/psa/its/its_frontend.h>
-#include <service/secure_storage/backend/secure_storage_client/secure_storage_client.h>
-#include <psa/internal_trusted_storage.h>
-#include <sp_api.h>
+#include "components/rpc/ffarpc/caller/sp/ffarpc_caller.h"
+#include "components/service/secure_storage/frontend/psa/its/its_frontend.h"
+#include "service/secure_storage/backend/secure_storage_client/secure_storage_client.h"
+#include "psa/internal_trusted_storage.h"
+#include "sp_api.h"
 #include "sp_messaging.h"
-#include <sp_rxtx.h>
-#include <trace.h>
-#include <string.h>
-
-// #define SP_ITS_UUID_BYTES \
-// 	{ 0xdc, 0x1e, 0xef, 0x48, 0xb1, 0x7a, 0x4c, 0xcf, \
-// 	  0xac, 0x8b, 0xdf, 0xcf, 0xf7, 0x71, 0x1b, 0x14, }
+#include "sp_rxtx.h"
+#include "trace.h"
+#include "string.h"
 
 #define SP_ITS_UUID_BYTES \
 	{ 0x48, 0xef, 0x1e, 0xdc, 0x7a, 0xb1, 0xcf, 0x4c, \
@@ -58,8 +53,8 @@ static size_t check_data_size = 0;
 
 static void run_its_test(void)
 {
-	psa_status_t its_status;
-	struct psa_storage_info_t info;
+	psa_status_t its_status = PSA_ERROR_GENERIC_ERROR;
+	struct psa_storage_info_t info = { 0 };
 
 	/* Write data */
 	its_status = psa_its_set(test_data_uid, test_data_size, test_data,
@@ -128,47 +123,64 @@ static void run_its_test(void)
 
 void __noreturn sp_main(struct ffa_init_info *init_info) {
 
-	ffa_result ffa_res;
-	sp_result sp_res;
+	sp_result result = SP_RESULT_INTERNAL_ERROR;
 	struct sp_msg req_msg = { 0 };
-	struct rpc_caller *caller;
-	struct ffarpc_caller ffa_caller;
-	struct secure_storage_client secure_storage_client;
-	struct storage_backend *storage_backend;
-	uint16_t sp_ids[3];
+	struct rpc_caller *caller = NULL;
+	struct ffarpc_caller ffa_caller = { 0 };
+	struct secure_storage_client secure_storage_client = {0};
+	struct storage_backend *storage_backend = NULL;
+	uint16_t sp_ids[3] = { 0 };
 	uint32_t sp_id_cnt = 0;
 	uint16_t own_id = 0;
+	psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
 
 	/* Boot */
 	(void) init_info;
 	IMSG("Test SP started");
 
-	sp_res = sp_rxtx_buffer_map(tx_buffer, rx_buffer, sizeof(rx_buffer));
-	if (sp_res != SP_RESULT_OK) {
-		goto err;
+	result = sp_rxtx_buffer_map(tx_buffer, rx_buffer, sizeof(rx_buffer));
+	if (result != SP_RESULT_OK) {
+		EMSG("Failed to map RXTX buffers: %d", result);
+		goto fatal_error;
 	}
 
-	ffa_res = ffa_id_get(&own_id);
-	if (ffa_res != FFA_OK) {
-		goto err;
+	result = sp_discovery_own_id_get(&own_id);
+	if (result != SP_RESULT_OK) {
+		EMSG("Failed to query own ID: %d", result);
+		goto fatal_error;
 	}
+
 	IMSG("Test SP ID: 0x%x", own_id);
 
 	caller = ffarpc_caller_init(&ffa_caller, own_id);
-	sp_id_cnt = ffarpc_caller_discover(its_uuid, sp_ids, 3);
+	if (!caller) {
+		EMSG("Failed initialize ffarpc_caller");
+		goto fatal_error;
+	}
 
+	sp_id_cnt = ffarpc_caller_discover(its_uuid, sp_ids, 3);
 	if (sp_id_cnt == 0) {
-		EMSG("Error: %d", sp_id_cnt);
-		goto err;
+		EMSG("Failed to discover SPs: %d", sp_id_cnt);
+		goto fatal_error;
 	}
 	IMSG("ITS SP ID: 0x%x", sp_ids[0]);
 
 	if (ffarpc_caller_open(&ffa_caller, sp_ids[0], 0)) {
-		goto err;
+		EMSG("Failed to open ffarpc_caller");
+		goto fatal_error;
 	}
 
 	storage_backend = secure_storage_client_init(&secure_storage_client, caller);
-	psa_its_frontend_init(storage_backend);
+	if (!storage_backend) {
+		EMSG("Failed to initialize secure storage client");
+		goto fatal_error;
+	}
+
+	psa_status = psa_its_frontend_init(storage_backend);
+	if (psa_status != PSA_SUCCESS) {
+		EMSG("Failed init PSA ITS frontend: %d", psa_status);
+		goto fatal_error;
+	}
 
 	/*
 	 * This is not thorough testing of the ITS SP!
@@ -177,13 +189,14 @@ void __noreturn sp_main(struct ffa_init_info *init_info) {
 	run_its_test();
 
 	if (ffarpc_caller_close(&ffa_caller)) {
-		goto err;
+		EMSG("Failed to close ffarpc_caller");
+		goto fatal_error;
 	}
 
 	/* End of boot phase */
 	sp_msg_wait(&req_msg);
 
-err:
+fatal_error:
 	EMSG("Test SP error");
 	while (1) {}
 }
