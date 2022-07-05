@@ -31,6 +31,7 @@ add_components(
 	COMPONENTS
 		"components/rpc/direct"
 		"components/common/tlv"
+		"components/common/uuid"
 		"components/common/endian"
 		"components/common/utils"
 		"components/common/trace"
@@ -68,6 +69,7 @@ add_components(
 		"components/service/block_storage/block_store/partitioned"
 		"components/service/block_storage/provider"
 		"components/service/block_storage/provider/serializer/packed-c"
+		"components/service/block_storage/config/ref"
 		"components/service/crypto/provider"
 		"components/service/crypto/provider/serializer/protobuf"
 		"components/service/crypto/provider/serializer/packed-c"

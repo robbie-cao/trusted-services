@@ -86,6 +86,7 @@ add_components(
 		"components/service/block_storage/block_store/partitioned/test"
 		"components/service/block_storage/provider"
 		"components/service/block_storage/provider/serializer/packed-c"
+		"components/service/block_storage/config/ref"
 		"components/service/crypto/client/cpp"
 		"components/service/crypto/client/cpp/protocol/protobuf"
 		"components/service/crypto/client/cpp/protocol/packed-c"

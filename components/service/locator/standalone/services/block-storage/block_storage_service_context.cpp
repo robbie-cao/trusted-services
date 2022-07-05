@@ -6,6 +6,8 @@
 
 #include <assert.h>
 #include <cstring>
+#include "service/block_storage/config/ref/ref_partition_configurator.h"
+#include "service/block_storage/provider/serializer/packed-c/packedc_block_storage_serializer.h"
 #include "block_storage_service_context.h"
 
 block_storage_service_context::block_storage_service_context(const char *sn) :
@@ -31,8 +33,8 @@ void block_storage_service_context::do_init()
 	struct block_store *back_store = ram_block_store_init(
 		&m_ram_block_store,
 		&back_store_guid,
-		1000,
-		512);
+		REF_PARTITION_BACK_STORE_SIZE,
+		REF_PARTITION_BLOCK_SIZE);
 	assert(back_store);
 
 	/* Stack a partitioned_block_store over the back store */
@@ -43,11 +45,19 @@ void block_storage_service_context::do_init()
 		back_store);
 	assert(front_store);
 
+	/* Use the reference partition configuration */
+	ref_partition_configure(&m_partitioned_block_store);
+
 	/* Initialise the block storage service provider */
 	struct rpc_interface *rpc_iface = block_storage_provider_init(
 		&m_block_storage_provider,
 		front_store);
 	assert(rpc_iface);
+
+	block_storage_provider_register_serializer(
+		&m_block_storage_provider,
+		TS_RPC_ENCODING_PACKED_C,
+		packedc_block_storage_serializer_instance());
 
 	standalone_service_context::set_rpc_interface(rpc_iface);
 }
