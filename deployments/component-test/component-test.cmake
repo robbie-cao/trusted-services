@@ -52,6 +52,7 @@ add_components(
 		"components/service/locator/standalone/services/protected-storage"
 		"components/service/locator/standalone/services/test-runner"
 		"components/service/locator/standalone/services/attestation"
+		"components/service/locator/standalone/services/block-storage"
 		"components/service/locator/standalone/services/smm-variable"
 		"components/service/discovery/client"
 		"components/service/discovery/provider"
