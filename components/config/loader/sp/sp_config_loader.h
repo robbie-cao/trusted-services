@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -8,12 +8,12 @@
 #define SP_CONFIG_LOADER_H
 
 #include <ffa_api.h>
+#include <stdbool.h>
 
 /**
  * Loads the secure partition specific configuration passed as
  * SP initialization parameters.
  */
-void sp_config_load(struct ffa_init_info *init_info);
-
+bool sp_config_load(struct ffa_init_info *init_info);
 
 #endif /* SP_CONFIG_LOADER_H */

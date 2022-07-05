@@ -5,7 +5,8 @@
  */
 
 #include "config_ramstore.h"
-#include <config/interface/config_store.h>
+#include "config/interface/config_store.h"
+#include "trace.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
@@ -106,13 +107,15 @@ bool config_store_query(enum config_classifier classifier,
 	while (container) {
 
 		if ((container->classifier == classifier) &&
-			(strcmp(container->name, name) == 0) &&
+			(strncmp(container->name, name, sizeof(container->name)) == 0) &&
 			(container->instance == instance)) {
 
 			if (data_buf_size == container->size) {
-
 				memcpy(data, config_container_data(container), container->size);
 				success = true;
+			} else {
+				DMSG("Query with different size (%lu != %lu)", data_buf_size,
+				     container->size);
 			}
 
 			break;
@@ -120,6 +123,9 @@ bool config_store_query(enum config_classifier classifier,
 
 		container = container->next;
 	}
+
+	if (!success)
+		DMSG("Failed to query data with name %s", name);
 
 	return success;
 }

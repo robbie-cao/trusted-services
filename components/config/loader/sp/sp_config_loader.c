@@ -26,9 +26,9 @@ struct sp_param_region {
 	size_t size;
 };
 
-static void load_device_regions(const struct ffa_name_value_pair *value_pair);
-static void load_memory_regions(const struct ffa_name_value_pair *value_pair);
-static void load_blob(const struct ffa_name_value_pair *value_pair);
+static bool load_device_regions(const struct ffa_name_value_pair *value_pair);
+static bool load_memory_regions(const struct ffa_name_value_pair *value_pair);
+static bool load_blob(const struct ffa_name_value_pair *value_pair);
 static bool load_fdt(const struct ffa_name_value_pair *value_pair);
 
 /**
@@ -37,32 +37,40 @@ static bool load_fdt(const struct ffa_name_value_pair *value_pair);
  * the SP manifest, an external device tree or a dynamic configuration
  * mechanism such as a handover block (HOB).
  */
-void sp_config_load(struct ffa_init_info *init_info)
+bool sp_config_load(struct ffa_init_info *init_info)
 {
 	/* Load deployment specific configuration */
 	for (size_t param_index = 0; param_index < init_info->count; param_index++) {
+		const char *name = (const char *)init_info->nvp[param_index].name;
+		const size_t name_max_size = sizeof(init_info->nvp[param_index].name);
 
-   		if (!strcmp((const char *)init_info->nvp[param_index].name,"DEVICE_REGIONS")) {
-
-			load_device_regions(&init_info->nvp[param_index]);
-		}
-		else if (!strcmp((const char *)init_info->nvp[param_index].name,"MEMORY_REGIONS")) {
-
-			load_memory_regions(&init_info->nvp[param_index]);
-		}
-		else if (!memcmp(init_info->nvp[param_index].name,"TYPE_DT\0\0\0\0\0\0\0\0",
-				 sizeof(init_info->nvp[param_index].name))) {
-			if (!load_fdt(&init_info->nvp[param_index]))
+		if (!strncmp(name, "DEVICE_REGIONS", name_max_size)) {
+			if (!load_device_regions(&init_info->nvp[param_index])) {
+				EMSG("Failed to load device regions");
+				return false;
+			}
+		} else if (!strncmp(name, "MEMORY_REGIONS", name_max_size)) {
+			if (!load_memory_regions(&init_info->nvp[param_index])) {
+				EMSG("Failed to load memory regions");
+				return false;
+			}
+		} else if (!memcmp(name, "TYPE_DT\0\0\0\0\0\0\0\0", name_max_size)) {
+			if (!load_fdt(&init_info->nvp[param_index])) {
 				EMSG("Failed to load SP config from DT");
-		}
-		else {
-
-			load_blob(&init_info->nvp[param_index]);
+				return false;
+			}
+		} else {
+			if (!load_blob(&init_info->nvp[param_index])) {
+				EMSG("Failed to load blob");
+				return false;
+			}
 		}
 	}
+
+	return true;
 }
 
-static void load_device_regions(const struct ffa_name_value_pair *value_pair)
+static bool load_device_regions(const struct ffa_name_value_pair *value_pair)
 {
 	struct sp_param_region *d = (struct sp_param_region *)value_pair->value;
 
@@ -71,20 +79,27 @@ static void load_device_regions(const struct ffa_name_value_pair *value_pair)
 
 		struct device_region device_region;
 
-		strcpy(device_region.dev_class, d->name);
+		strncpy(device_region.dev_class, d->name,
+			sizeof(device_region.dev_class));
 		device_region.dev_instance = 0;
 		device_region.base_addr = d->location;
 		device_region.io_region_size = d->size;
 
-		config_store_add(CONFIG_CLASSIFIER_DEVICE_REGION,
-			device_region.dev_class, device_region.dev_instance,
-			&device_region, sizeof(device_region));
+		if (!config_store_add(CONFIG_CLASSIFIER_DEVICE_REGION,
+				      device_region.dev_class,
+				      device_region.dev_instance,
+				      &device_region, sizeof(device_region))) {
+			DMSG("error: failed to add device region to config store");
+			return false;
+		}
 
 		++d;
 	}
+
+	return true;
 }
 
-static void load_memory_regions(const struct ffa_name_value_pair *value_pair)
+static bool load_memory_regions(const struct ffa_name_value_pair *value_pair)
 {
 	struct sp_param_region *d = (struct sp_param_region *)value_pair->value;
 
@@ -93,28 +108,38 @@ static void load_memory_regions(const struct ffa_name_value_pair *value_pair)
 
 		struct memory_region memory_region;
 
-		strcpy(memory_region.region_name, d->name);
+		strncpy(memory_region.region_name, d->name,
+			sizeof(memory_region.region_name));
 		memory_region.base_addr = d->location;
 		memory_region.region_size = d->size;
 
-		config_store_add(CONFIG_CLASSIFIER_MEMORY_REGION,
-			memory_region.region_name, 0,
-			&memory_region, sizeof(memory_region));
+		if (!config_store_add(CONFIG_CLASSIFIER_MEMORY_REGION,
+				      memory_region.region_name, 0,
+				      &memory_region, sizeof(memory_region))) {
+			DMSG("error: failed to add memory region to config store");
+			return false;
+		}
 
 		++d;
 	}
+
+	return true;
 }
 
-static void load_blob(const struct ffa_name_value_pair *value_pair)
+static bool load_blob(const struct ffa_name_value_pair *value_pair)
 {
 	struct config_blob blob;
 
 	blob.data = (const void*)value_pair->value;
 	blob.data_len = value_pair->size;
 
-	config_store_add(CONFIG_CLASSIFIER_BLOB,
-		(const char *)value_pair->name, 0,
-		&blob, sizeof(blob));
+	if (!config_store_add(CONFIG_CLASSIFIER_BLOB, (const char *)value_pair->name, 0,
+			      &blob, sizeof(blob))) {
+		DMSG("error: failed to add blob to config store");
+		return false;
+	}
+
+	return true;
 }
 
 static bool load_fdt(const struct ffa_name_value_pair *value_pair)
@@ -122,6 +147,7 @@ static bool load_fdt(const struct ffa_name_value_pair *value_pair)
 	const void *fdt = (const void *)value_pair->value;
 	size_t fdt_size = value_pair->size;
 	int root = -1, node = -1, subnode = -1, rc = -1;
+	static const char *ffa_manifest_compatible = "arm,ffa-manifest-1.0";
 
 	/* Sanity check */
 	if (!fdt) {
@@ -143,9 +169,9 @@ static bool load_fdt(const struct ffa_name_value_pair *value_pair)
 	}
 
 	/* Check if it's a valid SP manifest */
-	rc = fdt_node_check_compatible(fdt, root, "arm,ffa-manifest-1.0");
+	rc = fdt_node_check_compatible(fdt, root, ffa_manifest_compatible);
 	if (rc) {
-		DMSG("error: fdt_node_check_compatible(): %d", rc);
+		DMSG("error: fdt_node_check_compatible(%s): %d", ffa_manifest_compatible, rc);
 		return false;
 	}
 
