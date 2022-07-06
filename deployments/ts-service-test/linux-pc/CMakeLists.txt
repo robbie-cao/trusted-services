@@ -84,6 +84,8 @@ add_components(
 		"components/service/smm_variable/test/service"
 		"components/service/block_storage/block_store"
 		"components/service/block_storage/block_store/client"
+		"components/service/block_storage/test/service"
+		"components/common/uuid"
 )
 
 #-------------------------------------------------------------------------------
