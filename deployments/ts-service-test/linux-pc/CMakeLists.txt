@@ -82,6 +82,8 @@ add_components(
 		"components/service/test_runner/test/service"
 		"components/service/smm_variable/client/cpp"
 		"components/service/smm_variable/test/service"
+		"components/service/block_storage/block_store"
+		"components/service/block_storage/block_store/client"
 )
 
 #-------------------------------------------------------------------------------
