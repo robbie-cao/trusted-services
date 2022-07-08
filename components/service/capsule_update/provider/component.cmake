@@ -10,4 +10,5 @@ endif()
 
 target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/capsule_update_provider.c"
+	"${CMAKE_CURRENT_LIST_DIR}/corstone1000_fmp_service.c"
 	)

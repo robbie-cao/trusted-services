@@ -11,6 +11,7 @@
 #include <protocols/service/capsule_update/capsule_update_proto.h>
 #include <protocols/rpc/common/packed-c/status.h>
 #include "capsule_update_provider.h"
+#include "corstone1000_fmp_service.h"
 
 
 #define CAPSULE_UPDATE_REQUEST (0x1)
@@ -46,6 +47,8 @@ struct rpc_interface *capsule_update_provider_init(
 
 		rpc_interface = service_provider_get_rpc_interface(&context->base_provider);
 	}
+
+	provision_fmp_variables_metadata(context->client.caller);
 
 	return rpc_interface;
 }
@@ -85,6 +88,7 @@ static rpc_status_t event_handler(uint32_t opcode, struct rpc_caller *caller)
 		}
 		psa_call(caller,handle, PSA_IPC_CALL,
 			in_vec,IOVEC_LEN(in_vec), NULL, 0);
+		set_fmp_image_info(caller, handle);
 		break;
 
 		case KERNEL_STARTED_EVENT:
@@ -99,6 +103,7 @@ static rpc_status_t event_handler(uint32_t opcode, struct rpc_caller *caller)
 		}
 		psa_call(caller,handle, PSA_IPC_CALL,
 			in_vec,IOVEC_LEN(in_vec), NULL, 0);
+		set_fmp_image_info(caller, handle);
 		break;
 		default:
 			EMSG("%s unsupported opcode", __func__);
