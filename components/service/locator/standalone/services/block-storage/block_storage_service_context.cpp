@@ -42,7 +42,8 @@ void block_storage_service_context::do_init()
 		&m_partitioned_block_store,
 		0,
 		&back_store_guid,
-		back_store);
+		back_store,
+		NULL);
 	assert(front_store);
 
 	/* Use the reference partition configuration */

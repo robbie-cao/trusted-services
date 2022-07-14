@@ -15,11 +15,12 @@ void storage_partition_init(
 	size_t num_blocks,
 	size_t block_size)
 {
-	memset(partition, 0, sizeof(struct storage_partition));
-
 	partition->partition_guid = *partition_guid;
 	partition->block_size = block_size;
 	partition->num_blocks = num_blocks;
+
+	partition->base_lba = 0;
+	storage_partition_acl_init(&partition->acl);
 }
 
 void storage_partition_deinit(
@@ -28,15 +29,18 @@ void storage_partition_deinit(
 	memset(partition, 0, sizeof(struct storage_partition));
 }
 
-void storage_partition_extend_whitelist(
+bool storage_partition_grant_access(
 	struct storage_partition *partition,
 	uint32_t client_id)
 {
-	if (partition->whitelist_len < STORAGE_PARTITION_WHITELIST_LEN) {
+	return storage_partition_acl_add(&partition->acl, client_id);
+}
 
-		partition->whitelist[partition->whitelist_len] = client_id;
-		++partition->whitelist_len;
-	}
+bool storage_partition_assign_ownership(
+	struct storage_partition *partition,
+	const char *owner_id)
+{
+	return storage_partition_acl_set_owner_id(&partition->acl, owner_id);
 }
 
 bool storage_partition_is_guid_matched(
@@ -46,16 +50,19 @@ bool storage_partition_is_guid_matched(
 	return (memcmp(&partition->partition_guid, partition_guid, sizeof(struct uuid_octets)) == 0);
 }
 
+bool storage_partition_is_open_permitted(
+	struct storage_partition *partition,
+	uint32_t client_id,
+	storage_partition_authorizer authorizer)
+{
+	return storage_partition_acl_authorize(&partition->acl, client_id, authorizer);
+}
+
 bool storage_partition_is_access_permitted(
 	const struct storage_partition *partition,
 	uint32_t client_id)
 {
-	bool is_permitted = (partition->whitelist_len == 0);
-
-	for (size_t i = 0; !is_permitted && i < partition->whitelist_len; ++i)
-		is_permitted = (client_id == partition->whitelist[i]);
-
-	return is_permitted;
+	return storage_partition_acl_check(&partition->acl, client_id);
 }
 
 bool storage_partition_is_lba_legal(

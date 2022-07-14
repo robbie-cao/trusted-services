@@ -84,7 +84,7 @@ static psa_status_t partitioned_block_store_open(void *context,
 	const struct uuid_octets *partition_guid,
 	storage_partition_handle_t *handle)
 {
-	const struct partitioned_block_store *partitioned_block_store =
+	struct partitioned_block_store *partitioned_block_store =
 		(struct partitioned_block_store*)context;
 
 	size_t partition_index = 0;
@@ -95,10 +95,12 @@ static psa_status_t partitioned_block_store_open(void *context,
 
 	if (status == PSA_SUCCESS) {
 
-		const struct storage_partition *partition =
+		struct storage_partition *partition =
 			&partitioned_block_store->storage_partition[partition_index];
 
-		if (storage_partition_is_access_permitted(partition, client_id)) {
+		if (storage_partition_is_open_permitted(partition,
+				client_id,
+				partitioned_block_store->authorizer)) {
 
 			*handle = (storage_partition_handle_t)partition_index;
 		}
@@ -271,7 +273,8 @@ struct block_store *partitioned_block_store_init(
 	struct partitioned_block_store *partitioned_block_store,
 	uint32_t local_client_id,
 	const struct uuid_octets *back_store_guid,
-	struct block_store *back_store)
+	struct block_store *back_store,
+	storage_partition_authorizer authorizer)
 {
 	/* Define concrete block store interface */
 	static const struct block_store_interface interface =
@@ -290,6 +293,9 @@ struct block_store *partitioned_block_store_init(
 
 	/* Note the local client ID - this corresponds to the local environment */
 	partitioned_block_store->local_client_id = local_client_id;
+
+	/* Note the environment specific authorizer function */
+	partitioned_block_store->authorizer = authorizer;
 
 	/* Initially no partitions. */
 	partitioned_block_store->num_partitions = 0;

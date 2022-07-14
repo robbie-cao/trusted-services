@@ -48,8 +48,10 @@ psa_status_t block_device_open(
 {
 	psa_status_t status = PSA_ERROR_NOT_PERMITTED;
 
-	if (storage_partition_is_guid_matched(&block_device->storage_partition, partition_guid) &&
-		storage_partition_is_access_permitted(&block_device->storage_partition, client_id)) {
+	if (storage_partition_is_guid_matched(&block_device->storage_partition,
+			partition_guid) &&
+		storage_partition_is_open_permitted(&block_device->storage_partition,
+			client_id, NULL)) {
 
 		*handle = BLOCK_DEVICE_PARTITION_HANDLE;
 		status = PSA_SUCCESS;

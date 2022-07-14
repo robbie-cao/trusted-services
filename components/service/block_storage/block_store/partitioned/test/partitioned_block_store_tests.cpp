@@ -31,7 +31,8 @@ TEST_GROUP(PartitionedBlockStoreTests)
 			&m_partitioned_store,
 			LOCAL_CLIENT_ID,
 			&back_store_guid,
-			back_store);
+			back_store,
+			NULL);
 
 		CHECK_TRUE(back_store);
 

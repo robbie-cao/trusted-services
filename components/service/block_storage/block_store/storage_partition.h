@@ -12,14 +12,10 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "common/uuid/uuid.h"
+#include "storage_partition_acl.h"
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-/* Default maximum configurable whitelist length */
-#ifndef STORAGE_PARTITION_WHITELIST_LEN
-#define STORAGE_PARTITION_WHITELIST_LEN    (4)
 #endif
 
 /**
@@ -43,18 +39,15 @@ struct storage_partition
 	/* Backend storage block that corresponds to LBA zero */
 	uint32_t base_lba;
 
-	/* Whitelist of client IDs corresponding to clients that are permitted
-	 * to access the partition. A zero length list is treated as a wildcard
-	 * where any client is permitted access. */
-	size_t whitelist_len;
-	uint32_t whitelist[STORAGE_PARTITION_WHITELIST_LEN];
+	/* Access control list for controlling access to configured owner */
+	struct storage_partition_acl acl;
 };
 
 /**
  * \brief Default storage_partition initialization function
  *
- * Initializes a storage_partition with an empty whitelist and a one-to-one
- * LBA mapping to backend storage.
+ * Initializes a storage_partition with a one-to-one LBA mapping to backend
+ * storage and open access for any client.
  *
  * \param[in]  partition       The subject storage_partition
  * \param[in]  partition_guid  The unique partition GUID
@@ -78,14 +71,26 @@ void storage_partition_deinit(
 	struct storage_partition *partition);
 
 /**
- * \brief Extend the whitelist
+ * \brief Grant access to a specific client
  *
  * \param[in]  partition    The subject storage_partition
- * \param[in]  client_id    The client ID to add
+ * \param[in]  client_id    The client ID to grant access to
+ * \return True if successful
  */
-void storage_partition_extend_whitelist(
+bool storage_partition_grant_access(
 	struct storage_partition *partition,
 	uint32_t client_id);
+
+/**
+ * \brief Assign ownership using a resolvable owner ID string
+ *
+ * \param[in]  partition    The subject storage_partition
+ * \param[in]  owner_id     Owner ID string
+ * \return True if successful
+ */
+bool storage_partition_assign_ownership(
+	struct storage_partition *partition,
+	const char *owner_id);
 
 /**
  * \brief Check if unique partition GUID matches
@@ -97,6 +102,19 @@ void storage_partition_extend_whitelist(
 bool storage_partition_is_guid_matched(
 	const struct storage_partition *partition,
 	const struct uuid_octets *partition_guid);
+
+/**
+ * \brief Perform checks on opening a partition
+ *
+ * \param[in]  partition    The subject storage_partition
+ * \param[in]  client_id    The requesting client ID
+ * \param[in]  authorizer	Optional authorizer function
+ * \return     True if access permitted
+ */
+bool storage_partition_is_open_permitted(
+	struct storage_partition *partition,
+	uint32_t client_id,
+	storage_partition_authorizer authorizer);
 
 /**
  * \brief Check if access to the storage partition is permitted

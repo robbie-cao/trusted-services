@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include "service/block_storage/block_store/block_store.h"
 #include "service/block_storage/block_store/storage_partition.h"
+#include "service/block_storage/block_store/storage_partition_acl.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,6 +34,7 @@ struct partitioned_block_store
 {
 	struct block_store base_block_store;
 	uint32_t local_client_id;
+	storage_partition_authorizer authorizer;
 	size_t num_partitions;
 	struct storage_partition storage_partition[PARTITIONED_BLOCK_STORE_MAX_PARTITIONS];
 	storage_partition_handle_t back_store_handle;
@@ -51,6 +53,7 @@ struct partitioned_block_store
  * \param[in]  local_client_id   Client ID corresponding to the current environment
  * \param[in]  back_store_guid   The partition GUID to use in the underlying back store
  * \param[in]  back_store        The associated back store
+ * \param[in]  authorizer		 Optional authorizer function for authorizing clients
  *
  * \return Pointer to block_store or NULL on failure
  */
@@ -58,7 +61,8 @@ struct block_store *partitioned_block_store_init(
 	struct partitioned_block_store *partitioned_block_store,
 	uint32_t local_client_id,
 	const struct uuid_octets *back_store_guid,
-	struct block_store *back_store);
+	struct block_store *back_store,
+	storage_partition_authorizer authorizer);
 
 /**
  * \brief De-initialize a partitioned_block_store
