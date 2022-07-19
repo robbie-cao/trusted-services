@@ -159,20 +159,36 @@ macro(LazyFetch_MakeAvailable)
 	# FetchContent* functions use this form
 	string(TOLOWER ${MY_DEP_NAME} MY_LC_DEP_NAME)
 
+	# Look for name collision. We can collide with project() commands, other external components defined with
+	# LazyFetch, FetchCOntent or ExternalProject.
+	if(DEFINED ${MY_LC_DEP_NAME}_BINARY_DIR AND NOT DEFINED ${MY_LC_DEP_NAME}_BINARY_DIR_LZF)
+		string(CONCAT _msg "External dependency name \"${MY_DEP_NAME}\" collides with a project or another external"
+						   " dependency name.")
+		message(FATAL_ERROR ${_msg})
+	endif()
+	# This variable is used to avoid false colision detection when re-configuring the project.
+	set(${MY_LC_DEP_NAME}_BINARY_DIR_LZF On CACHE BOOL "")
+	mark_as_advanced(${MY_LC_DEP_NAME}_BINARY_DIR_LZF)
 	# These two variables are also set by the normal FetchContent process and users could depend on them,
 	# so they are not unset at the end of the macro
 	if (MY_BINARY_DIR)
 		set(${MY_LC_DEP_NAME}_BINARY_DIR ${MY_BINARY_DIR})
 	else()
-		set(${MY_LC_DEP_NAME}_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/_deps/${MY_LC_DEP_NAME}-build CACHE PATH "Build directory for ${MY_LC_DEP_NAME}")
+		set(${MY_LC_DEP_NAME}_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/_deps/${MY_LC_DEP_NAME}-build)
 	endif()
+	set(${MY_LC_DEP_NAME}_BINARY_DIR ${${MY_LC_DEP_NAME}_BINARY_DIR} CACHE PATH
+			"Build directory for ${MY_LC_DEP_NAME}" FORCE)
+
 	if (MY_SOURCE_DIR)
 		set(${MY_LC_DEP_NAME}_SOURCE_DIR ${MY_SOURCE_DIR})
 	else()
-		set(${MY_LC_DEP_NAME}_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/_deps/${MY_LC_DEP_NAME}-src CACHE PATH "Source directory for ${MY_LC_DEP_NAME}")
+		set(${MY_LC_DEP_NAME}_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/_deps/${MY_LC_DEP_NAME}-src)
 	endif()
+	set(${MY_LC_DEP_NAME}_SOURCE_DIR ${${MY_LC_DEP_NAME}_SOURCE_DIR} CACHE PATH
+			"Source directory for ${MY_LC_DEP_NAME}" FORCE)
 
-	set(${MY_LC_DEP_NAME}_SUBBUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/${MY_LC_DEP_NAME}-subbuild")
+	set(${MY_LC_DEP_NAME}_SUBBUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/_deps/${MY_LC_DEP_NAME}-subbuild CACHE
+		STRING "Sub-build directory for ${MY_LC_DEP_NAME}")
 
 	list(APPEND MY_FETCH_OPTIONS
 			SOURCE_DIR "${${MY_LC_DEP_NAME}_SOURCE_DIR}"
