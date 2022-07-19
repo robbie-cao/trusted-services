@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #ifndef LIBSP_INCLUDE_SP_MESSAGING_H_
@@ -9,6 +9,7 @@
 #include "sp_api_defines.h"
 #include "sp_api_types.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -23,7 +24,11 @@ extern "C" {
 struct sp_msg {
 	uint16_t source_id;
 	uint16_t destination_id;
-	uint32_t args[SP_MSG_ARG_COUNT];
+	bool is_64bit_message;
+	union {
+		uint32_t args32[SP_MSG_ARG_COUNT];
+		uint64_t args64[SP_MSG_ARG_COUNT];
+	} args;
 };
 
 /**

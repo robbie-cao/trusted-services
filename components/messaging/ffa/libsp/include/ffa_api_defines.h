@@ -58,6 +58,11 @@
 #define FFA_MEM_PERM_GET		UINT32_C(0x84000088)
 #define FFA_MEM_PERM_SET		UINT32_C(0x84000089)
 
+/* Utility macros */
+#define FFA_TO_32_BIT_FUNC(x)		((x) & (~UINT32_C(0x40000000)))
+#define FFA_IS_32_BIT_FUNC(x)		(((x) & UINT32_C(0x40000000)) == 0)
+#define FFA_IS_64_BIT_FUNC(x)		(((x) & UINT32_C(0x40000000)) != 0)
+
 /* Special value for MBZ parameters */
 #define FFA_PARAM_MBZ			UINT32_C(0x0)
 

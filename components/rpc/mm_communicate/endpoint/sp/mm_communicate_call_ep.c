@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #include "components/rpc/mm_communicate/common/mm_communicate_call_args.h"
@@ -127,15 +127,15 @@ void mm_communicate_call_ep_receive(struct mm_communicate_ep *mm_communicate_cal
 	uintptr_t buffer_address = 0;
 	size_t buffer_size = 0;
 
-	buffer_address = req_msg->args[MM_COMMUNICATE_CALL_ARGS_COMM_BUFFER_ADDRESS];
-	buffer_size = req_msg->args[MM_COMMUNICATE_CALL_ARGS_COMM_BUFFER_SIZE];
+	buffer_address = req_msg->args.args32[MM_COMMUNICATE_CALL_ARGS_COMM_BUFFER_ADDRESS];
+	buffer_size = req_msg->args.args32[MM_COMMUNICATE_CALL_ARGS_COMM_BUFFER_SIZE];
 
 	return_value = handle_mm_communicate(mm_communicate_call_ep, req_msg->source_id,
 					     buffer_address, buffer_size);
 
-	resp_msg->args[MM_COMMUNICATE_CALL_ARGS_RETURN_ID] = ARM_SVC_ID_SP_EVENT_COMPLETE;
-	resp_msg->args[MM_COMMUNICATE_CALL_ARGS_RETURN_CODE] = return_value;
-	resp_msg->args[MM_COMMUNICATE_CALL_ARGS_MBZ0] = 0;
-	resp_msg->args[MM_COMMUNICATE_CALL_ARGS_MBZ1] = 0;
-	resp_msg->args[MM_COMMUNICATE_CALL_ARGS_MBZ2] = 0;
+	resp_msg->args.args32[MM_COMMUNICATE_CALL_ARGS_RETURN_ID] = ARM_SVC_ID_SP_EVENT_COMPLETE;
+	resp_msg->args.args32[MM_COMMUNICATE_CALL_ARGS_RETURN_CODE] = return_value;
+	resp_msg->args.args32[MM_COMMUNICATE_CALL_ARGS_MBZ0] = 0;
+	resp_msg->args.args32[MM_COMMUNICATE_CALL_ARGS_MBZ1] = 0;
+	resp_msg->args.args32[MM_COMMUNICATE_CALL_ARGS_MBZ2] = 0;
 }

@@ -81,16 +81,17 @@ static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t 
 
 	req.destination_id = this_context->dest_partition_id;
 	req.source_id = own_id;
-	req.args[SP_CALL_ARGS_IFACE_ID_OPCODE] =
+	req.is_64bit_message = false;
+	req.args.args32[SP_CALL_ARGS_IFACE_ID_OPCODE] =
 		FFA_CALL_ARGS_COMBINE_IFACE_ID_OPCODE(this_context->dest_iface_id, opcode);
-	req.args[SP_CALL_ARGS_REQ_DATA_LEN] = (uint32_t)this_context->req_len;
-	req.args[SP_CALL_ARGS_ENCODING] = this_context->rpc_caller.encoding;
+	req.args.args32[SP_CALL_ARGS_REQ_DATA_LEN] = (uint32_t)this_context->req_len;
+	req.args.args32[SP_CALL_ARGS_ENCODING] = this_context->rpc_caller.encoding;
 
 	/* Initialise the caller ID.  Depending on the call path, this may
 	 * be overridden by a higher privilege execution level, based on its
 	 * perspective of the caller identity.
 	 */
-	req.args[SP_CALL_ARGS_CALLER_ID] = 0;
+	req.args.args32[SP_CALL_ARGS_CALLER_ID] = 0;
 
 	sp_res = sp_msg_send_direct_req(&req, &resp);
 	if (sp_res != SP_RESULT_OK) {
@@ -98,9 +99,9 @@ static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t 
 		goto out;
 	}
 
-	this_context->resp_len = (size_t)resp.args[SP_CALL_ARGS_RESP_DATA_LEN];
-	status = resp.args[SP_CALL_ARGS_RESP_RPC_STATUS];
-	*opstatus = (rpc_status_t)((int32_t)resp.args[SP_CALL_ARGS_RESP_OP_STATUS]);
+	this_context->resp_len = (size_t)resp.args.args32[SP_CALL_ARGS_RESP_DATA_LEN];
+	status = resp.args.args32[SP_CALL_ARGS_RESP_RPC_STATUS];
+	*opstatus = (rpc_status_t)((int32_t)resp.args.args32[SP_CALL_ARGS_RESP_OP_STATUS]);
 
 	if (this_context->resp_len > this_context->shared_mem_required_size) {
 		EMSG("invalid response length");
@@ -242,11 +243,12 @@ int ffarpc_caller_open(struct ffarpc_caller *caller, uint16_t dest_partition_id,
 
 	req.source_id = own_id;
 	req.destination_id = dest_partition_id;
-	req.args[SP_CALL_ARGS_IFACE_ID_OPCODE] =
+	req.is_64bit_message = false;
+	req.args.args32[SP_CALL_ARGS_IFACE_ID_OPCODE] =
 		FFA_CALL_ARGS_COMBINE_IFACE_ID_OPCODE(FFA_CALL_MGMT_IFACE_ID, FFA_CALL_OPCODE_SHARE_BUF);
-	req.args[SP_CALL_ARGS_SHARE_MEM_HANDLE_LSW] = (uint32_t)(handle & UINT32_MAX);
-	req.args[SP_CALL_ARGS_SHARE_MEM_HANDLE_MSW] = (uint32_t)(handle >> 32);
-	req.args[SP_CALL_ARGS_SHARE_MEM_SIZE] = (uint32_t)(caller->shared_mem_required_size);
+	req.args.args32[SP_CALL_ARGS_SHARE_MEM_HANDLE_LSW] = (uint32_t)(handle & UINT32_MAX);
+	req.args.args32[SP_CALL_ARGS_SHARE_MEM_HANDLE_MSW] = (uint32_t)(handle >> 32);
+	req.args.args32[SP_CALL_ARGS_SHARE_MEM_SIZE] = (uint32_t)(caller->shared_mem_required_size);
 
 	sp_res = sp_msg_send_direct_req(&req, &resp);
 	if (sp_res != SP_RESULT_OK) {
@@ -273,10 +275,11 @@ int ffarpc_caller_close(struct ffarpc_caller *caller)
 
 	req.source_id = own_id;
 	req.destination_id = caller->dest_partition_id;
-	req.args[SP_CALL_ARGS_IFACE_ID_OPCODE] =
+	req.is_64bit_message = false;
+	req.args.args32[SP_CALL_ARGS_IFACE_ID_OPCODE] =
 		FFA_CALL_ARGS_COMBINE_IFACE_ID_OPCODE(FFA_CALL_MGMT_IFACE_ID, FFA_CALL_OPCODE_UNSHARE_BUF);
-	req.args[SP_CALL_ARGS_SHARE_MEM_HANDLE_LSW] = handle_lo;
-	req.args[SP_CALL_ARGS_SHARE_MEM_HANDLE_MSW] = handle_hi;
+	req.args.args32[SP_CALL_ARGS_SHARE_MEM_HANDLE_LSW] = handle_lo;
+	req.args.args32[SP_CALL_ARGS_SHARE_MEM_HANDLE_MSW] = handle_hi;
 
 	sp_res = sp_msg_send_direct_req(&req, &resp);
 	if (sp_res != SP_RESULT_OK) {

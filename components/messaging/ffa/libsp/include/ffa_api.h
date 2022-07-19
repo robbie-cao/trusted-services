@@ -126,8 +126,8 @@ ffa_result ffa_msg_wait(struct ffa_direct_msg *msg);
 /** Messaging interfaces */
 
 /**
- * @brief      Sends a partition message in parameter registers as a request and
- *             blocks until the response is available.
+ * @brief      Sends a 32 bit partition message in parameter registers as a
+ *             request and blocks until the response is available.
  * @note       The ffa_interrupt_handler function can be called during the
  *             execution of this function
  *
@@ -138,13 +138,14 @@ ffa_result ffa_msg_wait(struct ffa_direct_msg *msg);
  *
  * @return     The FF-A error status code
  */
-ffa_result ffa_msg_send_direct_req(uint16_t source, uint16_t dest, uint32_t a0,
-				   uint32_t a1, uint32_t a2, uint32_t a3,
-				   uint32_t a4, struct ffa_direct_msg *msg);
+ffa_result ffa_msg_send_direct_req_32(uint16_t source, uint16_t dest,
+				      uint32_t a0, uint32_t a1, uint32_t a2,
+				      uint32_t a3, uint32_t a4,
+				      struct ffa_direct_msg *msg);
 
 /**
- * @brief      Sends a partition message in parameter registers as a response
- *             and blocks until the response is available.
+ * @brief      Sends a 64 bit partition message in parameter registers as a
+ *             request and blocks until the response is available.
  * @note       The ffa_interrupt_handler function can be called during the
  *             execution of this function
  *
@@ -155,9 +156,46 @@ ffa_result ffa_msg_send_direct_req(uint16_t source, uint16_t dest, uint32_t a0,
  *
  * @return     The FF-A error status code
  */
-ffa_result ffa_msg_send_direct_resp(uint16_t source, uint16_t dest, uint32_t a0,
-				    uint32_t a1, uint32_t a2, uint32_t a3,
-				    uint32_t a4, struct ffa_direct_msg *msg);
+ffa_result ffa_msg_send_direct_req_64(uint16_t source, uint16_t dest,
+				      uint64_t a0, uint64_t a1, uint64_t a2,
+				      uint64_t a3, uint64_t a4,
+				      struct ffa_direct_msg *msg);
+
+/**
+ * @brief      Sends a 32 bit partition message in parameter registers as a
+ *             response and blocks until the response is available.
+ * @note       The ffa_interrupt_handler function can be called during the
+ *             execution of this function
+ *
+ * @param[in]  source            Source endpoint ID
+ * @param[in]  dest              Destination endpoint ID
+ * @param[in]  a0,a1,a2,a3,a4    Implementation defined message values
+ * @param[out] msg               The response message
+ *
+ * @return     The FF-A error status code
+ */
+ffa_result ffa_msg_send_direct_resp_32(uint16_t source, uint16_t dest,
+				       uint32_t a0, uint32_t a1, uint32_t a2,
+				       uint32_t a3, uint32_t a4,
+				       struct ffa_direct_msg *msg);
+
+/**
+ * @brief      Sends a 64 bit partition message in parameter registers as a
+ *             response and blocks until the response is available.
+ * @note       The ffa_interrupt_handler function can be called during the
+ *             execution of this function
+ *
+ * @param[in]  source            Source endpoint ID
+ * @param[in]  dest              Destination endpoint ID
+ * @param[in]  a0,a1,a2,a3,a4    Implementation defined message values
+ * @param[out] msg               The response message
+ *
+ * @return     The FF-A error status code
+ */
+ffa_result ffa_msg_send_direct_resp_64(uint16_t source, uint16_t dest,
+				       uint64_t a0, uint64_t a1, uint64_t a2,
+				       uint64_t a3, uint64_t a4,
+				       struct ffa_direct_msg *msg);
 
 /**
  * Memory management interfaces

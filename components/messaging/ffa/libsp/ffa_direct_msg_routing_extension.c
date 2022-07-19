@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #include "ffa_direct_msg_routing_extension.h"
@@ -20,23 +20,23 @@ static uint16_t callee_id = SP_ID_INVALID;
 
 static bool is_rc_message(const struct ffa_direct_msg *msg)
 {
-	return msg->args[0] & FFA_ROUTING_EXT_RC_BIT;
+	return msg->args.args32[0] & FFA_ROUTING_EXT_RC_BIT;
 }
 
 static bool is_error_message(const struct ffa_direct_msg *msg)
 {
-	return msg->args[0] & FFA_ROUTING_EXT_ERROR_BIT;
+	return msg->args.args32[0] & FFA_ROUTING_EXT_ERROR_BIT;
 }
 
 static ffa_result get_error_code_from_message(const struct ffa_direct_msg *msg)
 {
-	return (ffa_result)msg->args[1];
+	return (ffa_result)msg->args.args32[1];
 }
 
 static ffa_result send_rc_error_message(struct ffa_direct_msg *req,
 					ffa_result error_code)
 {
-	return ffa_msg_send_direct_resp(req->destination_id, req->source_id,
+	return ffa_msg_send_direct_resp_32(req->destination_id, req->source_id,
 					(FFA_ROUTING_EXT_ERROR_BIT |
 					 FFA_ROUTING_EXT_RC_BIT),
 					error_code, 0, 0, 0, req);
@@ -45,7 +45,7 @@ static ffa_result send_rc_error_message(struct ffa_direct_msg *req,
 static ffa_result send_rc_error_message_to_rc_root(struct ffa_direct_msg *resp,
 						   ffa_result error_code)
 {
-	return ffa_msg_send_direct_req(own_id, callee_id,
+	return ffa_msg_send_direct_req_32(own_id, callee_id,
 				       (FFA_ROUTING_EXT_RC_BIT |
 					FFA_ROUTING_EXT_ERROR_BIT),
 				       error_code, 0, 0, 0, resp);
@@ -128,10 +128,10 @@ ffa_result ffa_direct_msg_routing_ext_req_post_hook(struct ffa_direct_msg *resp)
 		/* Forwarding RC request towards the root (normal world) */
 		state = forwarding;
 
-		ffa_res = ffa_msg_send_direct_resp(own_id, caller_id,
-						   resp->args[0], resp->args[1],
-						   resp->args[2], resp->args[3],
-						   resp->args[4], &rc_resp);
+		ffa_res = ffa_msg_send_direct_resp_32(own_id, caller_id,
+						   resp->args.args32[0], resp->args.args32[1],
+						   resp->args.args32[2], resp->args.args32[3],
+						   resp->args.args32[4], &rc_resp);
 		if (ffa_res != FFA_OK)
 			goto forward_ffa_error_to_rc_root;
 
@@ -145,9 +145,9 @@ ffa_result ffa_direct_msg_routing_ext_req_post_hook(struct ffa_direct_msg *resp)
 
 		/* Forwarding RC response towards the RC root. */
 		state = internal;
-		ffa_res = ffa_msg_send_direct_req(
-			own_id, callee_id, rc_resp.args[0], rc_resp.args[1],
-			rc_resp.args[2], rc_resp.args[3], rc_resp.args[4],
+		ffa_res = ffa_msg_send_direct_req_32(
+			own_id, callee_id, rc_resp.args.args32[0], rc_resp.args.args32[1],
+			rc_resp.args.args32[2], rc_resp.args.args32[3], rc_resp.args.args32[4],
 			resp);
 
 		goto break_on_ffa_error;
@@ -197,7 +197,7 @@ void ffa_direct_msg_routing_ext_resp_error_hook(void)
 
 void ffa_direct_msg_routing_ext_rc_req_pre_hook(struct ffa_direct_msg *req)
 {
-	req->args[0] = FFA_ROUTING_EXT_RC_BIT;
+	req->args.args32[0] = FFA_ROUTING_EXT_RC_BIT;
 	state = rc_root;
 }
 

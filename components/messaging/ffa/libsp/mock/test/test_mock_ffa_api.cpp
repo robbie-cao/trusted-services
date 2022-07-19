@@ -105,7 +105,7 @@ TEST(mock_ffa_api, ffa_msg_wait)
 	MEMCMP_EQUAL(&expected_msg, &msg, sizeof(expected_msg));
 }
 
-TEST(mock_ffa_api, ffa_msg_send_direct_req)
+TEST(mock_ffa_api, ffa_msg_send_direct_req_32)
 {
 	const uint16_t source = 0x1122;
 	const uint16_t dest = 0x2233;
@@ -116,13 +116,30 @@ TEST(mock_ffa_api, ffa_msg_send_direct_req)
 	const uint32_t a4 = 0x89124567;
 	struct ffa_direct_msg msg = { 0 };
 
-	expect_ffa_msg_send_direct_req(source, dest, a0, a1, a2, a3, a4,
-				       &expected_msg, result);
-	LONGS_EQUAL(result, ffa_msg_send_direct_req(source, dest, a0, a1, a2,
-						    a3, a4, &msg));
+	expect_ffa_msg_send_direct_req_32(source, dest, a0, a1, a2, a3, a4,
+				          &expected_msg, result);
+	LONGS_EQUAL(result, ffa_msg_send_direct_req_32(source, dest, a0, a1, a2,
+						       a3, a4, &msg));
 }
 
-TEST(mock_ffa_api, ffa_msg_send_direct_resp)
+TEST(mock_ffa_api, ffa_msg_send_direct_req_64)
+{
+	const uint16_t source = 0x1122;
+	const uint16_t dest = 0x2233;
+	const uint64_t a0 = 0x4567891221987654;
+	const uint64_t a1 = 0x5678912442198765;
+	const uint64_t a2 = 0x6789124554219876;
+	const uint64_t a3 = 0x7891245665421987;
+	const uint64_t a4 = 0x8912456776542198;
+	struct ffa_direct_msg msg = { 0 };
+
+	expect_ffa_msg_send_direct_req_64(source, dest, a0, a1, a2, a3, a4,
+				       &expected_msg, result);
+	LONGS_EQUAL(result, ffa_msg_send_direct_req_64(source, dest, a0, a1, a2,
+						       a3, a4, &msg));
+}
+
+TEST(mock_ffa_api, ffa_msg_send_direct_resp_32)
 {
 	const uint16_t source = 0x1122;
 	const uint16_t dest = 0x2233;
@@ -133,10 +150,27 @@ TEST(mock_ffa_api, ffa_msg_send_direct_resp)
 	const uint32_t a4 = 0x89124567;
 	struct ffa_direct_msg msg = { 0 };
 
-	expect_ffa_msg_send_direct_resp(source, dest, a0, a1, a2, a3, a4,
+	expect_ffa_msg_send_direct_resp_32(source, dest, a0, a1, a2, a3, a4,
 					&expected_msg, result);
-	LONGS_EQUAL(result, ffa_msg_send_direct_resp(source, dest, a0, a1, a2,
-						     a3, a4, &msg));
+	LONGS_EQUAL(result, ffa_msg_send_direct_resp_32(source, dest, a0, a1,
+							a2, a3, a4, &msg));
+}
+
+TEST(mock_ffa_api, ffa_msg_send_direct_resp_64)
+{
+	const uint16_t source = 0x1122;
+	const uint16_t dest = 0x2233;
+	const uint64_t a0 = 0x4567891221987654;
+	const uint64_t a1 = 0x5678912442198765;
+	const uint64_t a2 = 0x6789124554219876;
+	const uint64_t a3 = 0x7891245665421987;
+	const uint64_t a4 = 0x8912456776542198;
+	struct ffa_direct_msg msg = { 0 };
+
+	expect_ffa_msg_send_direct_resp_64(source, dest, a0, a1, a2, a3, a4,
+					  &expected_msg, result);
+	LONGS_EQUAL(result, ffa_msg_send_direct_resp_64(source, dest, a0, a1,
+							a2, a3, a4, &msg));
 }
 
 TEST(mock_ffa_api, ffa_mem_donate)

@@ -43,19 +43,34 @@ TEST_GROUP(ffa_api)
 		svc_result.a2 = (uint32_t)error_code;
 	}
 
-	void msg_equal(uint32_t func_id, uint16_t source_id, uint16_t dest_id,
-			uint32_t arg0, uint32_t arg1, uint32_t arg2,
-			uint32_t arg3, uint32_t arg4)
+	void msg_equal_32(uint32_t func_id, uint16_t source_id, uint16_t dest_id,
+			  uint32_t arg0, uint32_t arg1, uint32_t arg2,
+			  uint32_t arg3, uint32_t arg4)
 	{
 		UNSIGNED_LONGS_EQUAL(func_id, msg.function_id);
 		UNSIGNED_LONGS_EQUAL(source_id, msg.source_id);
 		UNSIGNED_LONGS_EQUAL(dest_id, msg.destination_id);
-		UNSIGNED_LONGS_EQUAL(arg0, msg.args[0]);
-		UNSIGNED_LONGS_EQUAL(arg1, msg.args[1]);
-		UNSIGNED_LONGS_EQUAL(arg2, msg.args[2]);
-		UNSIGNED_LONGS_EQUAL(arg3, msg.args[3]);
-		UNSIGNED_LONGS_EQUAL(arg4, msg.args[4]);
+		UNSIGNED_LONGS_EQUAL(arg0, msg.args.args32[0]);
+		UNSIGNED_LONGS_EQUAL(arg1, msg.args.args32[1]);
+		UNSIGNED_LONGS_EQUAL(arg2, msg.args.args32[2]);
+		UNSIGNED_LONGS_EQUAL(arg3, msg.args.args32[3]);
+		UNSIGNED_LONGS_EQUAL(arg4, msg.args.args32[4]);
 	}
+
+	void msg_equal_64(uint32_t func_id, uint16_t source_id, uint16_t dest_id,
+			  uint64_t arg0, uint64_t arg1, uint64_t arg2,
+			  uint64_t arg3, uint64_t arg4)
+	{
+		UNSIGNED_LONGS_EQUAL(func_id, msg.function_id);
+		UNSIGNED_LONGS_EQUAL(source_id, msg.source_id);
+		UNSIGNED_LONGS_EQUAL(dest_id, msg.destination_id);
+		UNSIGNED_LONGLONGS_EQUAL(arg0, msg.args.args64[0]);
+		UNSIGNED_LONGLONGS_EQUAL(arg1, msg.args.args64[1]);
+		UNSIGNED_LONGLONGS_EQUAL(arg2, msg.args.args64[2]);
+		UNSIGNED_LONGLONGS_EQUAL(arg3, msg.args.args64[3]);
+		UNSIGNED_LONGLONGS_EQUAL(arg4, msg.args.args64[4]);
+	}
+
 
 	struct ffa_params svc_result;
 	struct ffa_direct_msg msg;
@@ -360,7 +375,7 @@ TEST(ffa_api, ffa_msg_wait_success)
 	expect_ffa_svc(0x8400006B, 0, 0, 0, 0, 0, 0, 0, &svc_result);
 	ffa_result result = ffa_msg_wait(&msg);
 	LONGS_EQUAL(0, result);
-	msg_equal(0x84000061, 0, 0, 0, 0, 0, 0, 0);
+	msg_equal_32(0x84000061, 0, 0, 0, 0, 0, 0, 0);
 }
 
 TEST(ffa_api, ffa_msg_wait_error)
@@ -369,10 +384,10 @@ TEST(ffa_api, ffa_msg_wait_error)
 	expect_ffa_svc(0x8400006B, 0, 0, 0, 0, 0, 0, 0, &svc_result);
 	ffa_result result = ffa_msg_wait(&msg);
 	LONGS_EQUAL(-1, result);
-	msg_equal(0, 0, 0, 0, 0, 0, 0, 0);
+	msg_equal_32(0, 0, 0, 0, 0, 0, 0, 0);
 }
 
-TEST(ffa_api, ffa_msg_wait_direct_req)
+TEST(ffa_api, ffa_msg_wait_direct_req_32)
 {
 	const uint16_t source_id = 0x1122;
 	const uint16_t dest_id = 0x3344;
@@ -392,7 +407,31 @@ TEST(ffa_api, ffa_msg_wait_direct_req)
 	expect_ffa_svc(0x8400006B, 0, 0, 0, 0, 0, 0, 0, &svc_result);
 	ffa_result result = ffa_msg_wait(&msg);
 	LONGS_EQUAL(0, result);
-	msg_equal(0x8400006F, source_id, dest_id, arg0, arg1, arg2, arg3,
+	msg_equal_32(0x8400006F, source_id, dest_id, arg0, arg1, arg2, arg3,
+		   arg4);
+}
+
+TEST(ffa_api, ffa_msg_wait_direct_req_64)
+{
+	const uint16_t source_id = 0x1122;
+	const uint16_t dest_id = 0x3344;
+	const uint64_t arg0 = 0x0123456776543210ULL;
+	const uint64_t arg1 = 0x1234567887654321ULL;
+	const uint64_t arg2 = 0x2345678998765432ULL;
+	const uint64_t arg3 = 0x3456789aa9876543ULL;
+	const uint64_t arg4 = 0x456789abba987654ULL;
+
+	svc_result.a0 = 0xC400006F;
+	svc_result.a1 = ((uint32_t)source_id) << 16 | dest_id;
+	svc_result.a3 = arg0;
+	svc_result.a4 = arg1;
+	svc_result.a5 = arg2;
+	svc_result.a6 = arg3;
+	svc_result.a7 = arg4;
+	expect_ffa_svc(0x8400006B, 0, 0, 0, 0, 0, 0, 0, &svc_result);
+	ffa_result result = ffa_msg_wait(&msg);
+	LONGS_EQUAL(0, result);
+	msg_equal_64(0xC400006F, source_id, dest_id, arg0, arg1, arg2, arg3,
 		   arg4);
 }
 
@@ -410,7 +449,7 @@ TEST(ffa_api, ffa_msg_wait_one_interrupt_success)
 	expect_ffa_svc(0x8400006B, 0, 0, 0, 0, 0, 0, 0, &svc_result);
 	ffa_result result = ffa_msg_wait(&msg);
 	LONGS_EQUAL(0, result);
-	msg_equal(0x84000061, 0, 0, 0, 0, 0, 0, 0);
+	msg_equal_32(0x84000061, 0, 0, 0, 0, 0, 0, 0);
 }
 
 TEST(ffa_api, ffa_msg_wait_two_interrupt_success)
@@ -434,7 +473,7 @@ TEST(ffa_api, ffa_msg_wait_two_interrupt_success)
 	expect_ffa_svc(0x8400006B, 0, 0, 0, 0, 0, 0, 0, &svc_result);
 	ffa_result result = ffa_msg_wait(&msg);
 	LONGS_EQUAL(0, result);
-	msg_equal(0x84000061, 0, 0, 0, 0, 0, 0, 0);
+	msg_equal_32(0x84000061, 0, 0, 0, 0, 0, 0, 0);
 }
 
 TEST(ffa_api, ffa_msg_wait_unknown_response)
@@ -448,7 +487,7 @@ TEST(ffa_api, ffa_msg_wait_unknown_response)
 	}
 }
 
-TEST(ffa_api, ffa_msg_send_direct_req_success)
+TEST(ffa_api, ffa_msg_send_direct_req_32_success)
 {
 	const uint16_t source_id = 0x1122;
 	const uint16_t dest_id = 0x3344;
@@ -461,13 +500,13 @@ TEST(ffa_api, ffa_msg_send_direct_req_success)
 	svc_result.a0 = 0x84000061;
 	expect_ffa_svc(0x8400006F, ((uint32_t)source_id << 16) | dest_id, 0,
 		       arg0, arg1, arg2, arg3, arg4, &svc_result);
-	ffa_result result = ffa_msg_send_direct_req(
+	ffa_result result = ffa_msg_send_direct_req_32(
 		source_id, dest_id, arg0, arg1, arg2, arg3, arg4, &msg);
 	LONGS_EQUAL(0, result);
-	msg_equal(0x84000061, 0, 0, 0, 0, 0, 0, 0);
+	msg_equal_32(0x84000061, 0, 0, 0, 0, 0, 0, 0);
 }
 
-TEST(ffa_api, ffa_msg_send_direct_req_error)
+TEST(ffa_api, ffa_msg_send_direct_req_32_error)
 {
 	const uint16_t source_id = 0x1122;
 	const uint16_t dest_id = 0x3344;
@@ -480,13 +519,48 @@ TEST(ffa_api, ffa_msg_send_direct_req_error)
 	setup_error_response(-1);
 	expect_ffa_svc(0x8400006F, ((uint32_t)source_id << 16) | dest_id, 0,
 		       arg0, arg1, arg2, arg3, arg4, &svc_result);
-	ffa_result result = ffa_msg_send_direct_req(
+	ffa_result result = ffa_msg_send_direct_req_32(
 		source_id, dest_id, arg0, arg1, arg2, arg3, arg4, &msg);
 	LONGS_EQUAL(-1, result);
-	msg_equal(0, 0, 0, 0, 0, 0, 0, 0);
+	msg_equal_32(0, 0, 0, 0, 0, 0, 0, 0);
 }
 
-TEST(ffa_api, ffa_msg_send_direct_req_direct_resp)
+TEST(ffa_api, ffa_msg_send_direct_req_32_get_resp_64)
+{
+	const uint16_t source_id = 0x1122;
+	const uint16_t dest_id = 0x3344;
+	const uint32_t arg0 = 0x01234567ULL;
+	const uint32_t arg1 = 0x12345678ULL;
+	const uint32_t arg2 = 0x23456789ULL;
+	const uint32_t arg3 = 0x3456789aULL;
+	const uint32_t arg4 = 0x456789abULL;
+	const uint16_t resp_source_id = 0x1221;
+	const uint16_t resp_dest_id = 0x3443;
+	const uint64_t resp_arg0 = 0x9012345665432109ULL;
+	const uint64_t resp_arg1 = 0xa12345677654321aULL;
+	const uint64_t resp_arg2 = 0xb23456788765432bULL;
+	const uint64_t resp_arg3 = 0xc34567899876543cULL;
+	const uint64_t resp_arg4 = 0xd456789aa987654dULL;
+	assert_environment_t assert_env;
+
+	svc_result.a0 = 0xC4000070;
+	svc_result.a1 = ((uint32_t)resp_source_id) << 16 | resp_dest_id;
+	svc_result.a3 = resp_arg0;
+	svc_result.a4 = resp_arg1;
+	svc_result.a5 = resp_arg2;
+	svc_result.a6 = resp_arg3;
+	svc_result.a7 = resp_arg4;
+
+	expect_ffa_svc(0x8400006F, ((uint32_t)source_id << 16) | dest_id, 0,
+		       arg0, arg1, arg2, arg3, arg4, &svc_result);
+
+	if (SETUP_ASSERT_ENVIRONMENT(assert_env)) {
+		ffa_msg_send_direct_req_32(source_id, dest_id, arg0, arg1, arg2,
+					arg3, arg4, &msg);
+	}
+}
+
+TEST(ffa_api, ffa_msg_send_direct_req_32_direct_resp)
 {
 	const uint16_t source_id = 0x1122;
 	const uint16_t dest_id = 0x3344;
@@ -512,14 +586,82 @@ TEST(ffa_api, ffa_msg_send_direct_req_direct_resp)
 	svc_result.a7 = resp_arg4;
 	expect_ffa_svc(0x8400006F, ((uint32_t)source_id << 16) | dest_id, 0,
 		       arg0, arg1, arg2, arg3, arg4, &svc_result);
-	ffa_result result = ffa_msg_send_direct_req(
+	ffa_result result = ffa_msg_send_direct_req_32(
 		source_id, dest_id, arg0, arg1, arg2, arg3, arg4, &msg);
 	LONGS_EQUAL(0, result);
-	msg_equal(0x84000070, resp_source_id, resp_dest_id, resp_arg0,
+	msg_equal_32(0x84000070, resp_source_id, resp_dest_id, resp_arg0,
 		   resp_arg1, resp_arg2, resp_arg3, resp_arg4);
 }
 
-TEST(ffa_api, ffa_msg_send_direct_req_one_interrupt_success)
+TEST(ffa_api, ffa_msg_send_direct_req_64_success)
+{
+	const uint16_t source_id = 0x1122;
+	const uint16_t dest_id = 0x3344;
+	const uint64_t arg0 = 0x0123456776543210ULL;
+	const uint64_t arg1 = 0x1234567887654321ULL;
+	const uint64_t arg2 = 0x2345678998765432ULL;
+	const uint64_t arg3 = 0x3456789aa9876543ULL;
+	const uint64_t arg4 = 0x456789abba987654ULL;
+	const uint16_t resp_source_id = 0x1221;
+	const uint16_t resp_dest_id = 0x3443;
+	const uint64_t resp_arg0 = 0x9012345665432109ULL;
+	const uint64_t resp_arg1 = 0xa12345677654321aULL;
+	const uint64_t resp_arg2 = 0xb23456788765432bULL;
+	const uint64_t resp_arg3 = 0xc34567899876543cULL;
+	const uint64_t resp_arg4 = 0xd456789aa987654dULL;
+
+	svc_result.a0 = 0xC4000070;
+	svc_result.a1 = ((uint32_t)resp_source_id) << 16 | resp_dest_id;
+	svc_result.a3 = resp_arg0;
+	svc_result.a4 = resp_arg1;
+	svc_result.a5 = resp_arg2;
+	svc_result.a6 = resp_arg3;
+	svc_result.a7 = resp_arg4;
+	expect_ffa_svc(0xC400006F, ((uint32_t)source_id << 16) | dest_id, 0,
+		       arg0, arg1, arg2, arg3, arg4, &svc_result);
+	ffa_result result = ffa_msg_send_direct_req_64(
+		source_id, dest_id, arg0, arg1, arg2, arg3, arg4, &msg);
+	LONGS_EQUAL(0, result);
+	msg_equal_64(0xC4000070, resp_source_id, resp_dest_id, resp_arg0,
+		   resp_arg1, resp_arg2, resp_arg3, resp_arg4);
+}
+
+TEST(ffa_api, ffa_msg_send_direct_req_64_get_resp_32)
+{
+	const uint16_t source_id = 0x1122;
+	const uint16_t dest_id = 0x3344;
+	const uint64_t arg0 = 0x9012345665432109ULL;
+	const uint64_t arg1 = 0xa12345677654321aULL;
+	const uint64_t arg2 = 0xb23456788765432bULL;
+	const uint64_t arg3 = 0xc34567899876543cULL;
+	const uint64_t arg4 = 0xd456789aa987654dULL;
+	const uint16_t resp_source_id = 0x1221;
+	const uint16_t resp_dest_id = 0x3443;
+	const uint32_t resp_arg0 = 0x01234567ULL;
+	const uint32_t resp_arg1 = 0x12345678ULL;
+	const uint32_t resp_arg2 = 0x23456789ULL;
+	const uint32_t resp_arg3 = 0x3456789aULL;
+	const uint32_t resp_arg4 = 0x456789abULL;
+	assert_environment_t assert_env;
+
+	svc_result.a0 = 0x84000070;
+	svc_result.a1 = ((uint32_t)resp_source_id) << 16 | resp_dest_id;
+	svc_result.a3 = resp_arg0;
+	svc_result.a4 = resp_arg1;
+	svc_result.a5 = resp_arg2;
+	svc_result.a6 = resp_arg3;
+	svc_result.a7 = resp_arg4;
+
+	expect_ffa_svc(0xC400006F, ((uint32_t)source_id << 16) | dest_id, 0,
+		       arg0, arg1, arg2, arg3, arg4, &svc_result);
+
+	if (SETUP_ASSERT_ENVIRONMENT(assert_env)) {
+		ffa_msg_send_direct_req_64(source_id, dest_id, arg0, arg1, arg2,
+					arg3, arg4, &msg);
+	}
+}
+
+TEST(ffa_api, ffa_msg_send_direct_req_32_one_interrupt_success)
 {
 	const uint16_t source_id = 0x1122;
 	const uint16_t dest_id = 0x3344;
@@ -539,13 +681,13 @@ TEST(ffa_api, ffa_msg_send_direct_req_one_interrupt_success)
 
 	svc_result.a0 = 0x84000061;
 	expect_ffa_svc(0x8400006B, 0, 0, 0, 0, 0, 0, 0, &svc_result);
-	ffa_result result = ffa_msg_send_direct_req(
+	ffa_result result = ffa_msg_send_direct_req_32(
 		source_id, dest_id, arg0, arg1, arg2, arg3, arg4, &msg);
 	LONGS_EQUAL(0, result);
-	msg_equal(0x84000061, 0, 0, 0, 0, 0, 0, 0);
+	msg_equal_32(0x84000061, 0, 0, 0, 0, 0, 0, 0);
 }
 
-TEST(ffa_api, ffa_msg_send_direct_req_two_interrupt_success)
+TEST(ffa_api, ffa_msg_send_direct_req_32_two_interrupt_success)
 {
 	const uint16_t source_id = 0x1122;
 	const uint16_t dest_id = 0x3344;
@@ -573,13 +715,13 @@ TEST(ffa_api, ffa_msg_send_direct_req_two_interrupt_success)
 
 	svc_result.a0 = 0x84000061;
 	expect_ffa_svc(0x8400006B, 0, 0, 0, 0, 0, 0, 0, &svc_result);
-	ffa_result result = ffa_msg_send_direct_req(
+	ffa_result result = ffa_msg_send_direct_req_32(
 		source_id, dest_id, arg0, arg1, arg2, arg3, arg4, &msg);
 	LONGS_EQUAL(0, result);
-	msg_equal(0x84000061, 0, 0, 0, 0, 0, 0, 0);
+	msg_equal_32(0x84000061, 0, 0, 0, 0, 0, 0, 0);
 }
 
-TEST(ffa_api, ffa_msg_send_direct_req_unknown_response)
+TEST(ffa_api, ffa_msg_send_direct_req_32_unknown_response)
 {
 	const uint16_t source_id = 0x1122;
 	const uint16_t dest_id = 0x3344;
@@ -594,12 +736,12 @@ TEST(ffa_api, ffa_msg_send_direct_req_unknown_response)
 	expect_ffa_svc(0x8400006F, ((uint32_t)source_id << 16) | dest_id, 0,
 		       arg0, arg1, arg2, arg3, arg4, &svc_result);
 	if (SETUP_ASSERT_ENVIRONMENT(assert_env)) {
-		ffa_msg_send_direct_req(source_id, dest_id, arg0, arg1, arg2,
+		ffa_msg_send_direct_req_32(source_id, dest_id, arg0, arg1, arg2,
 					arg3, arg4, &msg);
 	}
 }
 
-TEST(ffa_api, ffa_msg_send_direct_resp_success)
+TEST(ffa_api, ffa_msg_send_direct_resp_32_success)
 {
 	const uint16_t source_id = 0x1122;
 	const uint16_t dest_id = 0x3344;
@@ -612,13 +754,13 @@ TEST(ffa_api, ffa_msg_send_direct_resp_success)
 	svc_result.a0 = 0x84000061;
 	expect_ffa_svc(0x84000070, ((uint32_t)source_id << 16) | dest_id, 0,
 		       arg0, arg1, arg2, arg3, arg4, &svc_result);
-	ffa_result result = ffa_msg_send_direct_resp(
+	ffa_result result = ffa_msg_send_direct_resp_32(
 		source_id, dest_id, arg0, arg1, arg2, arg3, arg4, &msg);
 	LONGS_EQUAL(0, result);
-	msg_equal(0x84000061, 0, 0, 0, 0, 0, 0, 0);
+	msg_equal_32(0x84000061, 0, 0, 0, 0, 0, 0, 0);
 }
 
-TEST(ffa_api, ffa_msg_send_direct_resp_error)
+TEST(ffa_api, ffa_msg_send_direct_resp_32_error)
 {
 	const uint16_t source_id = 0x1122;
 	const uint16_t dest_id = 0x3344;
@@ -631,13 +773,13 @@ TEST(ffa_api, ffa_msg_send_direct_resp_error)
 	setup_error_response(-1);
 	expect_ffa_svc(0x84000070, ((uint32_t)source_id << 16) | dest_id, 0,
 		       arg0, arg1, arg2, arg3, arg4, &svc_result);
-	ffa_result result = ffa_msg_send_direct_resp(
+	ffa_result result = ffa_msg_send_direct_resp_32(
 		source_id, dest_id, arg0, arg1, arg2, arg3, arg4, &msg);
 	LONGS_EQUAL(-1, result);
-	msg_equal(0, 0, 0, 0, 0, 0, 0, 0);
+	msg_equal_32(0, 0, 0, 0, 0, 0, 0, 0);
 }
 
-TEST(ffa_api, ffa_msg_send_direct_resp_then_get_direct_req_as_response)
+TEST(ffa_api, ffa_msg_send_direct_resp_32_then_get_direct_req_32_as_response)
 {
 	const uint16_t source_id = 0x1122;
 	const uint16_t dest_id = 0x3344;
@@ -663,14 +805,113 @@ TEST(ffa_api, ffa_msg_send_direct_resp_then_get_direct_req_as_response)
 	svc_result.a7 = resp_arg4;
 	expect_ffa_svc(0x84000070, ((uint32_t)source_id << 16) | dest_id, 0,
 		       arg0, arg1, arg2, arg3, arg4, &svc_result);
-	ffa_result result = ffa_msg_send_direct_resp(
+	ffa_result result = ffa_msg_send_direct_resp_32(
 		source_id, dest_id, arg0, arg1, arg2, arg3, arg4, &msg);
 	LONGS_EQUAL(0, result);
-	msg_equal(0x8400006F, resp_source_id, resp_dest_id, resp_arg0,
+	msg_equal_32(0x8400006F, resp_source_id, resp_dest_id, resp_arg0,
 		   resp_arg1, resp_arg2, resp_arg3, resp_arg4);
 }
 
-TEST(ffa_api, ffa_msg_send_direct_resp_one_interrupt_success)
+TEST(ffa_api, ffa_msg_send_direct_resp_32_then_get_direct_req_64_as_response)
+{
+	const uint16_t source_id = 0x1122;
+	const uint16_t dest_id = 0x3344;
+	const uint32_t arg0 = 0x01234567ULL;
+	const uint32_t arg1 = 0x12345678ULL;
+	const uint32_t arg2 = 0x23456789ULL;
+	const uint32_t arg3 = 0x3456789aULL;
+	const uint32_t arg4 = 0x456789abULL;
+	const uint16_t resp_source_id = 0x1221;
+	const uint16_t resp_dest_id = 0x3443;
+	const uint64_t resp_arg0 = 0x9012345665432109ULL;
+	const uint64_t resp_arg1 = 0xa12345677654321aULL;
+	const uint64_t resp_arg2 = 0xb23456788765432bULL;
+	const uint64_t resp_arg3 = 0xc34567899876543cULL;
+	const uint64_t resp_arg4 = 0xd456789aa987654dULL;
+
+	svc_result.a0 = 0xC400006F;
+	svc_result.a1 = ((uint32_t)resp_source_id) << 16 | resp_dest_id;
+	svc_result.a3 = resp_arg0;
+	svc_result.a4 = resp_arg1;
+	svc_result.a5 = resp_arg2;
+	svc_result.a6 = resp_arg3;
+	svc_result.a7 = resp_arg4;
+	expect_ffa_svc(0x84000070, ((uint32_t)source_id << 16) | dest_id, 0,
+		       arg0, arg1, arg2, arg3, arg4, &svc_result);
+	ffa_result result = ffa_msg_send_direct_resp_32(
+		source_id, dest_id, arg0, arg1, arg2, arg3, arg4, &msg);
+	LONGS_EQUAL(0, result);
+	msg_equal_64(0xC400006F, resp_source_id, resp_dest_id, resp_arg0,
+		   resp_arg1, resp_arg2, resp_arg3, resp_arg4);
+}
+
+TEST(ffa_api, ffa_msg_send_direct_resp_64_then_get_direct_req_32_as_response)
+{
+	const uint16_t source_id = 0x1122;
+	const uint16_t dest_id = 0x3344;
+	const uint64_t arg0 = 0x9012345665432109ULL;
+	const uint64_t arg1 = 0xa12345677654321aULL;
+	const uint64_t arg2 = 0xb23456788765432bULL;
+	const uint64_t arg3 = 0xc34567899876543cULL;
+	const uint64_t arg4 = 0xd456789aa987654dULL;
+	const uint16_t resp_source_id = 0x1221;
+	const uint16_t resp_dest_id = 0x3443;
+	const uint32_t resp_arg0 = 0x01234567ULL;
+	const uint32_t resp_arg1 = 0x12345678ULL;
+	const uint32_t resp_arg2 = 0x23456789ULL;
+	const uint32_t resp_arg3 = 0x3456789aULL;
+	const uint32_t resp_arg4 = 0x456789abULL;
+
+	svc_result.a0 = 0x8400006F;
+	svc_result.a1 = ((uint32_t)resp_source_id) << 16 | resp_dest_id;
+	svc_result.a3 = resp_arg0;
+	svc_result.a4 = resp_arg1;
+	svc_result.a5 = resp_arg2;
+	svc_result.a6 = resp_arg3;
+	svc_result.a7 = resp_arg4;
+	expect_ffa_svc(0xC4000070, ((uint32_t)source_id << 16) | dest_id, 0,
+		       arg0, arg1, arg2, arg3, arg4, &svc_result);
+	ffa_result result = ffa_msg_send_direct_resp_64(
+		source_id, dest_id, arg0, arg1, arg2, arg3, arg4, &msg);
+	LONGS_EQUAL(0, result);
+	msg_equal_32(0x8400006F, resp_source_id, resp_dest_id, resp_arg0,
+		   resp_arg1, resp_arg2, resp_arg3, resp_arg4);
+}
+
+TEST(ffa_api, ffa_msg_send_direct_resp_64_then_get_direct_req_64_as_response)
+{
+	const uint16_t source_id = 0x1122;
+	const uint16_t dest_id = 0x3344;
+	const uint64_t arg0 = 0x0123456776543210ULL;
+	const uint64_t arg1 = 0x1234567887654321ULL;
+	const uint64_t arg2 = 0x2345678998765432ULL;
+	const uint64_t arg3 = 0x3456789aa9876543ULL;
+	const uint64_t arg4 = 0x456789abba987654ULL;
+	const uint16_t resp_source_id = 0x1221;
+	const uint16_t resp_dest_id = 0x3443;
+	const uint64_t resp_arg0 = 0x9012345665432109ULL;
+	const uint64_t resp_arg1 = 0xa12345677654321aULL;
+	const uint64_t resp_arg2 = 0xb23456788765432bULL;
+	const uint64_t resp_arg3 = 0xc34567899876543cULL;
+	const uint64_t resp_arg4 = 0xd456789aa987654dULL;
+
+	svc_result.a0 = 0xC400006F;
+	svc_result.a1 = ((uint32_t)resp_source_id) << 16 | resp_dest_id;
+	svc_result.a3 = resp_arg0;
+	svc_result.a4 = resp_arg1;
+	svc_result.a5 = resp_arg2;
+	svc_result.a6 = resp_arg3;
+	svc_result.a7 = resp_arg4;
+	expect_ffa_svc(0xC4000070, ((uint32_t)source_id << 16) | dest_id, 0,
+		       arg0, arg1, arg2, arg3, arg4, &svc_result);
+	ffa_result result = ffa_msg_send_direct_resp_64(
+		source_id, dest_id, arg0, arg1, arg2, arg3, arg4, &msg);
+	LONGS_EQUAL(0, result);
+	msg_equal_64(0xC400006F, resp_source_id, resp_dest_id, resp_arg0,
+		   resp_arg1, resp_arg2, resp_arg3, resp_arg4);
+}
+
+TEST(ffa_api, ffa_msg_send_direct_resp_32_one_interrupt_success)
 {
 	const uint16_t source_id = 0x1122;
 	const uint16_t dest_id = 0x3344;
@@ -690,13 +931,13 @@ TEST(ffa_api, ffa_msg_send_direct_resp_one_interrupt_success)
 
 	svc_result.a0 = 0x84000061;
 	expect_ffa_svc(0x8400006B, 0, 0, 0, 0, 0, 0, 0, &svc_result);
-	ffa_result result = ffa_msg_send_direct_resp(
+	ffa_result result = ffa_msg_send_direct_resp_32(
 		source_id, dest_id, arg0, arg1, arg2, arg3, arg4, &msg);
 	LONGS_EQUAL(0, result);
-	msg_equal(0x84000061, 0, 0, 0, 0, 0, 0, 0);
+	msg_equal_32(0x84000061, 0, 0, 0, 0, 0, 0, 0);
 }
 
-TEST(ffa_api, ffa_msg_send_direct_resp_two_interrupt_success)
+TEST(ffa_api, ffa_msg_send_direct_resp_32_two_interrupt_success)
 {
 	const uint16_t source_id = 0x1122;
 	const uint16_t dest_id = 0x3344;
@@ -724,13 +965,13 @@ TEST(ffa_api, ffa_msg_send_direct_resp_two_interrupt_success)
 
 	svc_result.a0 = 0x84000061;
 	expect_ffa_svc(0x8400006B, 0, 0, 0, 0, 0, 0, 0, &svc_result);
-	ffa_result result = ffa_msg_send_direct_resp(
+	ffa_result result = ffa_msg_send_direct_resp_32(
 		source_id, dest_id, arg0, arg1, arg2, arg3, arg4, &msg);
 	LONGS_EQUAL(0, result);
-	msg_equal(0x84000061, 0, 0, 0, 0, 0, 0, 0);
+	msg_equal_32(0x84000061, 0, 0, 0, 0, 0, 0, 0);
 }
 
-TEST(ffa_api, ffa_msg_send_direct_resp_unknown_response)
+TEST(ffa_api, ffa_msg_send_direct_resp_32_unknown_response)
 {
 	const uint16_t source_id = 0x1122;
 	const uint16_t dest_id = 0x3344;
@@ -745,7 +986,7 @@ TEST(ffa_api, ffa_msg_send_direct_resp_unknown_response)
 	expect_ffa_svc(0x84000070, ((uint32_t)source_id << 16) | dest_id, 0,
 		       arg0, arg1, arg2, arg3, arg4, &svc_result);
 	if (SETUP_ASSERT_ENVIRONMENT(assert_env)) {
-		ffa_msg_send_direct_resp(source_id, dest_id, arg0, arg1, arg2,
+		ffa_msg_send_direct_resp_32(source_id, dest_id, arg0, arg1, arg2,
 					 arg3, arg4, &msg);
 	}
 }

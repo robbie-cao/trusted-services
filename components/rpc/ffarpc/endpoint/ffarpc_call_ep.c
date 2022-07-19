@@ -260,8 +260,8 @@ void ffa_call_ep_receive(struct ffa_call_ep *call_ep,
 			 const struct sp_msg *req_msg,
 			 struct sp_msg *resp_msg)
 {
-	const uint32_t *req_args = req_msg->args;
-	uint32_t *resp_args = resp_msg->args;
+	const uint32_t *req_args = req_msg->args.args32;
+	uint32_t *resp_args = resp_msg->args.args32;
 
 	uint16_t source_id = req_msg->source_id;
 	uint32_t ifaceid_opcode = req_args[SP_CALL_ARGS_IFACE_ID_OPCODE];

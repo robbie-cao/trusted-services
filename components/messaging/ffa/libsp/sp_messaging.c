@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #include "ffa_api.h"
@@ -20,22 +20,40 @@ static void pack_ffa_direct_msg(const struct sp_msg *msg,
 	ffa_msg->source_id = msg->source_id;
 	ffa_msg->destination_id = msg->destination_id;
 
-	ffa_msg->args[0] = 0;
-	memcpy(&ffa_msg->args[SP_MSG_ARG_OFFSET], msg->args, sizeof(msg->args));
+	ffa_msg->args.args64[0] = 0;
+	if (msg->is_64bit_message)
+		memcpy(&ffa_msg->args.args64[SP_MSG_ARG_OFFSET],
+		       msg->args.args64, sizeof(msg->args.args64));
+	else
+		memcpy(&ffa_msg->args.args32[SP_MSG_ARG_OFFSET],
+		       msg->args.args32, sizeof(msg->args.args32));
 }
 
 static void unpack_ffa_direct_msg(const struct ffa_direct_msg *ffa_msg,
 				  struct sp_msg *msg)
 {
-	if (ffa_msg->function_id != FFA_SUCCESS_32) {
+	if (ffa_msg->function_id == FFA_MSG_SEND_DIRECT_REQ_32 ||
+	    ffa_msg->function_id == FFA_MSG_SEND_DIRECT_RESP_32) {
 		/*
-		 * Handling request or response (error is handled before call)
+		 * Handling 32 bit request or response
 		 */
 		msg->source_id = ffa_msg->source_id;
 		msg->destination_id = ffa_msg->destination_id;
+		msg->is_64bit_message = FFA_IS_64_BIT_FUNC(ffa_msg->function_id);
 
-		memcpy(msg->args, &ffa_msg->args[SP_MSG_ARG_OFFSET],
-		       sizeof(msg->args));
+		memcpy(msg->args.args32, &ffa_msg->args.args32[SP_MSG_ARG_OFFSET],
+		       sizeof(msg->args.args32));
+	} else if (ffa_msg->function_id == FFA_MSG_SEND_DIRECT_REQ_64 ||
+		   ffa_msg->function_id == FFA_MSG_SEND_DIRECT_RESP_64) {
+		/*
+		 * Handling 64 bit request or response
+		 */
+		msg->source_id = ffa_msg->source_id;
+		msg->destination_id = ffa_msg->destination_id;
+		msg->is_64bit_message = FFA_IS_64_BIT_FUNC(ffa_msg->function_id);
+
+		memcpy(msg->args.args64, &ffa_msg->args.args64[SP_MSG_ARG_OFFSET],
+		       sizeof(msg->args.args64));
 	} else {
 		/* Success has no message parameters */
 		*msg = (struct sp_msg){ 0 };
@@ -89,11 +107,18 @@ sp_result sp_msg_send_direct_req(const struct sp_msg *req, struct sp_msg *resp)
 	ffa_direct_msg_routing_ext_req_pre_hook(&ffa_req);
 #endif
 
-	ffa_res = ffa_msg_send_direct_req(ffa_req.source_id,
-					  ffa_req.destination_id,
-					  ffa_req.args[0], ffa_req.args[1],
-					  ffa_req.args[2], ffa_req.args[3],
-					  ffa_req.args[4], &ffa_resp);
+	if (req->is_64bit_message)
+		ffa_res = ffa_msg_send_direct_req_64(
+			ffa_req.source_id, ffa_req.destination_id,
+			ffa_req.args.args64[0], ffa_req.args.args64[1],
+			ffa_req.args.args64[2], ffa_req.args.args64[3],
+			ffa_req.args.args64[4], &ffa_resp);
+	else
+		ffa_res = ffa_msg_send_direct_req_32(
+			ffa_req.source_id, ffa_req.destination_id,
+			ffa_req.args.args32[0], ffa_req.args.args32[1],
+			ffa_req.args.args32[2], ffa_req.args.args32[3],
+			ffa_req.args.args32[4], &ffa_resp);
 
 	if (ffa_res != FFA_OK) {
 #if FFA_DIRECT_MSG_ROUTING_EXTENSION
@@ -136,11 +161,18 @@ sp_result sp_msg_send_direct_resp(const struct sp_msg *resp, struct sp_msg *req)
 	ffa_direct_msg_routing_ext_resp_pre_hook(&ffa_resp);
 #endif
 
-	ffa_res = ffa_msg_send_direct_resp(ffa_resp.source_id,
-					   ffa_resp.destination_id,
-					   ffa_resp.args[0], ffa_resp.args[1],
-					   ffa_resp.args[2], ffa_resp.args[3],
-					   ffa_resp.args[4], &ffa_req);
+	if (resp->is_64bit_message)
+		ffa_res = ffa_msg_send_direct_resp_64(
+			ffa_resp.source_id, ffa_resp.destination_id,
+			ffa_resp.args.args64[0], ffa_resp.args.args64[1],
+			ffa_resp.args.args64[2], ffa_resp.args.args64[3],
+			ffa_resp.args.args64[4], &ffa_req);
+	else
+		ffa_res = ffa_msg_send_direct_resp_32(
+			ffa_resp.source_id, ffa_resp.destination_id,
+			ffa_resp.args.args32[0], ffa_resp.args.args32[1],
+			ffa_resp.args.args32[2], ffa_resp.args.args32[3],
+			ffa_resp.args.args32[4], &ffa_req);
 
 	if (ffa_res != FFA_OK) {
 #if FFA_DIRECT_MSG_ROUTING_EXTENSION
@@ -182,11 +214,11 @@ sp_result sp_msg_send_rc_req(const struct sp_msg *req, struct sp_msg *resp)
 
 	ffa_direct_msg_routing_ext_rc_req_pre_hook(&ffa_req);
 
-	ffa_res = ffa_msg_send_direct_resp(ffa_req.source_id,
+	ffa_res = ffa_msg_send_direct_resp_32(ffa_req.source_id,
 					   ffa_req.destination_id,
-					   ffa_req.args[0], ffa_req.args[1],
-					   ffa_req.args[2], ffa_req.args[3],
-					   ffa_req.args[4], &ffa_resp);
+					   ffa_req.args.args32[0], ffa_req.args.args32[1],
+					   ffa_req.args.args32[2], ffa_req.args.args32[3],
+					   ffa_req.args.args32[4], &ffa_resp);
 
 	if (ffa_res != FFA_OK) {
 		ffa_direct_msg_routing_ext_rc_req_error_hook();

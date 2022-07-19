@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #ifndef LIBSP_INCLUDE_FFA_API_TYPES_H_
@@ -80,7 +80,10 @@ struct ffa_direct_msg {
 	uint32_t function_id;
 	uint16_t source_id;
 	uint16_t destination_id;
-	uint32_t args[5];
+	union {
+		uint32_t args32[5];
+		uint64_t args64[5];
+	} args;
 };
 
 /**

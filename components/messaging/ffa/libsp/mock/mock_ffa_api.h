@@ -30,17 +30,29 @@ void expect_ffa_id_get(const uint16_t *id, ffa_result result);
 
 void expect_ffa_msg_wait(const struct ffa_direct_msg *msg, ffa_result result);
 
-void expect_ffa_msg_send_direct_req(uint16_t source, uint16_t dest, uint32_t a0,
-				    uint32_t a1, uint32_t a2, uint32_t a3,
-				    uint32_t a4,
-				    const struct ffa_direct_msg *msg,
-				    ffa_result result);
+void expect_ffa_msg_send_direct_req_32(uint16_t source, uint16_t dest,
+				       uint32_t a0, uint32_t a1, uint32_t a2,
+				       uint32_t a3, uint32_t a4,
+				       const struct ffa_direct_msg *msg,
+				       ffa_result result);
 
-void expect_ffa_msg_send_direct_resp(uint16_t source, uint16_t dest,
-				     uint32_t a0, uint32_t a1, uint32_t a2,
-				     uint32_t a3, uint32_t a4,
-				     const struct ffa_direct_msg *msg,
-				     ffa_result result);
+void expect_ffa_msg_send_direct_req_64(uint16_t source, uint16_t dest,
+				       uint64_t a0, uint64_t a1, uint64_t a2,
+				       uint64_t a3, uint64_t a4,
+				       const struct ffa_direct_msg *msg,
+				       ffa_result result);
+
+void expect_ffa_msg_send_direct_resp_32(uint16_t source, uint16_t dest,
+					uint32_t a0, uint32_t a1, uint32_t a2,
+					uint32_t a3, uint32_t a4,
+					const struct ffa_direct_msg *msg,
+					ffa_result result);
+
+void expect_ffa_msg_send_direct_resp_64(uint16_t source, uint16_t dest,
+					uint64_t a0, uint64_t a1, uint64_t a2,
+					uint64_t a3, uint64_t a4,
+					const struct ffa_direct_msg *msg,
+					ffa_result result);
 
 void expect_ffa_mem_donate(uint32_t total_length, uint32_t fragment_length,
 			   void *buffer_address, uint32_t page_count,

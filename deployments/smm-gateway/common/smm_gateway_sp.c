@@ -70,10 +70,10 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	while (1) {
 		mm_communicate_call_ep_receive(&mm_communicate_call_ep, &req_msg, &resp_msg);
 
-		ffa_msg_send_direct_resp(req_msg.destination_id,
-					 req_msg.source_id, resp_msg.args[0],
-					 resp_msg.args[1], resp_msg.args[2],
-					 resp_msg.args[3], resp_msg.args[4],
+		ffa_msg_send_direct_resp_32(req_msg.destination_id,
+					 req_msg.source_id, resp_msg.args.args32[0],
+					 resp_msg.args.args32[1], resp_msg.args.args32[2],
+					 resp_msg.args.args32[3], resp_msg.args.args32[4],
 					 &req_msg);
 	}
 

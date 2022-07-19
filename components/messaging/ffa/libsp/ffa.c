@@ -33,11 +33,20 @@ static inline void ffa_unpack_direct_msg(struct ffa_params *svc_result,
 	msg->function_id = svc_result->a0;
 	msg->source_id = (svc_result->a1 >> 16);
 	msg->destination_id = svc_result->a1;
-	msg->args[0] = svc_result->a3;
-	msg->args[1] = svc_result->a4;
-	msg->args[2] = svc_result->a5;
-	msg->args[3] = svc_result->a6;
-	msg->args[4] = svc_result->a7;
+
+	if (FFA_IS_32_BIT_FUNC(msg->function_id)) {
+		msg->args.args32[0] = svc_result->a3;
+		msg->args.args32[1] = svc_result->a4;
+		msg->args.args32[2] = svc_result->a5;
+		msg->args.args32[3] = svc_result->a6;
+		msg->args.args32[4] = svc_result->a7;
+	} else {
+		msg->args.args64[0] = svc_result->a3;
+		msg->args.args64[1] = svc_result->a4;
+		msg->args.args64[2] = svc_result->a5;
+		msg->args.args64[3] = svc_result->a6;
+		msg->args.args64[4] = svc_result->a7;
+	}
 }
 
 /*
@@ -217,7 +226,7 @@ ffa_result ffa_msg_wait(struct ffa_direct_msg *msg)
 
 	if (result.a0 == FFA_ERROR) {
 		return ffa_get_errorcode(&result);
-	} else if (result.a0 == FFA_MSG_SEND_DIRECT_REQ_32) {
+	} else if (FFA_TO_32_BIT_FUNC(result.a0) == FFA_MSG_SEND_DIRECT_REQ_32) {
 		ffa_unpack_direct_msg(&result, msg);
 	} else {
 		assert(result.a0 == FFA_SUCCESS_32);
@@ -227,13 +236,15 @@ ffa_result ffa_msg_wait(struct ffa_direct_msg *msg)
 	return FFA_OK;
 }
 
-ffa_result ffa_msg_send_direct_req(uint16_t source, uint16_t dest, uint32_t a0,
-				   uint32_t a1, uint32_t a2, uint32_t a3,
-				   uint32_t a4, struct ffa_direct_msg *msg)
+static ffa_result ffa_msg_send_direct_req(uint32_t function_id, uint32_t resp_id,
+					  uint16_t source, uint16_t dest,
+					  uint64_t a0, uint64_t a1, uint64_t a2,
+					  uint64_t a3, uint64_t a4,
+					  struct ffa_direct_msg *msg)
 {
 	struct ffa_params result = {0};
 
-	ffa_svc(FFA_MSG_SEND_DIRECT_REQ_32,
+	ffa_svc(function_id,
 		SHIFT_U32(source, FFA_MSG_SEND_DIRECT_REQ_SOURCE_ID_SHIFT) |
 		dest, FFA_PARAM_MBZ, a0, a1, a2, a3, a4, &result);
 
@@ -244,7 +255,7 @@ ffa_result ffa_msg_send_direct_req(uint16_t source, uint16_t dest, uint32_t a0,
 
 	if (result.a0 == FFA_ERROR) {
 		return ffa_get_errorcode(&result);
-	} else if (result.a0 == FFA_MSG_SEND_DIRECT_RESP_32) {
+	} else if (result.a0 == resp_id) {
 		ffa_unpack_direct_msg(&result, msg);
 	} else {
 		assert(result.a0 == FFA_SUCCESS_32);
@@ -254,13 +265,36 @@ ffa_result ffa_msg_send_direct_req(uint16_t source, uint16_t dest, uint32_t a0,
 	return FFA_OK;
 }
 
-ffa_result ffa_msg_send_direct_resp(uint16_t source, uint16_t dest, uint32_t a0,
-				    uint32_t a1, uint32_t a2, uint32_t a3,
-				    uint32_t a4, struct ffa_direct_msg *msg)
+ffa_result ffa_msg_send_direct_req_32(uint16_t source, uint16_t dest,
+				      uint32_t a0, uint32_t a1, uint32_t a2,
+				      uint32_t a3, uint32_t a4,
+				      struct ffa_direct_msg *msg)
+{
+	return ffa_msg_send_direct_req(FFA_MSG_SEND_DIRECT_REQ_32,
+				       FFA_MSG_SEND_DIRECT_RESP_32,
+				       source, dest, a0, a1, a2, a3, a4, msg);
+}
+
+ffa_result ffa_msg_send_direct_req_64(uint16_t source, uint16_t dest,
+				      uint64_t a0, uint64_t a1, uint64_t a2,
+				      uint64_t a3, uint64_t a4,
+				      struct ffa_direct_msg *msg)
+{
+	return ffa_msg_send_direct_req(FFA_MSG_SEND_DIRECT_REQ_64,
+				       FFA_MSG_SEND_DIRECT_RESP_64,
+				       source, dest, a0, a1, a2, a3, a4, msg);
+}
+
+static ffa_result ffa_msg_send_direct_resp(uint32_t function_id,
+					   uint16_t source, uint16_t dest,
+					   uint64_t a0, uint64_t a1,
+					   uint64_t a2, uint64_t a3,
+					   uint64_t a4,
+					   struct ffa_direct_msg *msg)
 {
 	struct ffa_params result = {0};
 
-	ffa_svc(FFA_MSG_SEND_DIRECT_RESP_32,
+	ffa_svc(function_id,
 		SHIFT_U32(source, FFA_MSG_SEND_DIRECT_RESP_SOURCE_ID_SHIFT) |
 		dest, FFA_PARAM_MBZ, a0, a1, a2, a3, a4, &result);
 
@@ -271,7 +305,7 @@ ffa_result ffa_msg_send_direct_resp(uint16_t source, uint16_t dest, uint32_t a0,
 
 	if (result.a0 == FFA_ERROR) {
 		return ffa_get_errorcode(&result);
-	} else if (result.a0 == FFA_MSG_SEND_DIRECT_REQ_32) {
+	} else if (FFA_TO_32_BIT_FUNC(result.a0) == FFA_MSG_SEND_DIRECT_REQ_32) {
 		ffa_unpack_direct_msg(&result, msg);
 	} else {
 		assert(result.a0 == FFA_SUCCESS_32);
@@ -279,6 +313,24 @@ ffa_result ffa_msg_send_direct_resp(uint16_t source, uint16_t dest, uint32_t a0,
 	}
 
 	return FFA_OK;
+}
+
+ffa_result ffa_msg_send_direct_resp_32(uint16_t source, uint16_t dest,
+				       uint32_t a0, uint32_t a1, uint32_t a2,
+				       uint32_t a3, uint32_t a4,
+				       struct ffa_direct_msg *msg)
+{
+	return ffa_msg_send_direct_resp(FFA_MSG_SEND_DIRECT_RESP_32, source,
+					dest, a0, a1, a2, a3, a4, msg);
+}
+
+ffa_result ffa_msg_send_direct_resp_64(uint16_t source, uint16_t dest,
+				      uint64_t a0, uint64_t a1, uint64_t a2,
+				      uint64_t a3, uint64_t a4,
+				      struct ffa_direct_msg *msg)
+{
+	return ffa_msg_send_direct_resp(FFA_MSG_SEND_DIRECT_RESP_64, source,
+					dest, a0, a1, a2, a3, a4, msg);
 }
 
 ffa_result ffa_mem_donate(uint32_t total_length, uint32_t fragment_length,

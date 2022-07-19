@@ -140,13 +140,13 @@ ffa_result ffa_msg_wait(struct ffa_direct_msg *msg)
 		.returnIntValue();
 }
 
-void expect_ffa_msg_send_direct_req(uint16_t source, uint16_t dest, uint32_t a0,
-				    uint32_t a1, uint32_t a2, uint32_t a3,
-				    uint32_t a4,
-				    const struct ffa_direct_msg *msg,
-				    ffa_result result)
+void expect_ffa_msg_send_direct_req_32(uint16_t source, uint16_t dest,
+				       uint32_t a0, uint32_t a1, uint32_t a2,
+				       uint32_t a3, uint32_t a4,
+				       const struct ffa_direct_msg *msg,
+				       ffa_result result)
 {
-	mock().expectOneCall("ffa_msg_send_direct_req")
+	mock().expectOneCall("ffa_msg_send_direct_req_32")
 		.withUnsignedIntParameter("source", source)
 		.withUnsignedIntParameter("dest", dest)
 		.withUnsignedIntParameter("a0", a0)
@@ -158,12 +158,13 @@ void expect_ffa_msg_send_direct_req(uint16_t source, uint16_t dest, uint32_t a0,
 		.andReturnValue(result);
 }
 
-ffa_result ffa_msg_send_direct_req(uint16_t source, uint16_t dest, uint32_t a0,
-				   uint32_t a1, uint32_t a2, uint32_t a3,
-				   uint32_t a4, struct ffa_direct_msg *msg)
+ffa_result ffa_msg_send_direct_req_32(uint16_t source, uint16_t dest,
+				      uint32_t a0, uint32_t a1, uint32_t a2,
+				      uint32_t a3,uint32_t a4,
+				      struct ffa_direct_msg *msg)
 {
 	return mock()
-		.actualCall("ffa_msg_send_direct_req")
+		.actualCall("ffa_msg_send_direct_req_32")
 		.withUnsignedIntParameter("source", source)
 		.withUnsignedIntParameter("dest", dest)
 		.withUnsignedIntParameter("a0", a0)
@@ -175,13 +176,49 @@ ffa_result ffa_msg_send_direct_req(uint16_t source, uint16_t dest, uint32_t a0,
 		.returnIntValue();
 }
 
-void expect_ffa_msg_send_direct_resp(uint16_t source, uint16_t dest,
+void expect_ffa_msg_send_direct_req_64(uint16_t source, uint16_t dest,
+				       uint64_t a0, uint64_t a1, uint64_t a2,
+				       uint64_t a3, uint64_t a4,
+				       const struct ffa_direct_msg *msg,
+				       ffa_result result)
+{
+	mock().expectOneCall("ffa_msg_send_direct_req_64")
+		.withUnsignedIntParameter("source", source)
+		.withUnsignedIntParameter("dest", dest)
+		.withUnsignedLongIntParameter("a0", a0)
+		.withUnsignedLongIntParameter("a1", a1)
+		.withUnsignedLongIntParameter("a2", a2)
+		.withUnsignedLongIntParameter("a3", a3)
+		.withUnsignedLongIntParameter("a4", a4)
+		.withOutputParameterReturning("msg", msg, sizeof(*msg))
+		.andReturnValue(result);
+}
+
+ffa_result ffa_msg_send_direct_req_64(uint16_t source, uint16_t dest,
+				      uint64_t a0, uint64_t a1, uint64_t a2,
+				      uint64_t a3, uint64_t a4,
+				      struct ffa_direct_msg *msg)
+{
+	return mock()
+		.actualCall("ffa_msg_send_direct_req_64")
+		.withUnsignedIntParameter("source", source)
+		.withUnsignedIntParameter("dest", dest)
+		.withUnsignedLongIntParameter("a0", a0)
+		.withUnsignedLongIntParameter("a1", a1)
+		.withUnsignedLongIntParameter("a2", a2)
+		.withUnsignedLongIntParameter("a3", a3)
+		.withUnsignedLongIntParameter("a4", a4)
+		.withOutputParameter("msg", msg)
+		.returnIntValue();
+}
+
+void expect_ffa_msg_send_direct_resp_32(uint16_t source, uint16_t dest,
 				     uint32_t a0, uint32_t a1, uint32_t a2,
 				     uint32_t a3, uint32_t a4,
 				     const struct ffa_direct_msg *msg,
 				     ffa_result result)
 {
-	mock().expectOneCall("ffa_msg_send_direct_resp")
+	mock().expectOneCall("ffa_msg_send_direct_resp_32")
 		.withUnsignedIntParameter("source", source)
 		.withUnsignedIntParameter("dest", dest)
 		.withUnsignedIntParameter("a0", a0)
@@ -193,12 +230,12 @@ void expect_ffa_msg_send_direct_resp(uint16_t source, uint16_t dest,
 		.andReturnValue(result);
 }
 
-ffa_result ffa_msg_send_direct_resp(uint16_t source, uint16_t dest, uint32_t a0,
+ffa_result ffa_msg_send_direct_resp_32(uint16_t source, uint16_t dest, uint32_t a0,
 				    uint32_t a1, uint32_t a2, uint32_t a3,
 				    uint32_t a4, struct ffa_direct_msg *msg)
 {
 	return mock()
-		.actualCall("ffa_msg_send_direct_resp")
+		.actualCall("ffa_msg_send_direct_resp_32")
 		.withUnsignedIntParameter("source", source)
 		.withUnsignedIntParameter("dest", dest)
 		.withUnsignedIntParameter("a0", a0)
@@ -206,6 +243,41 @@ ffa_result ffa_msg_send_direct_resp(uint16_t source, uint16_t dest, uint32_t a0,
 		.withUnsignedIntParameter("a2", a2)
 		.withUnsignedIntParameter("a3", a3)
 		.withUnsignedIntParameter("a4", a4)
+		.withOutputParameter("msg", msg)
+		.returnIntValue();
+}
+
+void expect_ffa_msg_send_direct_resp_64(uint16_t source, uint16_t dest,
+				     uint64_t a0, uint64_t a1, uint64_t a2,
+				     uint64_t a3, uint64_t a4,
+				     const struct ffa_direct_msg *msg,
+				     ffa_result result)
+{
+	mock().expectOneCall("ffa_msg_send_direct_resp_64")
+		.withUnsignedIntParameter("source", source)
+		.withUnsignedIntParameter("dest", dest)
+		.withUnsignedLongIntParameter("a0", a0)
+		.withUnsignedLongIntParameter("a1", a1)
+		.withUnsignedLongIntParameter("a2", a2)
+		.withUnsignedLongIntParameter("a3", a3)
+		.withUnsignedLongIntParameter("a4", a4)
+		.withOutputParameterReturning("msg", msg, sizeof(*msg))
+		.andReturnValue(result);
+}
+
+ffa_result ffa_msg_send_direct_resp_64(uint16_t source, uint16_t dest, uint64_t a0,
+				    uint64_t a1, uint64_t a2, uint64_t a3,
+				    uint64_t a4, struct ffa_direct_msg *msg)
+{
+	return mock()
+		.actualCall("ffa_msg_send_direct_resp_64")
+		.withUnsignedIntParameter("source", source)
+		.withUnsignedIntParameter("dest", dest)
+		.withUnsignedLongIntParameter("a0", a0)
+		.withUnsignedLongIntParameter("a1", a1)
+		.withUnsignedLongIntParameter("a2", a2)
+		.withUnsignedLongIntParameter("a3", a3)
+		.withUnsignedLongIntParameter("a4", a4)
 		.withOutputParameter("msg", msg)
 		.returnIntValue();
 }
