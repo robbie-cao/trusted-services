@@ -43,6 +43,13 @@ unset_saved_properties(QCBOR)
 string(APPEND _cmake_fragment "\n${_cmake_fragment1}")
 unset(_cmake_fragment1)
 
+if (NOT DEFINED PSA_CRYPTO_API_INCLUDE)
+	string(CONCAT _msg "Mandatory parameter PSA_CRYPTO_API_INCLUDE is not defined. Please include a component which"
+					   " sets this variable or pass -DPSA_CRYPTO_API_INCLUDE=<path> where <path> is the location of"
+					   " PSA API headers.")
+	message(FATAL_ERROR ${_msg} )
+endif()
+
 translate_value_as_property(VALUE "${PSA_CRYPTO_API_INCLUDE}"
 							PROPERTY INTERFACE_INCLUDE_DIRECTORIES
 							RES _cmake_fragment1)
