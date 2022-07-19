@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -122,21 +122,22 @@ efi_status_t smm_variable_client::get_variable(
 		guid,
 		name,
 		data,
-		0);
+		0,
+		MAX_VAR_DATA_SIZE);
 }
 
 efi_status_t smm_variable_client::get_variable(
 	const EFI_GUID &guid,
 	const std::wstring &name,
 	std::string &data,
-	size_t override_name_size)
+	size_t override_name_size,
+	size_t max_data_size)
 {
 	efi_status_t efi_status = EFI_NOT_READY;
 
 	std::vector<int16_t> var_name = to_variable_name(name);
 	size_t name_size = var_name.size() * sizeof(int16_t);
-	size_t data_size = 0;
-	size_t req_len = SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_SIZE(name_size, data_size);
+	size_t req_len = SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_SIZE(name_size, 0);
 
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
@@ -154,7 +155,7 @@ efi_status_t smm_variable_client::get_variable(
 
 		access_var->Guid = guid;
 		access_var->NameSize = name_size;
-		access_var->DataSize = data_size;
+		access_var->DataSize = max_data_size;
 
 		memcpy(access_var->Name, var_name.data(), name_size);
 
@@ -168,25 +169,27 @@ efi_status_t smm_variable_client::get_variable(
 
 			efi_status = opstatus;
 
-			if (efi_status == EFI_SUCCESS) {
+			if (resp_len >= SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET) {
 
-				efi_status = EFI_PROTOCOL_ERROR;
+				access_var = (SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE*)resp_buf;
+				size_t data_size = access_var->DataSize;
 
-				if (resp_len >= SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET) {
+				if (resp_len >=
+					SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_TOTAL_SIZE(access_var)) {
 
-					access_var = (SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE*)resp_buf;
+					if (efi_status == EFI_SUCCESS) {
 
-					if (resp_len >=
-						SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_TOTAL_SIZE(access_var)) {
-
-						data_size = access_var->DataSize;
 						const char *data_start = (const char*)
 						&resp_buf[
 							SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(access_var)];
 
 						data.assign(data_start, data_size);
-						efi_status = EFI_SUCCESS;
 					}
+				}
+				else if (efi_status == EFI_BUFFER_TOO_SMALL) {
+
+					data.clear();
+					data.insert(0, data_size, '!');
 				}
 			}
 		}

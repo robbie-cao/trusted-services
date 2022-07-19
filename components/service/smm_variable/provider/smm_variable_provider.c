@@ -164,7 +164,7 @@ static rpc_status_t get_variable_handler(void *context, struct call_req *req)
 		}
 		else {
 
-			/* Reponse buffer not big enough */
+			/* Response buffer not big enough */
 			efi_status = EFI_BAD_BUFFER_SIZE;
 		}
 	}

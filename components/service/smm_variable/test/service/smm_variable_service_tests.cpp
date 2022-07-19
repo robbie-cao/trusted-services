@@ -338,6 +338,68 @@ TEST(SmmVariableServiceTests, setAndGetNv)
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 }
 
+TEST(SmmVariableServiceTests, getVarSize)
+{
+	efi_status_t efi_status = EFI_SUCCESS;
+	std::wstring var_name = L"test_variable";
+	std::string set_data = "UEFI variable data string";
+	std::string get_data;
+
+	efi_status = m_client->set_variable(
+		m_common_guid,
+		var_name,
+		set_data,
+		0);
+
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	/* Get with the data size set to zero. This is the standard way
+	 * to discover the variable size. */
+	efi_status = m_client->get_variable(
+		m_common_guid,
+		var_name,
+		get_data,
+		0, 0);
+
+	UNSIGNED_LONGLONGS_EQUAL(EFI_BUFFER_TOO_SMALL, efi_status);
+	UNSIGNED_LONGS_EQUAL(set_data.size(), get_data.size());
+
+	/* Expect remove to be permitted */
+	efi_status = m_client->remove_variable(m_common_guid, var_name);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+}
+
+TEST(SmmVariableServiceTests, getVarSizeNv)
+{
+	efi_status_t efi_status = EFI_SUCCESS;
+	std::wstring var_name = L"test_variable";
+	std::string set_data = "UEFI variable data string";
+	std::string get_data;
+
+	efi_status = m_client->set_variable(
+		m_common_guid,
+		var_name,
+		set_data,
+		EFI_VARIABLE_NON_VOLATILE);
+
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	/* Get with the data size set to zero. This is the standard way
+	 * to discover the variable size. */
+	efi_status = m_client->get_variable(
+		m_common_guid,
+		var_name,
+		get_data,
+		0, 0);
+
+	UNSIGNED_LONGLONGS_EQUAL(EFI_BUFFER_TOO_SMALL, efi_status);
+	UNSIGNED_LONGS_EQUAL(set_data.size(), get_data.size());
+
+	/* Expect remove to be permitted */
+	efi_status = m_client->remove_variable(m_common_guid, var_name);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+}
+
 TEST(SmmVariableServiceTests, enumerateStoreContents)
 {
 	efi_status_t efi_status = EFI_SUCCESS;

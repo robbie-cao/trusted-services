@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -295,7 +295,11 @@ efi_status_t uefi_variable_store_get_variable(
 
 			status = load_variable_data(context, info, var, max_data_len);
 			var->Attributes = info->metadata.attributes;
-			*total_length = SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_TOTAL_SIZE(var);
+
+			if (status == EFI_SUCCESS)
+				*total_length = SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_TOTAL_SIZE(var);
+			else if (status == EFI_BUFFER_TOO_SMALL)
+				*total_length = SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(var);
 		}
 	}
 
@@ -656,7 +660,6 @@ static efi_status_t load_variable_data(
 	size_t max_data_len)
 {
 	psa_status_t psa_status = PSA_SUCCESS;
-	size_t data_len = 0;
 	uint8_t *data = (uint8_t*)var +
 		SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(var);
 
@@ -666,16 +669,41 @@ static efi_status_t load_variable_data(
 
 	if (delegate_store->storage_backend) {
 
-		psa_status = delegate_store->storage_backend->interface->get(
+		struct psa_storage_info_t storage_info;
+
+		psa_status = delegate_store->storage_backend->interface->get_info(
 			delegate_store->storage_backend->context,
 			context->owner_id,
 			info->metadata.uid,
-			0,
-			max_data_len,
-			data,
-			&data_len);
+			&storage_info);
 
-		var->DataSize = data_len;
+		if (psa_status == PSA_SUCCESS) {
+
+			size_t get_limit = (var->DataSize < max_data_len) ?
+				var->DataSize :
+				max_data_len;
+
+			if (get_limit >= storage_info.size) {
+
+				size_t got_len = 0;
+
+				psa_status = delegate_store->storage_backend->interface->get(
+					delegate_store->storage_backend->context,
+					context->owner_id,
+					info->metadata.uid,
+					0,
+					max_data_len,
+					data,
+					&got_len);
+
+				var->DataSize = got_len;
+			}
+			else {
+
+				var->DataSize = storage_info.size;
+				psa_status = PSA_ERROR_BUFFER_TOO_SMALL;
+			}
+		}
 	}
 
 	return psa_to_efi_storage_status(psa_status);

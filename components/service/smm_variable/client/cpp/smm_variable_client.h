@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -56,7 +56,8 @@ public:
 		const EFI_GUID &guid,
 		const std::wstring &name,
 		std::string &data,
-		size_t override_name_size);
+		size_t override_name_size,
+		size_t max_data_size = MAX_VAR_DATA_SIZE);
 
 	/* Remove a variable */
 	efi_status_t remove_variable(
@@ -113,6 +114,10 @@ public:
 
 
 private:
+
+	/* Datasize limit set by UEFI specification */
+	static const size_t MAX_VAR_DATA_SIZE = 65536;
+
 	efi_status_t rpc_to_efi_status() const;
 
 	static std::vector<int16_t> to_variable_name(const std::wstring &string);

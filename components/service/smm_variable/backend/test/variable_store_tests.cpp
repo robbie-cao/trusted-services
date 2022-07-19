@@ -130,7 +130,8 @@ TEST_GROUP(UefiVariableStoreTests)
 
 	efi_status_t get_variable(
 		const std::wstring &name,
-		std::string &data)
+		std::string &data,
+		size_t data_len_clamp = VARIABLE_BUFFER_SIZE)
 	{
 		std::vector<int16_t> var_name = to_variable_name(name);
 		size_t name_size = var_name.size() * sizeof(int16_t);
@@ -146,14 +147,20 @@ TEST_GROUP(UefiVariableStoreTests)
 		access_variable->NameSize = name_size;
 		memcpy(access_variable->Name, var_name.data(), name_size);
 
-		access_variable->DataSize = 0;
+		size_t max_data_len = (data_len_clamp == VARIABLE_BUFFER_SIZE) ?
+			VARIABLE_BUFFER_SIZE -
+				SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(access_variable) :
+			data_len_clamp;
+
+		access_variable->DataSize = max_data_len;
 
 		efi_status_t status = uefi_variable_store_get_variable(
 			&m_uefi_variable_store,
 			access_variable,
-			VARIABLE_BUFFER_SIZE -
-				SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(access_variable),
+			max_data_len,
 			&total_size);
+
+		data.clear();
 
 		if (status == EFI_SUCCESS) {
 
@@ -161,6 +168,19 @@ TEST_GROUP(UefiVariableStoreTests)
 				SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(access_variable));
 
 			data = std::string(data_start, access_variable->DataSize);
+
+			UNSIGNED_LONGLONGS_EQUAL(
+				SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_TOTAL_SIZE(access_variable),
+				total_size);
+		}
+		else if (status == EFI_BUFFER_TOO_SMALL) {
+
+			/* String length set to reported variable length */
+			data.insert(0, access_variable->DataSize, '!');
+
+			UNSIGNED_LONGLONGS_EQUAL(
+				SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(access_variable),
+				total_size);
 		}
 
 		return status;
@@ -400,6 +420,38 @@ TEST(UefiVariableStoreTests, persistentSetGet)
 	UNSIGNED_LONGLONGS_EQUAL(STORE_CAPACITY, max_variable_storage_size);
 	UNSIGNED_LONGLONGS_EQUAL(MAX_VARIABLE_SIZE, max_variable_size);
 	UNSIGNED_LONGLONGS_EQUAL(STORE_CAPACITY - expected_output.size(), remaining_variable_storage_size);
+}
+
+TEST(UefiVariableStoreTests, getWithSmallBuffer)
+{
+	efi_status_t status = EFI_SUCCESS;
+	std::wstring var_name = L"test_variable";
+	std::string input_data = "quick brown fox";
+	std::string output_data;
+
+	/* A get with a zero length buffer is a legitimate way to
+	 * discover the variable size. This test performs GetVariable
+	 * operations with various buffer small buffer sizes. */
+	status = set_variable(var_name, input_data, 0);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* First get the variable without a constrained buffer */
+	status = get_variable(var_name, output_data);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Expect got variable data to be the same as the set value */
+	UNSIGNED_LONGLONGS_EQUAL(input_data.size(), output_data.size());
+	LONGS_EQUAL(0, input_data.compare(output_data));
+
+	/* Now try with a zero length buffer */
+	status = get_variable(var_name, output_data, 0);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_BUFFER_TOO_SMALL, status);
+	UNSIGNED_LONGLONGS_EQUAL(input_data.size(), output_data.size());
+
+	/* Try with a non-zero length but too small buffer */
+	status = get_variable(var_name, output_data, input_data.size() -1);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_BUFFER_TOO_SMALL, status);
+	UNSIGNED_LONGLONGS_EQUAL(input_data.size(), output_data.size());
 }
 
 TEST(UefiVariableStoreTests, removeVolatile)
