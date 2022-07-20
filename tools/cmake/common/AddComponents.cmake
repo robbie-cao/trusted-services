@@ -1,4 +1,3 @@
-#-------------------------------------------------------------------------------
 # Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -55,5 +54,15 @@ function(add_components)
 		set(_file ${MY_PARAMS_BASE_DIR}${_comp}/component.cmake)
 		include(${_file})
 		set(CMAKE_CONFIGURE_DEPENDS ${_file})
+	endforeach()
+	# Remove duplicate settings
+	foreach(_prop IN ITEMS INTERFACE_INCLUDE_DIRECTORIES INCLUDE_DIRECTORIES
+						   INTERFACE_COMPILE_DEFINITIONS COMPILE_DEFINITIONS
+						   INTERFACE_COMPILE_OPTIONS COMPILE_OPTIONS
+						   INTERFACE_SOURCES SOURCES
+						   PUBLIC_HEADER)
+		get_property(_tmp TARGET ${MY_PARAMS_TARGET} PROPERTY ${_prop})
+		list(REMOVE_DUPLICATES _tmp)
+		set_property(TARGET ${MY_PARAMS_TARGET} PROPERTY ${_prop} ${_tmp})
 	endforeach()
 endfunction()
