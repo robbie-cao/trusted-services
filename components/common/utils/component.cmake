@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -11,5 +11,11 @@ endif()
 
 target_include_directories(${TGT}
 	 PUBLIC
-		"${CMAKE_CURRENT_LIST_DIR}/include"
+		"$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>"
+		"$<INSTALL_INTERFACE:${TS_ENV}/include>"
+	)
+
+set_property(TARGET ${TGT} APPEND PROPERTY PUBLIC_HEADER
+		"${CMAKE_CURRENT_LIST_DIR}/include/util.h"
+		"${CMAKE_CURRENT_LIST_DIR}/include/compiler.h"
 	)
