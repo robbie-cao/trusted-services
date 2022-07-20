@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #include <CppUTestExt/MockSupport.h>
@@ -16,7 +16,7 @@ void mock_mm_service_init(void)
 
 void expect_mock_mm_service_receive(struct mm_service_interface *iface,
 				    const struct mm_service_call_req *req,
-				    int32_t result)
+				    int64_t result)
 {
 	mock().expectOneCall("mm_service_receive").onObject(iface).
 		withOutputParameterReturning("resp_buf_data_len", &req->resp_buf.data_len,
@@ -31,5 +31,5 @@ int32_t mock_mm_service_receive(struct mm_service_interface *iface,
 	return mock().actualCall("mm_service_receive").onObject(iface).
 		withOutputParameter("resp_buf_data_len", &req->resp_buf.data_len).
 		withParameterOfType("mm_service_call_req", "req", req).
-		returnIntValue();
+		returnLongIntValue();
 }

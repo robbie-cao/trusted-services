@@ -11,6 +11,7 @@
 #include "components/rpc/mm_communicate/endpoint/sp/mm_communicate_call_ep.h"
 #include "components/service/smm_variable/frontend/mm_communicate/smm_variable_mm_service.h"
 #include "platform/interface/memory_region.h"
+#include "protocols/common/mm/mm_smc.h"
 #include <ffa_api.h>
 #include <sp_api.h>
 #include <sp_messaging.h>
@@ -68,12 +69,20 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	ffa_msg_wait(&req_msg);
 
 	while (1) {
+		if (FFA_IS_32_BIT_FUNC(req_msg.function_id)) {
+			EMSG("MM communicate over 32 bit FF-A messages is not supported");
+			ffa_msg_send_direct_resp_32(req_msg.destination_id, req_msg.source_id,
+						    MM_RETURN_CODE_NOT_SUPPORTED, 0, 0, 0, 0,
+						    &req_msg);
+			continue;
+		}
+
 		mm_communicate_call_ep_receive(&mm_communicate_call_ep, &req_msg, &resp_msg);
 
-		ffa_msg_send_direct_resp_32(req_msg.destination_id,
-					 req_msg.source_id, resp_msg.args.args32[0],
-					 resp_msg.args.args32[1], resp_msg.args.args32[2],
-					 resp_msg.args.args32[3], resp_msg.args.args32[4],
+		ffa_msg_send_direct_resp_64(req_msg.destination_id,
+					 req_msg.source_id, resp_msg.args.args64[0],
+					 resp_msg.args.args64[1], resp_msg.args.args64[2],
+					 resp_msg.args.args64[3], resp_msg.args.args64[4],
 					 &req_msg);
 	}
 

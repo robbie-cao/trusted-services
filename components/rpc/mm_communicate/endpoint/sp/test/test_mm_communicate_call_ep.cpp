@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #include <CppUTest/TestHarness.h>
@@ -32,14 +32,14 @@ TEST_GROUP(mm_communicate_call_ep)
 		mock().clear();
 	}
 
-	void check_sp_msg(const struct ffa_direct_msg *msg, uint32_t arg0,
-			  uint32_t arg1, uint32_t arg2, uint32_t arg3, uint32_t arg4)
+	void check_sp_msg(const struct ffa_direct_msg *msg, uint64_t arg0,
+			  uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4)
 	{
-		UNSIGNED_LONGLONGS_EQUAL(arg0, msg->args[0]);
-		UNSIGNED_LONGLONGS_EQUAL(arg1, msg->args[1]);
-		UNSIGNED_LONGLONGS_EQUAL(arg2, msg->args[2]);
-		UNSIGNED_LONGLONGS_EQUAL(arg3, msg->args[3]);
-		UNSIGNED_LONGLONGS_EQUAL(arg4,  msg->args[4]);
+		UNSIGNED_LONGLONGS_EQUAL(arg0, msg->args.args64[0]);
+		UNSIGNED_LONGLONGS_EQUAL(arg1, msg->args.args64[1]);
+		UNSIGNED_LONGLONGS_EQUAL(arg2, msg->args.args64[2]);
+		UNSIGNED_LONGLONGS_EQUAL(arg3, msg->args.args64[3]);
+		UNSIGNED_LONGLONGS_EQUAL(arg4,  msg->args.args64[4]);
 	}
 
 	struct mm_communicate_ep call_ep;
@@ -114,59 +114,54 @@ TEST(mm_communicate_call_ep, attach_do_not_fit)
 	}
 }
 
-TEST(mm_communicate_call_ep, mm_communicate_no_buffer_arg)
+TEST(mm_communicate_call_ep, mm_communicate_offset_int_overflow)
 {
 	CHECK_TRUE(mm_communicate_call_ep_init(&call_ep, comm_buffer, sizeof(comm_buffer)));
+	req_msg.args.args64[0] = 0xffffffffffffffff;
 
 	mm_communicate_call_ep_receive(&call_ep, &req_msg, &resp_msg);
 
-	check_sp_msg(&resp_msg, ARM_SVC_ID_SP_EVENT_COMPLETE, MM_RETURN_CODE_INVALID_PARAMETER,
-		     0, 0, 0);
+	check_sp_msg(&resp_msg, MM_RETURN_CODE_INVALID_PARAMETER, 0, 0, 0, 0);
+}
+
+TEST(mm_communicate_call_ep, mm_communicate_offset_overflow)
+{
+	CHECK_TRUE(mm_communicate_call_ep_init(&call_ep, comm_buffer, sizeof(comm_buffer)));
+	req_msg.args.args64[0] = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE + 1;
+
+	mm_communicate_call_ep_receive(&call_ep, &req_msg, &resp_msg);
+
+	check_sp_msg(&resp_msg, MM_RETURN_CODE_INVALID_PARAMETER, 0, 0, 0, 0);
 }
 
 TEST(mm_communicate_call_ep, mm_communicate_length_overflow)
 {
 	CHECK_TRUE(mm_communicate_call_ep_init(&call_ep, comm_buffer, sizeof(comm_buffer)));
-
-	req_msg.args[0] = (uintptr_t)comm_buffer;
-	req_msg.args[1] = sizeof(comm_buffer);
-
 	header->MessageLength = UINT64_MAX - EFI_MM_COMMUNICATE_HEADER_SIZE + 1;
 
 	mm_communicate_call_ep_receive(&call_ep, &req_msg, &resp_msg);
 
-	check_sp_msg(&resp_msg, ARM_SVC_ID_SP_EVENT_COMPLETE, MM_RETURN_CODE_INVALID_PARAMETER,
-		     0, 0, 0);
+	check_sp_msg(&resp_msg, MM_RETURN_CODE_INVALID_PARAMETER, 0, 0, 0, 0);
 }
 
 TEST(mm_communicate_call_ep, mm_communicate_too_large)
 {
 	CHECK_TRUE(mm_communicate_call_ep_init(&call_ep, comm_buffer, sizeof(comm_buffer)));
-
-	req_msg.args[0] = (uintptr_t)comm_buffer;
-	req_msg.args[1] = sizeof(comm_buffer);
-
 	header->MessageLength = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE + 1;
 
 	mm_communicate_call_ep_receive(&call_ep, &req_msg, &resp_msg);
 
-	check_sp_msg(&resp_msg, ARM_SVC_ID_SP_EVENT_COMPLETE, MM_RETURN_CODE_INVALID_PARAMETER,
-		     0, 0, 0);
+	check_sp_msg(&resp_msg, MM_RETURN_CODE_INVALID_PARAMETER, 0, 0, 0, 0);
 }
 
 TEST(mm_communicate_call_ep, mm_communicate_no_handler)
 {
 	CHECK_TRUE(mm_communicate_call_ep_init(&call_ep, comm_buffer, sizeof(comm_buffer)));
-
-	req_msg.args[0] = (uintptr_t)comm_buffer;
-	req_msg.args[1] = sizeof(comm_buffer);
-
 	header->MessageLength = 0;
 
 	mm_communicate_call_ep_receive(&call_ep, &req_msg, &resp_msg);
 
-	check_sp_msg(&resp_msg, ARM_SVC_ID_SP_EVENT_COMPLETE, MM_RETURN_CODE_NOT_SUPPORTED,
-		     0, 0, 0);
+	check_sp_msg(&resp_msg, MM_RETURN_CODE_NOT_SUPPORTED, 0, 0, 0, 0);
 }
 
 TEST(mm_communicate_call_ep, mm_communicate_single_handler_not_matching)
@@ -175,16 +170,11 @@ TEST(mm_communicate_call_ep, mm_communicate_single_handler_not_matching)
 
 	CHECK_TRUE(mm_communicate_call_ep_init(&call_ep, comm_buffer, sizeof(comm_buffer)));
 	mm_communicate_call_ep_attach_service(&call_ep, &guid0, &iface);
-
-	req_msg.args[0] = (uintptr_t)comm_buffer;
-	req_msg.args[1] = sizeof(comm_buffer);
-
 	header->MessageLength = 0;
 
 	mm_communicate_call_ep_receive(&call_ep, &req_msg, &resp_msg);
 
-	check_sp_msg(&resp_msg, ARM_SVC_ID_SP_EVENT_COMPLETE, MM_RETURN_CODE_NOT_SUPPORTED,
-		     0, 0, 0);
+	check_sp_msg(&resp_msg, MM_RETURN_CODE_NOT_SUPPORTED, 0, 0, 0, 0);
 }
 
 TEST(mm_communicate_call_ep, mm_communicate_single_handler_matching)
@@ -211,9 +201,6 @@ TEST(mm_communicate_call_ep, mm_communicate_single_handler_matching)
 	CHECK_TRUE(mm_communicate_call_ep_init(&call_ep, comm_buffer, sizeof(comm_buffer)));
 	mm_communicate_call_ep_attach_service(&call_ep, &guid0, &iface);
 
-	req_msg.args[0] = (uintptr_t)comm_buffer;
-	req_msg.args[1] = sizeof(comm_buffer);
-
 	memcpy(&header->HeaderGuid, &guid0, sizeof(guid0));
 	header->MessageLength = req_len;
 
@@ -221,8 +208,47 @@ TEST(mm_communicate_call_ep, mm_communicate_single_handler_matching)
 
 	mm_communicate_call_ep_receive(&call_ep, &req_msg, &resp_msg);
 
-	check_sp_msg(&resp_msg, ARM_SVC_ID_SP_EVENT_COMPLETE, MM_RETURN_CODE_SUCCESS, 0, 0, 0);
+	check_sp_msg(&resp_msg, MM_RETURN_CODE_SUCCESS, 0, 0, 0, 0);
 }
+
+TEST(mm_communicate_call_ep, mm_communicate_single_handler_matching_with_offset)
+{
+	const size_t offset = 0x10;
+	EFI_MM_COMMUNICATE_HEADER *header = (EFI_MM_COMMUNICATE_HEADER *)(comm_buffer + offset);
+
+	const size_t req_len = 16;
+	struct mm_service_interface iface = {
+		.context = (void *)0x1234,
+		.receive = mock_mm_service_receive
+	};
+	struct mm_service_call_req req = {
+		.guid = &guid0,
+		.req_buf = {
+			.size = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE - offset,
+			.data_len = req_len,
+			.data = header->Data
+		},
+		.resp_buf = {
+			.size = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE - offset,
+			.data_len = 0,
+			.data = header->Data
+		},
+	};
+
+	CHECK_TRUE(mm_communicate_call_ep_init(&call_ep, comm_buffer, sizeof(comm_buffer)));
+	mm_communicate_call_ep_attach_service(&call_ep, &guid0, &iface);
+
+	memcpy(&header->HeaderGuid, &guid0, sizeof(guid0));
+	header->MessageLength = req_len;
+	req_msg.args.args64[0] = offset;
+
+	expect_mock_mm_service_receive(&iface, &req, MM_RETURN_CODE_SUCCESS);
+
+	mm_communicate_call_ep_receive(&call_ep, &req_msg, &resp_msg);
+
+	check_sp_msg(&resp_msg, MM_RETURN_CODE_SUCCESS, 0, 0, 0, 0);
+}
+
 
 TEST(mm_communicate_call_ep, mm_communicate_single_handler_matching_error)
 {
@@ -248,9 +274,6 @@ TEST(mm_communicate_call_ep, mm_communicate_single_handler_matching_error)
 	CHECK_TRUE(mm_communicate_call_ep_init(&call_ep, comm_buffer, sizeof(comm_buffer)));
 	mm_communicate_call_ep_attach_service(&call_ep, &guid0, &iface);
 
-	req_msg.args[0] = (uintptr_t)comm_buffer;
-	req_msg.args[1] = sizeof(comm_buffer);
-
 	memcpy(&header->HeaderGuid, &guid0, sizeof(guid0));
 	header->MessageLength = req_len;
 
@@ -258,7 +281,7 @@ TEST(mm_communicate_call_ep, mm_communicate_single_handler_matching_error)
 
 	mm_communicate_call_ep_receive(&call_ep, &req_msg, &resp_msg);
 
-	check_sp_msg(&resp_msg, ARM_SVC_ID_SP_EVENT_COMPLETE, MM_RETURN_CODE_NO_MEMORY, 0, 0, 0);
+	check_sp_msg(&resp_msg, MM_RETURN_CODE_NO_MEMORY, 0, 0, 0, 0);
 }
 
 TEST(mm_communicate_call_ep, mm_communicate_two_handlers)
@@ -290,9 +313,6 @@ TEST(mm_communicate_call_ep, mm_communicate_two_handlers)
 	mm_communicate_call_ep_attach_service(&call_ep, &guid0, &iface0);
 	mm_communicate_call_ep_attach_service(&call_ep, &guid1, &iface1);
 
-	req_msg.args[0] = (uintptr_t)comm_buffer;
-	req_msg.args[1] = sizeof(comm_buffer);
-
 	memcpy(&header->HeaderGuid, &guid1, sizeof(guid0));
 	header->MessageLength = req_len;
 
@@ -300,5 +320,5 @@ TEST(mm_communicate_call_ep, mm_communicate_two_handlers)
 
 	mm_communicate_call_ep_receive(&call_ep, &req_msg, &resp_msg);
 
-	check_sp_msg(&resp_msg, ARM_SVC_ID_SP_EVENT_COMPLETE, MM_RETURN_CODE_SUCCESS, 0, 0, 0);
+	check_sp_msg(&resp_msg, MM_RETURN_CODE_SUCCESS, 0, 0, 0, 0);
 }

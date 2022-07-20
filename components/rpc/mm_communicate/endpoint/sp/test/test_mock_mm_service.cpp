@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #include <CppUTest/TestHarness.h>
@@ -44,7 +44,7 @@ TEST(mock_mm_service, receive)
 			.data = (void *)0x2345
 		}
 	};
-	int32_t result = -123456;
+	int64_t result = -123456;
 
 	expect_mock_mm_service_receive(&iface, &req, result);
 	LONGS_EQUAL(result, mock_mm_service_receive(&iface, &req));
