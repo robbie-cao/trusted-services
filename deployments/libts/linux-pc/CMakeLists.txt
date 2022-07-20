@@ -70,6 +70,7 @@ add_components(
 		"components/service/block_storage/provider"
 		"components/service/block_storage/provider/serializer/packed-c"
 		"components/service/block_storage/config/ref"
+		"components/service/block_storage/factory/ref_ram"
 		"components/service/crypto/provider"
 		"components/service/crypto/provider/serializer/protobuf"
 		"components/service/crypto/provider/serializer/packed-c"

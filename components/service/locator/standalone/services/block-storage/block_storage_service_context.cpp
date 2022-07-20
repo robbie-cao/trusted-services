@@ -6,15 +6,14 @@
 
 #include <assert.h>
 #include <cstring>
-#include "service/block_storage/config/ref/ref_partition_configurator.h"
 #include "service/block_storage/provider/serializer/packed-c/packedc_block_storage_serializer.h"
+#include "service/block_storage/factory/ref_ram/block_store_factory.h"
 #include "block_storage_service_context.h"
 
 block_storage_service_context::block_storage_service_context(const char *sn) :
 	standalone_service_context(sn),
 	m_block_storage_provider(),
-	m_ram_block_store(),
-	m_partitioned_block_store()
+	m_block_store(NULL)
 {
 
 }
@@ -26,33 +25,14 @@ block_storage_service_context::~block_storage_service_context()
 
 void block_storage_service_context::do_init()
 {
-	/* Initialize a ram_block_store to use as the back store */
-	struct uuid_octets back_store_guid;
-	memset(&back_store_guid, 0, sizeof(back_store_guid));
-
-	struct block_store *back_store = ram_block_store_init(
-		&m_ram_block_store,
-		&back_store_guid,
-		REF_PARTITION_BACK_STORE_SIZE,
-		REF_PARTITION_BLOCK_SIZE);
-	assert(back_store);
-
-	/* Stack a partitioned_block_store over the back store */
-	struct block_store *front_store = partitioned_block_store_init(
-		&m_partitioned_block_store,
-		0,
-		&back_store_guid,
-		back_store,
-		NULL);
-	assert(front_store);
-
-	/* Use the reference partition configuration */
-	ref_partition_configure(&m_partitioned_block_store);
+	/* Create backend block store */
+	m_block_store = ref_ram_block_store_factory_create();
+	assert(m_block_store);
 
 	/* Initialise the block storage service provider */
 	struct rpc_interface *rpc_iface = block_storage_provider_init(
 		&m_block_storage_provider,
-		front_store);
+		m_block_store);
 	assert(rpc_iface);
 
 	block_storage_provider_register_serializer(
@@ -66,6 +46,5 @@ void block_storage_service_context::do_init()
 void block_storage_service_context::do_deinit()
 {
 	block_storage_provider_deinit(&m_block_storage_provider);
-	partitioned_block_store_deinit(&m_partitioned_block_store);
-	ram_block_store_deinit(&m_ram_block_store);
+	ref_ram_block_store_factory_destroy(m_block_store);
 }

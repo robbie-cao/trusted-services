@@ -6,10 +6,9 @@
 
 #include <cstring>
 #include "common/uuid/uuid.h"
-#include "service/block_storage/block_store/client/block_storage_client.h"
+#include "service/block_storage/block_store/block_store.h"
+#include "service/block_storage/factory/client/block_store_factory.h"
 #include "service/block_storage/config/ref/ref_partition_configurator.h"
-#include "protocols/rpc/common/packed-c/encoding.h"
-#include "service_locator.h"
 #include "CppUTest/TestHarness.h"
 
 /**
@@ -24,23 +23,9 @@ TEST_GROUP(BlockStorageServiceTests)
 {
 	void setup()
 	{
-		struct rpc_caller *caller;
-		int status;
+		m_block_store = client_block_store_factory_create(
+			"sn:trustedfirmware.org:block-storage:0");
 
-		m_rpc_session_handle = NULL;
-		m_service_context = NULL;
-
-		service_locator_init();
-
-		m_service_context =
-			service_locator_query("sn:trustedfirmware.org:block-storage:0", &status);
-		CHECK_TRUE(m_service_context);
-
-		m_rpc_session_handle =
-			service_context_open(m_service_context, TS_RPC_ENCODING_PACKED_C, &caller);
-		CHECK_TRUE(m_rpc_session_handle);
-
-		m_block_store = block_storage_client_init(&m_client, caller);
 		CHECK_TRUE(m_block_store);
 
 		uuid_parse_to_octets(REF_PARTITION_1_GUID,
@@ -55,25 +40,11 @@ TEST_GROUP(BlockStorageServiceTests)
 
 	void teardown()
 	{
-		block_storage_client_deinit(&m_client);
-
-		if (m_service_context) {
-
-			if (m_rpc_session_handle) {
-				service_context_close(m_service_context, m_rpc_session_handle);
-				m_rpc_session_handle = NULL;
-			}
-
-			service_context_relinquish(m_service_context);
-			m_service_context = NULL;
-		}
+		client_block_store_factory_destroy(m_block_store);
 	}
 
 	static const uint32_t LOCAL_CLIENT_ID = 1;
 
-	rpc_session_handle m_rpc_session_handle;
-	struct service_context *m_service_context;
-	struct block_storage_client m_client;
 	struct block_store *m_block_store;
 	struct uuid_octets m_partition_1_guid;
 	struct uuid_octets m_partition_2_guid;
