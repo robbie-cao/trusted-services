@@ -15,13 +15,18 @@ include(../../deployment.cmake REQUIRED)
 #-------------------------------------------------------------------------------
 include(${TS_ROOT}/environments/opteesp/env.cmake)
 
-file(READ "${CMAKE_CURRENT_LIST_DIR}/version.txt" LIBSP_VERSION)
+version_semver_read(FILE "${CMAKE_CURRENT_LIST_DIR}/version.txt"
+					MAJOR _major MINOR _minor PATCH _patch)
+set(LIBSP_VERSION "${_major}.${_minor}.${_patch}")
 project(trusted-services
 			VERSION
 				${LIBSP_VERSION}
 			 LANGUAGES
 				C ASM
 		)
+unset(_major)
+unset(_minor)
+unset(_patch)
 
 add_library(sp STATIC)
 
@@ -82,7 +87,7 @@ set(ConfigPackageLocation ${TS_ENV}/lib/cmake/libsp)
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
 	"${CMAKE_CURRENT_BINARY_DIR}/LibspConfigVersion.cmake"
-	VERSION "1.0.0"
+	VERSION "${LIBSP_VERSION}"
 	COMPATIBILITY SameMajorVersion
 )
 
