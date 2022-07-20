@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -22,8 +22,10 @@ unset(_major)
 unset(_minor)
 unset(_patch)
 
+add_library(libts::ts ALIAS ts)
+
 #-------------------------------------------------------------------------------
-#  Components that are common accross all deployments
+#  Components that are common across all deployments
 #
 #-------------------------------------------------------------------------------
 add_components(
@@ -53,20 +55,9 @@ target_compile_definitions(ts PRIVATE
 #-------------------------------------------------------------------------------
 include(${TS_ROOT}/tools/cmake/common/ExportLibrary.cmake REQUIRED)
 
-# Select public header files to export
-get_property(_rpc_caller_public_header_files TARGET ts
-	PROPERTY RPC_CALLER_PUBLIC_HEADER_FILES
-)
-
-get_property(_service_locator_public_header_files TARGET ts
-	PROPERTY SERVICE_LOCATOR_PUBLIC_HEADER_FILES
-)
-
 # Exports library information in preparation for install
 export_library(
 	TARGET "ts"
 	LIB_NAME "libts"
-	INTERFACE_FILES
-		${_rpc_caller_public_header_files}
-		${_service_locator_public_header_files}
+	PKG_CONFIG_FILE "${CMAKE_CURRENT_LIST_DIR}/libtsConfig.cmake.in"
 )

@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -21,7 +21,7 @@ target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/sp_rxtx.c"
 	)
 
-set_property(TARGET ${TGT} PROPERTY PUBLIC_HEADER
+set_property(TARGET ${TGT} APPEND PROPERTY PUBLIC_HEADER
 	${CMAKE_CURRENT_LIST_DIR}/include/ffa_api.h
 	${CMAKE_CURRENT_LIST_DIR}/include/ffa_api_defines.h
 	${CMAKE_CURRENT_LIST_DIR}/include/ffa_api_types.h
@@ -49,5 +49,5 @@ endif()
 target_include_directories(${TGT}
 	 PUBLIC
 		"$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>"
-		"$<INSTALL_INTERFACE:include>"
+		"$<INSTALL_INTERFACE:${TS_ENV}/include>"
 	)

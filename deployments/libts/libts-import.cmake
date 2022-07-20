@@ -11,48 +11,55 @@
 # CMake build file allows libts to be built and installed into the binary
 # directory of the dependent.
 #-------------------------------------------------------------------------------
+option(CFG_FORCE_PREBUILT_LIBTS Off)
+# Try to find a pre-build package.
+find_package(libts "1.0.0" QUIET PATHS ${CMAKE_CURRENT_BINARY_DIR}/libts_install/${TS_ENV}/lib/cmake/libts)
+if(NOT libts_FOUND)
+	if (CFG_FORCE_PREBUILT_LIBTS)
+		string(CONCAT _msg "find_package() failed to find the \"libts\" package. Please pass -Dlibts_ROOT=<path> or"
+						   " -DCMAKE_FIND_ROOT_PATH=<path> cmake variable, where <path> is the INSTALL_PREFIX used"
+						   " when building libts. libts_ROOT can be set in the environment too."
+						   "If you wish to debug the search process pass -DCMAKE_FIND_DEBUG_MODE=ON to cmake.")
+		message(FATAL_ERROR ${_msg})
+	endif()
+	# If not successful, build libts as a sub-project.
+	execute_process(COMMAND
+		${CMAKE_COMMAND} -E env "CROSS_COMPILE=${CROSS_COMPILE}"
+		${CMAKE_COMMAND}
+			-S ${TS_ROOT}/deployments/libts/${TS_ENV}
+			-B ${CMAKE_CURRENT_BINARY_DIR}/libts
+		RESULT_VARIABLE
+			_exec_error
+		)
+	if (NOT _exec_error EQUAL 0)
+		message(FATAL_ERROR "Configuring libts failed. ${_exec_error}")
+	endif()
+	execute_process(COMMAND
+		${CMAKE_COMMAND} -E env "CROSS_COMPILE=${CROSS_COMPILE}"
+		${CMAKE_COMMAND}
+			--build ${CMAKE_CURRENT_BINARY_DIR}/libts
+			--parallel ${PROCESSOR_COUNT}
+		RESULT_VARIABLE
+			_exec_error
+		)
+	if (NOT _exec_error EQUAL 0)
+		message(FATAL_ERROR "Installing libts failed. ${_exec_error}")
+	endif()
+	execute_process(COMMAND
+		${CMAKE_COMMAND} -E env "CROSS_COMPILE=${CROSS_COMPILE}"
+		${CMAKE_COMMAND}
+			--install ${CMAKE_CURRENT_BINARY_DIR}/libts
+			--prefix ${CMAKE_CURRENT_BINARY_DIR}/libts_install
+		RESULT_VARIABLE
+			_exec_error
+		)
+	if (NOT _exec_error EQUAL 0)
+		message(FATAL_ERROR "Installing libts failed. ${_exec_error}")
+	endif()
 
-# Determine the number of processes to run while running parallel builds.
-# Pass -DPROCESSOR_COUNT=<n> to cmake to override.
-if(NOT DEFINED PROCESSOR_COUNT)
-	include(ProcessorCount)
-	ProcessorCount(PROCESSOR_COUNT)
-	set(PROCESSOR_COUNT ${PROCESSOR_COUNT} CACHE STRING "Number of cores to use for parallel builds.")
+	install(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/libts/cmake_install.cmake)
+
+	find_package(libts "1.0.0" QUIET REQUIRED PATHS ${CMAKE_CURRENT_BINARY_DIR}/libts_install/${TS_ENV}/lib/cmake/libts)
+else()
+	message(STATUS "Using prebuilt libts from ${libts_DIR}")
 endif()
-
-set(LIBTS_INSTALL_PATH "${CMAKE_CURRENT_BINARY_DIR}/libts_install" CACHE PATH "libts installation directory")
-set(LIBTS_PACKAGE_PATH "${LIBTS_INSTALL_PATH}/lib/cmake" CACHE PATH "libts CMake package directory")
-set(LIBTS_SOURCE_DIR "${TS_ROOT}/deployments/libts/${TS_ENV}" CACHE PATH "libts source directory")
-set(LIBTS_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/libts-build" CACHE PATH "libts binary directory")
-
-file(MAKE_DIRECTORY ${LIBTS_BINARY_DIR})
-
-#Configure the library
-execute_process(COMMAND
-	${CMAKE_COMMAND}
-		-DCMAKE_INSTALL_PREFIX=${LIBTS_INSTALL_PATH}
-		-GUnix\ Makefiles
-		-S ${LIBTS_SOURCE_DIR}
-		-B ${LIBTS_BINARY_DIR}
-	RESULT_VARIABLE _exec_error
-)
-
-if (_exec_error)
-	message(FATAL_ERROR "Configuration step of libts failed with ${_exec_error}.")
-endif()
-
-#Build the library
-execute_process(COMMAND
-	${CMAKE_COMMAND} --build ${LIBTS_BINARY_DIR} --parallel ${PROCESSOR_COUNT} --target install
-	RESULT_VARIABLE _exec_error
-)
-
-if (_exec_error)
-	message(FATAL_ERROR "Build step of libts failed with ${_exec_error}.")
-endif()
-
-# Import the built library
-include(${LIBTS_INSTALL_PATH}/${TS_ENV}/lib/cmake/libts_targets.cmake)
-add_library(libts SHARED IMPORTED)
-set_property(TARGET libts PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${LIBTS_INSTALL_PATH}/${TS_ENV}/include")
-set_property(TARGET libts PROPERTY IMPORTED_LOCATION "${LIBTS_INSTALL_PATH}/${TS_ENV}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}ts${CMAKE_SHARED_LIBRARY_SUFFIX}")

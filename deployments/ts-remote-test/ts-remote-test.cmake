@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -13,11 +13,11 @@
 
 #-------------------------------------------------------------------------------
 #  Use libts for locating and accessing services. An appropriate version of
-#  libts will be imported for the enviroment in which tests are
+#  libts will be imported for the environment in which tests are
 #  deployed.
 #-------------------------------------------------------------------------------
 include(${TS_ROOT}/deployments/libts/libts-import.cmake)
-target_link_libraries(ts-remote-test PRIVATE libts)
+target_link_libraries(ts-remote-test PRIVATE libts::ts)
 
 #-------------------------------------------------------------------------------
 #  Common main for all deployments
@@ -28,7 +28,7 @@ target_sources(ts-remote-test PRIVATE
 )
 
 #-------------------------------------------------------------------------------
-#  Components that are common accross all deployments
+#  Components that are common across all deployments
 #
 #-------------------------------------------------------------------------------
 add_components(

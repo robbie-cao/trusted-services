@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -18,7 +18,7 @@
 #  deployed.
 #-------------------------------------------------------------------------------
 include(${TS_ROOT}/deployments/libts/libts-import.cmake)
-target_link_libraries(uefi-test PRIVATE libts)
+target_link_libraries(uefi-test PRIVATE libts::ts)
 
 #-------------------------------------------------------------------------------
 #  Components that are common accross all deployments

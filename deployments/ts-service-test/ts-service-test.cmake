@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -8,19 +8,19 @@
 #-------------------------------------------------------------------------------
 #  The base build file shared between deployments of 'ts-service-test' for
 #  different environments.  Used for running end-to-end service-level tests
-#  where test cases excerise trusted service client interfaces.
+#  where test cases exercise trusted service client interfaces.
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
 #  Use libts for locating and accessing services. An appropriate version of
-#  libts will be imported for the enviroment in which service tests are
+#  libts will be imported for the environment in which service tests are
 #  deployed.
 #-------------------------------------------------------------------------------
 include(${TS_ROOT}/deployments/libts/libts-import.cmake)
-target_link_libraries(ts-service-test PRIVATE libts)
+target_link_libraries(ts-service-test PRIVATE libts::ts)
 
 #-------------------------------------------------------------------------------
-#  Components that are common accross all deployments
+#  Components that are common across all deployments
 #
 #-------------------------------------------------------------------------------
 add_components(
