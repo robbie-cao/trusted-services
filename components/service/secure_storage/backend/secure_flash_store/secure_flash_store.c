@@ -336,14 +336,13 @@ static uint32_t sfs_get_support(void *context, uint32_t client_id)
     return 0;
 }
 
-
-struct storage_backend *sfs_init(void)
+struct storage_backend *sfs_init(const struct sfs_flash_info_t *flash_binding)
 {
     psa_status_t status;
 
     /* Initialise the SFS context */
-    status = sfs_flash_fs_prepare(&fs_ctx_sfs,
-                                  sfs_flash_get_info());
+    status = sfs_flash_fs_prepare(&fs_ctx_sfs, flash_binding);
+
 #ifdef SFS_CREATE_FLASH_LAYOUT
     /* If SFS_CREATE_FLASH_LAYOUT is set, it indicates that it is required to
      * create a SFS flash layout. SFS service will generate an empty and valid
@@ -366,8 +365,7 @@ struct storage_backend *sfs_init(void)
         }
 
         /* Attempt to initialise again */
-        status = sfs_flash_fs_prepare(&fs_ctx_sfs,
-                                     sfs_flash_get_info());
+        status = sfs_flash_fs_prepare(&fs_ctx_sfs, flash_binding);
 
         if (status != PSA_SUCCESS) {
             return NULL;

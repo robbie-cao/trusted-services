@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -8,6 +8,7 @@
 #include <service/crypto/factory/crypto_provider_factory.h>
 #include <service/crypto/backend/mbedcrypto/mbedcrypto_backend.h>
 #include <service/secure_storage/backend/secure_flash_store/secure_flash_store.h>
+#include <service/secure_storage/backend/secure_flash_store/flash/ram/sfs_flash_ram.h>
 
 standalone_crypto_client::standalone_crypto_client() :
     test_crypto_client(),
@@ -37,7 +38,7 @@ bool standalone_crypto_client::init()
         if (!is_fault_injected(FAILED_TO_DISCOVER_SECURE_STORAGE)) {
 
             /* Establish rpc session with storage provider */
-            struct storage_backend *storage_backend = sfs_init();
+            struct storage_backend *storage_backend = sfs_init(sfs_flash_ram_instance());
             struct rpc_interface *storage_ep = secure_storage_provider_init(&m_storage_provider,
                                                                 storage_backend);
             storage_caller = direct_caller_init_default(&m_storage_caller, storage_ep);

@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "sfs_flash.h"
+#include "../sfs_flash.h"
 #include "sfs_flash_ram.h"
-#include "../sfs_utils.h"
+#include "../../sfs_utils.h"
 
 #define SFS_FLASH_AREA_ADDR (0x0)
 
@@ -46,7 +46,7 @@
 static uint8_t sfs_block_data[FLASH_INFO_BLOCK_SIZE * FLASH_INFO_NUM_BLOCKS];
 #define FLASH_INFO_DEV sfs_block_data
 
-const struct sfs_flash_info_t sfs_flash_info_internal = {
+static const struct sfs_flash_info_t sfs_flash_info_ram = {
     .init = sfs_flash_ram_init,
     .read = sfs_flash_ram_read,
     .write = sfs_flash_ram_write,
@@ -63,5 +63,10 @@ const struct sfs_flash_info_t sfs_flash_info_internal = {
     .erase_val = FLASH_INFO_ERASE_VAL,
 };
 
+const struct sfs_flash_info_t *sfs_flash_ram_instance(void)
+{
+    return &sfs_flash_info_ram;
+}
+
 /* Checks at compile time that the flash device configuration is valid */
-#include "../flash_fs/sfs_flash_fs_check_info.h"
+#include "../../flash_fs/sfs_flash_fs_check_info.h"

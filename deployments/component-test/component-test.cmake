@@ -137,6 +137,8 @@ add_components(
 		"components/service/secure_storage/backend/secure_flash_store/test"
 		"components/service/secure_storage/backend/secure_flash_store/flash_fs"
 		"components/service/secure_storage/backend/secure_flash_store/flash"
+		"components/service/secure_storage/backend/secure_flash_store/flash/ram"
+		"components/service/secure_storage/backend/secure_flash_store/flash/block_store_adapter"
 		"components/service/test_runner/provider"
 		"components/service/test_runner/provider/serializer/packed-c"
 		"components/service/test_runner/provider/backend/null"
