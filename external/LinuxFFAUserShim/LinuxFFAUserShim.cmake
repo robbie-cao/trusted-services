@@ -11,7 +11,7 @@
 
 set(LINUX_FFA_USER_SHIM_URL "https://git.gitlab.arm.com/linux-arm/linux-trusted-services.git"
 	CACHE STRING "Linux FF-A user space shim repository URL")
-set(LINUX_FFA_USER_SHIM_REFSPEC "v4.0.0"
+set(LINUX_FFA_USER_SHIM_REFSPEC "v5.0.0"
 	CACHE STRING "Linux FF-A user space shim git refspec")
 
 set(LINUX_FFA_USER_SHIM_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/linux_ffa_user_shim-src"

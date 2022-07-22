@@ -19,7 +19,7 @@
 #include <string.h>
 #include <errno.h>
 
-#define KERNEL_MOD_REQ_VER_MAJOR 2
+#define KERNEL_MOD_REQ_VER_MAJOR 5
 #define KERNEL_MOD_REQ_VER_MINOR 0
 #define KERNEL_MOD_REQ_VER_PATCH 0
 
@@ -294,37 +294,28 @@ static rpc_status_t call_invoke(
 
 		direct_msg.dst_id = s->dest_partition_id;
 
-		direct_msg.args[MM_COMMUNICATE_CALL_ARGS_COMM_BUFFER_ADDRESS] = (uintptr_t)s->comm_buffer;
-		direct_msg.args[MM_COMMUNICATE_CALL_ARGS_COMM_BUFFER_SIZE] = s->comm_buffer_size;
+		direct_msg.args[MM_COMMUNICATE_CALL_ARGS_COMM_BUFFER_OFFSET] = 0;
 
 		int kernel_op_status = ioctl(s->ffa_fd, FFA_IOC_MSG_SEND, &direct_msg);
 
 		if (kernel_op_status == 0) {
-
 			/* Kernel send operation completed normally */
-			uint32_t mm_return_id = direct_msg.args[MM_COMMUNICATE_CALL_ARGS_RETURN_ID];
 			int32_t mm_return_code = direct_msg.args[MM_COMMUNICATE_CALL_ARGS_RETURN_CODE];
 
-			if (mm_return_id == ARM_SVC_ID_SP_EVENT_COMPLETE) {
+			if (mm_return_code == MM_RETURN_CODE_SUCCESS) {
+				mm_communicate_serializer_header_decode(
+					s->serializer, s->comm_buffer, (efi_status_t *)opstatus,
+					resp_buf, resp_len);
 
-				if (mm_return_code == MM_RETURN_CODE_SUCCESS) {
+				if (*resp_len > s->req_len)
+					s->scrub_len =
+						mm_communicate_serializer_header_size(
+							s->serializer) + *resp_len;
 
-					mm_communicate_serializer_header_decode(s->serializer,
-						s->comm_buffer, (efi_status_t*)opstatus, resp_buf, resp_len);
+				rpc_status = TS_RPC_CALL_ACCEPTED;
+			} else {
 
-					if (*resp_len > s->req_len) {
-
-						s->scrub_len =
-							mm_communicate_serializer_header_size(s->serializer) +
-							*resp_len;
-					}
-
-					rpc_status = TS_RPC_CALL_ACCEPTED;
-				}
-				else {
-
-					rpc_status = mm_return_code_to_rpc_status(mm_return_code);
-				}
+				rpc_status = mm_return_code_to_rpc_status(mm_return_code);
 			}
 		}
 	}
