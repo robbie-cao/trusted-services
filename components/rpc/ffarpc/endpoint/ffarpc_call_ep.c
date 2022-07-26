@@ -261,6 +261,8 @@ void ffa_call_ep_receive(struct ffa_call_ep *call_ep,
 			 const struct sp_msg *req_msg,
 			 struct sp_msg *resp_msg)
 {
+	resp_msg->source_id = req_msg->destination_id;
+	resp_msg->destination_id = req_msg->source_id;
 	resp_msg->is_64bit_message = req_msg->is_64bit_message;
 	memset(&resp_msg->args, 0x00, sizeof(resp_msg->args));
 

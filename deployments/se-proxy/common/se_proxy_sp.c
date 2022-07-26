@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  */
 
 #include <rpc/ffarpc/endpoint/ffarpc_call_ep.h>
@@ -56,9 +56,6 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 		struct sp_msg resp_msg;
 
 		ffa_call_ep_receive(&ffarpc_call_ep, &req_msg, &resp_msg);
-
-		resp_msg.source_id = req_msg.destination_id;
-		resp_msg.destination_id = req_msg.source_id;
 
 		sp_msg_send_direct_resp(&resp_msg, &req_msg);
 	}
