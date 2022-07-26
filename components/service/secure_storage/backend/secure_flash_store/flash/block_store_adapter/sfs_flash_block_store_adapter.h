@@ -36,6 +36,7 @@ struct sfs_flash_block_store_adapter
 	struct block_store *block_store;
 	storage_partition_handle_t partition_handle;
 	uint32_t client_id;
+	size_t blocks_per_flash_block;
 };
 
 /**
@@ -49,6 +50,7 @@ struct sfs_flash_block_store_adapter
  * \param[in] client_id    The client id for the environment
  * \param[in] block_store  The associated block store
  * \param[in] partition_guid The storage partition to use
+ * \param[in] min_flash_block_size Minimum sfs block size
  * \param[in] max_num_files	An sfs configuration parameter
  * \param[out] flash_info  The sfs flash interface structure
  *
@@ -59,6 +61,7 @@ psa_status_t sfs_flash_block_store_adapter_init(
 	uint32_t client_id,
 	struct block_store *block_store,
 	const struct uuid_octets *partition_guid,
+	size_t min_flash_block_size,
 	size_t max_num_files,
 	const struct sfs_flash_info_t **flash_info);
 

@@ -19,65 +19,67 @@
  */
 TEST_GROUP(SfsBlockStoreTests)
 {
-    void setup()
-    {
-        struct uuid_octets guid;
-        const struct sfs_flash_info_t *flash_info = NULL;
+	void setup()
+	{
+		struct uuid_octets guid;
+		const struct sfs_flash_info_t *flash_info = NULL;
 
-        uuid_parse_to_octets(REF_PARTITION_1_GUID, guid.octets, sizeof(guid.octets));
+		uuid_parse_to_octets(REF_PARTITION_2_GUID, guid.octets, sizeof(guid.octets));
 
-        block_store = ref_ram_block_store_factory_create();
-        CHECK_TRUE(block_store);
+		block_store = ref_ram_block_store_factory_create();
+		CHECK_TRUE(block_store);
 
-        psa_status_t status = sfs_flash_block_store_adapter_init(
-	        &sfs_flash_adapter,
-	        CLIENT_ID,
-	        block_store,
-	        &guid,
-	        MAX_NUM_FILES,
-	        &flash_info);
+		psa_status_t status = sfs_flash_block_store_adapter_init(
+			&sfs_flash_adapter,
+			CLIENT_ID,
+			block_store,
+			&guid,
+			MIN_FLASH_BLOCK_SIZE,
+			MAX_NUM_FILES,
+			&flash_info);
 
-        LONGS_EQUAL(PSA_SUCCESS, status);
-        CHECK_TRUE(flash_info);
+		LONGS_EQUAL(PSA_SUCCESS, status);
+		CHECK_TRUE(flash_info);
 
-        struct storage_backend *storage_backend = sfs_init(flash_info);
-        CHECK_TRUE(storage_backend);
+		struct storage_backend *storage_backend = sfs_init(flash_info);
+		CHECK_TRUE(storage_backend);
 
-        psa_its_frontend_init(storage_backend);
-        psa_ps_frontend_init(storage_backend);
-    }
+		psa_its_frontend_init(storage_backend);
+		psa_ps_frontend_init(storage_backend);
+	}
 
-    void teardown()
-    {
-        sfs_flash_block_store_adapter_deinit(&sfs_flash_adapter);
-        ref_ram_block_store_factory_destroy(block_store);
+	void teardown()
+	{
+		sfs_flash_block_store_adapter_deinit(&sfs_flash_adapter);
+		ref_ram_block_store_factory_destroy(block_store);
 
-        block_store = NULL;
-    }
+		block_store = NULL;
+	}
 
-    static const uint32_t CLIENT_ID = 10;
-    static const size_t MAX_NUM_FILES = 2;
+	static const uint32_t CLIENT_ID = 10;
+	static const size_t MAX_NUM_FILES = 10;
+	static const size_t MIN_FLASH_BLOCK_SIZE = 4096;
 
-    struct block_store *block_store;
-    struct sfs_flash_block_store_adapter sfs_flash_adapter;
+	struct block_store *block_store;
+	struct sfs_flash_block_store_adapter sfs_flash_adapter;
 };
 
 TEST(SfsBlockStoreTests, itsStoreNewItem)
 {
-    its_api_tests::storeNewItem();
+	its_api_tests::storeNewItem();
 }
 
 TEST(SfsBlockStoreTests, itsStorageLimitTest)
 {
-    its_api_tests::storageLimitTest(5000);
+	its_api_tests::storageLimitTest(5000);
 }
 
 TEST(SfsBlockStoreTests, psCreateAndSet)
 {
-    ps_api_tests::createAndSet();
+	ps_api_tests::createAndSet();
 }
 
 TEST(SfsBlockStoreTests, psCreateAndSetExtended)
 {
-    ps_api_tests::createAndSetExtended();
+	ps_api_tests::createAndSetExtended();
 }
