@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -178,11 +178,22 @@ static psa_status_t secure_storage_client_get_info(void *context,
 			/* RPC failure */
 			psa_status = PSA_ERROR_GENERIC_ERROR;
 		} else {
-			if (response_length && response_length != sizeof(*response_desc)) {
-				psa_status = PSA_ERROR_GENERIC_ERROR;
-			}
-			else {
+			if (response_length == sizeof(*response_desc)) {
+				/* Response length matches the expected size */
 				psa_status = opstatus;
+			} else if (!response_length) {
+				/*
+				 * In case of an empty response use opstatus but
+				 * fall back to PSA_ERROR_GENERIC_ERROR if opstatus
+				 * contains PSA_SUCCESS as this is an invalid case.
+				 */
+				if (opstatus != PSA_SUCCESS)
+					psa_status = opstatus;
+				else
+					psa_status = PSA_ERROR_GENERIC_ERROR;
+			} else {
+				/* Invalid length */
+				psa_status = PSA_ERROR_GENERIC_ERROR;
 			}
 		}
 
