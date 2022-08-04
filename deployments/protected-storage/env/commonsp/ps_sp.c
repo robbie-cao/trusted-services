@@ -43,13 +43,14 @@ void sp_main(struct ffa_init_info *init_info)
 		goto fatal_error;
 	}
 
-	storage_backend = storage_factory_create(storage_factory_security_class_INTERNAL_TRUSTED);
+	storage_backend = storage_factory_create(storage_factory_security_class_PROTECTED);
 	if (!storage_backend) {
-		EMSG("Failed to create storage factory");
+		EMSG("Failed to create storage backend");
 		goto fatal_error;
 	}
 
-	secure_storage_iface = secure_storage_provider_init(&secure_storage_provider, storage_backend);
+	secure_storage_iface = secure_storage_provider_init(&secure_storage_provider,
+							    storage_backend);
 	if (!secure_storage_iface) {
 		EMSG("Failed to init secure storage provider");
 		goto fatal_error;

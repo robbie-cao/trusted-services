@@ -5,7 +5,7 @@
 #
 #-------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
-include(../../deployment.cmake REQUIRED)
+include(../../../deployment.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
 #  The CMakeLists.txt for building the protected-storage deployment for generic
@@ -26,14 +26,25 @@ set(TRACE_PREFIX "PS" CACHE STRING "Trace prefix")
 set(SP_STACK_SIZE "64 * 1024" CACHE STRING "Stack size")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "Heap size")
 
+#-------------------------------------------------------------------------------
+#  Add components - this deployment uses an infrastructure that provides
+#  ram backed storage for SFS.
+#
+#-------------------------------------------------------------------------------
 add_components(TARGET "protected-storage"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		environments/sp
 )
 
-include(../protected-storage.cmake REQUIRED)
+include(../../env/commonsp/ps_sp.cmake REQUIRED)
+include(../../protected-storage.cmake REQUIRED)
+include(../../infra/sfs-ram.cmake REQUIRED)
 
+#-------------------------------------------------------------------------------
+#  Deployment specific build options
+#
+#-------------------------------------------------------------------------------
 target_compile_definitions(protected-storage PRIVATE
 	ARM64=1
 )
@@ -51,7 +62,10 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SP_UUID_CANON}.bin DESTINATION ${TS_
 include(${TS_ROOT}/tools/cmake/common/ExportMemoryRegionsToManifest.cmake REQUIRED)
 export_memory_regions_to_manifest(TARGET protected-storage NAME "${SP_UUID_CANON}_memory_regions.dtsi" RES EXPORT_MEMORY_REGIONS_DTSI)
 
-######################################## install
+#-------------------------------------------------------------------------------
+#  Deployment specific install options
+#
+#-------------------------------------------------------------------------------
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "location to install build output to." FORCE)
 endif()

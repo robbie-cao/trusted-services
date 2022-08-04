@@ -5,7 +5,7 @@
 #
 #-------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
-include(../../deployment.cmake REQUIRED)
+include(../../../deployment.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
 #  The CMakeLists.txt for building the protected-storage deployment for opteesp
@@ -26,20 +26,31 @@ set_target_uuids(
 	SP_NAME "protected-storage"
 )
 
+target_include_directories(protected-storage PRIVATE
+	${CMAKE_CURRENT_LIST_DIR}
+)
+
+#-------------------------------------------------------------------------------
+#  Add components - this deployment uses an infrastructure that provides
+#  access to a storage partition in a shared secure flash device.
+#
+#-------------------------------------------------------------------------------
 add_components(TARGET "protected-storage"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		environments/opteesp
 )
 
-include(../protected-storage.cmake REQUIRED)
+include(../../env/commonsp/ps_sp.cmake REQUIRED)
+include(../../protected-storage.cmake REQUIRED)
+include(../../infra/sfs-shared-flash.cmake REQUIRED)
 
+#-------------------------------------------------------------------------------
+#  Deployment specific build options
+#
+#-------------------------------------------------------------------------------
 target_compile_definitions(protected-storage PRIVATE
 	ARM64=1
-)
-
-target_include_directories(protected-storage PRIVATE
-	${TS_ROOT}/deployments/protected-storage/opteesp
 )
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
@@ -50,7 +61,10 @@ endif()
 
 compiler_generate_stripped_elf(TARGET protected-storage NAME "${SP_UUID_CANON}.stripped.elf" RES STRIPPED_ELF)
 
-######################################## install
+#-------------------------------------------------------------------------------
+#  Deployment specific install options
+#
+#-------------------------------------------------------------------------------
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "location to install build output to." FORCE)
 endif()
