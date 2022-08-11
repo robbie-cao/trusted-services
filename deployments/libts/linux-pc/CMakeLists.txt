@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -153,7 +153,7 @@ protobuf_generate_all(TGT "ts" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protoco
 
 # Mbed TLS provides libmbedcrypto
 include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
-target_link_libraries(ts PRIVATE mbedcrypto)
+target_link_libraries(ts PRIVATE MbedTLS::mbedcrypto)
 
 # Qcbor
 include(${TS_ROOT}/external/qcbor/qcbor.cmake)
@@ -212,4 +212,4 @@ target_link_libraries(libts-test PRIVATE nanopb::protobuf-nanopb-static)
 protobuf_generate_all(TGT "libts-test" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protocols")
 
 # Mbedcrypto
-target_link_libraries(libts-test PRIVATE mbedcrypto)
+target_link_libraries(libts-test PRIVATE MbedTLS::mbedcrypto)

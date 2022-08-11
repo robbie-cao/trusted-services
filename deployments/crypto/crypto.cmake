@@ -46,7 +46,7 @@ protobuf_generate_all(TGT "crypto" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/pro
 
 # Mbed TLS provides libmbedcrypto
 include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
-target_link_libraries(crypto PRIVATE mbedcrypto)
+target_link_libraries(crypto PRIVATE MbedTLS::mbedcrypto)
 
 #################################################################
 

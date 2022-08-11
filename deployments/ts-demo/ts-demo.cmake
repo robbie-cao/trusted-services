@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -52,7 +52,7 @@ add_components(
 
 # Mbed TLS provides libmbedcrypto
 include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
-target_link_libraries(ts-demo PRIVATE mbedcrypto)
+target_link_libraries(ts-demo PRIVATE MbedTLS::mbedcrypto)
 
 #-------------------------------------------------------------------------------
 #  Define install content.

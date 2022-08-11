@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -50,7 +50,7 @@ set(MBEDTLS_USER_CONFIG_FILE
 
 # Mbed TLS provides libmbedcrypto
 include(../../../external/MbedTLS/MbedTLS.cmake)
-target_link_libraries(platform-inspect PRIVATE mbedcrypto)
+target_link_libraries(platform-inspect PRIVATE MbedTLS::mbedcrypto)
 
 # Qcbor
 include(${TS_ROOT}/external/qcbor/qcbor.cmake)

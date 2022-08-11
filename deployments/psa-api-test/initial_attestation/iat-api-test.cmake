@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -53,7 +53,7 @@ set(MBEDTLS_USER_CONFIG_FILE
 
 # Mbed TLS provides libmbedcrypto
 include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
-target_link_libraries(${PROJECT_NAME} PRIVATE mbedcrypto)
+target_link_libraries(${PROJECT_NAME} PRIVATE MbedTLS::mbedcrypto)
 
 #-------------------------------------------------------------------------------
 #  Advertise PSA API include paths to PSA Arch tests
