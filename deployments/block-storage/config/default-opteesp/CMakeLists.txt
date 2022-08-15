@@ -6,9 +6,7 @@
 #-------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
-# Set default platform.
-set(TS_PLATFORM "arm/fvp/fvp_base_revc-2xaemv8a" CACHE STRING "Target platform location.")
-include(../../deployment.cmake REQUIRED)
+include(../../../deployment.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
 #  The CMakeLists.txt for building the block_storage deployment for opteesp
@@ -29,9 +27,14 @@ set_target_uuids(
 	SP_NAME "block-storage"
 )
 
+target_include_directories(block-storage PRIVATE
+	${CMAKE_CURRENT_LIST_DIR}
+)
+
 #-------------------------------------------------------------------------------
-#  Components that are specific to deployment in the opteesp environment.
-#
+#  Deployment specific components. This deployment uses an infrastructure that
+#  that provides ram-backed block stoarged, configured with storage partitions
+#  that conform to the 'ref' scheme used for test.
 #-------------------------------------------------------------------------------
 add_components(TARGET "block-storage"
 	BASE_DIR ${TS_ROOT}
@@ -39,22 +42,15 @@ add_components(TARGET "block-storage"
 		"environments/opteesp"
 )
 
-include(../block-storage.cmake REQUIRED)
+include(../../env/commonsp/block_storage_sp.cmake REQUIRED)
+include(../../block-storage.cmake REQUIRED)
+include(../../infra/ref-ram.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
-#  Set target platform to provide drivers needed by the deployment
-#
+#  Deployment specific build options
 #-------------------------------------------------------------------------------
-add_platform(TARGET "block-storage")
-
-#################################################################
-
 target_compile_definitions(block-storage PRIVATE
 	ARM64=1
-)
-
-target_include_directories(block-storage PRIVATE
-	${TS_ROOT}/deployments/block-storage/opteesp
 )
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
@@ -66,7 +62,9 @@ endif()
 
 compiler_generate_stripped_elf(TARGET block-storage NAME "${SP_UUID_CANON}.stripped.elf" RES STRIPPED_ELF)
 
-######################################## install
+#-------------------------------------------------------------------------------
+#  Deployment specific install options
+#-------------------------------------------------------------------------------
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "location to install build output to." FORCE)
 endif()
