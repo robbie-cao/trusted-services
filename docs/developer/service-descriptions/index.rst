@@ -8,6 +8,7 @@ Service Descriptions
     attest-service-description
     crypto-service-description
     secure-storage-service-description
+    block-storage-service-description
     uefi-smm-services
 
 --------------
