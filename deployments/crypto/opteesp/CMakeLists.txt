@@ -58,7 +58,7 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 		-fdiagnostics-show-option
 		-gdwarf-2
 		-mstrict-align
-		-O0
+		-Os
 		-std=c99
 	)
 
