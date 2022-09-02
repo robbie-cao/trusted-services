@@ -9,7 +9,7 @@ and its environment.  The model allows applications to be deployed in a diverse 
 featured trusted OSs, such as OP-TEE, to bare metal secure partitions.
 
 For a more in-depth description of how the ports and adapters pattern is applied, see:
-:ref:`Portability Model`
+:ref:`Service Deployment Model`
 
 Service Model
 -------------
@@ -74,6 +74,6 @@ message protocols using Google Protocol Buffers and packed C structures have bee
 
 --------------
 
-*Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

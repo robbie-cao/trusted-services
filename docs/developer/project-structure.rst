@@ -93,7 +93,7 @@ platforms
 For some deployments, an environment may not provide access to all hardware backed services needed by an
 application.  Files under the platforms directory are concerned with configuring and building platform specific
 code that extends the capabilities of an environment.  Details of how this works are described in the:
-:ref:`Portability Model`
+:ref:`Service Deployment Model`
 
 components
 ''''''''''
@@ -206,6 +206,6 @@ to support activities such as build and test.
 
 --------------
 
-*Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

@@ -17,10 +17,10 @@ Supported deployments are described on the following pages:
     libraries
     tools-demo-apps
 
-Related deployments:
+Related documentsments:
 
   - :ref:`Project Structure`
-  - :ref:`Portability Model`
+  - :ref:`Service Deployment Model`
   - :ref:`Build Instructions`
   - :ref:`Running Tests`
 

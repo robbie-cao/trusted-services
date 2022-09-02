@@ -7,7 +7,7 @@ Developer Documents
 
     arch-overview
     project-structure
-    portability-model
+    service-deployment-model
     service-access-protocols
     service-locator
     software-requirements
