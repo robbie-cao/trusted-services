@@ -15,7 +15,7 @@ if (NOT DEFINED CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "MinSizWithDebInfo" CACHE STRING "Build type.")
 endif()
 
-include(../../deployment.cmake REQUIRED)
+include(../../../deployment.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
 #  The CMakeLists.txt for building the crypto deployment for generic sp
@@ -46,7 +46,9 @@ add_components(TARGET "crypto"
 		environments/sp
 )
 
-include(../crypto.cmake REQUIRED)
+include(../../env/commonsp/crypto_sp.cmake REQUIRED)
+include(../../crypto.cmake REQUIRED)
+include(../../infra/baremetal-psa.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
 #  Set target platform to provide drivers needed by the deployment
@@ -54,8 +56,9 @@ include(../crypto.cmake REQUIRED)
 #-------------------------------------------------------------------------------
 add_platform(TARGET "crypto")
 
-#################################################################
-
+#-------------------------------------------------------------------------------
+#  Deployment specific build options
+#-------------------------------------------------------------------------------
 target_compile_definitions(crypto PRIVATE
 	ARM64=1
 )
@@ -73,7 +76,9 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SP_UUID_CANON}.bin DESTINATION ${TS_
 include(${TS_ROOT}/tools/cmake/common/ExportMemoryRegionsToManifest.cmake REQUIRED)
 export_memory_regions_to_manifest(TARGET crypto NAME "${SP_UUID_CANON}_memory_regions.dtsi" RES EXPORT_MEMORY_REGIONS_DTSI)
 
-######################################## install
+#-------------------------------------------------------------------------------
+#  Deployment specific install options
+#-------------------------------------------------------------------------------
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "location to install build output to." FORCE)
 endif()

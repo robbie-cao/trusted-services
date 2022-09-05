@@ -15,7 +15,7 @@ if (NOT DEFINED CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "MinSizWithDebInfo" CACHE STRING "Build type.")
 endif()
 
-include(../../deployment.cmake REQUIRED)
+include(../../../deployment.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
 #  The CMakeLists.txt for building the crypto deployment for opteesp
@@ -36,8 +36,12 @@ set_target_uuids(
 	SP_NAME "crypto"
 )
 
+target_include_directories(crypto PRIVATE
+	${CMAKE_CURRENT_LIST_DIR}
+)
+
 #-------------------------------------------------------------------------------
-#  Components that are specific to deployment in the opteesp environment.
+#  Deployment specific components
 #
 #-------------------------------------------------------------------------------
 add_components(TARGET "crypto"
@@ -46,7 +50,9 @@ add_components(TARGET "crypto"
 		"environments/opteesp"
 )
 
-include(../crypto.cmake REQUIRED)
+include(../../env/commonsp/crypto_sp.cmake REQUIRED)
+include(../../crypto.cmake REQUIRED)
+include(../../infra/baremetal-psa.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
 #  Set target platform to provide drivers needed by the deployment
@@ -54,14 +60,11 @@ include(../crypto.cmake REQUIRED)
 #-------------------------------------------------------------------------------
 add_platform(TARGET "crypto")
 
-#################################################################
-
+#-------------------------------------------------------------------------------
+#  Deployment specific build options
+#-------------------------------------------------------------------------------
 target_compile_definitions(crypto PRIVATE
 	ARM64=1
-)
-
-target_include_directories(crypto PRIVATE
-	${TS_ROOT}/deployments/crypto/opteesp
 )
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
@@ -73,7 +76,9 @@ endif()
 
 compiler_generate_stripped_elf(TARGET crypto NAME "${SP_UUID_CANON}.stripped.elf" RES STRIPPED_ELF)
 
-######################################## install
+#-------------------------------------------------------------------------------
+#  Deployment specific install options
+#-------------------------------------------------------------------------------
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "location to install build output to." FORCE)
 endif()
