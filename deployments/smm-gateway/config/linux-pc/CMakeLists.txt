@@ -5,7 +5,7 @@
 #
 #-------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
-include(../../deployment.cmake REQUIRED)
+include(../../../deployment.cmake REQUIRED)
 
 project(smm-gateway-unit-tests LANGUAGES CXX C)
 

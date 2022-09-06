@@ -4,7 +4,7 @@
  */
 
 #include "rpc/ffarpc/endpoint/ffarpc_call_ep.h"
-#include "smm_gateway.h"
+#include "deployments/smm-gateway/common/smm_gateway.h"
 #include "config/ramstore/config_ramstore.h"
 #include "config/interface/config_store.h"
 #include "config/loader/sp/sp_config_loader.h"
