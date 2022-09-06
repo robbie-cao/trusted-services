@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 # Set default platform.
 set(TS_PLATFORM "arm/fvp/fvp_base_revc-2xaemv8a" CACHE STRING "Target platform location.")
-include(../../deployment.cmake REQUIRED)
+include(../../../deployment.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
 #  The CMakeLists.txt for building the attestation deployment for generic sp
@@ -45,7 +45,9 @@ add_components(TARGET "attestation"
 		environments/sp
 )
 
-include(../attestation.cmake REQUIRED)
+include(../../env/commonsp/attestation_sp.cmake REQUIRED)
+include(../../infra/tpm-eventlog-psa.cmake REQUIRED)
+include(../../attestation.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
 #  Set target platform to provide drivers needed by the deployment
@@ -53,6 +55,9 @@ include(../attestation.cmake REQUIRED)
 #-------------------------------------------------------------------------------
 add_platform(TARGET "attestation")
 
+#-------------------------------------------------------------------------------
+#  Deployment specific build options
+#-------------------------------------------------------------------------------
 target_compile_definitions(attestation PRIVATE
 	ARM64=1
 )
@@ -70,7 +75,9 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SP_UUID_CANON}.bin DESTINATION ${TS_
 include(${TS_ROOT}/tools/cmake/common/ExportMemoryRegionsToManifest.cmake REQUIRED)
 export_memory_regions_to_manifest(TARGET attestation NAME "${SP_UUID_CANON}_memory_regions.dtsi" RES EXPORT_MEMORY_REGIONS_DTSI)
 
-######################################## install
+#-------------------------------------------------------------------------------
+#  Deployment specific install options
+#-------------------------------------------------------------------------------
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "location to install build output to." FORCE)
 endif()

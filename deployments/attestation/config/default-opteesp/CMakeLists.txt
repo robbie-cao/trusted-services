@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 # Set default platform.
 set(TS_PLATFORM "arm/fvp/fvp_base_revc-2xaemv8a" CACHE STRING "Target platform location.")
-include(../../deployment.cmake REQUIRED)
+include(../../../deployment.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
 #  The CMakeLists.txt for building the attestation deployment for opteesp
@@ -29,6 +29,10 @@ set_target_uuids(
 	SP_NAME "attestation"
 )
 
+target_include_directories(attestation PRIVATE
+	${CMAKE_CURRENT_LIST_DIR}
+)
+
 #-------------------------------------------------------------------------------
 #  Default deployment specific configuration
 #
@@ -36,7 +40,7 @@ set_target_uuids(
 set(TS_NO_FLOAT_HW ON)
 
 #-------------------------------------------------------------------------------
-#  Components that are specific to deployment in the opteesp environment.
+#  Deployment specific components
 #
 #-------------------------------------------------------------------------------
 add_components(TARGET "attestation"
@@ -45,7 +49,9 @@ add_components(TARGET "attestation"
 		"environments/opteesp"
 )
 
-include(../attestation.cmake REQUIRED)
+include(../../env/commonsp/attestation_sp.cmake REQUIRED)
+include(../../infra/tpm-eventlog-psa.cmake REQUIRED)
+include(../../attestation.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
 #  Set target platform to provide drivers needed by the deployment
@@ -53,12 +59,11 @@ include(../attestation.cmake REQUIRED)
 #-------------------------------------------------------------------------------
 add_platform(TARGET "attestation")
 
+#-------------------------------------------------------------------------------
+#  Deployment specific build options
+#-------------------------------------------------------------------------------
 target_compile_definitions(attestation PRIVATE
 	ARM64=1
-)
-
-target_include_directories(attestation PRIVATE
-	${TS_ROOT}/deployments/attestation/opteesp
 )
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
@@ -70,7 +75,9 @@ endif()
 
 compiler_generate_stripped_elf(TARGET attestation NAME "${SP_UUID_CANON}.stripped.elf" RES STRIPPED_ELF)
 
-######################################## install
+#-------------------------------------------------------------------------------
+#  Deployment specific install options
+#-------------------------------------------------------------------------------
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "location to install build output to." FORCE)
 endif()
