@@ -11,8 +11,8 @@
 #include "sp_discovery.h"
 #include "sp_rxtx.h"
 #include "trace.h"
-#include "service_proxy_factory.h"
-#include "../se_proxy_interfaces.h"
+#include "deployments/se-proxy/infra/service_proxy_factory.h"
+#include "deployments/se-proxy/se_proxy_interfaces.h"
 
 static bool sp_init(uint16_t *own_sp_id);
 
