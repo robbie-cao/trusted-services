@@ -3,7 +3,6 @@
  * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  */
 
-#include "rpc/ffarpc/caller/sp/ffarpc_caller.h"
 #include "rpc/ffarpc/endpoint/ffarpc_call_ep.h"
 #include "service/test_runner/provider/test_runner_provider.h"
 #include "service/test_runner/provider/serializer/packed-c/packedc_test_runner_provider_serializer.h"
@@ -15,7 +14,7 @@
 #include "sp_discovery.h"
 #include "sp_rxtx.h"
 #include "trace.h"
-#include "env_test_tests.h"
+#include "deployments/env-test/suites/registration/env_test_register.h"
 
 static bool sp_init(uint16_t *own_sp_id);
 
@@ -24,7 +23,6 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	struct test_runner_provider test_runner_provider = { 0 };
 	struct ffa_call_ep ffarpc_call_ep = { 0 };
 	struct rpc_interface *test_runner_iface = NULL;
-	struct ffarpc_caller ffarpc_caller = { 0 };
 	struct sp_msg req_msg = { 0 };
 	struct sp_msg resp_msg = { 0 };
 	uint16_t own_id = 0;

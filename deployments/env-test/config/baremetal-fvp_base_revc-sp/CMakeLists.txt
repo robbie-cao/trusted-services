@@ -8,15 +8,13 @@ cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 # Set default platform.
 set(TS_PLATFORM "arm/fvp/fvp_base_revc-2xaemv8a" CACHE STRING "Target platform location.")
-include(../../deployment.cmake REQUIRED)
+include(../../../deployment.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
-#  The CMakeLists.txt for building the env-test deployment for generic sp
-#  environment.
+#  The CMakeLists.txt for building the env-test deployment for sp
 #
-#  Builds the test_runner service provider for running in an SEL0 secure
-#  partition hosted by any SPM. Environment tests are added and CppUnit test
-#  cases.
+#  Builds the test_runner service provider with a set of baremetal drivers
+#  and test cases for testing drivers from within an SEL0 SP.
 #-------------------------------------------------------------------------------
 include(${TS_ROOT}/environments/sp/env.cmake)
 set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type")
@@ -30,33 +28,29 @@ set(TRACE_PREFIX "ENVTEST" CACHE STRING "Trace prefix")
 set(SP_STACK_SIZE "64 * 1024" CACHE STRING "Stack size")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "Heap size")
 
+#-------------------------------------------------------------------------------
+#  Components that are specific to deployment in the opteesp environment.
+#
+#-------------------------------------------------------------------------------
 add_components(TARGET "env-test"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
-		"components/common/trace"
-		"components/common/utils"
-		"components/config/loader/sp"
-		"components/messaging/ffa/libsp"
-		"components/rpc/ffarpc/endpoint"
-		"components/config/test/sp"
-		"environments/sp"
+		environments/sp
 )
 
-#-------------------------------------------------------------------------------
-#  Extend with components that are common across all deployments of
-#  env-test
-#
-#-------------------------------------------------------------------------------
-include(../env-test.cmake REQUIRED)
+include(../../env/commonsp/env_test_sp.cmake REQUIRED)
+include(../../env-test.cmake REQUIRED)
+include(../../suites/baremetal-tests.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
 #  Set target platform to provide drivers needed by the deployment
 #
 #-------------------------------------------------------------------------------
-add_platform(TARGET env-test)
+add_platform(TARGET "env-test")
 
-#################################################################
-
+#-------------------------------------------------------------------------------
+#  Deployment specific build options
+#-------------------------------------------------------------------------------
 target_compile_definitions(env-test PRIVATE
 	ARM64=1
 )
@@ -74,7 +68,9 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SP_UUID_CANON}.bin DESTINATION ${TS_
 include(${TS_ROOT}/tools/cmake/common/ExportMemoryRegionsToManifest.cmake REQUIRED)
 export_memory_regions_to_manifest(TARGET env-test NAME "${SP_UUID_CANON}_memory_regions.dtsi" RES EXPORT_MEMORY_REGIONS_DTSI)
 
-######################################## install
+#-------------------------------------------------------------------------------
+#  Deployment specific install options
+#-------------------------------------------------------------------------------
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "location to install build output to." FORCE)
 endif()
