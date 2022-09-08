@@ -94,7 +94,7 @@ int test_runner_client::iterate_over_tests(
 
             test_status = opstatus;
 
-            if (opstatus == TS_TEST_RUNNER_STATUS_SUCCESS) {
+            if (test_status == TS_TEST_RUNNER_STATUS_SUCCESS) {
 
                 test_status = deserialize_results(resp_buf, resp_len, summary, results);
             }
