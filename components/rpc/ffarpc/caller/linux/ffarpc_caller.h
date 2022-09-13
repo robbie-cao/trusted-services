@@ -29,7 +29,7 @@ struct ffarpc_caller {
 	int shared_mem_id;
 	size_t shared_mem_required_size;
 	size_t shared_mem_actual_size;
-	uint8_t *shared_mem_buf;
+	void *shared_mem_buf;
 	size_t req_len;
 	size_t resp_len;
 	bool is_call_transaction_in_progess;

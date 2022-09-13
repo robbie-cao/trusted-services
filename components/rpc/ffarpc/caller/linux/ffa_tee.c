@@ -119,7 +119,7 @@ static int ffa_tee_invoke_func(int fd, struct tee_ioctl_buf_data *buf_data)
 }
 
 int ffa_tee_send_msg(int fd, uint16_t iface_id, uint16_t opcode, size_t req_len, uint16_t encoding,
-		     size_t *resp_len, uint32_t *rpc_status, uint32_t *opstatus)
+		     size_t *resp_len, int32_t *rpc_status, int32_t *opstatus)
 {
 	struct tee_ioctl_invoke_arg *arg = NULL;
 	struct tee_ioctl_param *params = NULL;

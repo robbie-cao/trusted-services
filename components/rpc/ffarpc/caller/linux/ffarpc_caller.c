@@ -210,6 +210,7 @@ static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_l
 static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t opcode,
 				rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len)
 {
+	int32_t rpc_opstatus = 0;
 	rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
 	struct ffarpc_caller *s = (struct ffarpc_caller*)context;
 
@@ -218,7 +219,9 @@ static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t 
 
 		kernel_op_status = ffa_tee_send_msg(s->fd, s->dest_iface_id, opcode, s->req_len,
 						    s->rpc_caller.encoding, &s->resp_len,
-						    &rpc_status, opstatus);
+						    &rpc_status, &rpc_opstatus);
+
+		*opstatus = (rpc_opstatus_t)rpc_opstatus;
 
 		if (kernel_op_status == 0) {
 			*resp_len = s->resp_len;
