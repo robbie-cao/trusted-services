@@ -13,11 +13,13 @@
 static const struct sp_msg expected_req = {
 	.source_id = 0x0123,
 	.destination_id = 0x4567,
+	.is_64bit_message = false,
 	.args = {0x89abcdef, 0xfedcba98, 0x76543210, 0xabcdef01}
 };
 static const struct sp_msg expected_resp = {
 	.source_id = 0x1234,
 	.destination_id = 0x5678,
+	.is_64bit_message = false,
 	.args = {0x9abcdef8, 0xedcba98f, 0x65432107, 0xbcdef01a}
 };
 
