@@ -163,11 +163,7 @@ TEST(ffarpc_caller, discover)
 }
 
 TEST(ffarpc_caller, discover_less_max_cnt)
-{	struct sp_msg req = {0};
-	struct sp_msg resp = {0};
-	struct sp_memory_descriptor desc = { 0 };
-	struct sp_memory_access_descriptor acc_desc = { 0 };
-	struct sp_memory_region region = { 0 };
+{
 	uint32_t count = 5;
 	uint16_t sp_ids[2] = {0};
 	const void *buffer_ptr = partiton_info;
@@ -385,7 +381,6 @@ TEST(ffarpc_caller, begin_without_buffer)
 
 TEST(ffarpc_caller, invoke_null_context)
 {
-	rpc_call_handle handle = &caller;
 	rpc_opstatus_t opstatus = 0;
 	uint8_t *resp_buf = NULL;
 	size_t resp_len = 0;
