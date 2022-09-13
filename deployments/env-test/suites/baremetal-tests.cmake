@@ -14,6 +14,7 @@
 add_components(TARGET "env-test"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+		"components/common/uuid"
 		"components/service/crypto/backend/mbedcrypto"
 		"components/service/crypto/backend/mbedcrypto/trng_adapter/platform"
 		"components/service/crypto/backend/mbedcrypto/trng_adapter/test"
@@ -21,6 +22,10 @@ add_components(TARGET "env-test"
 		"components/service/secure_storage/frontend/psa/its"
 		"components/service/secure_storage/backend/secure_storage_client"
 		"components/config/test/sp"
+		"components/service/block_storage/block_store"
+		"components/service/block_storage/block_store/device"
+		"components/service/block_storage/block_store/device/semihosting"
+		"components/service/block_storage/block_store/device/semihosting/test"
 )
 
 target_sources(env-test PRIVATE

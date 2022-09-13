@@ -24,3 +24,7 @@ endif()
 if ("secure-nor-flash" IN_LIST _platform_driver_dependencies)
 	include(${TS_ROOT}/platform/drivers/tf-a/drivers/cfi/v2m/v2m_flash.cmake)
 endif()
+
+if ("semihosting" IN_LIST _platform_driver_dependencies)
+	include(${TS_ROOT}/platform/drivers/tf-a/lib/semihosting/driver.cmake)
+endif()

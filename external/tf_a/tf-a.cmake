@@ -52,5 +52,6 @@ function(add_tfa_dependency)
 	endif()
 
 	target_include_directories(${MY_PARAMS_TARGET} PRIVATE "${TFA_SOURCE_DIR}/include")
+	target_include_directories(${MY_PARAMS_TARGET} PRIVATE "${TFA_SOURCE_DIR}/include/arch/aarch64")
 
 endfunction()

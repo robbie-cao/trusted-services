@@ -91,3 +91,14 @@ void block_device_deinit(
 	storage_partition_deinit(
 		&block_device->storage_partition);
 }
+
+void block_device_configure(
+	struct block_device *block_device,
+	const struct uuid_octets *disk_guid,
+	size_t num_blocks,
+	size_t block_size)
+{
+	storage_partition_init(
+		&block_device->storage_partition,
+		disk_guid, num_blocks, block_size);
+}

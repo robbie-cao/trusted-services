@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -9,9 +9,9 @@ if (NOT DEFINED TGT)
 endif()
 
 target_sources(${TGT} PRIVATE
-	"${CMAKE_CURRENT_LIST_DIR}/platform_trng_adapter.c"
+	"${CMAKE_CURRENT_LIST_DIR}/semihosting_block_store.c"
 	)
 
 set_property(TARGET ${TGT} APPEND PROPERTY TS_PLATFORM_DRIVER_DEPENDENCIES
-	"trng"
+	"semihosting"
 	)

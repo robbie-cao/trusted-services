@@ -36,8 +36,12 @@ struct block_device
 /**
  * \brief Initialize a block_device
  *
- * \param[in]  block_device     The subject block_device
- * \param[in]  disk_guid        The disk GUID (can be nil)
+ * If configuration parameters are known at initialisation, they may be
+ * provided to configure the block device. If not, pass zero values for
+ * unknown configuration parameters.
+ *
+ * \param[in]  block_device  	The subject block_device
+ * \param[in]  disk_guid   		The disk GUID (can be NULL)
  * \param[in]  num_blocks       The number of contiguous blocks
  * \param[in]  block_size       Block size in bytes
  *
@@ -56,6 +60,23 @@ struct block_store *block_device_init(
  */
 void block_device_deinit(
 	struct block_device *block_device);
+
+/**
+ * \brief Configure a block_device
+ *
+ * Configure an initialised block_device. Configuration parameters are assumed
+ * to have been sanity checked based on knowledge of the concrete block_device.
+ *
+ * \param[in]  block_device  	The subject block_device
+ * \param[in]  disk_guid   		The disk GUID (can be NULL)
+ * \param[in]  num_blocks       The number of contiguous blocks
+ * \param[in]  block_size       Block size in bytes
+ */
+void block_device_configure(
+	struct block_device *block_device,
+	const struct uuid_octets *disk_guid,
+	size_t num_blocks,
+	size_t block_size);
 
 /**
  * \brief Check if access is permitted
