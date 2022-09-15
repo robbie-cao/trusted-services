@@ -136,6 +136,23 @@ if (NOT NEWLIB_LIBC_PATH)
 			message(FATAL_ERROR "Please install git")
 		endif()
 
+		# List patch files.
+		file(GLOB _patch_files LIST_DIRECTORIES false "${CMAKE_CURRENT_LIST_DIR}/[0-9]*-[!0-9]*.patch")
+		# Sort items in natural order to ensure patches are amended in the right order.
+		list(SORT _patch_files COMPARE NATURAL)
+		# Convert the list to a string of concatenated quoted list items.
+		string(REPLACE ";" "\" \"" _patch_files "${_patch_files}")
+		set(_patch_files "\"${_patch_files}\"")
+		# Create a shell script pathching newlib witht the files listed above
+		string(APPEND _patch_script "#!/bin/sh\n"
+			" ${GIT_COMMAND} stash\n"
+			" ${GIT_COMMAND} branch ts-bf-am\n"
+			" ${GIT_COMMAND} am ${_patch_files}\n"
+			" ${GIT_COMMAND} reset ts-bf-am\n"
+			" ${GIT_COMMAND} branch -D ts-bf-am\n"
+		)
+		file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/patch-newlib "${_patch_script}")
+
 		# Fetching newlib
 		FetchContent_Declare(
 			newlib
@@ -143,9 +160,7 @@ if (NOT NEWLIB_LIBC_PATH)
 			GIT_REPOSITORY ${NEWLIB_URL}
 			GIT_TAG ${NEWLIB_REFSPEC}
 			GIT_SHALLOW FALSE
-			PATCH_COMMAND git stash
-				COMMAND ${GIT_COMMAND} am ${CMAKE_CURRENT_LIST_DIR}/0001-Allow-aarch64-linux-gcc-to-compile-bare-metal-lib.patch
-				COMMAND ${GIT_COMMAND} reset HEAD~1
+			PATCH_COMMAND sh ${CMAKE_CURRENT_BINARY_DIR}/patch-newlib
 		)
 
 		# FetchContent_GetProperties exports newlib_SOURCE_DIR and newlib_BINARY_DIR variables
@@ -165,6 +180,10 @@ if (NOT NEWLIB_LIBC_PATH)
 	string(REPLACE ";" " -isystem " CFLAGS_FOR_TARGET "${_gcc_include_dirs}")
 	set(CFLAGS_FOR_TARGET "-isystem ${CFLAGS_FOR_TARGET} -fpic")
 
+	# Split a newlib extra build parameter into a list of parameters
+	set(NEWLIB_EXTRAS ${NEWLIB_EXTRA})
+	separate_arguments(NEWLIB_EXTRAS)
+
 	# Newlib configure step
 	# CC env var must be unset otherwise configure will assume the cross compiler is the host
 	# compiler.
@@ -172,6 +191,7 @@ if (NOT NEWLIB_LIBC_PATH)
 	execute_process(COMMAND
 		${CMAKE_COMMAND} -E env --unset=CC PATH=${COMPILER_PATH}:$ENV{PATH} ./configure
 			--target=${COMPILER_PREFIX}
+			--host=${COMPILER_PREFIX}
 			--prefix=${NEWLIB_INSTALL_DIR}
 			--enable-newlib-nano-formatted-io
 			--enable-newlib-nano-malloc
@@ -179,6 +199,7 @@ if (NOT NEWLIB_LIBC_PATH)
 			--enable-newlib-reent-small
 			--enable-newlib-global-atexit
 			--disable-multilib
+			${NEWLIB_EXTRAS}
 			CFLAGS_FOR_TARGET=${CFLAGS_FOR_TARGET}
 			LDFLAGS_FOR_TARGET=-fpie
 		WORKING_DIRECTORY
