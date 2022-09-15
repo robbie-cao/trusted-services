@@ -161,6 +161,21 @@ if (NOT NEWLIB_LIBC_PATH)
 	# Get extra external CFLAGS for host from environment
 	set(NEWLIB_CFLAGS $ENV{NEWLIB_CFLAGS} CACHE STRING "")
 
+	# Newlib is keeping build artifacts in the source directory. If the source is pre-fetched,
+	# intermediate files of previoud build migth be still present.
+	# Run distclean to avoid build errors due to reconfiguration.
+	execute_process(COMMAND
+		${CMAKE_COMMAND} -E env --unset=CC PATH=${COMPILER_PATH}:$ENV{PATH}
+			make -j${PROCESSOR_COUNT} distclean
+		WORKING_DIRECTORY
+			${NEWLIB_SOURCE_DIR}
+		RESULT_VARIABLE _newlib_error
+	)
+	#ignore error as distclean-host is failing.
+	#if (_newlib_error)
+	#	message(FATAL_ERROR "\"distclean\" step of newlib failed with ${_newlib_error}.")
+	#endif()
+
 	# Newlib configure step
 	# CC env var must be unset otherwise configure will assume the cross compiler is the host
 	# compiler.
