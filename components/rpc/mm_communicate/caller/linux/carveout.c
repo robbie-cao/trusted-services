@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -11,9 +11,12 @@
 #include <fcntl.h>
 #include "carveout.h"
 
-/* Need to be aligned with carve-out used by StMM or smm-gateway. */
-static const off_t carveout_pa = 0x0000000881000000;
-static const size_t carveout_len = 0x8000;
+#ifndef MM_COMM_BUFFER_ADDRESS
+#error "MM_COMM_BUFFER_ADDRESS macro is undefined!"
+#endif
+#ifndef MM_COMM_BUFFER_SIZE
+#error "MM_COMM_BUFFER_SIZE macro is undefined!"
+#endif
 
 int carveout_claim(uint8_t **buf, size_t *buf_size)
 {
@@ -22,14 +25,14 @@ int carveout_claim(uint8_t **buf, size_t *buf_size)
 
 	if (fd >= 0) {
 
-		uint8_t *mem = mmap(NULL, carveout_len,
+		uint8_t *mem = mmap(NULL, (size_t)(MM_COMM_BUFFER_SIZE),
 			PROT_READ | PROT_WRITE, MAP_SHARED,
-			fd, carveout_pa);
+			fd, (off_t)(MM_COMM_BUFFER_ADDRESS));
 
 		if (mem != MAP_FAILED) {
 
 			*buf = mem;
-			*buf_size = carveout_len;
+			*buf_size = (size_t)(MM_COMM_BUFFER_SIZE);
 
 			status = 0;
 		}

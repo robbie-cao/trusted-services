@@ -19,6 +19,10 @@ project(trusted-services LANGUAGES CXX C)
 add_library(ts SHARED)
 target_include_directories(ts PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 
+# Setting the MM communication buffer parameters
+set(MM_COMM_BUFFER_ADDRESS "0x881000000" CACHE STRING "Address of MM communicte buffer")
+set(MM_COMM_BUFFER_SIZE "8*4*1024" CACHE STRING "Size of the MM communicate buffer in bytes")
+
 #-------------------------------------------------------------------------------
 #  Components that are specific to deployment in the arm-linux environment.
 #
