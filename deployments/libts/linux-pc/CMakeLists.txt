@@ -33,6 +33,7 @@ add_components(
 		"components/common/tlv"
 		"components/common/endian"
 		"components/common/utils"
+		"components/common/trace"
 		"components/config/ramstore"
 		"components/service/common/include"
 		"components/service/common/client"
@@ -93,6 +94,14 @@ add_components(
 		"protocols/service/crypto/protobuf"
 		"protocols/service/secure_storage/packed-c"
 )
+
+#-------------------------------------------------------------------------------
+#  Configure added components
+#
+#-------------------------------------------------------------------------------
+# Force trace level to TRACE_LEVEL_NONE to disable trace messages. This is
+# needed till proper trace enablement for the linux-pc environment is done.
+target_compile_definitions(ts PUBLIC TRACE_LEVEL=0)
 
 #-------------------------------------------------------------------------------
 #  Extend with components that are common across all deployments of
