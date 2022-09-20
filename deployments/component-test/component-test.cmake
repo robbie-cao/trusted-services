@@ -10,6 +10,18 @@
 #  different environments.  Used for running standalone component tests
 #  contained within a single executable.
 #-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+#  External project source-level dependencies
+#
+#-------------------------------------------------------------------------------
+include(${TS_ROOT}/external/tf_a/tf-a.cmake)
+add_tfa_dependency(TARGET "component-test")
+
+#-------------------------------------------------------------------------------
+#  Common components from TS project
+#
+#-------------------------------------------------------------------------------
 add_components(
 	TARGET "component-test"
 	BASE_DIR ${TS_ROOT}
@@ -24,6 +36,8 @@ add_components(
 		"components/common/trace"
 		"components/common/endian"
 		"components/common/endian/test"
+		"components/common/crc32/native"
+		"components/common/crc32/test"
 		"components/config/ramstore"
 		"components/config/ramstore/test"
 		"components/messaging/ffa/libsp/mock"
@@ -147,6 +161,9 @@ add_components(
 		"components/service/smm_variable/provider"
 		"components/service/smm_variable/backend"
 		"components/service/smm_variable/backend/test"
+		"components/media/partition_table"
+		"components/media/volume/storage"
+		"components/media/volume/image_source"
 		"protocols/rpc/common/protobuf"
 		"protocols/rpc/common/packed-c"
 		"protocols/service/crypto/packed-c"

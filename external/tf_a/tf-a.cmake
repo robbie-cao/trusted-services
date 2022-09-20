@@ -51,6 +51,11 @@ function(add_tfa_dependency)
 		message(FATAL_ERROR "add_tf-a: mandatory parameter TARGET not defined!")
 	endif()
 
+	# Provide override include files to enable tf-a components to be compiled outside of
+	# the tf-a build environment.
+	target_include_directories(${MY_PARAMS_TARGET} PRIVATE "${TS_ROOT}/external/tf_a/include")
+
+	# Export tf-a public include files
 	target_include_directories(${MY_PARAMS_TARGET} PRIVATE "${TFA_SOURCE_DIR}/include")
 	target_include_directories(${MY_PARAMS_TARGET} PRIVATE "${TFA_SOURCE_DIR}/include/arch/aarch64")
 
