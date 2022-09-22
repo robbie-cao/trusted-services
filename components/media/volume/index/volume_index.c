@@ -8,7 +8,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-#include <plat/common/platform.h>
 #include "volume_index.h"
 
 #ifndef VOLUME_INDEX_MAX_ENTRIES

@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef UUID_H
-#define UUID_H
+#ifndef COMMON_UUID_H
+#define COMMON_UUID_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -69,4 +69,4 @@ void uuid_reverse_octets(const struct uuid_octets *standard_encoding,
 }
 #endif
 
-#endif /* UUID_H */
+#endif /* COMMON_UUID_H */

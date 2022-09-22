@@ -4,14 +4,20 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef VOLUME_INDEX_H
-#define VOLUME_INDEX_H
+#ifndef MEDIA_VOLUME_INDEX_H
+#define MEDIA_VOLUME_INDEX_H
 
 #include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * For tf-a declaration of plat_get_image_source(). Included within C++ extern C
+ * guard to allow for calling from C++.
+ */
+#include <plat/common/platform.h>
 
 /**
  * @brief  Initialize the volume index
@@ -49,4 +55,4 @@ int volume_index_add(
 }
 #endif
 
-#endif /* VOLUME_INDEX_H */
+#endif /* MEDIA_VOLUME_INDEX_H */
