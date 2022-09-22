@@ -163,7 +163,7 @@ add_components(
 		"components/service/smm_variable/backend/test"
 		"components/media/partition_table"
 		"components/media/volume/storage"
-		"components/media/volume/image_source"
+		"components/media/volume/index"
 		"protocols/rpc/common/protobuf"
 		"protocols/rpc/common/packed-c"
 		"protocols/service/crypto/packed-c"

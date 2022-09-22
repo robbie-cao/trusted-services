@@ -9,5 +9,5 @@ if (NOT DEFINED TGT)
 endif()
 
 target_sources(${TGT} PRIVATE
-	"${CMAKE_CURRENT_LIST_DIR}/image_source.c"
+	"${CMAKE_CURRENT_LIST_DIR}/volume_index.c"
 )
