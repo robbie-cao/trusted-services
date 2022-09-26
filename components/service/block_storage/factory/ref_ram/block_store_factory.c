@@ -36,7 +36,8 @@ struct block_store *ref_ram_block_store_factory_create(void)
 			&assembly->ram_block_store,
 			&back_store_guid,
 			REF_PARTITION_BACK_STORE_SIZE,
-			REF_PARTITION_BLOCK_SIZE);
+			REF_PARTITION_BLOCK_SIZE,
+			NULL);
 
 		/* Stack a partitioned_block_store over the back store */
 		product = partitioned_block_store_init(

@@ -35,6 +35,7 @@ struct ram_block_store
  * \param[in]  disk_guid   		The disk GUID
  * \param[in]  num_blocks       The number of contiguous blocks
  * \param[in]  block_size       Block size in bytes
+ * \param[in]  initial_data		Initial image data (NULL if none)
  *
  * \return Pointer to block_store or NULL on failure
  */
@@ -42,7 +43,8 @@ struct block_store *ram_block_store_init(
 	struct ram_block_store *ram_block_store,
 	const struct uuid_octets *disk_guid,
 	size_t num_blocks,
-	size_t block_size);
+	size_t block_size,
+	const uint8_t *initial_data);
 
 /**
  * \brief De-initialize a ram_block_store
@@ -54,7 +56,23 @@ struct block_store *ram_block_store_init(
 void ram_block_store_deinit(
 	struct ram_block_store *ram_block_store);
 
-
+/**
+ * \brief Modify the ram back store
+ *
+ *  Test support function to allow the ram back store to be modified.
+ *
+ * \param[in]  ram_block_store  The subject ram_block_store
+ * \param[in]  offset   Byte offset from start of store
+ * \param[in]  data		Data to write
+ * \param[in]  data_len Length of data to write
+ *
+ * \return PSA_SUCCESS on success
+ */
+psa_status_t ram_block_store_modify(
+	struct ram_block_store *ram_block_store,
+	size_t offset,
+	const uint8_t *data,
+	size_t data_len);
 
 #ifdef __cplusplus
 }

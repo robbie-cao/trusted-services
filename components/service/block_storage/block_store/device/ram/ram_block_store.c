@@ -196,7 +196,8 @@ struct block_store *ram_block_store_init(
 	struct ram_block_store *ram_block_store,
 	const struct uuid_octets *disk_guid,
 	size_t num_blocks,
-	size_t block_size)
+	size_t block_size,
+	const uint8_t *initial_data)
 {
 	struct block_store *retval = NULL;
 
@@ -221,7 +222,10 @@ struct block_store *ram_block_store_init(
 
 	if (ram_block_store->ram_back_store) {
 
-		memset(ram_block_store->ram_back_store, RAM_BLOCK_STORE_ERASED_VALUE, back_store_size);
+		if (initial_data)
+			memcpy(ram_block_store->ram_back_store, initial_data, back_store_size);
+		else
+			memset(ram_block_store->ram_back_store, RAM_BLOCK_STORE_ERASED_VALUE, back_store_size);
 
 		retval = block_device_init(
 			&ram_block_store->base_block_device, disk_guid, num_blocks, block_size);
@@ -236,4 +240,27 @@ void ram_block_store_deinit(
 	free(ram_block_store->ram_back_store);
 
 	block_device_deinit(&ram_block_store->base_block_device);
+}
+
+psa_status_t ram_block_store_modify(
+	struct ram_block_store *ram_block_store,
+	size_t offset,
+	const uint8_t *data,
+	size_t data_len)
+{
+	const struct storage_partition *storage_partition =
+		&ram_block_store->base_block_device.storage_partition;
+
+	size_t back_store_size = storage_partition->block_size * storage_partition->num_blocks;
+
+	if (offset < back_store_size) {
+
+		size_t write_len = (offset + data_len < back_store_size) ?
+			data_len : back_store_size - offset;
+
+		memcpy(&ram_block_store->ram_back_store[offset], data, write_len);
+	} else
+		return PSA_ERROR_INVALID_ARGUMENT;
+
+	return PSA_SUCCESS;
 }
