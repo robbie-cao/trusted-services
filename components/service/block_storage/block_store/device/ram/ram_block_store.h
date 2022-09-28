@@ -35,7 +35,6 @@ struct ram_block_store
  * \param[in]  disk_guid   		The disk GUID
  * \param[in]  num_blocks       The number of contiguous blocks
  * \param[in]  block_size       Block size in bytes
- * \param[in]  initial_data		Initial image data (NULL if none)
  *
  * \return Pointer to block_store or NULL on failure
  */
@@ -43,8 +42,7 @@ struct block_store *ram_block_store_init(
 	struct ram_block_store *ram_block_store,
 	const struct uuid_octets *disk_guid,
 	size_t num_blocks,
-	size_t block_size,
-	const uint8_t *initial_data);
+	size_t block_size);
 
 /**
  * \brief De-initialize a ram_block_store

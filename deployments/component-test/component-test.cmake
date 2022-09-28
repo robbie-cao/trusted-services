@@ -163,6 +163,7 @@ add_components(
 		"components/service/smm_variable/backend/test"
 		"components/media/disk"
 		"components/media/disk/disk_images"
+		"components/media/disk/formatter"
 		"components/media/disk/test"
 		"components/media/volume/index"
 		"components/media/volume/base_io_dev"

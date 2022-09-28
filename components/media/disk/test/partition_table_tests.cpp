@@ -14,6 +14,7 @@
 #include <media/volume/block_io_dev/block_io_dev.h>
 #include <media/volume/base_io_dev/base_io_dev.h>
 #include <media/disk/disk_images/ref_partition.h>
+#include <media/disk/formatter/disk_formatter.h>
 #include <media/disk/partition_table.h>
 #include <CppUTest/TestHarness.h>
 
@@ -27,7 +28,7 @@ TEST_GROUP(PartitionTableTests)
 
 		m_block_store = ram_block_store_init(&m_ram_block_store,
 			NULL,
-			num_blocks, block_size, ref_partition_data);
+			num_blocks, block_size);
 
 		CHECK_TRUE(m_block_store);
 
@@ -43,6 +44,12 @@ TEST_GROUP(PartitionTableTests)
 		LONGS_EQUAL(0, result);
 		CHECK_TRUE(m_dev_handle);
 		CHECK_TRUE(m_volume_spec);
+
+		result = disk_formatter_clone(
+			m_dev_handle, m_volume_spec,
+			ref_partition_data, ref_partition_data_length);
+
+		LONGS_EQUAL(0, result);
 
 		volume_index_init();
 		volume_index_add(TEST_VOLUME_ID, m_dev_handle, m_volume_spec);

@@ -22,8 +22,7 @@ TEST_GROUP(PartitionedBlockStoreTests)
 			&m_ram_store,
 			&back_store_guid,
 			BACK_STORE_NUM_BLOCKS,
-			BACK_STORE_BLOCK_SIZE,
-			NULL);
+			BACK_STORE_BLOCK_SIZE);
 
 		CHECK_TRUE(back_store);
 

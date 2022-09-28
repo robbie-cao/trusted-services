@@ -196,8 +196,7 @@ struct block_store *ram_block_store_init(
 	struct ram_block_store *ram_block_store,
 	const struct uuid_octets *disk_guid,
 	size_t num_blocks,
-	size_t block_size,
-	const uint8_t *initial_data)
+	size_t block_size)
 {
 	struct block_store *retval = NULL;
 
@@ -222,10 +221,7 @@ struct block_store *ram_block_store_init(
 
 	if (ram_block_store->ram_back_store) {
 
-		if (initial_data)
-			memcpy(ram_block_store->ram_back_store, initial_data, back_store_size);
-		else
-			memset(ram_block_store->ram_back_store, RAM_BLOCK_STORE_ERASED_VALUE, back_store_size);
+		memset(ram_block_store->ram_back_store, RAM_BLOCK_STORE_ERASED_VALUE, back_store_size);
 
 		retval = block_device_init(
 			&ram_block_store->base_block_device, disk_guid, num_blocks, block_size);

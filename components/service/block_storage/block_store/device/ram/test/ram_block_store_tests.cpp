@@ -18,7 +18,7 @@ TEST_GROUP(RamBlockStoreTests)
 			m_partition_guid.octets, sizeof(m_partition_guid.octets));
 
 		m_block_store = ram_block_store_init(&m_ram_block_store,
-			&m_partition_guid, NUM_BLOCKS, BLOCK_SIZE, NULL);
+			&m_partition_guid, NUM_BLOCKS, BLOCK_SIZE);
 
 		CHECK_TRUE(m_block_store);
 	}
