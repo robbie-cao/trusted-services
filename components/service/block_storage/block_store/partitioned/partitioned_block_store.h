@@ -21,6 +21,27 @@ extern "C" {
 #define PARTITIONED_BLOCK_STORE_MAX_PARTITIONS		(8)
 #endif
 
+/* Forward declaration */
+struct partitioned_block_store;
+
+/**
+ * \brief partition configuration listener
+ *
+ * A callback for implementing on-demand partition configuration for cases when
+ * there is a request to open a partition but the requested partition has not
+ * yet been configured. Attaching a partition configuration listener is optional.
+ *
+ * \param[in]  partitioned_block_store  The subject partitioned_block_store
+ * \param[in]  partition_guid   The requested partition GUID
+ * \param[in]  back_store_info  Information about the back store
+ *
+ * \return Return true if configuration successful
+ */
+typedef bool (*partition_config_listener)(
+	struct partitioned_block_store *partitioned_block_store,
+	const struct uuid_octets *partition_guid,
+	const struct storage_partition_info *back_store_info);
+
 /**
  * \brief partitioned_block_store structure
  *
@@ -35,12 +56,12 @@ struct partitioned_block_store
 	struct block_store base_block_store;
 	uint32_t local_client_id;
 	storage_partition_authorizer authorizer;
+	partition_config_listener config_listener;
 	size_t num_partitions;
 	struct storage_partition storage_partition[PARTITIONED_BLOCK_STORE_MAX_PARTITIONS];
 	storage_partition_handle_t back_store_handle;
 	struct block_store *back_store;
-	size_t back_store_block_size;
-	size_t back_store_num_blocks;
+	struct storage_partition_info back_store_info;
 };
 
 /**
@@ -53,7 +74,7 @@ struct partitioned_block_store
  * \param[in]  local_client_id   Client ID corresponding to the current environment
  * \param[in]  back_store_guid   The partition GUID to use in the underlying back store
  * \param[in]  back_store        The associated back store
- * \param[in]  authorizer		 Optional authorizer function for authorizing clients
+ * \param[in]  authorizer        Optional authorizer function for authorizing clients
  *
  * \return Pointer to block_store or NULL on failure
  */
@@ -73,6 +94,19 @@ struct block_store *partitioned_block_store_init(
  */
 void partitioned_block_store_deinit(
 	struct partitioned_block_store *partitioned_block_store);
+
+/**
+ * \brief Attach a config listener
+ *
+ * Allows an on-demand partition configurator to receive a callback when an
+ * attempt is made to open a partition that has not been configured.
+ *
+ * \param[in]  partitioned_block_store  The subject partitioned_block_store
+ * \param[in]  config_listener   Optional on-demand configurator
+ */
+void partitioned_block_store_attach_config_listener(
+	struct partitioned_block_store *partitioned_block_store,
+	partition_config_listener config_listener);
 
 /**
  * \brief Add a storage partition

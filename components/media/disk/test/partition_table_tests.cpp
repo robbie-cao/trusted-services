@@ -12,7 +12,6 @@
 #include <service/block_storage/config/ref/ref_partition_configurator.h>
 #include <media/volume/index/volume_index.h>
 #include <media/volume/block_io_dev/block_io_dev.h>
-#include <media/volume/base_io_dev/base_io_dev.h>
 #include <media/disk/disk_images/ref_partition.h>
 #include <media/disk/formatter/disk_formatter.h>
 #include <media/disk/partition_table.h>
@@ -52,7 +51,7 @@ TEST_GROUP(PartitionTableTests)
 		LONGS_EQUAL(0, result);
 
 		volume_index_init();
-		volume_index_add(TEST_VOLUME_ID, m_dev_handle, m_volume_spec);
+		volume_index_add(VOLUME_ID_SECURE_FLASH, m_dev_handle, m_volume_spec);
 	}
 
 	void teardown()
@@ -87,7 +86,6 @@ TEST_GROUP(PartitionTableTests)
 		LONGS_EQUAL(PSA_SUCCESS, status);
 	}
 
-	static const unsigned int TEST_VOLUME_ID = 5;
 	static const uint32_t CLIENT_ID = 0;
 	static const size_t FIRST_USABLE_LBA = 34;
 
@@ -101,7 +99,7 @@ TEST_GROUP(PartitionTableTests)
 
 TEST(PartitionTableTests, loadRefPartitionTable)
 {
-	int result = load_partition_table(TEST_VOLUME_ID);
+	int result = load_partition_table(VOLUME_ID_SECURE_FLASH);
 	LONGS_EQUAL(0, result);
 
 	/* Check for expected partition entries */
@@ -152,7 +150,7 @@ TEST(PartitionTableTests, loadRefPartitionTable)
 TEST(PartitionTableTests, detectCorruptedMbr)
 {
 	corrupt_mbr();
-	int result = load_partition_table(TEST_VOLUME_ID);
+	int result = load_partition_table(VOLUME_ID_SECURE_FLASH);
 	LONGS_EQUAL(-ENOENT, result);
 }
 
@@ -163,6 +161,6 @@ IGNORE_TEST(PartitionTableTests, detectCorruptedGptHeader)
 	 * backup is still available.
 	 */
 	corrupt_primary_gpt_header();
-	int result = load_partition_table(TEST_VOLUME_ID);
+	int result = load_partition_table(VOLUME_ID_SECURE_FLASH);
 	LONGS_EQUAL(0, result);
 }

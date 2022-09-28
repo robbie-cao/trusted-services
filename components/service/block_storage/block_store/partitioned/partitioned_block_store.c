@@ -5,28 +5,43 @@
  *
  */
 
+#include <stdbool.h>
 #include <stddef.h>
 #include "partitioned_block_store.h"
 
-
 static psa_status_t find_by_partition_guid(
-	const struct partitioned_block_store *partitioned_block_store,
+	struct partitioned_block_store *partitioned_block_store,
 	const struct uuid_octets *partition_guid,
 	size_t *index)
 {
 	psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+	bool try_again = false;
 
-	for (size_t i = 0; i < partitioned_block_store->num_partitions; i++) {
+	do {
 
-		if (storage_partition_is_guid_matched(
-			&partitioned_block_store->storage_partition[i],
-			partition_guid)) {
+		for (size_t i = 0; i < partitioned_block_store->num_partitions; i++) {
 
-			*index = i;
-			status = PSA_SUCCESS;
-			break;
+			if (storage_partition_is_guid_matched(
+				&partitioned_block_store->storage_partition[i],
+				partition_guid)) {
+
+				*index = i;
+				status = PSA_SUCCESS;
+				break;
+			}
 		}
-	}
+
+		/* Search again if on-demand configuration was performed */
+		try_again =
+			(status != PSA_SUCCESS) &&
+			!try_again &&
+			partitioned_block_store->config_listener &&
+			partitioned_block_store->config_listener(
+				partitioned_block_store,
+				partition_guid,
+				&partitioned_block_store->back_store_info);
+
+	} while (try_again);
 
 	return status;
 }
@@ -58,7 +73,7 @@ static psa_status_t partitioned_block_store_get_partition_info(void *context,
 	const struct uuid_octets *partition_guid,
 	struct storage_partition_info *info)
 {
-	const struct partitioned_block_store *partitioned_block_store =
+	struct partitioned_block_store *partitioned_block_store =
 		(struct partitioned_block_store*)context;
 
 	size_t partition_index = 0;
@@ -297,6 +312,9 @@ struct block_store *partitioned_block_store_init(
 	/* Note the environment specific authorizer function */
 	partitioned_block_store->authorizer = authorizer;
 
+	/* Default to no config listener */
+	partitioned_block_store->config_listener = NULL;
+
 	/* Initially no partitions. */
 	partitioned_block_store->num_partitions = 0;
 
@@ -312,8 +330,7 @@ struct block_store *partitioned_block_store_init(
 	if (status != PSA_SUCCESS)
 		return NULL;
 
-	partitioned_block_store->back_store_block_size = info.block_size;
-	partitioned_block_store->back_store_num_blocks = info.num_blocks;
+	partitioned_block_store->back_store_info = info;
 
 	/* Open underlying block store */
 	status = block_store_open(partitioned_block_store->back_store,
@@ -338,6 +355,13 @@ void partitioned_block_store_deinit(
 		storage_partition_deinit(&partitioned_block_store->storage_partition[i]);
 }
 
+void partitioned_block_store_attach_config_listener(
+	struct partitioned_block_store *partitioned_block_store,
+	partition_config_listener config_listener)
+{
+	partitioned_block_store->config_listener = config_listener;
+}
+
 bool partitioned_block_store_add_partition(
 	struct partitioned_block_store *partitioned_block_store,
 	const struct uuid_octets *partition_guid,
@@ -354,7 +378,7 @@ bool partitioned_block_store_add_partition(
 
 	/* Check partition blocks lie within limits of the back store */
 	if ((starting_lba > ending_lba) ||
-		(ending_lba >= partitioned_block_store->back_store_num_blocks))
+		(ending_lba >= partitioned_block_store->back_store_info.num_blocks))
 		return false;
 
 	/* Initialise a new storage_partition structure */
@@ -365,7 +389,7 @@ bool partitioned_block_store_add_partition(
 		storage_partition,
 		partition_guid,
 		ending_lba - starting_lba + 1,
-		partitioned_block_store->back_store_block_size);
+		partitioned_block_store->back_store_info.block_size);
 
 	storage_partition->base_lba = starting_lba;
 

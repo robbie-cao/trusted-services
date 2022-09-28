@@ -20,6 +20,15 @@ extern "C" {
 #include <plat/common/platform.h>
 
 /**
+ * @brief  Some common volume identifiers
+ *
+ * Volume IDs only need to be unique within a deployment. For convenience,
+ * here are some common volume IDs that may be useful.
+ */
+#define VOLUME_ID_COMMON_BASE        (0x10000)
+#define VOLUME_ID_SECURE_FLASH       (VOLUME_ID_COMMON_BASE + 0)
+
+/**
  * @brief  Initialize the volume index
  *
  * The volume_index is a singleton that holds the mapping of volume IDs

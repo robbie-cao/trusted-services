@@ -22,6 +22,13 @@ add_library(ts SHARED)
 target_include_directories(ts PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 
 #-------------------------------------------------------------------------------
+#  External project source-level dependencies
+#
+#-------------------------------------------------------------------------------
+include(${TS_ROOT}/external/tf_a/tf-a.cmake)
+add_tfa_dependency(TARGET "ts")
+
+#-------------------------------------------------------------------------------
 #  Components that are specific to deployment in the linux-pc environment.
 #
 #-------------------------------------------------------------------------------
@@ -35,6 +42,7 @@ add_components(
 		"components/common/endian"
 		"components/common/utils"
 		"components/common/trace"
+		"components/common/crc32/native"
 		"components/config/ramstore"
 		"components/service/common/include"
 		"components/service/common/client"
@@ -70,8 +78,9 @@ add_components(
 		"components/service/block_storage/block_store/client"
 		"components/service/block_storage/provider"
 		"components/service/block_storage/provider/serializer/packed-c"
+		"components/service/block_storage/config/gpt"
 		"components/service/block_storage/config/ref"
-		"components/service/block_storage/factory/ref_ram"
+		"components/service/block_storage/factory/ref_ram_gpt"
 		"components/service/block_storage/factory/client"
 		"components/service/crypto/provider"
 		"components/service/crypto/provider/serializer/protobuf"
@@ -105,6 +114,12 @@ add_components(
 		"components/service/test_runner/provider/backend/simple_c"
 		"components/service/smm_variable/backend"
 		"components/service/smm_variable/provider"
+		"components/media/disk"
+		"components/media/disk/disk_images"
+		"components/media/disk/formatter"
+		"components/media/volume/index"
+		"components/media/volume/base_io_dev"
+		"components/media/volume/block_io_dev"
 		"protocols/rpc/common/packed-c"
 		"protocols/service/crypto/packed-c"
 		"protocols/service/crypto/protobuf"
