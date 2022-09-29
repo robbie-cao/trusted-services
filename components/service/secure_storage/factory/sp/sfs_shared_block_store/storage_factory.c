@@ -18,7 +18,7 @@
 #include "service/secure_storage/factory/storage_factory.h"
 #include "service/block_storage/block_store/block_store.h"
 #include "service/block_storage/factory/client/block_store_factory.h"
-#include "service/block_storage/config/ref/ref_partition_configurator.h"
+#include "media/disk/guid.h"
 
 /* Overridable SFS configuration */
 
@@ -66,9 +66,11 @@ struct storage_backend *storage_factory_create(
 		const struct sfs_flash_info_t *flash_info = NULL;
 
 		if (security_class == storage_factory_security_class_INTERNAL_TRUSTED)
-			uuid_parse_to_octets(REF_PARTITION_1_GUID, guid.octets, sizeof(guid.octets));
+			uuid_parse_to_octets(
+				DISK_GUID_UNIQUE_PARTITION_PSA_ITS, guid.octets, sizeof(guid.octets));
 		else
-			uuid_parse_to_octets(REF_PARTITION_2_GUID, guid.octets, sizeof(guid.octets));
+			uuid_parse_to_octets(
+				DISK_GUID_UNIQUE_PARTITION_PSA_PS, guid.octets, sizeof(guid.octets));
 
 		psa_status_t status = sfs_flash_block_store_adapter_init(
 			&storage_instance.sfs_flash_adapter,

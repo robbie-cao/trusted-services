@@ -6,8 +6,8 @@
 
 #include "ps_service_context.h"
 #include "service/block_storage/factory/client/block_store_factory.h"
-#include "service/block_storage/config/ref/ref_partition_configurator.h"
 #include "service/secure_storage/backend/secure_flash_store/secure_flash_store.h"
+#include "media/disk/guid.h"
 
 ps_service_context::ps_service_context(const char *sn) :
 	standalone_service_context(sn),
@@ -28,7 +28,7 @@ void ps_service_context::do_init()
 	struct uuid_octets guid;
 	const struct sfs_flash_info_t *flash_info = NULL;
 
-	uuid_parse_to_octets(REF_PARTITION_2_GUID, guid.octets, sizeof(guid.octets));
+	uuid_parse_to_octets(DISK_GUID_UNIQUE_PARTITION_PSA_PS, guid.octets, sizeof(guid.octets));
 
 	m_block_store = client_block_store_factory_create(
 		"sn:trustedfirmware.org:block-storage:0");
