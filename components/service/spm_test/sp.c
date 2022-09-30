@@ -221,14 +221,14 @@ static bool test_ffa_rxtx_unmap()
 
 static void return_error(uint32_t error, struct ffa_direct_msg *msg)
 {
-	ffa_msg_send_direct_resp(msg->destination_id, msg->source_id, 0xff,
+	ffa_msg_send_direct_resp_32(msg->destination_id, msg->source_id, 0xff,
 				 error, 0, 0, 0, msg);
 }
 
 static void return_ok(struct ffa_direct_msg *msg)
 {
 
-	ffa_msg_send_direct_resp(msg->destination_id,
+	ffa_msg_send_direct_resp_32(msg->destination_id,
 				 msg->source_id, SP_TEST_OK, 0, 0, 0, 0, msg);
 }
 
@@ -245,28 +245,30 @@ static void test_write_access(void)
 
 static void test_increase(struct ffa_direct_msg *msg)
 {
-	msg->args[1]++;
-	msg->args[2]++;
-	msg->args[3]++;
-	msg->args[4]++;
-	ffa_msg_send_direct_resp(msg->destination_id,msg->source_id, SP_TEST_OK,
-				 msg->args[1], msg->args[2], msg->args[3],
-				 msg->args[4], msg);
+	msg->args.args32[1]++;
+	msg->args.args32[2]++;
+	msg->args.args32[3]++;
+	msg->args.args32[4]++;
+	ffa_msg_send_direct_resp_32(msg->destination_id,msg->source_id,
+				 SP_TEST_OK, msg->args.args32[1],
+				 msg->args.args32[2],msg->args.args32[3],
+				 msg->args.args32[4], msg);
 
 }
 
 static void test_communication(struct ffa_direct_msg *msg)
 {
 	struct ffa_direct_msg sp_msg = {0};
-	uint16_t dst = (uint16_t)msg->args[1];
+	uint16_t dst = (uint16_t)msg->args.args32[1];
 	ffa_result res = FFA_OK;
 
-	sp_msg.args[1] =  0x55;
-	sp_msg.args[2] =  0xAA;
-	sp_msg.args[3] =  0xBB;
-	sp_msg.args[4] =  0xCC;
-	res = ffa_msg_send_direct_req(msg->destination_id, dst, EP_TEST_SP_INCREASE,
-				 0x55, 0xAA, 0xBB, 0xCC, &sp_msg);
+	sp_msg.args.args32[1] =  0x55;
+	sp_msg.args.args32[2] =  0xAA;
+	sp_msg.args.args32[3] =  0xBB;
+	sp_msg.args.args32[4] =  0xCC;
+	res = ffa_msg_send_direct_req_32(msg->destination_id, dst,
+				      EP_TEST_SP_INCREASE,0x55, 0xAA, 0xBB,
+				      0xCC, &sp_msg);
 
 	if (res != FFA_OK) {
 		EMSG("error % in %s:%d"PRId32, res, __FILE__, __LINE__);
@@ -274,12 +276,14 @@ static void test_communication(struct ffa_direct_msg *msg)
 		return;
 	}
 
-	if (sp_msg.args[1] == 0x56 && sp_msg.args[2] == 0xAB &&
-	    sp_msg.args[3] == 0xBC &&sp_msg.args[4] == 0xCD) {
+	if (sp_msg.args.args32[1] == 0x56 && sp_msg.args.args32[2] == 0xAB &&
+	    sp_msg.args.args32[3] == 0xBC &&sp_msg.args.args32[4] == 0xCD) {
 		return_ok(msg);
 	} else {
-		DMSG("Failed SP communication %x %x %x %x",sp_msg.args[1],
-		     sp_msg.args[2], sp_msg.args[3], sp_msg.args[4]);
+		DMSG("Failed SP communication %x %x %x %x",
+		     sp_msg.args.args32[1],
+		     sp_msg.args.args32[2], sp_msg.args.args32[3],
+		     sp_msg.args.args32[4]);
 
 		return_error(ERR_SP_COMMUNICATION, msg);
 	}
@@ -345,9 +349,10 @@ static void test_mem_retrieve(struct ffa_direct_msg *msg)
 
 	ffa_id_get(&own_id);
 
-	handle = (uint64_t)msg->args[1] | (((uint64_t)msg->args[2]) << 32);
+	handle = (uint64_t)msg->args.args32[1] |
+		 (((uint64_t)msg->args.args32[2]) << 32);
 	descriptor.tag = 0;
-	descriptor.sender_id = msg->args[3] & 0xffff;
+	descriptor.sender_id = msg->args.args32[3] & 0xffff;
 	acc_desc.receiver_id = own_id;
 	acc_desc.data_access = sp_data_access_read_write;
 	res = sp_memory_retrieve(&descriptor, &acc_desc, regions, 1,
@@ -376,11 +381,12 @@ static void test_mem_relinquish(struct ffa_direct_msg *msg)
 		.operation_time_slicing = false,
 	};
 
-	if (msg->args[3] == 1)
+	if (msg->args.args32[3] == 1)
 		flags.zero_memory = true;
 
 	ffa_id_get(&endpoint_id);
-	handle = (uint64_t)msg->args[1] | (((uint64_t)msg->args[2]) << 32);
+	handle = (uint64_t)msg->args.args32[1] |
+		 (((uint64_t)msg->args.args32[2]) << 32);
 	descriptor.tag = 0;
 
 	res = sp_memory_relinquish(handle, &endpoint_id, 1, &flags);
@@ -430,7 +436,7 @@ static void test_mem_sharing(uint16_t service_ep_id, struct ffa_direct_msg *msg)
 		return;
 	}
 
-	res = ffa_msg_send_direct_req(own_id, service_ep_id,
+	res = ffa_msg_send_direct_req_32(own_id, service_ep_id,
 				      EP_RETRIEVE, handle & 0xffffffff,
 				      handle >> 32, own_id, 0, msg);
 
@@ -442,7 +448,7 @@ static void test_mem_sharing(uint16_t service_ep_id, struct ffa_direct_msg *msg)
 		return;
 	}
 
-	res = ffa_msg_send_direct_req(own_id, service_ep_id,
+	res = ffa_msg_send_direct_req_32(own_id, service_ep_id,
 				EP_TRY_W_ACCESS, 0,
 				0, 0, 0, msg);
 
@@ -454,7 +460,7 @@ static void test_mem_sharing(uint16_t service_ep_id, struct ffa_direct_msg *msg)
 		return;
 	}
 
-	res = ffa_msg_send_direct_req(own_id, service_ep_id,
+	res = ffa_msg_send_direct_req_32(own_id, service_ep_id,
 				EP_RELINQUISH, handle & 0xffffffff,
 				handle >> 32, 0, 0, msg);
 	if (res != FFA_OK) {
@@ -491,8 +497,8 @@ static void test_mem_multi_sharing(struct ffa_direct_msg *msg)
 	uint16_t src_id = msg->source_id = 0;
 	struct sp_memory_access_descriptor acc_desc[2] = { };
 	uint32_t err = 0;
-	uint16_t endpoint2 = msg->args[1];
-	uint16_t endpoint3 = msg->args[2];
+	uint16_t endpoint2 = msg->args.args32[1];
+	uint16_t endpoint3 = msg->args.args32[2];
 
 	my_buf[0] = 0xa;
 	set_rxtx_buf(&t_buf, NULL);
@@ -523,7 +529,7 @@ static void test_mem_multi_sharing(struct ffa_direct_msg *msg)
 		goto err;
 	}
 	/* test SP2*/
-	res = ffa_msg_send_direct_req(own_id, endpoint2,
+	res = ffa_msg_send_direct_req_32(own_id, endpoint2,
 				      EP_RETRIEVE, handle & 0xffffffff,
 				      handle >> 32, own_id, 0, msg);
 
@@ -535,7 +541,7 @@ static void test_mem_multi_sharing(struct ffa_direct_msg *msg)
 		return;
 	}
 
-	res = ffa_msg_send_direct_req(own_id, endpoint2,
+	res = ffa_msg_send_direct_req_32(own_id, endpoint2,
 				EP_TRY_W_ACCESS, 0,
 				0, 0, 0, msg);
 
@@ -553,7 +559,7 @@ static void test_mem_multi_sharing(struct ffa_direct_msg *msg)
 		goto err;
 	}
 
-	res = ffa_msg_send_direct_req(own_id, endpoint2,
+	res = ffa_msg_send_direct_req_32(own_id, endpoint2,
 				      EP_RELINQUISH, handle & 0xffffffff,
 				      handle >> 32, 0, 0, msg);
 
@@ -566,7 +572,7 @@ static void test_mem_multi_sharing(struct ffa_direct_msg *msg)
 	}
 	my_buf[0] = 0xa;
 	/* test SP3*/
-	res = ffa_msg_send_direct_req(own_id, endpoint3,
+	res = ffa_msg_send_direct_req_32(own_id, endpoint3,
 				      EP_RETRIEVE, handle & 0xffffffff,
 				      handle >> 32, own_id, 0, msg);
 
@@ -578,7 +584,7 @@ static void test_mem_multi_sharing(struct ffa_direct_msg *msg)
 		return;
 	}
 
-	res = ffa_msg_send_direct_req(own_id, endpoint3,
+	res = ffa_msg_send_direct_req_32(own_id, endpoint3,
 				EP_TRY_W_ACCESS, 0,
 				0, 0, 0, msg);
 
@@ -602,7 +608,7 @@ static void test_mem_multi_sharing(struct ffa_direct_msg *msg)
 		goto err;
 	}
 
-	res = ffa_msg_send_direct_req(own_id, endpoint3,
+	res = ffa_msg_send_direct_req_32(own_id, endpoint3,
 				EP_RELINQUISH, handle & 0xffffffff,
 				handle >> 32, 0, 0, msg);
 
@@ -754,7 +760,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info) {
 	ffa_msg_wait(&msg);
 
 	while (1) {
-		enum sp_tests test_case = (enum sp_tests)msg.args[0];
+		enum sp_tests test_case = (enum sp_tests)msg.args.args32[0];
 
 		DMSG("SP:%x Starting test %s", own_id, sp_test_str[test_case]);
 		switch (test_case) {
@@ -782,17 +788,18 @@ void __noreturn sp_main(struct ffa_init_info *init_info) {
 			test_mem_relinquish(&msg);
 			break;
 		case EP_SP_MEM_SHARING:
-			test_mem_sharing((uint16_t)msg.args[1], &msg);
+			test_mem_sharing((uint16_t)msg.args.args32[1], &msg);
 			break;
 		case EP_SP_MEM_SHARING_MULTI:
 			test_mem_multi_sharing(&msg);
 			break;
 		case EP_SP_MEM_SHARING_EXC:
-			test_mem_sharing_exc((uint16_t)msg.args[1], &msg);
+			test_mem_sharing_exc((uint16_t)msg.args.args32[1],
+					     &msg);
 			break;
 		case EP_SP_MEM_INCORRECT_ACCESS:
 			test_mem_sharing_inccorrect_access(
-				(uint16_t)msg.args[1], &msg);
+				(uint16_t)msg.args.args32[1], &msg);
 			break;
 		case EP_SP_NOP:
 			return_ok(&msg);
