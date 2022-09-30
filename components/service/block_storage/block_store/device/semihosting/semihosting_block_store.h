@@ -35,13 +35,15 @@ struct semihosting_block_store
  * \brief Initialize a semihosting_block_store
  *
  * \param[in]  semihosting_block_store  The subject semihosting_block_store
- * \param[in]  filename			The host filename used for storage
+ * \param[in]  filename                 The host filename used for storage
+ * \param[in]  block_size               The storage block size
  *
  * \return Pointer to block_store or NULL on failure
  */
 struct block_store *semihosting_block_store_init(
 	struct semihosting_block_store *semihosting_block_store,
-	const char *filename);
+	const char *filename,
+	size_t block_size);
 
 /**
  * \brief De-initialize a semihosting_block_store

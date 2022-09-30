@@ -16,7 +16,13 @@ extern "C" {
 
 /**
  * A block store factory that constructs a partitioned block store backed
- * by a semihosting block device.
+ * by a semihosting block device that provides access to a disk image file
+ * residing in the host's filesystem. If the disk image contains a GPT, it
+ * will be used to configure a set of storage partitions.
+ *
+ * Semihosting is an Arm debug facility that enables device software to
+ * communicate with the host. Can be used in emulated environments (FVP &
+ * QEMU) and with real hardware with a suitable debugger.
  */
 
 /**

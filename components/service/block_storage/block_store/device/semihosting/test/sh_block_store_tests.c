@@ -28,7 +28,7 @@ static bool setup(struct test_failure *failure)
 {
 	semihosting_block_store_wipe(sh_filename);
 
-	if (!semihosting_block_store_init(&sh_block_store, sh_filename)) {
+	if (!semihosting_block_store_init(&sh_block_store, sh_filename, BLOCK_SIZE)) {
 
 		/* Failed to initialize block store */
 		failure->line_num = __LINE__;

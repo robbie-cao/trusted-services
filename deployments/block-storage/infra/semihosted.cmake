@@ -19,6 +19,12 @@ add_components(TARGET "block-storage"
 		"components/service/block_storage/block_store/device/semihosting"
 		"components/service/block_storage/block_store/partitioned"
 		"components/service/block_storage/factory/semihosting"
+		"components/service/block_storage/config/gpt"
+		"components/media/disk"
+		"components/media/volume/index"
+		"components/media/volume/base_io_dev"
+		"components/media/volume/block_io_dev"
+		"components/common/crc32/native"
 )
 
 #-------------------------------------------------------------------------------

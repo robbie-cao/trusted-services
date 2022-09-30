@@ -11,7 +11,7 @@
 #include <lib/semihosting.h>
 #include "semihosting_block_store.h"
 
-#define ERASED_DATA_VAL		0xff
+#define ERASED_DATA_VAL		(0xff)
 
 static psa_status_t seek(long handle, ssize_t pos)
 {
@@ -333,9 +333,11 @@ static psa_status_t semihosting_block_store_erase(void *context,
 
 struct block_store *semihosting_block_store_init(
 	struct semihosting_block_store *this_instance,
-	const char *filename)
+	const char *filename,
+	size_t block_size)
 {
 	struct block_store *block_store = NULL;
+	size_t num_blocks = 0;
 
 	/* Define concrete block store interface */
 	static const struct block_store_interface interface =
@@ -355,11 +357,22 @@ struct block_store *semihosting_block_store_init(
 	/* Initialize buffer used for erase operations */
 	memset(this_instance->erase_buf, ERASED_DATA_VAL, sizeof(this_instance->erase_buf));
 
-	/* Test if host file exists. If not, create one */
-	if (semihosting_get_flen(filename) < 0) {
+	long int file_len = semihosting_get_flen(filename);
 
+	if (file_len < 0) {
+
+		/* File doesn't exist so create an empty one. A call to
+		 * semihosting_block_store_configure() will be needed to
+		 * set the number of blocks and block size to make a viable
+		 * block store. */
 		long handle = semihosting_file_open(filename, FOPEN_MODE_WPLUSB);
 		semihosting_file_close(handle);
+	}
+	else if (file_len > 0) {
+
+		/* There's an existing file with contents so this should be
+		 * formatted to the intended size of the storage. */
+		num_blocks = (size_t)file_len / block_size;
 	}
 
 	/* Open host file for normal operation */
@@ -370,7 +383,7 @@ struct block_store *semihosting_block_store_init(
 	if (this_instance->file_handle > 0) {
 
 		block_store = block_device_init(
-			&this_instance->base_block_device, NULL, 0, 0);
+			&this_instance->base_block_device, NULL, num_blocks, block_size);
 	}
 
 	return block_store;
