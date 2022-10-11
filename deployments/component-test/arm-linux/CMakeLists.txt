@@ -26,7 +26,7 @@ add_components(
 )
 
 include(${TS_ROOT}/external/CppUTest/CppUTest.cmake)
-target_link_libraries(component-test PRIVATE CppUTest)
+target_link_libraries(component-test PRIVATE ${CppUTest_LIBRARIES})
 
 #-------------------------------------------------------------------------------
 #  Components that are specific to deployment in the arm-linux environment.
