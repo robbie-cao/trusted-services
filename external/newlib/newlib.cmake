@@ -59,6 +59,12 @@ find_library(NEWLIB_LIBNOSYS_PATH
 set(NEWLIB_LIBNOSYS_PATH ${NEWLIB_LIBNOSYS_PATH})
 unset(NEWLIB_LIBNOSYS_PATH CACHE)
 
+# libc - get compiler specific configuration from GCC
+add_library(c STATIC IMPORTED)
+# We need "freestandig" mode. Ask the compile to do the needed configurations.
+include(${TS_ROOT}/tools/cmake/compiler/GCC.cmake)
+compiler_set_freestanding(TARGET c)
+
 if (NOT NEWLIB_LIBC_PATH)
 	# Determine the number of processes to run while running parallel builds.
 	# Pass -DPROCESSOR_COUNT=<n> to cmake to override.
@@ -96,7 +102,7 @@ if (NOT NEWLIB_LIBC_PATH)
 		# Convert the list to a string of concatenated quoted list items.
 		string(REPLACE ";" "\" \"" _patch_files "${_patch_files}")
 		set(_patch_files "\"${_patch_files}\"")
-		# Create a shell script pathching newlib witht the files listed above
+		# Create a shell script patching newlib with the files listed above
 		string(APPEND _patch_script "#!/bin/sh\n"
 			" ${GIT_COMMAND} stash\n"
 			" ${GIT_COMMAND} branch ts-bf-am\n"
@@ -130,9 +136,30 @@ if (NOT NEWLIB_LIBC_PATH)
 		set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${NEWLIB_SOURCE_DIR})
 	endif()
 
+	# Get NEWLIB_EXTRA_PARAMS value from environment
+	set(NEWLIB_EXTRA_PARAMS $ENV{NEWLIB_EXTRA_PARAMS} CACHE STRING "")
+
 	# Split a newlib extra build parameter into a list of parameters
-	set(NEWLIB_EXTRAS ${NEWLIB_EXTRA})
-	separate_arguments(NEWLIB_EXTRAS)
+	set(_extra_params ${NEWLIB_EXTRA_PARAMS})
+	separate_arguments(_extra_params)
+
+	# Transfer libgcc specific settings to newlib, and set position independent compilation
+	string(REPLACE ";" " -I" _more_cflags_target "${LIBGCC_INCLUDE_DIRS}" )
+	set(_more_cflags_target "-fpic -I${_more_cflags_target}")
+
+	# Get external extra flags for target from environment.
+	set(NEWLIB_CFLAGS_TARGET $ENV{NEWLIB_CFLAGS_TARGET} CACHE STRING "")
+
+	# Merge our CFLAGS with external CFLAGS
+	if (NOT "${NEWLIB_CFLAGS_TARGET}" STREQUAL "")
+		# Add a space separator if external value is not empty
+		string(APPEND NEWLIB_CFLAGS_TARGET " ")
+	endif()
+	# Concatenate, and override CACHE value
+	set(NEWLIB_CFLAGS_TARGET "${NEWLIB_CFLAGS_TARGET}${_more_cflags_target}" CACHE STRING "" FORCE)
+
+	# Get extra external CFLAGS for host from environment
+	set(NEWLIB_CFLAGS $ENV{NEWLIB_CFLAGS} CACHE STRING "")
 
 	# Newlib configure step
 	# CC env var must be unset otherwise configure will assume the cross compiler is the host
@@ -149,8 +176,9 @@ if (NOT NEWLIB_LIBC_PATH)
 			--enable-newlib-reent-small
 			--enable-newlib-global-atexit
 			--disable-multilib
-			${NEWLIB_EXTRAS}
-			CFLAGS_FOR_TARGET=-fpic
+			${_extra_params}
+			CFLAGS_FOR_TARGET=${NEWLIB_CFLAGS_TARGET}
+			CFLAGS=${NEWLIB_CFLAGS}
 			LDFLAGS_FOR_TARGET=-fpie
 		WORKING_DIRECTORY
 			${NEWLIB_SOURCE_DIR}
@@ -193,11 +221,7 @@ endif()
 set_property(DIRECTORY ${CMAKE_SOURCE_DIR}
 	APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${NEWLIB_LIBC_PATH})
 
-# libc
-add_library(c STATIC IMPORTED)
-# We need "freestandig" mode. Ask the compile to do the needed configurations.
-include(${TS_ROOT}/tools/cmake/compiler/GCC.cmake)
-compiler_set_freestanding(TARGET c)
+# libc - continue configuration
 set_property(TARGET c PROPERTY IMPORTED_LOCATION "${NEWLIB_LIBC_PATH}")
 target_compile_definitions(c INTERFACE ENABLE_CDEFSH_FIX)
 set_property(TARGET c PROPERTY
