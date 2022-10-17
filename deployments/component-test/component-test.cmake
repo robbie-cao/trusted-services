@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -109,6 +109,9 @@ add_components(
 		"components/service/block_storage/factory/ref_ram_gpt"
 		"components/service/block_storage/factory/client"
 		"components/service/fwu/agent"
+		"components/service/fwu/fw_store/banked"
+		"components/service/fwu/fw_store/banked/metadata_serializer/v1"
+		"components/service/fwu/fw_store/banked/test"
 		"components/service/fwu/installer"
 		"components/service/fwu/inspector/mock"
 		"components/service/crypto/client/cpp"
