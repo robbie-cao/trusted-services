@@ -30,6 +30,7 @@ add_components(TARGET "spm-test${SP_NUMBER}"
 		"components/common/fdt"
 		"components/common/trace"
 		"components/common/utils"
+		"components/config/ramstore"
 		"components/config/loader/sp"
 		"components/messaging/ffa/libsp"
 )

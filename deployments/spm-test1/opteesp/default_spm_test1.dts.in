@@ -20,4 +20,14 @@
 	messaging-method = <3>; /* Direct messaging only */
 	ns-interrupts-action = <2>; /* Non-secure interrupts are signaled */
 	elf-format = <1>;
+	memory-regions {
+		compatible = "arm,ffa-manifest-memory-regions";
+
+		test-region {
+			/* Armv8 A Foundation Platform values */
+			base-address = <0x00000000 0x6248000>;
+			pages-count = <1>;
+			attributes = <0x3>; /* read-write */
+		};
+	};
 };

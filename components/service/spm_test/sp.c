@@ -15,6 +15,10 @@
 #include <string.h>
 #include <trace.h>
 
+#include "config/interface/config_store.h"
+#include "config/loader/sp/sp_config_loader.h"
+#include "config/ramstore/config_ramstore.h"
+#include "platform/interface/memory_region.h"
 #define SP_TEST_OK 0xaa
 
 static volatile uint8_t tx_buffer[4096] __aligned(4096);
@@ -877,6 +881,78 @@ err:
 	return_error(err, msg);
 }
 
+void test_mem_get_set(struct ffa_init_info *init_info)
+{
+	void *addr = NULL;
+	ffa_result res = FFA_OK;
+	struct memory_region buffer_region = { 0 };
+	uint32_t mem_perm = 0;
+	const uint32_t original_perm = FFA_MEM_PERM_INSTRUCTION_ACCESS_PERM_NX |
+				       FFA_MEM_PERM_DATA_ACCESS_PERM_RW;
+	const uint32_t ro_perm = FFA_MEM_PERM_INSTRUCTION_ACCESS_PERM_NX |
+				 FFA_MEM_PERM_DATA_ACCESS_PERM_RO;
+
+	DMSG("Testing FFA_MEM_PERM_GET/SET");
+	config_ramstore_init();
+
+	if (!sp_config_load(init_info)) {
+		EMSG("Failed to load SP config");
+		goto err;
+	}
+
+	/* Only run the test if we have the test-region enabled */
+	if (!config_store_query(CONFIG_CLASSIFIER_MEMORY_REGION, "test-region",
+				0, &buffer_region, sizeof(buffer_region)))
+		return;
+
+	addr = (void *)buffer_region.base_addr;
+	/* Check original permissions */
+	res = ffa_mem_perm_get(addr, &mem_perm);
+	if (res)
+		goto err;
+
+	if (mem_perm != original_perm) {
+		EMSG("Incorrect permision got 0x%x expected 0x%x", mem_perm, original_perm);
+		res = FFA_INVALID_PARAMETERS;
+		goto err;
+	}
+
+	/* Remove write permission */
+	res = ffa_mem_perm_set(addr, 1, ro_perm);
+	if (res)
+		goto err;
+
+	/* Check if write permission is removed */
+	res = ffa_mem_perm_get(addr, &mem_perm);
+	if (res)
+		goto err;
+
+	if (mem_perm != ro_perm) {
+		EMSG("Incorrect permision got 0x%x expected 0x%x", mem_perm, original_perm);
+		res = FFA_INVALID_PARAMETERS;
+		goto err;
+	}
+	/* Set write permission back */
+	res = ffa_mem_perm_set(addr, 1, original_perm);
+	if (res)
+		goto err;
+
+	/* Check original permissions */
+	res = ffa_mem_perm_get(addr, &mem_perm);
+	if (res)
+		goto err;
+
+	if (mem_perm != original_perm) {
+		EMSG("Incorrect permision got 0x%x expected 0x%x", mem_perm, original_perm);
+		res = FFA_INVALID_PARAMETERS;
+		goto err;
+	}
+
+	return;
+err:
+	EMSG("GET/SET_MEM failed (0x%x)", res);
+}
+
 void __noreturn sp_main(union ffa_boot_info *boot_info) {
 	struct ffa_direct_msg msg = {0};
 	uint16_t own_id = 0;
@@ -889,6 +965,7 @@ void __noreturn sp_main(union ffa_boot_info *boot_info) {
 	}
 
 	test_ffa_rxtx_map();
+	test_mem_get_set(boot_info);
 	/* End of boot phase */
 	test_ffa_partition_info_get();
 	ffa_msg_wait(&msg);
