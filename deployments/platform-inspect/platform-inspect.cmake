@@ -54,11 +54,12 @@ target_link_libraries(platform-inspect PRIVATE mbedcrypto)
 
 # Qcbor
 include(${TS_ROOT}/external/qcbor/qcbor.cmake)
-target_link_libraries(platform-inspect PRIVATE qcbor)
 
 # t_cose
 include(${TS_ROOT}/external/t_cose/t_cose.cmake)
-target_link_libraries(platform-inspect PRIVATE t_cose)
+# Ensure correct order of libraries on the command line of LD. t_cose depends on qcbor thus
+# qcbor must come later.
+target_link_libraries(platform-inspect PRIVATE t_cose qcbor)
 
 #-------------------------------------------------------------------------------
 #  Define install content.

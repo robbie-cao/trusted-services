@@ -34,11 +34,3 @@ include(../platform-inspect.cmake REQUIRED)
 #
 #-------------------------------------------------------------------------------
 target_link_libraries(platform-inspect PRIVATE stdc++ gcc m)
-
-#-------------------------------------------------------------------------------
-#  Linker option to enable repeated searches for undefined references.
-#  Required to resolve dependencies between t_cose and qcbor libraries.
-#-------------------------------------------------------------------------------
-target_link_options(platform-inspect PRIVATE
-	-Wl,--start-group
-	)
