@@ -44,4 +44,5 @@ string(APPEND CMAKE_CXX_FLAGS_MINSIZWITHDEBINFO_INIT " -Os")
 string(APPEND CMAKE_CXX_FLAGS_RELEASE_INIT " -O2")
 string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT " -O2")
 
+include($ENV{TS_ROOT}/tools/cmake/compiler/GCC.cmake REQUIRED)
 include($ENV{TS_ROOT}/tools/cmake/compiler/config_iface.cmake REQUIRED)

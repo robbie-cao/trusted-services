@@ -40,12 +40,6 @@ Compiler abstraction for GCC
 
 include_guard(DIRECTORY)
 
-if(NOT CROSS_COMPILE AND NOT DEFINED ENV{CROSS_COMPILE})
-	message(FATAL_ERROR "'CROSS_COMPILE' is not defined. Set it to the gcc prefix triplet, ie. cmake <..>-DCROSS_COMPILE=aarch64-elf-")
-endif()
-
-set(CROSS_COMPILE $ENV{CROSS_COMPILE} CACHE STRING "Prefix of the cross-compiler commands")
-
 #Generate a list of tool names to look for. Store the result in CMAKE_<lang>_COMPILER.
 function(gcc_find_tool NAME LANG)
 	string(REGEX REPLACE "([^;]+);" "\\1${NAME};\\1${NAME}.exe;" _gcc_names "${CROSS_COMPILE};")
@@ -57,11 +51,19 @@ function(gcc_find_tool NAME LANG)
 	set(CMAKE_${LANG}_COMPILER ${_cross_compile_gcc} CACHE STRING "${LANG} compiler executable.")
 endfunction()
 
-gcc_find_tool(gcc C)
-gcc_find_tool(g++ CXX)
+if(CMAKE_CROSSCOMPILING)
+	if(NOT CROSS_COMPILE AND NOT DEFINED ENV{CROSS_COMPILE})
+		message(FATAL_ERROR "'CROSS_COMPILE' is not defined. Set it to the gcc prefix triplet, ie. cmake <..>-DCROSS_COMPILE=aarch64-elf-")
+	endif()
 
-#Official solution to disable compiler checks
-set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+	set(CROSS_COMPILE $ENV{CROSS_COMPILE} CACHE STRING "Prefix of the cross-compiler commands")
+
+	gcc_find_tool(gcc C)
+	gcc_find_tool(g++ CXX)
+
+	#Official solution to disable compiler checks
+	set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+endif()
 
 #By default when INTERFACE_INCUDES of libraries linked to an exe are treated
 #as system includes. gcc-arm-8.2-2019.01-i686-mingw32-aarch64-elf (gcc 8.2.1) will
