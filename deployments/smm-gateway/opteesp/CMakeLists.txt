@@ -63,23 +63,9 @@ target_include_directories(smm-gateway PRIVATE
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	target_compile_options(smm-gateway PRIVATE
-		-fdiagnostics-show-option
-		-gdwarf-2
-		-mstrict-align
-		-O0
 		-std=c99
 	)
 
-	# Options for GCC that control linking
-	target_link_options(smm-gateway PRIVATE
-		-zmax-page-size=4096
-	)
-	# Options directly for LD, these are not understood by GCC
-	target_link_options(smm-gateway PRIVATE
-		-Wl,--as-needed
-		-Wl,--sort-section=alignment
-		# -Wl,--dynamic-list ${CMAKE_CURRENT_LIST_DIR}/dyn_list
-	)
 endif()
 
 compiler_generate_stripped_elf(TARGET smm-gateway NAME "${SP_UUID_CANON}.stripped.elf" RES STRIPPED_ELF)

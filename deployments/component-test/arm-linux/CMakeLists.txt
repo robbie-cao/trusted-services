@@ -50,5 +50,4 @@ include(../component-test.cmake REQUIRED)
 #  Define library options and dependencies.
 #
 #-------------------------------------------------------------------------------
-env_set_link_options(TGT component-test)
 target_link_libraries(component-test PRIVATE stdc++ gcc m)

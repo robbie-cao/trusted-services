@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -56,3 +56,21 @@ define_property(TARGET PROPERTY TS_PLATFORM_DRIVER_DEPENDENCIES
   BRIEF_DOCS "List of platform driver interfaces used for a deployment."
   FULL_DOCS "Used by the platform specific builder to specify a configuration for the built platform components."
   )
+
+# Set default build type to Debug
+if (NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type.")
+endif()
+
+# List of supported build types. Needs to be in alignment with the toolchain file
+set(TS_SUPPORTED_BUILD_TYPES DEBUG "MINSIZEREL" "MINSIZWITHDEBINFO" "RELEASE" "RELWITHDEBINFO" CACHE
+  STRING "List of supported build types.")
+
+# Convert the build type string to upper case to help case insensitive comparison.
+string(TOUPPER "${CMAKE_BUILD_TYPE}" UC_CMAKE_BUILD_TYPE CACHE STRING "Easy to compare build type.")
+mark_as_advanced(UC_CMAKE_BUILD_TYPE)
+
+# Validate build type
+if (NOT "${UC_CMAKE_BUILD_TYPE}" IN_LIST TS_SUPPORTED_BUILD_TYPES)
+	message(FATAL_ERROR "Unknown build type \"${CMAKE_BUILD_TYPE}\" specified in CMAKE_BUILD_TYPE.")
+endif()

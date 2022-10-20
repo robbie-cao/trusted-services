@@ -72,23 +72,7 @@ target_include_directories(env-test PRIVATE
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	target_compile_options(env-test PRIVATE
-		-fdiagnostics-show-option
-		-gdwarf-2
-		-mstrict-align
-		-O0
-		$<$<COMPILE_LANGUAGE:C>:-std=c99>
-		$<$<COMPILE_LANGUAGE:CXX>:-fno-use-cxa-atexit>
-	)
-
-	# Options for GCC that control linking
-	target_link_options(env-test PRIVATE
-		-zmax-page-size=4096
-	)
-	# Options directly for LD, these are not understood by GCC
-	target_link_options(env-test PRIVATE
-		-Wl,--as-needed
-		-Wl,--sort-section=alignment
-		# -Wl,--dynamic-list ${CMAKE_CURRENT_LIST_DIR}/dyn_list
+		-std=c99
 	)
 endif()
 

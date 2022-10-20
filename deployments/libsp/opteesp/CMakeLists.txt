@@ -63,10 +63,6 @@ target_compile_definitions(sp PRIVATE
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	target_compile_options(sp PRIVATE
-		-fdiagnostics-show-option
-		-gdwarf-2
-		-mstrict-align
-		-O0
 		-std=c99
 	)
 endif()

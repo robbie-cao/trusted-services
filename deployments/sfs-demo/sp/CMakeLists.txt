@@ -40,21 +40,9 @@ target_compile_definitions(sfs-demo PRIVATE
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	target_compile_options(sfs-demo PRIVATE
-		-fdiagnostics-show-option
-		-gdwarf-2
-		-mstrict-align
 		-std=c99
 	)
 
-	# Options for GCC that control linking
-	target_link_options(sfs-demo PRIVATE
-		-zmax-page-size=4096
-	)
-	# Options directly for LD, these are not understood by GCC
-	target_link_options(sfs-demo PRIVATE
-		-Wl,--as-needed
-		-Wl,--sort-section=alignment
-	)
 endif()
 
 compiler_generate_binary_output(TARGET sfs-demo NAME "${SP_UUID_CANON}.bin" SP_BINARY)

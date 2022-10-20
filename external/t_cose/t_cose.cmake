@@ -10,6 +10,7 @@ set(T_COSE_URL "https://github.com/laurencelundblade/t_cose.git" CACHE STRING "t
 set(T_COSE_REFSPEC "fc3a4b2c7196ff582e8242de8bd4a1bc4eec577f" CACHE STRING "t_cose git refspec")
 set(T_COSE_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/t_cose-src" CACHE PATH "t_cose installation directory")
 set(T_COSE_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/t_cose_install" CACHE PATH "t_cose installation directory")
+set(T_COSE_BUILD_TYPE "Release" CACHE STRING "t_cose build type")
 
 set(GIT_OPTIONS
 	GIT_REPOSITORY ${T_COSE_URL}

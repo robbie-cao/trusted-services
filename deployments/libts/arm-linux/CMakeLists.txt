@@ -51,5 +51,4 @@ include(../libts.cmake REQUIRED)
 #  Define library options and dependencies.
 #
 #-------------------------------------------------------------------------------
-env_set_link_options(TGT ts)
 target_link_libraries(ts PRIVATE gcc)

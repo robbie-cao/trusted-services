@@ -33,6 +33,10 @@ set(NEWLIB_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/newlib-src"
 		CACHE PATH "newlib source-code location")
 set(NEWLIB_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/newlib_install"
 		CACHE PATH "newlib installation directory")
+# Supported build types: "Release" "Debug" "RelWithDebInfo" "Off"
+# If set to "Off" -DNEWLIB_CFLAGS_TARGET can be used to set compiler
+# switches from the command line.
+set(NEWLIB_BUILD_TYPE "Release"	CACHE STRING "newlib build type")
 
 # Extracting compiler prefix without the trailing hyphen from the C compiler name
 get_filename_component(COMPILER_PATH ${CMAKE_C_COMPILER} DIRECTORY)
@@ -146,6 +150,17 @@ if (NOT NEWLIB_LIBC_PATH)
 	# Transfer libgcc specific settings to newlib, and set position independent compilation
 	string(REPLACE ";" " -I" _more_cflags_target "${LIBGCC_INCLUDE_DIRS}" )
 	set(_more_cflags_target "-fpic -I${_more_cflags_target}")
+
+	string(TOUPPER ${NEWLIB_BUILD_TYPE} UC_NEWLIB_BUILD_TYPE)
+	if ("${UC_NEWLIB_BUILD_TYPE}" STREQUAL "DEBUG")
+		set(_more_cflags_target "${_more_cflags_target} -g -O0")
+	elseif ("${UC_NEWLIB_BUILD_TYPE}" STREQUAL "RELEASE")
+		set(_more_cflags_target "${_more_cflags_target} -O2")
+	elseif ("${UC_NEWLIB_BUILD_TYPE}" STREQUAL "RELWITHDEBINFO")
+		set(_more_cflags_target "${_more_cflags_target} -g -O2")
+	elseif (NOT "${UC_NEWLIB_BUILD_TYPE}" STREQUAL "OFF")
+		message(FATAL_ERROR "unsupported build type to newlib.")
+	endif()
 
 	# Get external extra flags for target from environment.
 	set(NEWLIB_CFLAGS_TARGET $ENV{NEWLIB_CFLAGS_TARGET} CACHE STRING "")

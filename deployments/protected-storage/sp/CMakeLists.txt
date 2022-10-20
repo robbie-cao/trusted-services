@@ -40,21 +40,9 @@ target_compile_definitions(protected-storage PRIVATE
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	target_compile_options(protected-storage PRIVATE
-		-fdiagnostics-show-option
-		-gdwarf-2
-		-mstrict-align
 		-std=c99
 	)
 
-	# Options for GCC that control linking
-	target_link_options(protected-storage PRIVATE
-		-zmax-page-size=4096
-	)
-	# Options directly for LD, these are not understood by GCC
-	target_link_options(protected-storage PRIVATE
-		-Wl,--as-needed
-		-Wl,--sort-section=alignment
-	)
 endif()
 
 compiler_generate_binary_output(TARGET protected-storage NAME "${SP_UUID_CANON}.bin" SP_BINARY)

@@ -25,6 +25,39 @@ different environments:
 
 .. uml:: uml/BuildFlow.puml
 
+Selecting the build type
+-------------------------
+The build type selects code optimization and debug information related compiler settings. The build system follows the
+standard CMake methodology and uses the `CMAKE_BUILD_TYPE`_ variable.
+
+The build system uses the following build types:
+
+.. list-table:: Supported build types
+   :header-rows: 1
+
+   * - Build type
+     - Purpose
+     - Description
+   * - Debug
+     - For debugging purposes.
+     - Optimization is off, debugging information generation is enabled.
+   * - MinSizeRel
+     - Size optimized release build.
+     - Optimization is configured to prefer small code size, debugging information is not generated.
+   * - MinSizWithDebInfo
+     - For debugging size optimized release build.
+     - Optimization is configured to prefer small code size, debugging information generation is enabled.
+   * - Release
+     - Speed optimized release build.
+     - Optimization is configured to prefer execution speed, debugging information is not generated.
+   * - RelWithDebugInfo
+     - For debugging speed optimized release build.
+     - Optimization is configured to prefer execution speed, debugging information generation is enabled.
+
+Build type of external components can be configured with command line parameters. Parameter names follow this pattern:
+``-D<upper case component name>_BUILD_TYPE=<value>`` e.g. ``-DNANOPB_BUILD_TYPE=Release``. Supported values are
+component specific, please refer to the appropriate cmake file under ``<TS_ROOT>/external/<name>``.
+
 Building and Installing
 -----------------------
 When building from a clean environment where no generated build files exist, it is necessary to run
@@ -135,6 +168,8 @@ more information, see
 
 --------------
 
-*Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.*
+.. _CMAKE_BUILD_TYPE: https://cmake.org/cmake/help/v3.18/variable/CMAKE_BUILD_TYPE.html
+
+*Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

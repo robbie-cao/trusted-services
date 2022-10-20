@@ -79,10 +79,19 @@ function(LazyFetch_ConfigAndBuild)
 	set(CONFIGURED_CACHE_FILE ${CMAKE_BINARY_DIR}/${BUILD_DEP_NAME}-init-cache.cmake)
 	configure_file(${BUILD_CACHE_FILE}  ${CONFIGURED_CACHE_FILE} @ONLY)
 
+	string(TOUPPER ${BUILD_DEP_NAME} UC_DEP_NAME)
+
+	if (NOT DEFINED ${UC_DEP_NAME}_BUILD_TYPE)
+		message(FATAL_ERROR "Build type for external component ${DEP_NAME} is not set. Please pass "
+							"-D${UC_DEP_NAME}_BUILD_TYPE=<build type> to cmake. Supported build types are"
+							"component specific. Pleas refer to the upstream documentation for more information.")
+	endif()
+
 	execute_process(COMMAND
 		${CMAKE_COMMAND} -E env "CROSS_COMPILE=${CROSS_COMPILE}"
 		${CMAKE_COMMAND}
 			"-C${CONFIGURED_CACHE_FILE}"
+			-DCMAKE_BUILD_TYPE=${UC_DEP_NAME}_BUILD_TYPE
 			-S ${BUILD_SRC_DIR}
 			-B ${BUILD_BIN_DIR}
 		RESULT_VARIABLE

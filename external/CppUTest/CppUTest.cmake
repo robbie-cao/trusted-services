@@ -10,6 +10,7 @@ set(CPPUTEST_URL "https://github.com/cpputest/cpputest.git" CACHE STRING "CppUTe
 set(CPPUTEST_REFSPEC "v3.8" CACHE STRING "CppUTest git refspec")
 set(CPPUTEST_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/CppUTest_install CACHE PATH "CppUTest installation directory")
 set(CPPUTEST_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/_deps/cpputest-src CACHE PATH "CppUTest source directory")
+set(CPPUTEST_BUILD_TYPE "Release" CACHE STRING "CppUTest build type")
 
 set(GIT_OPTIONS
 	GIT_REPOSITORY ${CPPUTEST_URL}

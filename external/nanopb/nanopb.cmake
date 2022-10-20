@@ -34,6 +34,8 @@ set(NANOPB_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/nanopb-src"
 		CACHE PATH "nanopb source-code")
 set(NANOPB_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/nanopb_install"
 		CACHE PATH "nanopb installation directory")
+set(NANOPB_BUILD_TYPE "Release"
+		CACHE STRING "nanopb build type")
 
 # Checking git
 find_program(GIT_COMMAND "git")

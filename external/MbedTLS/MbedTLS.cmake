@@ -13,6 +13,7 @@ set(MBEDTLS_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/mbedtls-src"
 		CACHE PATH "MbedTLS source directory")
 set(MBEDTLS_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/mbedtls_install"
 		CACHE PATH "Mbed TLS installation directory")
+set(MBEDTLS_BUILD_TYPE "Release" CACHE STRING "Mbed TLS build type")
 
 find_library(MBEDCRYPTO_LIB_FILE
 				NAMES libmbedcrypto.a mbedcrypto.a libmbedcrypto.lib mbedcrypto.lib
@@ -120,6 +121,7 @@ if (NOT MBEDCRYPTO_LIB_FILE)
 	execute_process(COMMAND
 		${CMAKE_COMMAND} -E env "CROSS_COMPILE=${CROSS_COMPILE}"
 			${CMAKE_COMMAND}
+				-DCMAKE_BUILD_TYPE=${MBEDTLS_BUILD_TYPE}
 				-DENABLE_PROGRAMS=OFF
 				-DENABLE_TESTING=OFF
 				-DUNSAFE_BUILD=ON

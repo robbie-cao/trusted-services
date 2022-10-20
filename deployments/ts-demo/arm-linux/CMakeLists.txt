@@ -29,5 +29,4 @@ include(../ts-demo.cmake REQUIRED)
 #  Define library options and dependencies.
 #
 #-------------------------------------------------------------------------------
-env_set_link_options(TGT ts-demo)
 target_link_libraries(ts-demo PRIVATE stdc++ gcc m)

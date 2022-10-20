@@ -39,5 +39,4 @@ include(../ts-service-test.cmake REQUIRED)
 #  Define library options and dependencies.
 #
 #-------------------------------------------------------------------------------
-env_set_link_options(TGT ts-service-test)
 target_link_libraries(ts-service-test PRIVATE stdc++ gcc m)

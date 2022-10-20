@@ -8,6 +8,7 @@
 set(PSA_ARCH_TESTS_URL "https://github.com/ARM-software/psa-arch-tests.git" CACHE STRING "psa-arch-tests repository URL")
 set(PSA_ARCH_TESTS_REFSPEC "451aa087a40d02c7d04778235014c5619d126471" CACHE STRING "A tested SHA from main having the AEAD fixes.")
 set(PSA_ARCH_TESTS_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/psa_arch_tests-src" CACHE PATH "psa-arch-tests source.")
+set(PSA_ARCH_TESTS_BUILD_TYPE "Release" CACHE STRING "psa-arch-tests build type.")
 
 set(GIT_OPTIONS
 	GIT_REPOSITORY ${PSA_ARCH_TESTS_URL}

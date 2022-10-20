@@ -8,6 +8,13 @@ cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 # Set default platform.
 set(TS_PLATFORM "arm/fvp/fvp_base_revc-2xaemv8a" CACHE STRING "Target platform location.")
+
+# Te crypto SP is big. Set default build type to MinSizWithDebInfo to avoid running ouf of
+# secure memory on low resource IoT platforms.
+if (NOT DEFINED CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "MinSizWithDebInfo" CACHE STRING "Build type.")
+endif()
+
 include(../../deployment.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
@@ -59,23 +66,9 @@ target_include_directories(crypto PRIVATE
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	target_compile_options(crypto PRIVATE
-		-fdiagnostics-show-option
-		-gdwarf-2
-		-mstrict-align
-		-Os
 		-std=c99
 	)
 
-	# Options for GCC that control linking
-	target_link_options(crypto PRIVATE
-		-zmax-page-size=4096
-	)
-	# Options directly for LD, these are not understood by GCC
-	target_link_options(crypto PRIVATE
-		-Wl,--as-needed
-		-Wl,--sort-section=alignment
-		# -Wl,--dynamic-list ${CMAKE_CURRENT_LIST_DIR}/dyn_list
-	)
 endif()
 
 compiler_generate_stripped_elf(TARGET crypto NAME "${SP_UUID_CANON}.stripped.elf" RES STRIPPED_ELF)

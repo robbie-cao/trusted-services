@@ -39,5 +39,4 @@ include(../uefi-test.cmake REQUIRED)
 #  Define library options and dependencies.
 #
 #-------------------------------------------------------------------------------
-env_set_link_options(TGT uefi-test)
 target_link_libraries(uefi-test PRIVATE stdc++ gcc m)

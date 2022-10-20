@@ -33,7 +33,6 @@ include(../platform-inspect.cmake REQUIRED)
 #  Define library options and dependencies.
 #
 #-------------------------------------------------------------------------------
-env_set_link_options(TGT platform-inspect)
 target_link_libraries(platform-inspect PRIVATE stdc++ gcc m)
 
 #-------------------------------------------------------------------------------
