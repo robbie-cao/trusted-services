@@ -39,12 +39,20 @@ add_components(TARGET sp
 
 # Include newlib into the build, but do no add SP executable specific files to libsp.
 # Use a dummy target which will never be built.
-add_library(dummy EXCLUDE_FROM_ALL)
-add_components(TARGET dummy
-	BASE_DIR ${TS_ROOT}
-	COMPONENTS
-		environments/opteesp
-)
+function(get_newlib_compile_flags)
+	# Environment specific files require this variable to be set.
+	# Set it to a dummy value as we are not going to build these anyways.
+	# The namespace of the function will ensure globas setting is not affected.
+	set(SP_HEAP_SIZE 4096)
+	add_library(dummy EXCLUDE_FROM_ALL)
+	add_components(TARGET dummy
+		BASE_DIR ${TS_ROOT}
+		COMPONENTS
+			environments/opteesp
+	)
+endfunction()
+
+get_newlib_compile_flags()
 
 # Get libc specific settings from newlib.
 target_link_libraries(sp PRIVATE stdlib::c)
