@@ -11,7 +11,7 @@
 #include <service/block_storage/block_store/device/ram/ram_block_store.h>
 #include <service/block_storage/config/ref/ref_partition_configurator.h>
 #include <media/volume/index/volume_index.h>
-#include <media/volume/block_io_dev/block_io_dev.h>
+#include <media/volume/block_volume/block_volume.h>
 #include <media/disk/disk_images/ref_partition.h>
 #include <media/disk/formatter/disk_formatter.h>
 #include <media/disk/partition_table.h>
@@ -33,30 +33,28 @@ TEST_GROUP(PartitionTableTests)
 
 		memset(m_partition_guid.octets, 0, sizeof(m_partition_guid.octets));
 
-		m_dev_handle = 0;
-		m_volume_spec = 0;
+		m_volume = NULL;
 
-		int result = block_io_dev_init(&m_block_io_dev,
+		int result = block_volume_init(&m_block_volume,
 			m_block_store, &m_partition_guid,
-			&m_dev_handle, &m_volume_spec);
+			&m_volume);
 
 		LONGS_EQUAL(0, result);
-		CHECK_TRUE(m_dev_handle);
-		CHECK_TRUE(m_volume_spec);
+		CHECK_TRUE(m_volume);
 
 		result = disk_formatter_clone(
-			m_dev_handle, m_volume_spec,
+			m_volume->dev_handle, m_volume->io_spec,
 			ref_partition_data, ref_partition_data_length);
 
 		LONGS_EQUAL(0, result);
 
 		volume_index_init();
-		volume_index_add(VOLUME_ID_SECURE_FLASH, m_dev_handle, m_volume_spec);
+		volume_index_add(VOLUME_ID_SECURE_FLASH, m_volume);
 	}
 
 	void teardown()
 	{
-		block_io_dev_deinit(&m_block_io_dev);
+		block_volume_deinit(&m_block_volume);
 		ram_block_store_deinit(&m_ram_block_store);
 		volume_index_clear();
 	}
@@ -92,9 +90,8 @@ TEST_GROUP(PartitionTableTests)
 	struct uuid_octets m_partition_guid;
 	struct block_store *m_block_store;
 	struct ram_block_store m_ram_block_store;
-	struct block_io_dev m_block_io_dev;
-	uintptr_t m_dev_handle;
-	uintptr_t m_volume_spec;
+	struct block_volume m_block_volume;
+	struct volume *m_volume;
 };
 
 TEST(PartitionTableTests, loadRefPartitionTable)

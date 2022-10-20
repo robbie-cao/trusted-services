@@ -9,5 +9,5 @@ if (NOT DEFINED TGT)
 endif()
 
 target_sources(${TGT} PRIVATE
-	"${CMAKE_CURRENT_LIST_DIR}/block_io_dev_tests.cpp"
-	)
+	"${CMAKE_CURRENT_LIST_DIR}/volume.c"
+)

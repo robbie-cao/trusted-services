@@ -18,7 +18,7 @@ extern "C" {
  * @brief  Format a storage volume by cloning a disk image
  *
  * @param[in] dev_handle    IO device handle
- * @param[in] volume_spec   Opaque volume spec
+ * @param[in] io_spec   Opaque volume spec
  * @param[in] source_image  The source disk image to clone
  * @param[in] source_image_size  The size of the source image
  *
@@ -26,7 +26,7 @@ extern "C" {
  */
 int disk_formatter_clone(
 	uintptr_t dev_handle,
-	uintptr_t volume_spec,
+	uintptr_t io_spec,
 	const uint8_t *source_image,
 	size_t source_image_size);
 

@@ -8,6 +8,7 @@
 #define MEDIA_VOLUME_INDEX_H
 
 #include <stdint.h>
+#include <media/volume/volume.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,17 +26,18 @@ extern "C" {
  * Volume IDs only need to be unique within a deployment. For convenience,
  * here are some common volume IDs that may be useful.
  */
-#define VOLUME_ID_COMMON_BASE        (0x10000)
+#define VOLUME_ID_COMMON_BASE        (0x10000000)
 #define VOLUME_ID_SECURE_FLASH       (VOLUME_ID_COMMON_BASE + 0)
 
 /**
  * @brief  Initialize the volume index
  *
  * The volume_index is a singleton that holds the mapping of volume IDs
- * to concrete IO devices that can be used to access the volume. The
- * mappings are setup during deployment configuration to meet the IO needs
- * of the deployment. The volume_index realizes the tf-a function
- * plat_get_image_source() to make the mappings available to tf-a components.
+ * to concrete volume objects that associate a storage volume with an
+ * IO device that may be used to access storage. The mappings are setup
+ * during deployment configuration to meet the IO needs of the deployment.
+ * The volume_index realizes the tf-a function plat_get_image_source() to
+ * make the mappings available to tf-a components.
  */
 void volume_index_init(void);
 
@@ -50,15 +52,35 @@ void volume_index_clear(void);
  * @brief  Add an entry to the volume index
  *
  * @param[in] volume_id   Volume identifier
- * @param[in] dev_handle  Device handle to use
- * @param[in] volume_spec  Additional information about the volume
+ * @param[in] volume      The volume that extends the base io_dev
  *
  * @return 0 if successful
  */
 int volume_index_add(
 	unsigned int volume_id,
-	uintptr_t dev_handle,
-	uintptr_t volume_spec);
+	struct volume *volume);
+
+/**
+ * @brief  Find an added volume by volume index
+ *
+ * @param[in]  volume_id   Volume identifier
+ * @param[out] volume      The volume that extends the base io_dev
+ *
+ * @return 0 if found
+ */
+int volume_index_find(
+	unsigned int volume_id,
+	struct volume **volume);
+
+/**
+ * @brief  Iterator function
+ *
+ * @param[in]  index  0..n
+ *
+ * @return Pointer to a concrete volume or NULL if iterated beyond final entry
+ */
+struct volume *volume_index_get(unsigned int index);
+
 
 #ifdef __cplusplus
 }

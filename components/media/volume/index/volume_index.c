@@ -11,20 +11,18 @@
 #include "volume_index.h"
 
 #ifndef VOLUME_INDEX_MAX_ENTRIES
-#define VOLUME_INDEX_MAX_ENTRIES		(4)
+#define VOLUME_INDEX_MAX_ENTRIES		(8)
 #endif
 
 /**
  * Singleton index of volume IDs to IO devices.
  */
-static struct
-{
+static struct {
+
 	size_t size;
-	struct
-	{
+	struct {
 		unsigned int volume_id;
-		uintptr_t dev_handle;
-		uintptr_t volume_spec;
+		struct volume *volume;
 	} entries[VOLUME_INDEX_MAX_ENTRIES];
 
 } volume_index;
@@ -34,7 +32,7 @@ static struct
  *
  * @param[in]  volume_id 	Identifies the image
  * @param[out] dev_handle 	Handle for IO operations
- * @param[out] volume_spec	Opaque configuration data
+ * @param[out] io_spec	Opaque configuration data
  *
  * This function realizes the interface expected by tf-a components to
  * provide a concrete IO device for the specified volume ID. When used in
@@ -44,20 +42,19 @@ static struct
 int plat_get_image_source(
 	unsigned int volume_id,
 	uintptr_t *dev_handle,
-	uintptr_t *volume_spec)
+	uintptr_t *io_spec)
 {
-	int result = -1;
+	struct volume *volume = NULL;
+	int result = volume_index_find(volume_id, &volume);
 
-	for (size_t i = 0; i < volume_index.size; i++) {
+	if (result == 0) {
 
-		if (volume_index.entries[i].volume_id == volume_id) {
+		if (volume) {
 
-			*dev_handle = volume_index.entries[i].dev_handle;
-			*volume_spec = volume_index.entries[i].volume_spec;
-
-			result = 0;
-			break;
-		}
+			*dev_handle = volume->dev_handle;
+			*io_spec = volume->io_spec;
+		} else
+			result = -1;
 	}
 
 	return result;
@@ -75,22 +72,48 @@ void volume_index_clear(void)
 
 int volume_index_add(
 	unsigned int volume_id,
-	uintptr_t dev_handle,
-	uintptr_t volume_spec)
+	struct volume *volume)
 {
 	int result = -1;
 
-	if (volume_index.size < VOLUME_INDEX_MAX_ENTRIES)
-	{
+	if (volume_index.size < VOLUME_INDEX_MAX_ENTRIES) {
 		size_t i = volume_index.size;
 
 		++volume_index.size;
 		volume_index.entries[i].volume_id = volume_id;
-		volume_index.entries[i].dev_handle = dev_handle;
-		volume_index.entries[i].volume_spec = volume_spec;
+		volume_index.entries[i].volume = volume;
 
 		result = 0;
 	}
 
 	return result;
+}
+
+int volume_index_find(
+	unsigned int volume_id,
+	struct volume **volume)
+{
+	int result = -1;
+
+	for (size_t i = 0; i < volume_index.size; i++) {
+
+		if (volume_index.entries[i].volume_id == volume_id) {
+
+			*volume = volume_index.entries[i].volume;
+			result = 0;
+			break;
+		}
+	}
+
+	return result;
+}
+
+struct volume *volume_index_get(unsigned int index)
+{
+	struct volume *volume = NULL;
+
+	if (index < volume_index.size)
+		volume = volume_index.entries[index].volume;
+
+	return volume;
 }
