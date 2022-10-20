@@ -163,6 +163,18 @@ data:
       params:
             - "-GUnix Makefiles"
             - "-DCMAKE_VERBOSE_MAKEFILE=y"
+    - name: "spm-test1-opteesp-arm"
+      src: "$TS_ROOT/deployments/spm-test1/opteesp"
+      params:
+            - "-GUnix Makefiles"
+    - name: "spm-test2-opteesp-arm"
+      src: "$TS_ROOT/deployments/spm-test2/opteesp"
+      params:
+            - "-GUnix Makefiles"
+    - name: "spm-test3-opteesp-arm"
+      src: "$TS_ROOT/deployments/spm-test3/opteesp"
+      params:
+            - "-GUnix Makefiles"
     - name: "ts-demo-arm-linux"
       src: "$TS_ROOT/deployments/ts-demo/arm-linux"
       os_id : "GNU/Linux"
