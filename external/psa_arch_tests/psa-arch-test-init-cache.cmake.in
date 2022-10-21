@@ -5,7 +5,6 @@
 #
 #-------------------------------------------------------------------------------
 
-set(CMAKE_INSTALL_PREFIX "@PSA_ARCH_TESTS_INSTALL_PATH@" CACHE STRING "")
 set(CMAKE_TOOLCHAIN_FILE "@TS_EXTERNAL_LIB_TOOLCHAIN_FILE@" CACHE STRING "")
 
 set(TOOLCHAIN INHERIT CACHE STRING "")
