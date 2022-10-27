@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2019-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2019-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -91,6 +91,9 @@ set(CMAKE_NO_SYSTEM_FROM_IMPORTED True)
   ``DST``
 	Where to write the preprocessed output.
 
+  ``TARGET`` (optional)
+	Target that the custom command is tied to.
+
   ``DEFINES`` (multi, optional)
 	Definitions for the preprocessor.
 
@@ -100,7 +103,7 @@ set(CMAKE_NO_SYSTEM_FROM_IMPORTED True)
 #]===]
 function(compiler_preprocess_file)
 	set(_OPTIONS_ARGS)
-	set(_ONE_VALUE_ARGS SRC DST)
+	set(_ONE_VALUE_ARGS TARGET SRC DST)
 	set(_MULTI_VALUE_ARGS DEFINES INCLUDES)
 	cmake_parse_arguments(_MY_PARAMS "${_OPTIONS_ARGS}" "${_ONE_VALUE_ARGS}" "${_MULTI_VALUE_ARGS}" ${ARGN})
 
@@ -116,11 +119,22 @@ function(compiler_preprocess_file)
 		list(APPEND _flags ${_MY_PARAMS_INCLUDES})
 	endif()
 
-	add_custom_command(
-		DEPENDS ${_MY_PARAMS_SRC} OUTPUT ${_MY_PARAMS_DST}
-		COMMAND ${CMAKE_C_COMPILER} -E -P -x assembler-with-cpp ${_flags}
-				${_MY_PARAMS_SRC} -o ${_MY_PARAMS_DST}
-	)
+	if(_MY_PARAMS_TARGET)
+		add_custom_command(
+			TARGET ${_MY_PARAMS_TARGET}
+			POST_BUILD
+			DEPENDS ${_MY_PARAMS_SRC}
+			COMMAND ${CMAKE_C_COMPILER} -E -P -x assembler-with-cpp ${_flags}
+					${_MY_PARAMS_SRC} -o ${_MY_PARAMS_DST}
+		)
+	else()
+		add_custom_command(
+			DEPENDS ${_MY_PARAMS_SRC}
+			OUTPUT ${_MY_PARAMS_DST}
+			COMMAND ${CMAKE_C_COMPILER} -E -P -x assembler-with-cpp ${_flags}
+					${_MY_PARAMS_SRC} -o ${_MY_PARAMS_DST}
+		)
+	endif()
 endfunction()
 
 #[===[.rst:

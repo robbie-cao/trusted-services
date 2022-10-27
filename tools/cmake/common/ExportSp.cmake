@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -75,19 +75,29 @@ function (export_sp)
 	# /dts-v1/ tag and its node should be unique, i.e. the SP name.
 	set(DTS_TAG "")
 	set(DTS_NODE "${EXPORT_SP_NAME}")
-	configure_file(${EXPORT_DTS_IN} ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}.dtsi @ONLY NEWLINE_STYLE UNIX)
+	configure_file(${EXPORT_DTS_IN} ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}_before_preprocessing.dtsi @ONLY NEWLINE_STYLE UNIX)
+
+	compiler_preprocess_file(
+		SRC ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}_before_preprocessing.dtsi
+		DST ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}.dtsi
+		TARGET ${EXPORT_SP_NAME}
+	)
+
 	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}.dtsi DESTINATION ${TS_ENV}/manifest)
 
 	# The .dts file is a standalone structure, thus it should have the /dts-v1/ tag and it
 	# starts with the root node.
 	set(DTS_TAG "/dts-v1/;")
 	set(DTS_NODE "/")
-	configure_file(${EXPORT_DTS_IN} ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}.dts @ONLY NEWLINE_STYLE UNIX)
-	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}.dts DESTINATION ${TS_ENV}/manifest)
+	configure_file(${EXPORT_DTS_IN} ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}_before_preprocessing.dts @ONLY NEWLINE_STYLE UNIX)
 
-	if (DEFINED EXPORT_DTS_MEM_REGIONS)
-		install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_DTS_MEM_REGIONS} DESTINATION ${TS_ENV}/manifest)
-	endif()
+	compiler_preprocess_file(
+		SRC ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}_before_preprocessing.dts
+		DST ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}.dts
+		TARGET ${EXPORT_SP_NAME}
+	)
+
+	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}.dts DESTINATION ${TS_ENV}/manifest)
 
 	if (DEFINED EXPORT_JSON_IN)
 		configure_file(${EXPORT_JSON_IN} ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_NAME}.json @ONLY NEWLINE_STYLE UNIX)
