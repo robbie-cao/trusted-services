@@ -10,4 +10,7 @@ endif()
 
 target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/fw_directory.c"
+	"${CMAKE_CURRENT_LIST_DIR}/update_agent.c"
+	"${CMAKE_CURRENT_LIST_DIR}/stream_manager.c"
+	"${CMAKE_CURRENT_LIST_DIR}/img_dir_serializer.c"
 	)
