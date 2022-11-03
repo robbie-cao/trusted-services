@@ -197,7 +197,7 @@ static rpc_status_t get_next_variable_name_handler(void *context, struct call_re
 			efi_status = uefi_variable_store_get_next_variable_name(
 				&this_instance->variable_store,
 				(SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME*)resp_buf->data,
-				max_name_len,
+				((SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME*)resp_buf->data)->NameSize,
 				&resp_buf->data_len);
 		}
 		else {
