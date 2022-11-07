@@ -113,6 +113,8 @@ add_components(
 		"components/service/fwu/fw_store/banked/metadata_serializer/v1"
 		"components/service/fwu/fw_store/banked/test"
 		"components/service/fwu/installer"
+		"components/service/fwu/installer/raw"
+		"components/service/fwu/installer/raw/test"
 		"components/service/fwu/inspector/mock"
 		"components/service/crypto/client/cpp"
 		"components/service/crypto/client/cpp/protocol/protobuf"
