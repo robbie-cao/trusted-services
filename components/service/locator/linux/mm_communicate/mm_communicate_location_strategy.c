@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -76,6 +76,9 @@ bool discover_partition(const char *dev_path, struct smm_service_location *locat
 	if (uuid_is_valid(location->uuid.characters) == UUID_CANONICAL_FORM_LEN) {
 
 		struct mm_communicate_caller mm_communicate_caller;
+
+		if (!mm_communicate_caller_check_version())
+			return false;
 
 		mm_communicate_caller_init(&mm_communicate_caller, dev_path);
 
