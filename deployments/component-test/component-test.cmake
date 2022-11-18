@@ -110,6 +110,7 @@ add_components(
 		"components/service/block_storage/factory/client"
 		"components/service/fwu/agent"
 		"components/service/fwu/installer"
+		"components/service/fwu/inspector/mock"
 		"components/service/crypto/client/cpp"
 		"components/service/crypto/client/cpp/protocol/protobuf"
 		"components/service/crypto/client/cpp/protocol/packed-c"
