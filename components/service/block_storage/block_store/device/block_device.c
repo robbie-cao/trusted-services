@@ -5,6 +5,7 @@
  *
  */
 
+#include <string.h>
 #include "block_device.h"
 
 #define BLOCK_DEVICE_PARTITION_HANDLE    (0)
@@ -34,6 +35,11 @@ psa_status_t block_device_get_partition_info(
 
 		info->block_size = block_device->storage_partition.block_size;
 		info->num_blocks = block_device->storage_partition.num_blocks;
+		info->partition_guid = block_device->storage_partition.partition_guid;
+
+		/* A block_device has no parent so return a nil UUID */
+		memset(info->parent_guid.octets, 0, sizeof(info->parent_guid.octets));
+
 		status = PSA_SUCCESS;
 	}
 

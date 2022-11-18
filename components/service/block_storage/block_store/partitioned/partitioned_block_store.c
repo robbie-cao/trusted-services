@@ -89,6 +89,8 @@ static psa_status_t partitioned_block_store_get_partition_info(void *context,
 
 		info->block_size = partition->block_size;
 		info->num_blocks = partition->num_blocks;
+		info->partition_guid = partition->partition_guid;
+		info->parent_guid = partitioned_block_store->back_store_info.partition_guid;
 	}
 
 	return status;

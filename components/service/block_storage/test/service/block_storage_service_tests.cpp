@@ -61,40 +61,40 @@ TEST(BlockStorageServiceTests, getPartitionInfo)
 		m_block_store, &m_partition_1_guid, &info);
 
 	LONGS_EQUAL(PSA_SUCCESS, status);
-	UNSIGNED_LONGS_EQUAL(
-		REF_PARTITION_1_ENDING_LBA - REF_PARTITION_1_STARTING_LBA + 1,
-		info.num_blocks);
-	UNSIGNED_LONGS_EQUAL(REF_PARTITION_BLOCK_SIZE, info.block_size);
+	LONGS_EQUAL(REF_PARTITION_1_ENDING_LBA - REF_PARTITION_1_STARTING_LBA + 1, info.num_blocks);
+	LONGS_EQUAL(REF_PARTITION_BLOCK_SIZE, info.block_size);
+	MEMCMP_EQUAL(m_partition_1_guid.octets,
+		info.partition_guid.octets, sizeof(info.partition_guid.octets));
 
 	/* Check partition info for partition 2 */
 	status = block_store_get_partition_info(
 		m_block_store, &m_partition_2_guid, &info);
 
 	LONGS_EQUAL(PSA_SUCCESS, status);
-	UNSIGNED_LONGS_EQUAL(
-		REF_PARTITION_2_ENDING_LBA - REF_PARTITION_2_STARTING_LBA + 1,
-		info.num_blocks);
-	UNSIGNED_LONGS_EQUAL(REF_PARTITION_BLOCK_SIZE, info.block_size);
+	LONGS_EQUAL(REF_PARTITION_2_ENDING_LBA - REF_PARTITION_2_STARTING_LBA + 1, info.num_blocks);
+	LONGS_EQUAL(REF_PARTITION_BLOCK_SIZE, info.block_size);
+	MEMCMP_EQUAL(m_partition_2_guid.octets,
+		info.partition_guid.octets, sizeof(info.partition_guid.octets));
 
 	/* Check partition info for partition 3 */
 	status = block_store_get_partition_info(
 		m_block_store, &m_partition_3_guid, &info);
 
 	LONGS_EQUAL(PSA_SUCCESS, status);
-	UNSIGNED_LONGS_EQUAL(
-		REF_PARTITION_3_ENDING_LBA - REF_PARTITION_3_STARTING_LBA + 1,
-		info.num_blocks);
-	UNSIGNED_LONGS_EQUAL(REF_PARTITION_BLOCK_SIZE, info.block_size);
+	LONGS_EQUAL(REF_PARTITION_3_ENDING_LBA - REF_PARTITION_3_STARTING_LBA + 1, info.num_blocks);
+	LONGS_EQUAL(REF_PARTITION_BLOCK_SIZE, info.block_size);
+	MEMCMP_EQUAL(m_partition_3_guid.octets,
+		info.partition_guid.octets, sizeof(info.partition_guid.octets));
 
 	/* Check partition info for partition 4 */
 	status = block_store_get_partition_info(
 		m_block_store, &m_partition_4_guid, &info);
 
 	LONGS_EQUAL(PSA_SUCCESS, status);
-	UNSIGNED_LONGS_EQUAL(
-		REF_PARTITION_4_ENDING_LBA - REF_PARTITION_4_STARTING_LBA + 1,
-		info.num_blocks);
-	UNSIGNED_LONGS_EQUAL(REF_PARTITION_BLOCK_SIZE, info.block_size);
+	LONGS_EQUAL(REF_PARTITION_4_ENDING_LBA - REF_PARTITION_4_STARTING_LBA + 1, info.num_blocks);
+	LONGS_EQUAL(REF_PARTITION_BLOCK_SIZE, info.block_size);
+	MEMCMP_EQUAL(m_partition_4_guid.octets,
+		info.partition_guid.octets, sizeof(info.partition_guid.octets));
 }
 
 TEST(BlockStorageServiceTests, openClose)

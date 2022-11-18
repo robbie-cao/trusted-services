@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -15,12 +15,12 @@ TEST_GROUP(PartitionedBlockStoreTests)
 	void setup()
 	{
 		/* Initialize a ram_block_store to use as the back store */
-		struct uuid_octets back_store_guid;
-		memset(&back_store_guid, 0, sizeof(back_store_guid));
+		uuid_guid_octets_from_canonical(&m_back_store_guid,
+			"6ec10ff6-4252-4ef7-aeca-5036db6697df");
 
 		struct block_store *back_store = ram_block_store_init(
 			&m_ram_store,
-			&back_store_guid,
+			&m_back_store_guid,
 			BACK_STORE_NUM_BLOCKS,
 			BACK_STORE_BLOCK_SIZE);
 
@@ -30,7 +30,7 @@ TEST_GROUP(PartitionedBlockStoreTests)
 		m_block_store = partitioned_block_store_init(
 			&m_partitioned_store,
 			LOCAL_CLIENT_ID,
-			&back_store_guid,
+			&m_back_store_guid,
 			back_store,
 			NULL);
 
@@ -84,6 +84,7 @@ TEST_GROUP(PartitionedBlockStoreTests)
 	struct partitioned_block_store m_partitioned_store;
 	struct uuid_octets m_partition_1_guid;
 	struct uuid_octets m_partition_2_guid;
+	struct uuid_octets m_back_store_guid;
 };
 
 TEST(PartitionedBlockStoreTests, getPartitionInfo)
@@ -97,6 +98,10 @@ TEST(PartitionedBlockStoreTests, getPartitionInfo)
 	LONGS_EQUAL(PSA_SUCCESS, status);
 	LONGS_EQUAL(PARTITION_1_ENDING_LBA - PARTITION_1_STARTING_LBA + 1, info.num_blocks);
 	LONGS_EQUAL(BACK_STORE_BLOCK_SIZE, info.block_size);
+	MEMCMP_EQUAL(m_partition_1_guid.octets,
+		info.partition_guid.octets, sizeof(info.partition_guid.octets));
+	MEMCMP_EQUAL(m_back_store_guid.octets,
+		info.parent_guid.octets, sizeof(info.parent_guid.octets));
 
 	/* Check partition info for partition 2 */
 	status = block_store_get_partition_info(
@@ -105,6 +110,10 @@ TEST(PartitionedBlockStoreTests, getPartitionInfo)
 	LONGS_EQUAL(PSA_SUCCESS, status);
 	LONGS_EQUAL(PARTITION_2_ENDING_LBA - PARTITION_2_STARTING_LBA + 1, info.num_blocks);
 	LONGS_EQUAL(BACK_STORE_BLOCK_SIZE, info.block_size);
+	MEMCMP_EQUAL(m_partition_2_guid.octets,
+		info.partition_guid.octets, sizeof(info.partition_guid.octets));
+	MEMCMP_EQUAL(m_back_store_guid.octets,
+		info.parent_guid.octets, sizeof(info.parent_guid.octets));
 }
 
 TEST(PartitionedBlockStoreTests, openClose)

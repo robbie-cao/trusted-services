@@ -47,6 +47,8 @@ TEST(RamBlockStoreTests, getPartitionInfo)
 	LONGS_EQUAL(PSA_SUCCESS, status);
 	LONGS_EQUAL(NUM_BLOCKS, info.num_blocks);
 	LONGS_EQUAL(BLOCK_SIZE, info.block_size);
+	MEMCMP_EQUAL(m_partition_guid.octets,
+		info.partition_guid.octets, sizeof(info.partition_guid.octets));
 }
 
 TEST(RamBlockStoreTests, openClose)

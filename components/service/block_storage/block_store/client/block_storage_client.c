@@ -57,7 +57,16 @@ static psa_status_t block_storage_client_get_partition_info(void *context,
 
 					info->block_size = resp_msg.block_size;
 					info->num_blocks = resp_msg.num_blocks;
-				} else {
+
+					memcpy(info->partition_guid.octets,
+						resp_msg.partition_guid,
+						TS_BLOCK_STORAGE_GUID_OCTET_LEN);
+
+					memcpy(info->parent_guid.octets,
+						resp_msg.parent_guid,
+						TS_BLOCK_STORAGE_GUID_OCTET_LEN);
+				}
+				else {
 					/* Failed to decode response message */
 					psa_status = PSA_ERROR_GENERIC_ERROR;
 				}

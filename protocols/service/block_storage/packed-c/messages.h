@@ -28,14 +28,16 @@
 /* Mandatory fixed sized input parameters */
 struct __attribute__ ((__packed__)) ts_block_storage_get_partition_info_in
 {
-  uint8_t partition_guid[TS_BLOCK_STORAGE_GUID_OCTET_LEN];
+	uint8_t partition_guid[TS_BLOCK_STORAGE_GUID_OCTET_LEN];
 };
 
 /* Mandatory fixed sized output parameters */
 struct __attribute__ ((__packed__)) ts_block_storage_get_partition_info_out
 {
-  uint32_t num_blocks;
-  uint32_t block_size;
+	uint32_t num_blocks;
+	uint32_t block_size;
+	uint8_t partition_guid[TS_BLOCK_STORAGE_GUID_OCTET_LEN];
+	uint8_t parent_guid[TS_BLOCK_STORAGE_GUID_OCTET_LEN];
 };
 
 /****************************************
@@ -49,13 +51,13 @@ struct __attribute__ ((__packed__)) ts_block_storage_get_partition_info_out
 /* Mandatory fixed sized input parameters */
 struct __attribute__ ((__packed__)) ts_block_storage_open_in
 {
-  uint8_t partition_guid[TS_BLOCK_STORAGE_GUID_OCTET_LEN];
+	uint8_t partition_guid[TS_BLOCK_STORAGE_GUID_OCTET_LEN];
 };
 
 /* Mandatory fixed sized output parameters */
 struct __attribute__ ((__packed__)) ts_block_storage_open_out
 {
-  uint64_t handle;
+	uint64_t handle;
 };
 
 /****************************************
@@ -68,7 +70,7 @@ struct __attribute__ ((__packed__)) ts_block_storage_open_out
 /* Mandatory fixed sized input parameters */
 struct __attribute__ ((__packed__)) ts_block_storage_close_in
 {
-  uint64_t handle;
+	uint64_t handle;
 };
 
 /****************************************
@@ -80,10 +82,10 @@ struct __attribute__ ((__packed__)) ts_block_storage_close_in
 /* Mandatory fixed sized input parameters */
 struct __attribute__ ((__packed__)) ts_block_storage_read_in
 {
-  uint64_t handle;
-  uint32_t lba;
-  uint32_t offset;
-  uint32_t len;
+	uint64_t handle;
+	uint32_t lba;
+	uint32_t offset;
+	uint32_t len;
 };
 
 /* Read data returned in response */
@@ -97,9 +99,9 @@ struct __attribute__ ((__packed__)) ts_block_storage_read_in
 /* Mandatory fixed sized input parameters */
 struct __attribute__ ((__packed__)) ts_block_storage_write_in
 {
-  uint64_t handle;
-  uint32_t lba;
-  uint32_t offset;
+	uint64_t handle;
+	uint32_t lba;
+	uint32_t offset;
 };
 
 /* Write data follows fixed size input message */
@@ -107,7 +109,7 @@ struct __attribute__ ((__packed__)) ts_block_storage_write_in
 /* Mandatory fixed sized output parameters */
 struct __attribute__ ((__packed__)) ts_block_storage_write_out
 {
-  uint64_t num_written;
+	uint64_t num_written;
 };
 
 /****************************************
@@ -119,9 +121,9 @@ struct __attribute__ ((__packed__)) ts_block_storage_write_out
 /* Mandatory fixed sized input parameters */
 struct __attribute__ ((__packed__)) ts_block_storage_erase_in
 {
-  uint64_t handle;
-  uint32_t begin_lba;
-  uint32_t num_blocks;
+	uint64_t handle;
+	uint32_t begin_lba;
+	uint32_t num_blocks;
 };
 
 #endif /* TS_BLOCK_STORAGE_PACKEDC_MESSAGES_H */
