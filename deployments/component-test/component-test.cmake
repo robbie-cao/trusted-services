@@ -108,6 +108,7 @@ add_components(
 		"components/service/block_storage/factory/ref_ram"
 		"components/service/block_storage/factory/ref_ram_gpt"
 		"components/service/block_storage/factory/client"
+		"components/service/fwu/agent"
 		"components/service/crypto/client/cpp"
 		"components/service/crypto/client/cpp/protocol/protobuf"
 		"components/service/crypto/client/cpp/protocol/packed-c"
