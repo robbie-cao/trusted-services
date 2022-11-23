@@ -115,6 +115,8 @@ add_components(
 		"components/service/fwu/installer"
 		"components/service/fwu/installer/raw"
 		"components/service/fwu/installer/raw/test"
+		"components/service/fwu/installer/copy"
+		"components/service/fwu/installer/copy/test"
 		"components/service/fwu/inspector/mock"
 		"components/service/crypto/client/cpp"
 		"components/service/crypto/client/cpp/protocol/protobuf"
