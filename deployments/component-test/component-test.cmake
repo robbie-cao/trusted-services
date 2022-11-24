@@ -120,6 +120,7 @@ add_components(
 		"components/service/fwu/installer/factory/default"
 		"components/service/fwu/installer/factory/default/test"
 		"components/service/fwu/inspector/mock"
+		"components/service/fwu/inspector/direct"
 		"components/service/crypto/client/cpp"
 		"components/service/crypto/client/cpp/protocol/protobuf"
 		"components/service/crypto/client/cpp/protocol/packed-c"
