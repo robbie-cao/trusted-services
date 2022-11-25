@@ -23,6 +23,8 @@ The following tools are required:
          (Note: the compiler part of the OP-TEE build environment works too.)
        * For `linux-pc` environment use the native version of GCC available in your Linux distribution.
 
+   * The `AEM FVP`_ binaries if targeting the FVP platform.
+
 To build the documentation, please refer to :ref:`Documentation Build Instructions`.
 
 .. todo:: Add info on commit validation dependencies (checkpatch, uncrustify, etc...)
@@ -32,7 +34,8 @@ To build the documentation, please refer to :ref:`Documentation Build Instructio
 .. _OP-TEE documentation: https://optee.readthedocs.io/en/latest/building/gits/build.html#step-4-get-the-toolchains
 .. _arm Developer: https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-a/downloads
 .. _CMake download page: https://cmake.org/files/v3.18/
+.. _`AEM FVP`: https://developer.arm.com/-/media/Files/downloads/ecosystem-models/FVP_Base_RevC-2xAEMvA_11.18_16_Linux64.tgz
 
-*Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

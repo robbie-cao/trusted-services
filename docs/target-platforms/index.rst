@@ -23,9 +23,13 @@ The quality of the platform, known issues, feature limitations, extra features, 
 in the sub-chapters below.
 
 
+Reference platforms
+-------------------
 
+.. toctree::
+    :maxdepth: 1
 
-
+    ./aem-fvp
 
 
 --------------
