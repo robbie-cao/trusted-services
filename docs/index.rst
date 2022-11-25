@@ -80,6 +80,7 @@ system integrators.
    security/index
    deployments/index
    certification/index
+   target-platforms/index
 
 --------------
 
