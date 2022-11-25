@@ -27,8 +27,6 @@ The following tools are required:
 
 To build the documentation, please refer to :ref:`Documentation Build Instructions`.
 
-.. todo:: Add info on commit validation dependencies (checkpatch, uncrustify, etc...)
-
 --------------
 
 .. _OP-TEE documentation: https://optee.readthedocs.io/en/latest/building/gits/build.html#step-4-get-the-toolchains

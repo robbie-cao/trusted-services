@@ -12,7 +12,7 @@ About the Project
     license
     maintainers
     versioning_policy
-    todo
+
 
 --------------
 

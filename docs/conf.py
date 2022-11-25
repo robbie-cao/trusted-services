@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # -- Metadata about this file ------------------------------------------------
-__copyright__ = "Copyright (c) 2020-2021 Arm Limited and Contributors."
+__copyright__ = "Copyright (c) 2020-2022 Arm Limited and Contributors."
 __license__ = "SPDX-License-Identifier: BSD-3-Clause"
 
 # Configuration file for the Sphinx documentation builder.
@@ -31,7 +31,7 @@ version=release
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.autosectionlabel', 'sphinxcontrib.plantuml',
-              'sphinxcontrib.moderncmakedomain', 'sphinx.ext.todo']
+              'sphinxcontrib.moderncmakedomain' ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -102,7 +102,3 @@ autosectionlabel_maxdepth = 1
 # -- Options for plantuml ----------------------------------------------------
 
 plantuml_output_format = 'svg_img'
-# -- Options for todo extension ----------------------------------------------
-
-# Display todos
-todo_include_todos = False

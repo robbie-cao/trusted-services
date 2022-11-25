@@ -40,14 +40,15 @@ documentation into this manual.
 CMake
 '''''
 
-.. todo:: Add content about how to document cmake scripts.
-
+The project uses the ""`moderncmakedomain`_" Sphinx extension. This allows adding inline documentation to cmake files.
+For details please refer to the documentation of the plugin.
 
 --------------
 
 .. _`Restructured Text`: https://docutils.sourceforge.io/rst.html
 .. _`Sphinx`: https://www.sphinx-doc.org
+.. _`moderncmakedomain`: https://github.com/scikit-build/moderncmakedomain
 
-*Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

@@ -69,8 +69,6 @@ Each file should include a copyright and license comment block at the head of ea
    #
    #-------------------------------------------------------------------------------
 
-.. todo:: Explain CMake return values and parent scope concept in more detail.
-
 Restructured Text Rules
 -----------------------
 
