@@ -4,6 +4,8 @@ Some deployments build common functionality into libraries that may be used by
 other deployments or external applications. The following library deployments
 are currently supported:
 
+.. _libs-libts:
+
 libts
 -----
 Userspace applications that depend on trusted services may use *libts* for handling
@@ -28,6 +30,8 @@ deployed in secure processing environments. For more information, see:
       * | *arm-linux* - communicates with service providers in secure processing environment
   * - Used by
     - * Userspace applications
+
+.. _libs-libsp:
 
 libsp
 -----
