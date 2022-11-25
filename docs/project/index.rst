@@ -14,6 +14,7 @@ About the Project
     versioning_policy
     version_control
     quality-assurance/index
+    releases
 
 --------------
 
