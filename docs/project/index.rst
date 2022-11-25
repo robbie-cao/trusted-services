@@ -12,6 +12,7 @@ About the Project
     license
     maintainers
     versioning_policy
+    version_control
     quality-assurance/index
 
 --------------

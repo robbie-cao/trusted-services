@@ -13,7 +13,6 @@ Getting Started
 - Send an email to the |TS_MAIL_LIST| about your work. This gives everyone
   visibility of whether others are working on something similar.
 - Clone the |TS_REPO| on your own machine.
-- Create a local topic branch based on ``main`` branch of the |TS_REPO|.
 
 Making Changes
 --------------
