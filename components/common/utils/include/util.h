@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 /*
  * Copyright (c) 2014, STMicroelectronics International N.V.
+ * Copyright (c) 2022, Arm Limited. All rights reserved.
  */
 #ifndef UTIL_H
 #define UTIL_H
@@ -48,8 +49,8 @@
 			  ~((__typeof__(v))(size) - 1))
 
 #define ROUNDUP_OVERFLOW(v, size, res) (__extension__({ \
-	typeof(*(res)) __roundup_tmp = 0; \
-	typeof(v) __roundup_mask = (typeof(v))(size) - 1; \
+	__typeof__(*(res)) __roundup_tmp = 0; \
+	__typeof__(v) __roundup_mask = (__typeof__(v))(size) - 1; \
 	\
 	ADD_OVERFLOW((v), __roundup_mask, &__roundup_tmp) ? 1 : \
 		(void)(*(res) = __roundup_tmp & ~__roundup_mask), 0; \
@@ -64,8 +65,8 @@
  * num_pages = ROUNDUP_DIV(num_bytes, SMALL_PAGE_SIZE);
  */
 #define ROUNDUP_DIV(x, y) (__extension__({ \
-	typeof(x) __roundup_x = (x); \
-	typeof(y) __roundup_mask = (typeof(x))(y) - 1; \
+	__typeof__(x) __roundup_x = (x); \
+	__typeof__(y) __roundup_mask = (__typeof__(x))(y) - 1; \
 	\
 	(__roundup_x / (y)) + (__roundup_x & __roundup_mask ? 1 : 0); \
 }))
@@ -98,7 +99,7 @@
 
 #define container_of(ptr, type, member) \
 	(__extension__({ \
-		const typeof(((type *)0)->member) *__ptr = (ptr); \
+		const __typeof__(((type *)0)->member) *__ptr = (ptr); \
 		(type *)((unsigned long)(__ptr) - offsetof(type, member)); \
 	}))
 
