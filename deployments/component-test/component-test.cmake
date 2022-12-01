@@ -128,6 +128,7 @@ add_components(
 		"components/service/fwu/test/metadata_checker"
 		"components/service/fwu/test/metadata_fetcher/volume"
 		"components/service/fwu/test/image_directory_checker"
+		"components/service/fwu/test/ref_scenarios"
 		"components/service/crypto/client/cpp"
 		"components/service/crypto/client/cpp/protocol/protobuf"
 		"components/service/crypto/client/cpp/protocol/packed-c"
