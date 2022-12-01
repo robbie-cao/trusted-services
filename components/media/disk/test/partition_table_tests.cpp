@@ -63,7 +63,7 @@ TEST_GROUP(PartitionTableTests)
 
 	void uuid_from_canonical(uuid_t *uuid, const char *canonical)
 	{
-		uuid_parse_to_octets_reversed(canonical, (uint8_t*)uuid, sizeof(uuid_t));
+		uuid_parse_to_guid_octets(canonical, (uint8_t*)uuid, sizeof(uuid_t));
 	}
 
 	void corrupt_mbr()
