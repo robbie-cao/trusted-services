@@ -22,7 +22,11 @@
 	INPUTS:
 
 	``SP_UUID_CANON``
-	The UUID of the SP as a canonical string.
+	The FF_A UUID of the SP as a canonical string.
+
+	``SP_BIN_UUID_CANON``
+	The UUID of the SP binary a canonical string. When not set use the
+	SP_UUID_CANON as the SP_BIN_UUID_CANON.
 
 	``SP_UUID_LE``
 	The UUID of the SP as four 32 bit little-endian unsigned integers.
@@ -45,13 +49,17 @@
 #]===]
 function (export_sp)
 	set(options)
-	set(oneValueArgs SP_UUID_CANON SP_UUID_LE SP_NAME MK_IN DTS_IN DTS_MEM_REGIONS JSON_IN)
+	set(oneValueArgs SP_UUID_CANON SP_BIN_UUID_CANON SP_UUID_LE SP_NAME MK_IN DTS_IN DTS_MEM_REGIONS JSON_IN)
 	set(multiValueArgs)
 	cmake_parse_arguments(EXPORT "${options}" "${oneValueArgs}"
 						"${multiValueArgs}" ${ARGN} )
 
 	if(NOT DEFINED EXPORT_SP_UUID_CANON)
 		message(FATAL_ERROR "export_sp: mandatory parameter SP_UUID_CANON not defined!")
+	endif()
+	if(NOT DEFINED EXPORT_SP_BIN_UUID_CANON)
+		# We use the same UUID for the binary and FF-A if the UUID of the SP binary is not set
+		set(EXPORT_SP_BIN_UUID_CANON ${EXPORT_SP_UUID_CANON})
 	endif()
 	if(NOT DEFINED EXPORT_SP_UUID_LE)
 		message(FATAL_ERROR "export_sp: mandatory parameter SP_UUID_LE not defined!")
@@ -75,29 +83,33 @@ function (export_sp)
 	# /dts-v1/ tag and its node should be unique, i.e. the SP name.
 	set(DTS_TAG "")
 	set(DTS_NODE "${EXPORT_SP_NAME}")
-	configure_file(${EXPORT_DTS_IN} ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}_before_preprocessing.dtsi @ONLY NEWLINE_STYLE UNIX)
+	configure_file(${EXPORT_DTS_IN} ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_BIN_UUID_CANON}_before_preprocessing.dtsi @ONLY NEWLINE_STYLE UNIX)
 
 	compiler_preprocess_file(
-		SRC ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}_before_preprocessing.dtsi
-		DST ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}.dtsi
+		SRC ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_BIN_UUID_CANON}_before_preprocessing.dtsi
+		DST ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_BIN_UUID_CANON}.dtsi
 		TARGET ${EXPORT_SP_NAME}
 	)
 
-	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}.dtsi DESTINATION ${TS_ENV}/manifest)
+	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_BIN_UUID_CANON}.dtsi DESTINATION ${TS_ENV}/manifest)
 
 	# The .dts file is a standalone structure, thus it should have the /dts-v1/ tag and it
 	# starts with the root node.
 	set(DTS_TAG "/dts-v1/;")
 	set(DTS_NODE "/")
-	configure_file(${EXPORT_DTS_IN} ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}_before_preprocessing.dts @ONLY NEWLINE_STYLE UNIX)
+	configure_file(${EXPORT_DTS_IN} ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_BIN_UUID_CANON}_before_preprocessing.dts @ONLY NEWLINE_STYLE UNIX)
 
 	compiler_preprocess_file(
-		SRC ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}_before_preprocessing.dts
-		DST ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}.dts
+		SRC ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_BIN_UUID_CANON}_before_preprocessing.dts
+		DST ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_BIN_UUID_CANON}.dts
 		TARGET ${EXPORT_SP_NAME}
 	)
 
-	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_UUID_CANON}.dts DESTINATION ${TS_ENV}/manifest)
+	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_BIN_UUID_CANON}.dts DESTINATION ${TS_ENV}/manifest)
+
+	if (DEFINED EXPORT_DTS_MEM_REGIONS)
+		install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_DTS_MEM_REGIONS} DESTINATION ${TS_ENV}/manifest)
+	endif()
 
 	if (DEFINED EXPORT_JSON_IN)
 		configure_file(${EXPORT_JSON_IN} ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_NAME}.json @ONLY NEWLINE_STYLE UNIX)
