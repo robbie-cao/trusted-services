@@ -76,11 +76,17 @@ TEST(mock_sp_discovery, sp_discovery_partition_info_get)
 
 	struct sp_uuid uuid = expected_uuid;
 	struct sp_partition_info info = {0};
+	uint32_t in_count = 16;
+	uint32_t expected_out_count = 8;
+	uint32_t out_count = in_count;
+
 
 	expect_sp_discovery_partition_info_get(&expected_uuid, &expected_info,
+					       in_count, &expected_out_count,
 					       result);
-	LONGS_EQUAL(result, sp_discovery_partition_info_get(&uuid, &info));
+	LONGS_EQUAL(result, sp_discovery_partition_info_get(&uuid, &info, &out_count));
 	MEMCMP_EQUAL(&expected_info, &info, sizeof(&expected_info));
+	UNSIGNED_LONGS_EQUAL(expected_out_count, out_count);
 }
 
 TEST(mock_sp_discovery, sp_discovery_partition_info_get_all)

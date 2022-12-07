@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
  */
 
 #ifndef LIBSP_INCLUDE_SP_DISCOVERY_H_
@@ -60,13 +60,18 @@ sp_result sp_discovery_partition_id_get(const struct sp_uuid *uuid,
 /**
  * @brief       Queries the information about a partition by its UUID.
  *
- * @param[in]   uuid  The UUID of the partition
- * @param[out]  info  The partition information
+ * @param[in]      uuid  The UUID of the partition
+ * @param[out]     info  The partition information
+ * @param[in,out]  count As an input value it specifies the count of partition
+ *                       info structures that would fit into the output buffer.
+ *                       As an output it indicates the count of the valid
+ *                       entries in the buffer.
  *
- * @return      The SP API result
+ * @return         The SP API result
  */
 sp_result sp_discovery_partition_info_get(const struct sp_uuid *uuid,
-					  struct sp_partition_info *info);
+					  struct sp_partition_info *info,
+					  uint32_t *count);
 
 /**
  * @brief          Queries partition information of all partitions.

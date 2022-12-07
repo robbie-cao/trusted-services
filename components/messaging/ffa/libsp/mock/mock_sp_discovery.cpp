@@ -66,6 +66,8 @@ sp_result sp_discovery_partition_id_get(const struct sp_uuid *uuid,
 
 void expect_sp_discovery_partition_info_get(const struct sp_uuid *uuid,
 					  const struct sp_partition_info *info,
+					  uint32_t in_count,
+					  const uint32_t *out_count,
 					  sp_result result)
 {
 	mock()
@@ -73,17 +75,22 @@ void expect_sp_discovery_partition_info_get(const struct sp_uuid *uuid,
 		.withMemoryBufferParameter("uuid", (const unsigned char *)uuid,
 					   sizeof(*uuid))
 		.withOutputParameterReturning("info", info, sizeof(*info))
+		.withUnsignedIntParameter("in_count", in_count)
+		.withOutputParameterReturning("out_count", out_count, sizeof(*out_count))
 		.andReturnValue(result);
 }
 
 sp_result sp_discovery_partition_info_get(const struct sp_uuid *uuid,
-					  struct sp_partition_info *info)
+					  struct sp_partition_info *info,
+					  uint32_t *count)
 {
 	return mock()
 		.actualCall("sp_discovery_partition_info_get")
 		.withMemoryBufferParameter("uuid", (const unsigned char *)uuid,
 					   sizeof(*uuid))
 		.withOutputParameter("info", info)
+		.withUnsignedIntParameter("in_count", *count)
+		.withOutputParameter("out_count", count)
 		.returnIntValue();
 }
 

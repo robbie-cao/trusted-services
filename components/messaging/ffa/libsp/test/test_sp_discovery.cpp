@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2020-2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2020-2023, Arm Limited. All rights reserved.
  */
 
 #include <CppUTest/TestHarness.h>
@@ -169,18 +169,20 @@ TEST(sp_discovery, sp_discovery_partition_info_get_null_uuid)
 {
 	struct sp_partition_info info = { 1 };
 	const struct sp_partition_info expected_info = { 0 };
+	uint32_t count = 1;
 
 	LONGS_EQUAL(SP_RESULT_INVALID_PARAMETERS,
-		    sp_discovery_partition_info_get(NULL, &info));
+		    sp_discovery_partition_info_get(NULL, &info, &count));
 	MEMCMP_EQUAL(&expected_info, &info, sizeof(info));
 }
 
 TEST(sp_discovery, sp_discovery_partition_info_get_null_info)
 {
 	struct sp_uuid uuid = { 1 };
+	uint32_t count = 0;
 
 	LONGS_EQUAL(SP_RESULT_INVALID_PARAMETERS,
-		    sp_discovery_partition_info_get(&uuid, NULL));
+		    sp_discovery_partition_info_get(&uuid, NULL, &count));
 }
 
 TEST(sp_discovery, sp_discovery_partition_info_get_nil_uuid)
@@ -188,9 +190,10 @@ TEST(sp_discovery, sp_discovery_partition_info_get_nil_uuid)
 	struct sp_uuid uuid = { 0 };
 	struct sp_partition_info info = { 1 };
 	const struct sp_partition_info expected_info = { 0 };
+	uint32_t count = 1;
 
 	LONGS_EQUAL(SP_RESULT_INVALID_PARAMETERS,
-		    sp_discovery_partition_info_get(&uuid, &info));
+		    sp_discovery_partition_info_get(&uuid, &info, &count));
 	MEMCMP_EQUAL(&expected_info, &info, sizeof(info));
 }
 
@@ -199,9 +202,11 @@ TEST(sp_discovery, sp_discovery_partition_info_rx_buffer_get_fail)
 	struct sp_uuid uuid = { 1 };
 	struct sp_partition_info info = { 1 };
 	const struct sp_partition_info expected_info = { 0 };
+	uint32_t count = 1;
 
 	expect_sp_rxtx_buffer_rx_get(&rx_buffer, &rx_buffer_size, result);
-	LONGS_EQUAL(result, sp_discovery_partition_info_get(&uuid, &info));
+	LONGS_EQUAL(result, sp_discovery_partition_info_get(&uuid, &info,
+							    &count));
 	MEMCMP_EQUAL(&expected_info, &info, sizeof(info));
 }
 
@@ -209,13 +214,14 @@ TEST(sp_discovery, sp_discovery_partition_info_ffa_fail)
 {
 	struct sp_uuid uuid = { 1 };
 	struct ffa_uuid ffa_uuid = { 1 };
-	uint32_t count = 0;
+	uint32_t count = 1;
 	struct sp_partition_info info = { 1 };
 	const struct sp_partition_info expected_info = { 0 };
 
 	expect_sp_rxtx_buffer_rx_get(&rx_buffer, &rx_buffer_size, SP_RESULT_OK);
 	expect_ffa_partition_info_get(&ffa_uuid, &count, result);
-	LONGS_EQUAL(result, sp_discovery_partition_info_get(&uuid, &info));
+	LONGS_EQUAL(result, sp_discovery_partition_info_get(&uuid, &info,
+							    &count));
 	MEMCMP_EQUAL(&expected_info, &info, sizeof(info));
 }
 
@@ -223,15 +229,16 @@ TEST(sp_discovery, sp_discovery_partition_info_small_buffer)
 {
 	struct sp_uuid uuid = { 1 };
 	struct ffa_uuid ffa_uuid = { 1 };
-	uint32_t count =
+	uint32_t expected_count =
 		(rx_buffer_size / sizeof(struct ffa_partition_information)) + 1;
+	uint32_t count = 1;
 	struct sp_partition_info info = { 1 };
 	const struct sp_partition_info expected_info = { 0 };
 
 	expect_sp_rxtx_buffer_rx_get(&rx_buffer, &rx_buffer_size, SP_RESULT_OK);
-	expect_ffa_partition_info_get(&ffa_uuid, &count, SP_RESULT_OK);
+	expect_ffa_partition_info_get(&ffa_uuid, &expected_count, SP_RESULT_OK);
 	LONGS_EQUAL(SP_RESULT_INTERNAL_ERROR,
-		    sp_discovery_partition_info_get(&uuid, &info));
+		    sp_discovery_partition_info_get(&uuid, &info, &count));
 	MEMCMP_EQUAL(&expected_info, &info, sizeof(info));
 }
 
@@ -239,15 +246,17 @@ TEST(sp_discovery, sp_discovery_partition_info_zero_count)
 {
 	struct sp_uuid uuid = { 1 };
 	struct ffa_uuid ffa_uuid = { 1 };
-	uint32_t count = 0;
+	uint32_t expected_count = 0;
+	uint32_t count = 1;
 	struct sp_partition_info info = { 1 };
 	const struct sp_partition_info expected_info = { 0 };
 
 	expect_sp_rxtx_buffer_rx_get(&rx_buffer, &rx_buffer_size, SP_RESULT_OK);
-	expect_ffa_partition_info_get(&ffa_uuid, &count, SP_RESULT_OK);
+	expect_ffa_partition_info_get(&ffa_uuid, &expected_count, SP_RESULT_OK);
 	LONGS_EQUAL(SP_RESULT_NOT_FOUND,
-		    sp_discovery_partition_info_get(&uuid, &info));
+		    sp_discovery_partition_info_get(&uuid, &info, &count));
 	MEMCMP_EQUAL(&expected_info, &info, sizeof(info));
+	UNSIGNED_LONGS_EQUAL(expected_count, count);
 }
 
 TEST(sp_discovery, sp_discovery_partition_info)
@@ -258,22 +267,29 @@ TEST(sp_discovery, sp_discovery_partition_info)
 		(rx_buffer_size / sizeof(struct ffa_partition_information));
 	const uint16_t expected_id = 1234;
 	const uint16_t expected_context_count = 23456;
-	struct sp_partition_info info = { 0 };
+	struct sp_partition_info *info =
+		(struct sp_partition_info *)calloc(count, sizeof(struct sp_partition_info));
 
-	((struct ffa_partition_information *)rx_buffer)->partition_id =
-		expected_id;
-	((struct ffa_partition_information *)rx_buffer)
-		->execution_context_count = expected_context_count;
+	for (uint32_t i = 0; i < count; i++) {
+		((struct ffa_partition_information *)rx_buffer)[i].partition_id = expected_id + i;
+		((struct ffa_partition_information *)rx_buffer)[i].execution_context_count = expected_context_count + i;
+		((struct ffa_partition_information *)rx_buffer)[i].partition_properties = 0;
+	}
 	expect_sp_rxtx_buffer_rx_get(&rx_buffer, &rx_buffer_size, SP_RESULT_OK);
 	expect_ffa_partition_info_get(&ffa_uuid, &count, SP_RESULT_OK);
 	LONGS_EQUAL(SP_RESULT_OK,
-		    sp_discovery_partition_info_get(&uuid, &info));
-	UNSIGNED_LONGS_EQUAL(expected_id, info.partition_id);
-	UNSIGNED_LONGS_EQUAL(expected_context_count,
-			     info.execution_context_count);
-	CHECK_FALSE(info.supports_direct_requests);
-	CHECK_FALSE(info.can_send_direct_requests);
-	CHECK_FALSE(info.supports_indirect_requests);
+		    sp_discovery_partition_info_get(&uuid, info, &count));
+
+	for (uint32_t i = 0; i < count; i++) {
+		UNSIGNED_LONGS_EQUAL(expected_id + i, info[i].partition_id);
+		UNSIGNED_LONGS_EQUAL(expected_context_count + i,
+				info[i].execution_context_count);
+		CHECK_FALSE(info[i].supports_direct_requests);
+		CHECK_FALSE(info[i].can_send_direct_requests);
+		CHECK_FALSE(info[i].supports_indirect_requests);
+	}
+
+	free(info);
 }
 
 TEST(sp_discovery, sp_discovery_partition_info_support_direct_req)
@@ -288,7 +304,7 @@ TEST(sp_discovery, sp_discovery_partition_info_support_direct_req)
 	expect_sp_rxtx_buffer_rx_get(&rx_buffer, &rx_buffer_size, SP_RESULT_OK);
 	expect_ffa_partition_info_get(&ffa_uuid, &count, SP_RESULT_OK);
 	LONGS_EQUAL(SP_RESULT_OK,
-		    sp_discovery_partition_info_get(&uuid, &info));
+		    sp_discovery_partition_info_get(&uuid, &info, &count));
 	CHECK_TRUE(info.supports_direct_requests);
 	CHECK_FALSE(info.can_send_direct_requests);
 	CHECK_FALSE(info.supports_indirect_requests);
@@ -306,7 +322,7 @@ TEST(sp_discovery, sp_discovery_partition_info_can_send_direct_req)
 	expect_sp_rxtx_buffer_rx_get(&rx_buffer, &rx_buffer_size, SP_RESULT_OK);
 	expect_ffa_partition_info_get(&ffa_uuid, &count, SP_RESULT_OK);
 	LONGS_EQUAL(SP_RESULT_OK,
-		    sp_discovery_partition_info_get(&uuid, &info));
+		    sp_discovery_partition_info_get(&uuid, &info, &count));
 	CHECK_FALSE(info.supports_direct_requests);
 	CHECK_TRUE(info.can_send_direct_requests);
 	CHECK_FALSE(info.supports_indirect_requests);
@@ -324,7 +340,7 @@ TEST(sp_discovery, sp_discovery_partition_info_support_indirect_req)
 	expect_sp_rxtx_buffer_rx_get(&rx_buffer, &rx_buffer_size, SP_RESULT_OK);
 	expect_ffa_partition_info_get(&ffa_uuid, &count, SP_RESULT_OK);
 	LONGS_EQUAL(SP_RESULT_OK,
-		    sp_discovery_partition_info_get(&uuid, &info));
+		    sp_discovery_partition_info_get(&uuid, &info, &count));
 	CHECK_FALSE(info.supports_direct_requests);
 	CHECK_FALSE(info.can_send_direct_requests);
 	CHECK_TRUE(info.supports_indirect_requests);
@@ -394,7 +410,7 @@ TEST(sp_discovery, sp_discovery_partition_info_get_all_zero_count)
 
 	expect_sp_rxtx_buffer_rx_get(&rx_buffer, &rx_buffer_size, SP_RESULT_OK);
 	expect_ffa_partition_info_get(&ffa_uuid, &expected_count, SP_RESULT_OK);
-	LONGS_EQUAL(SP_RESULT_OK,
+	LONGS_EQUAL(SP_RESULT_NOT_FOUND,
 		    sp_discovery_partition_info_get_all(&info, &count));
 	UNSIGNED_LONGS_EQUAL(0, count);
 }

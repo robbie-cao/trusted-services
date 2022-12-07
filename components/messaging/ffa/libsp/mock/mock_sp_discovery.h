@@ -24,6 +24,8 @@ void expect_sp_discovery_partition_id_get(const struct sp_uuid *uuid,
 
 void expect_sp_discovery_partition_info_get(const struct sp_uuid *uuid,
 					    const struct sp_partition_info *info,
+					    uint32_t in_count,
+					    const uint32_t *out_count,
 					    sp_result result);
 
 void expect_sp_discovery_partition_info_get_all(const struct sp_partition_info info[],

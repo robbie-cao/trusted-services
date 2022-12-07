@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
  */
 
 #include "sp_discovery.h"
@@ -38,74 +38,7 @@ sp_result sp_discovery_own_id_get(uint16_t *id)
 	return SP_RESULT_FFA(ffa_res);
 }
 
-static sp_result
-partition_info_get(const struct sp_uuid *uuid,
-		   const struct ffa_partition_information **info,
-		   uint32_t *count)
-{
-	const void *buffer = NULL;
-	size_t buffer_size = 0;
-	struct ffa_uuid ffa_uuid = { 0 };
-	sp_result sp_res = SP_RESULT_OK;
-	ffa_result ffa_res = FFA_OK;
-
-	sp_res = sp_rxtx_buffer_rx_get(&buffer, &buffer_size);
-	if (sp_res != SP_RESULT_OK) {
-		*count = UINT32_C(0);
-		return sp_res;
-	}
-
-	/* Safely convert to FF-A UUID format */
-	memcpy(&ffa_uuid.uuid, uuid->uuid, sizeof(ffa_uuid.uuid));
-
-	ffa_res = ffa_partition_info_get(&ffa_uuid, count);
-	if (ffa_res != FFA_OK) {
-		*count = UINT32_C(0);
-		return SP_RESULT_FFA(ffa_res);
-	}
-
-	if ((*count * sizeof(struct ffa_partition_information)) > buffer_size) {
-		/*
-		 * The indicated amount of info structures doesn't fit into the
-		 * RX buffer.
-		 */
-		*count = UINT32_C(0);
-		return SP_RESULT_INTERNAL_ERROR;
-	}
-
-	*info = (const struct ffa_partition_information *)buffer;
-
-	return SP_RESULT_OK;
-}
-
-static sp_result
-partition_info_get_single(const struct sp_uuid *uuid,
-			  const struct ffa_partition_information **info)
-{
-	uint32_t count = 0;
-	sp_result sp_res = SP_RESULT_OK;
-
-	if (uuid == NULL)
-		return SP_RESULT_INVALID_PARAMETERS;
-
-	/*
-	 * Nil UUID means querying all partitions which is handled by a separate
-	 * function.
-	 */
-	if (memcmp(&uuid_nil, uuid, sizeof(struct sp_uuid)) == 0)
-		return SP_RESULT_INVALID_PARAMETERS;
-
-	sp_res = partition_info_get(uuid, info, &count);
-	if (sp_res != SP_RESULT_OK)
-		return sp_res;
-
-	if (count == 0)
-		return SP_RESULT_NOT_FOUND;
-
-	return SP_RESULT_OK;
-}
-
-static void unpack_ffa_info(const struct ffa_partition_information ffa_info[],
+static void unpack_ffa_info(const struct ffa_partition_information *ffa_info,
 			    struct sp_partition_info *sp_info)
 {
 	uint32_t props = ffa_info->partition_properties;
@@ -120,53 +53,20 @@ static void unpack_ffa_info(const struct ffa_partition_information ffa_info[],
 		props & FFA_PARTITION_SUPPORTS_INDIRECT_REQUESTS;
 }
 
-sp_result sp_discovery_partition_id_get(const struct sp_uuid *uuid,
-					uint16_t *id)
-{
-	const struct ffa_partition_information *ffa_info = NULL;
-	sp_result sp_res = SP_RESULT_OK;
-
-	if (id == NULL)
-		return SP_RESULT_INVALID_PARAMETERS;
-
-	sp_res = partition_info_get_single(uuid, &ffa_info);
-	if (sp_res != SP_RESULT_OK) {
-		*id = FFA_ID_GET_ID_MASK;
-		return sp_res;
-	}
-
-	*id = ffa_info->partition_id;
-
-	return SP_RESULT_OK;
-}
-
-sp_result sp_discovery_partition_info_get(const struct sp_uuid *uuid,
-					  struct sp_partition_info *info)
-{
-	const struct ffa_partition_information *ffa_info = NULL;
-	sp_result sp_res = SP_RESULT_OK;
-
-	if (info == NULL)
-		return SP_RESULT_INVALID_PARAMETERS;
-
-	sp_res = partition_info_get_single(uuid, &ffa_info);
-	if (sp_res != SP_RESULT_OK) {
-		*info = (struct sp_partition_info){ 0 };
-		return sp_res;
-	}
-
-	unpack_ffa_info(ffa_info, info);
-
-	return SP_RESULT_OK;
-}
-
-sp_result sp_discovery_partition_info_get_all(struct sp_partition_info info[],
-					      uint32_t *count)
+static sp_result
+partition_info_get(const struct sp_uuid *uuid,
+		   struct sp_partition_info info[],
+		   uint32_t *count,
+		   bool allow_nil_uuid)
 {
 	const struct ffa_partition_information *ffa_info = NULL;
 	uint32_t ffa_count = 0;
 	uint32_t i = 0;
 	sp_result sp_res = SP_RESULT_OK;
+	const void *buffer = NULL;
+	size_t buffer_size = 0;
+	struct ffa_uuid ffa_uuid = { 0 };
+	ffa_result ffa_res = FFA_OK;
 
 	if (count == NULL)
 		return SP_RESULT_INVALID_PARAMETERS;
@@ -176,10 +76,40 @@ sp_result sp_discovery_partition_info_get_all(struct sp_partition_info info[],
 		return SP_RESULT_INVALID_PARAMETERS;
 	}
 
-	sp_res = partition_info_get(&uuid_nil, &ffa_info, &ffa_count);
+	if (uuid == NULL || (!allow_nil_uuid &&
+	    memcmp(&uuid_nil, uuid, sizeof(struct sp_uuid)) == 0)) {
+		sp_res = SP_RESULT_INVALID_PARAMETERS;
+		goto out;
+	}
+
+	sp_res = sp_rxtx_buffer_rx_get(&buffer, &buffer_size);
 	if (sp_res != SP_RESULT_OK) {
-		*count = UINT32_C(0);
-		return sp_res;
+		goto out;
+	}
+
+	/* Safely convert to FF-A UUID format */
+	memcpy(&ffa_uuid.uuid, uuid->uuid, sizeof(ffa_uuid.uuid));
+
+	ffa_res = ffa_partition_info_get(&ffa_uuid, &ffa_count);
+	if (ffa_res != FFA_OK) {
+		sp_res = SP_RESULT_FFA(ffa_res);
+		goto out;
+	}
+
+	if ((ffa_count * sizeof(struct ffa_partition_information)) > buffer_size) {
+		/*
+		 * The indicated amount of info structures doesn't fit into the
+		 * RX buffer.
+		 */
+		sp_res = SP_RESULT_INTERNAL_ERROR;
+		goto out;
+	}
+
+	ffa_info = (const struct ffa_partition_information *)buffer;
+
+	if (ffa_count == 0) {
+		sp_res = SP_RESULT_NOT_FOUND;
+		goto out;
 	}
 
 	*count = MIN(*count, ffa_count);
@@ -187,4 +117,48 @@ sp_result sp_discovery_partition_info_get_all(struct sp_partition_info info[],
 		unpack_ffa_info(&ffa_info[i], &info[i]);
 
 	return SP_RESULT_OK;
+
+out:
+	for (i = 0; i < *count; i++)
+		info[i] =  (struct sp_partition_info){ 0 };
+	*count = UINT32_C(0);
+
+	return sp_res;
+}
+
+sp_result sp_discovery_partition_id_get(const struct sp_uuid *uuid,
+					uint16_t *id)
+{
+	struct sp_partition_info sp_info = { 0 };
+	sp_result sp_res = SP_RESULT_OK;
+	uint32_t count = 1;
+
+	if (id == NULL)
+		return SP_RESULT_INVALID_PARAMETERS;
+
+	*id = FFA_ID_GET_ID_MASK;
+
+	if (uuid == NULL || memcmp(&uuid_nil, uuid, sizeof(struct sp_uuid)) == 0)
+		return SP_RESULT_INVALID_PARAMETERS;
+
+	sp_res = partition_info_get(uuid, &sp_info, &count, false);
+	if (sp_res != SP_RESULT_OK)
+		return sp_res;
+
+	*id = sp_info.partition_id;
+
+	return SP_RESULT_OK;
+}
+
+sp_result sp_discovery_partition_info_get(const struct sp_uuid *uuid,
+					  struct sp_partition_info info[],
+					  uint32_t *count)
+{
+	return partition_info_get(uuid, info, count, false);
+}
+
+sp_result sp_discovery_partition_info_get_all(struct sp_partition_info info[],
+					      uint32_t *count)
+{
+	return partition_info_get(&uuid_nil, info, count, true);
 }
