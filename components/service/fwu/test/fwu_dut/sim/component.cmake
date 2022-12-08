@@ -11,3 +11,12 @@ endif()
 target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/sim_fwu_dut.cpp"
 	)
+
+#-------------------------------------------------------------------------------
+#  Override TF-A defaults to increase number of io devices to accommodate
+#  the needs of the sim_fwu_dut.
+#-------------------------------------------------------------------------------
+target_compile_definitions(${TGT} PRIVATE
+MAX_IO_HANDLES=12
+MAX_IO_DEVICES=12
+)
