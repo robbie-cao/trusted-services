@@ -14,6 +14,7 @@
 add_components(TARGET "block-storage"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+		"components/common/crc32"
 		"components/common/fdt"
 		"components/common/trace"
 		"components/common/utils"

@@ -25,7 +25,6 @@ add_components(TARGET "block-storage"
 		"components/media/volume/index"
 		"components/media/volume/base_io_dev"
 		"components/media/volume/block_volume"
-		"components/common/crc32/native"
 )
 
 #-------------------------------------------------------------------------------

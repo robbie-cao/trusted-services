@@ -8,10 +8,15 @@
  * https://web.mit.edu/freebsd/head/sys/libkern/crc32.c
  */
 
-#include <common/crc32/crc32.h>
+#ifdef __aarch64__
+#include <arm_acle.h>
+#endif
+#include <stddef.h>
+#include <stdint.h>
 
-/* For compatability with TF-A components */
-uint32_t tf_crc32(uint32_t crc, const unsigned char *buf, size_t size);
+#include "crc32.h"
+#include "crc32_discovery.h"
+#include "trace.h"
 
 static const uint32_t crc32_tab[] = {
 	0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
@@ -59,18 +64,53 @@ static const uint32_t crc32_tab[] = {
 	0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
-uint32_t crc32(uint32_t crc, const unsigned char *buf, size_t size)
+static uint32_t crc32_sw(uint32_t crc_prev, const uint8_t *buf, size_t size)
 {
-	uint32_t calc_crc = ~crc;
-	const uint8_t *local_buf = buf;
-	size_t local_size = size;
+	uint32_t crc = ~crc_prev;
 
-	while (local_size--)
-		calc_crc = crc32_tab[(calc_crc ^ *local_buf++) & 0xFF] ^ (calc_crc >> 8);
+	if (!buf)
+		return 0;
 
-	return calc_crc ^ ~0U;
+	while (size > 0) {
+		crc = crc32_tab[(crc ^ *buf) & 0xFF] ^ (crc >> 8);
+		buf++;
+		size--;
+	}
+
+	return ~crc;
 }
 
+#if __ARM_FEATURE_CRC32
+static uint32_t crc32_armv8a(uint32_t crc_prev, const uint8_t *buf, size_t size)
+{
+	uint32_t crc = ~crc_prev;
+
+	if (!buf)
+		return 0;
+
+	while (size > 0) {
+		crc = __crc32b(crc, *buf);
+		buf++;
+		size--;
+	}
+
+	return ~crc;
+}
+#endif
+
+uint32_t (*crc32)(uint32_t crc_prev, const uint8_t *buf, size_t size) = crc32_sw;
+
+void crc32_init(void)
+{
+#if __ARM_FEATURE_CRC32
+	if (crc32_armv8a_hw_available()) {
+		DMSG("Using crc32_armv8a CRC32 implementation");
+		crc32 = crc32_armv8a;
+	}
+#endif
+}
+
+/* For compatability with TF-A components */
 uint32_t tf_crc32(uint32_t crc, const unsigned char *buf, size_t size)
 {
 	return crc32(crc, buf, size);

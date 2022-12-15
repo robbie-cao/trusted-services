@@ -3,6 +3,7 @@
  * Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
  */
 
+#include "common/crc32/crc32.h"
 #include "rpc/ffarpc/endpoint/ffarpc_call_ep.h"
 #include "protocols/rpc/common/packed-c/status.h"
 #include "config/ramstore/config_ramstore.h"
@@ -42,6 +43,8 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 		EMSG("Failed to load SP config");
 		goto fatal_error;
 	}
+
+	crc32_init();
 
 	/* Initialise the service provider and backend block store */
 	backend = block_store_factory_create();

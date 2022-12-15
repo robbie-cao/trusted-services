@@ -54,7 +54,7 @@ add_components(
 		"components/common/endian"
 		"components/common/utils"
 		"components/common/trace"
-		"components/common/crc32/native"
+		"components/common/crc32"
 		"components/config/ramstore"
 		"components/service/common/include"
 		"components/service/common/client"

@@ -19,7 +19,7 @@ endif()
 add_components(TARGET ${TGT}
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
-		"components/common/crc32/native"
+		"components/common/crc32"
 		"components/common/trace"
 		"components/common/utils"
 )

@@ -5,6 +5,7 @@
 
 #include <stddef.h>
 
+#include "common/crc32/crc32.h"
 #include "config/loader/sp/sp_config_loader.h"
 #include "config/ramstore/config_ramstore.h"
 #include "media/volume/factory/volume_factory.h"
@@ -64,6 +65,8 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 		EMSG("Failed to load SP config");
 		goto fatal_error;
 	}
+
+	crc32_init();
 
 	/* Configuration - discovers required volumes and installers */
 	if (!configure_for_platform()) {

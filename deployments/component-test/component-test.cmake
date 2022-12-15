@@ -36,7 +36,7 @@ add_components(
 		"components/common/trace"
 		"components/common/endian"
 		"components/common/endian/test"
-		"components/common/crc32/native"
+		"components/common/crc32"
 		"components/common/crc32/test"
 		"components/config/ramstore"
 		"components/config/ramstore/test"

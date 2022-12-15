@@ -10,5 +10,16 @@ endif()
 
 target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/crc32.c"
-	"${TFA_SOURCE_DIR}/common/tf_crc32.c"
+)
+
+if (TS_ENV STREQUAL "arm-linux")
+	target_sources(${TGT} PRIVATE
+		"${CMAKE_CURRENT_LIST_DIR}/crc32_linux.c"
 	)
+endif()
+
+if ((TS_ENV STREQUAL "opteesp") OR (TS_ENV STREQUAL "sp"))
+	target_sources(${TGT} PRIVATE
+		"${CMAKE_CURRENT_LIST_DIR}/crc32_sp.c"
+	)
+endif()

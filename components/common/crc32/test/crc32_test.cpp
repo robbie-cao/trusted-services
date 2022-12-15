@@ -9,7 +9,10 @@
 
 TEST_GROUP(Crc32Tests)
 {
-
+	TEST_SETUP()
+	{
+		crc32_init();
+	}
 };
 
 /*

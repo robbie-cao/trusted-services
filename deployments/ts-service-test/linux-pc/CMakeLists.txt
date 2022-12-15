@@ -84,8 +84,8 @@ add_tfa_dependency(TARGET "ts-service-test")
 add_components(
 	TARGET "ts-service-test"
 	BASE_DIR ${TS_ROOT}
-    COMPONENTS
-		"components/common/crc32/native"
+	COMPONENTS
+		"components/common/crc32"
 		"components/service/test_runner/client/cpp"
 		"components/service/test_runner/test/service"
 		"components/service/smm_variable/client/cpp"
