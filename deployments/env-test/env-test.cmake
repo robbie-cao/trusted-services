@@ -19,33 +19,15 @@ add_components(
 	TARGET "env-test"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
-	"components/common/fdt"
 	"components/common/tlv"
-	"components/config/ramstore"
 	"components/rpc/common/interface"
-	"components/rpc/common/caller"
 	"components/service/common/include"
-	"components/service/common/client"
 	"components/service/common/provider"
 	"components/service/test_runner/provider"
 	"components/service/test_runner/provider/serializer/packed-c"
 	"components/service/test_runner/provider/backend/null"
 	"components/service/test_runner/provider/backend/simple_c"
-	"components/service/crypto/backend/mbedcrypto"
-	"components/service/crypto/backend/mbedcrypto/trng_adapter/platform"
-	"components/service/crypto/backend/mbedcrypto/trng_adapter/test"
-	"components/service/secure_storage/include"
-	"components/service/secure_storage/frontend/psa/its"
-	"components/service/secure_storage/backend/secure_storage_client"
 	"protocols/rpc/common/packed-c"
-)
-
-#-------------------------------------------------------------------------------
-#  Deployment specific source files
-#-------------------------------------------------------------------------------
-target_sources(env-test PRIVATE
-	${CMAKE_CURRENT_LIST_DIR}/common/env_test.c
-	${CMAKE_CURRENT_LIST_DIR}/common/env_test_tests.c
 )
 
 target_include_directories(env-test PRIVATE
@@ -53,11 +35,3 @@ target_include_directories(env-test PRIVATE
 	${TS_ROOT}/components
 )
 
-#-------------------------------------------------------------------------------
-#  Components used from external projects
-#
-#-------------------------------------------------------------------------------
-
-# Mbed TLS provides libmbedcrypto
-include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
-target_link_libraries(env-test PRIVATE mbedcrypto)

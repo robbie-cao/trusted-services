@@ -36,7 +36,7 @@ target_compile_definitions(${TGT} PRIVATE
 	SP_HEAP_SIZE=${SP_HEAP_SIZE}
 )
 
-include(../../../external/newlib/newlib.cmake)
+include(${TS_ROOT}/external/newlib/newlib.cmake)
 
 target_link_libraries(${TGT} PRIVATE
  	stdlib::c

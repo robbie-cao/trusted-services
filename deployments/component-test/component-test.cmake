@@ -10,6 +10,18 @@
 #  different environments.  Used for running standalone component tests
 #  contained within a single executable.
 #-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+#  External project source-level dependencies
+#
+#-------------------------------------------------------------------------------
+include(${TS_ROOT}/external/tf_a/tf-a.cmake)
+add_tfa_dependency(TARGET "component-test")
+
+#-------------------------------------------------------------------------------
+#  Common components from TS project
+#
+#-------------------------------------------------------------------------------
 add_components(
 	TARGET "component-test"
 	BASE_DIR ${TS_ROOT}
@@ -24,6 +36,8 @@ add_components(
 		"components/common/trace"
 		"components/common/endian"
 		"components/common/endian/test"
+		"components/common/crc32/native"
+		"components/common/crc32/test"
 		"components/config/ramstore"
 		"components/config/ramstore/test"
 		"components/messaging/ffa/libsp/mock"
@@ -52,6 +66,7 @@ add_components(
 		"components/service/locator/standalone/services/protected-storage"
 		"components/service/locator/standalone/services/test-runner"
 		"components/service/locator/standalone/services/attestation"
+		"components/service/locator/standalone/services/block-storage"
 		"components/service/locator/standalone/services/smm-variable"
 		"components/service/discovery/client"
 		"components/service/discovery/provider"
@@ -76,6 +91,21 @@ add_components(
 		"components/service/attestation/client/provision"
 		"components/service/attestation/test/component"
 		"components/service/attestation/test/service"
+		"components/service/block_storage/block_store"
+		"components/service/block_storage/block_store/device"
+		"components/service/block_storage/block_store/device/ram"
+		"components/service/block_storage/block_store/device/ram/test"
+		"components/service/block_storage/block_store/device/null"
+		"components/service/block_storage/block_store/client"
+		"components/service/block_storage/block_store/partitioned"
+		"components/service/block_storage/block_store/partitioned/test"
+		"components/service/block_storage/provider"
+		"components/service/block_storage/provider/serializer/packed-c"
+		"components/service/block_storage/config/ref"
+		"components/service/block_storage/config/gpt"
+		"components/service/block_storage/factory/ref_ram"
+		"components/service/block_storage/factory/ref_ram_gpt"
+		"components/service/block_storage/factory/client"
 		"components/service/crypto/client/cpp"
 		"components/service/crypto/client/cpp/protocol/protobuf"
 		"components/service/crypto/client/cpp/protocol/packed-c"
@@ -125,12 +155,22 @@ add_components(
 		"components/service/secure_storage/backend/secure_flash_store/test"
 		"components/service/secure_storage/backend/secure_flash_store/flash_fs"
 		"components/service/secure_storage/backend/secure_flash_store/flash"
+		"components/service/secure_storage/backend/secure_flash_store/flash/ram"
+		"components/service/secure_storage/backend/secure_flash_store/flash/block_store_adapter"
 		"components/service/test_runner/provider"
 		"components/service/test_runner/provider/serializer/packed-c"
 		"components/service/test_runner/provider/backend/null"
 		"components/service/smm_variable/provider"
 		"components/service/smm_variable/backend"
 		"components/service/smm_variable/backend/test"
+		"components/media/disk"
+		"components/media/disk/disk_images"
+		"components/media/disk/formatter"
+		"components/media/disk/test"
+		"components/media/volume/index"
+		"components/media/volume/base_io_dev"
+		"components/media/volume/block_io_dev"
+		"components/media/volume/block_io_dev/test"
 		"protocols/rpc/common/protobuf"
 		"protocols/rpc/common/packed-c"
 		"protocols/service/crypto/packed-c"

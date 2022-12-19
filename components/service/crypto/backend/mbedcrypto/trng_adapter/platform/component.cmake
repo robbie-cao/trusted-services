@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -12,6 +12,6 @@ target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/platform_trng_adapter.c"
 	)
 
-set_property(TARGET ${TGT} APPEND_STRING PROPERTY TS_PLATFORM_DRIVER_DEPENDENCIES
+set_property(TARGET ${TGT} APPEND PROPERTY TS_PLATFORM_DRIVER_DEPENDENCIES
 	"trng"
 	)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, Arm Limited. All rights reserved.
+ * Copyright (c) 2017-2022, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -140,13 +140,6 @@ struct sfs_flash_info_t {
     uint16_t max_num_files;   /**< Maximum number of files */
     uint8_t erase_val;        /**< Value of a byte after erase (usually 0xFF) */
 };
-
-/**
- * \brief Gets the flash info structure for the provided flash device.
- *
- * \return Pointer to the flash info struct.
- */
-const struct sfs_flash_info_t *sfs_flash_get_info(void);
 
 /**
  * \brief Moves data from source block ID to destination block ID.

@@ -12,4 +12,4 @@ target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/fdt_helpers.c"
 )
 
-include(../../../external/libfdt/libfdt.cmake)
+include(${TS_ROOT}/external/libfdt/libfdt.cmake)

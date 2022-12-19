@@ -8,17 +8,7 @@
 add_components(TARGET "se-proxy"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
-		"components/common/fdt"
-		"components/common/trace"
-		"components/common/utils"
-		"protocols/rpc/common/packed-c"
-		"protocols/service/secure_storage/packed-c"
-		"protocols/service/crypto/protobuf"
 		"components/common/tlv"
-		"components/config/ramstore"
-		"components/config/loader/sp"
-		"components/messaging/ffa/libsp"
-		"components/rpc/ffarpc/endpoint"
 		"components/rpc/common/interface"
 		"components/rpc/common/demux"
 		"components/service/common/include"
@@ -47,20 +37,9 @@ add_components(TARGET "se-proxy"
 		"components/service/attestation/include"
 		"components/service/attestation/provider"
 		"components/service/attestation/provider/serializer/packed-c"
-
-		# Stub service provider backends
-		"components/rpc/dummy"
-		"components/rpc/common/caller"
-		"components/service/attestation/reporter/stub"
-		"components/service/attestation/key_mngr/stub"
-		"components/service/crypto/backend/stub"
-		"components/service/crypto/client/psa"
-		"components/service/secure_storage/backend/mock_store"
-)
-
-target_sources(se-proxy PRIVATE
-	${CMAKE_CURRENT_LIST_DIR}/common/se_proxy_sp.c
-	${CMAKE_CURRENT_LIST_DIR}/common/service_proxy_factory.c
+		"protocols/rpc/common/packed-c"
+		"protocols/service/secure_storage/packed-c"
+		"protocols/service/crypto/protobuf"
 )
 
 #-------------------------------------------------------------------------------
@@ -69,7 +48,7 @@ target_sources(se-proxy PRIVATE
 #-------------------------------------------------------------------------------
 
 # Nanopb
-include(../../../external/nanopb/nanopb.cmake)
+include(${TS_ROOT}/external/nanopb/nanopb.cmake)
 target_link_libraries(se-proxy PRIVATE nanopb::protobuf-nanopb-static)
 protobuf_generate_all(TGT "se-proxy" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protocols")
 
