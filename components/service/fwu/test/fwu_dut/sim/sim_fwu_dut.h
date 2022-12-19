@@ -19,6 +19,7 @@
 #include <service/fwu/fw_store/banked/bank_scheme.h>
 #include <service/fwu/installer/raw/raw_installer.h>
 #include <service/fwu/installer/copy/copy_installer.h>
+#include <service/fwu/provider/fwu_provider.h>
 #include <service/fwu/test/metadata_checker/metadata_checker.h>
 #include <service/fwu/test/fwu_client/fwu_client.h>
 #include <service/fwu/test/fwu_dut/fwu_dut.h>
@@ -54,6 +55,8 @@ public:
 
 	metadata_checker *create_metadata_checker(bool is_primary = true) const;
 	fwu_client *create_fwu_client(void);
+
+	struct rpc_interface *get_service_interface(void);
 
 private:
 
@@ -100,6 +103,7 @@ private:
 	struct boot_info m_boot_info;
 	metadata_checker *m_metadata_checker;
 	unsigned int m_num_locations;
+	struct rpc_interface *m_service_iface;
 
 	/* Firmware storage */
 	struct ram_block_store m_fw_flash;
@@ -120,6 +124,7 @@ private:
 	/* The core fwu service components */
 	struct update_agent m_update_agent;
 	struct fw_store m_fw_store;
+	struct fwu_provider m_fwu_provider;
 };
 
 #endif /* SIM_FWU_DUT_H */

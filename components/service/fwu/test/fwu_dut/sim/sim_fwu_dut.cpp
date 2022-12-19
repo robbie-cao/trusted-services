@@ -4,14 +4,18 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <cstring>
 #include <sstream>
 #include <CppUTest/TestHarness.h>
 #include <media/volume/index/volume_index.h>
 #include <media/disk/guid.h>
+#include <service/discovery/provider/discovery_provider.h>
+#include <service/discovery/provider/serializer/packed-c/packedc_discovery_provider_serializer.h>
 #include <service/fwu/installer/installer_index.h>
 #include <service/fwu/fw_store/banked/volume_id.h>
 #include <service/fwu/fw_store/banked/metadata_serializer/v1/metadata_serializer_v1.h>
 #include <service/fwu/inspector/direct/direct_fw_inspector.h>
+#include <service/fwu/provider/serializer/packed-c/packedc_fwu_provider_serializer.h>
 #include <service/fwu/test/fwu_client/direct/direct_fwu_client.h>
 #include <service/fwu/test/metadata_fetcher/volume/volume_metadata_fetcher.h>
 #include "sim_fwu_dut.h"
@@ -25,6 +29,7 @@ sim_fwu_dut::sim_fwu_dut(
 	m_boot_info(),
 	m_metadata_checker(NULL),
 	m_num_locations(num_locations),
+	m_service_iface(NULL),
 	m_fw_flash(),
 	m_partitioned_block_store(),
 	m_block_store(NULL),
@@ -35,7 +40,8 @@ sim_fwu_dut::sim_fwu_dut(
 	m_copy_installer_used_count(0),
 	m_copy_installer_pool(),
 	m_update_agent(),
-	m_fw_store()
+	m_fw_store(),
+	m_fwu_provider()
 {
 	m_boot_info = {0};
 
@@ -48,6 +54,29 @@ sim_fwu_dut::sim_fwu_dut(
 
 	install_factory_images(num_locations);
 
+	/* Initialise fwu service provider prior to boot to ensure that a
+	 * viable service interface exists to safely handle an incoming
+	 * request that occurs prior to the boot method being called.
+	 * Note that the update_agent is in the de-initialized state so
+	 * any operations will be denied.
+	 */
+	memset(&m_update_agent, 0, sizeof(m_update_agent));
+	m_update_agent.state = FWU_STATE_DEINITIALZED;
+
+	m_service_iface = fwu_provider_init(
+		&m_fwu_provider,
+		&m_update_agent);
+
+	fwu_provider_register_serializer(
+		&m_fwu_provider,
+		TS_RPC_ENCODING_PACKED_C,
+		packedc_fwu_provider_serializer_instance());
+
+	discovery_provider_register_serializer(
+		&m_fwu_provider.discovery_provider,
+		TS_RPC_ENCODING_PACKED_C,
+		packedc_discovery_provider_serializer_instance());
+
 	m_metadata_checker = create_metadata_checker();
 }
 
@@ -57,6 +86,8 @@ sim_fwu_dut::~sim_fwu_dut()
 
 	delete m_metadata_checker;
 	m_metadata_checker = NULL;
+
+	fwu_provider_deinit(&m_fwu_provider);
 
 	destroy_installers();
 	destroy_fw_volumes();
@@ -124,6 +155,11 @@ void sim_fwu_dut::shutdown(void)
 	banked_fw_store_deinit(&m_fw_store);
 
 	m_is_booted = false;
+}
+
+struct rpc_interface *sim_fwu_dut::get_service_interface(void)
+{
+	return m_service_iface;
 }
 
 struct boot_info sim_fwu_dut::get_boot_info(void) const
