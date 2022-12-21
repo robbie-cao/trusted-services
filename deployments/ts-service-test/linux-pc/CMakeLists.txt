@@ -71,6 +71,13 @@ unit_test_add_suite(
 target_include_directories(ts-service-test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 
 #-------------------------------------------------------------------------------
+#  External project source-level dependencies
+#
+#-------------------------------------------------------------------------------
+include(${TS_ROOT}/external/tf_a/tf-a.cmake)
+add_tfa_dependency(TARGET "ts-service-test")
+
+#-------------------------------------------------------------------------------
 #  Components that are specific to deployment in the linux-pc environment.
 #
 #-------------------------------------------------------------------------------
@@ -78,15 +85,44 @@ add_components(
 	TARGET "ts-service-test"
 	BASE_DIR ${TS_ROOT}
     COMPONENTS
+		"components/common/endian"
+		"components/common/uuid"
+		"components/common/crc32/native"
 		"components/service/test_runner/client/cpp"
 		"components/service/test_runner/test/service"
 		"components/service/smm_variable/client/cpp"
 		"components/service/smm_variable/test/service"
 		"components/service/block_storage/block_store"
 		"components/service/block_storage/block_store/client"
+		"components/service/block_storage/block_store/partitioned"
+		"components/service/block_storage/block_store/device"
+		"components/service/block_storage/block_store/device/ram"
 		"components/service/block_storage/factory/client"
 		"components/service/block_storage/test/service"
-		"components/common/uuid"
+		"components/service/common/provider"
+		"components/service/discovery/provider"
+		"components/service/discovery/provider/serializer/packed-c"
+		"components/service/fwu/agent"
+		"components/service/fwu/fw_store/banked"
+		"components/service/fwu/fw_store/banked/metadata_serializer/v1"
+		"components/service/fwu/installer"
+		"components/service/fwu/installer/raw"
+		"components/service/fwu/installer/copy"
+		"components/service/fwu/inspector/direct"
+		"components/service/fwu/provider"
+		"components/service/fwu/provider/serializer/packed-c"
+		"components/service/fwu/test/fwu_client/direct"
+		"components/service/fwu/test/fwu_dut"
+		"components/service/fwu/test/fwu_dut/sim"
+		"components/service/fwu/test/fwu_dut/proxy"
+		"components/service/fwu/test/fwu_dut_factory/remote_sim"
+		"components/service/fwu/test/image_directory_checker"
+		"components/service/fwu/test/metadata_checker"
+		"components/service/fwu/test/metadata_fetcher/volume"
+		"components/media/volume"
+		"components/media/volume/index"
+		"components/media/volume/base_io_dev"
+		"components/media/volume/block_volume"
 )
 
 #-------------------------------------------------------------------------------

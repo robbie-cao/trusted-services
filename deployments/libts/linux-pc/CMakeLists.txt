@@ -29,6 +29,17 @@ include(${TS_ROOT}/external/tf_a/tf-a.cmake)
 add_tfa_dependency(TARGET "ts")
 
 #-------------------------------------------------------------------------------
+#  Define public interfaces for library
+#
+#-------------------------------------------------------------------------------
+
+# Extend libts public interface for linux-pc to allow for alternative fwu
+# device configurations. This is intended for test.
+target_compile_definitions(ts PRIVATE
+	EXPORT_PUBLIC_INTERFACE_FWU_SERVICE_CONTEXT
+)
+
+#-------------------------------------------------------------------------------
 #  Components that are specific to deployment in the linux-pc environment.
 #
 #-------------------------------------------------------------------------------
@@ -37,6 +48,7 @@ add_components(
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/rpc/direct"
+		"components/rpc/common/demux"
 		"components/common/tlv"
 		"components/common/uuid"
 		"components/common/endian"
@@ -57,6 +69,7 @@ add_components(
 		"components/service/locator/standalone/services/test-runner"
 		"components/service/locator/standalone/services/attestation"
 		"components/service/locator/standalone/services/block-storage"
+		"components/service/locator/standalone/services/fwu"
 		"components/service/locator/standalone/services/smm-variable"
 		"components/service/attestation/include"
 		"components/service/attestation/claims"
