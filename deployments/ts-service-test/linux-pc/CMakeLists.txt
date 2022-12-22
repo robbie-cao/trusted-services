@@ -112,6 +112,7 @@ add_components(
 		"components/service/fwu/provider"
 		"components/service/fwu/provider/serializer/packed-c"
 		"components/service/fwu/test/fwu_client/direct"
+		"components/service/fwu/test/fwu_client/remote"
 		"components/service/fwu/test/fwu_dut"
 		"components/service/fwu/test/fwu_dut/sim"
 		"components/service/fwu/test/fwu_dut/proxy"

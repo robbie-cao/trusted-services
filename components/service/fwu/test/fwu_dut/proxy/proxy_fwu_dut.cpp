@@ -5,6 +5,7 @@
  */
 
 #include <cassert>
+#include <service/fwu/test/fwu_client/remote/remote_fwu_client.h>
 #include "proxy_fwu_dut.h"
 
 proxy_fwu_dut::proxy_fwu_dut(fwu_dut *remote_dut) :
@@ -46,5 +47,6 @@ metadata_checker *proxy_fwu_dut::create_metadata_checker(bool is_primary) const
 
 fwu_client *proxy_fwu_dut::create_fwu_client(void)
 {
-	return NULL;
+	/* Access service via RPC */
+	return new remote_fwu_client;
 }
