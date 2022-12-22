@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -88,6 +88,7 @@ add_components(
 		"components/common/endian"
 		"components/common/uuid"
 		"components/common/crc32/native"
+		"components/common/endian"
 		"components/service/test_runner/client/cpp"
 		"components/service/test_runner/test/service"
 		"components/service/smm_variable/client/cpp"
@@ -121,6 +122,7 @@ add_components(
 		"components/service/fwu/test/metadata_checker"
 		"components/service/fwu/test/metadata_fetcher/volume"
 		"components/service/fwu/test/metadata_fetcher/client"
+		"components/service/fwu/test/ref_scenarios"
 		"components/media/volume"
 		"components/media/volume/index"
 		"components/media/volume/base_io_dev"
