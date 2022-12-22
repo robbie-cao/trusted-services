@@ -22,9 +22,13 @@ public:
 	/**
 	 * \brief proxy_fwu_dut constructor
 	 *
+	 * \param[in]  num_locations  The number of updatable fw locations
 	 * \param[in]  remote_dut  The associated remote fwu dut
 	 */
-	proxy_fwu_dut(fwu_dut *remote_dut);
+	proxy_fwu_dut(
+		unsigned int num_locations,
+		fwu_dut *remote_dut);
+
 	~proxy_fwu_dut();
 
 	void boot(bool from_active_bank);
@@ -37,6 +41,7 @@ public:
 
 private:
 
+	unsigned int m_num_locations;
 	fwu_dut *m_remote_dut;
 };
 

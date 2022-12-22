@@ -32,5 +32,5 @@ fwu_dut *fwu_dut_factory::create(
 	/* Construct a proxy_fwu_dut chained to the sim_fwu_dut. On deletion,
 	 * the proxy_fwu_dut deletes the associated sim_fwu_dut.
 	 */
-	return new proxy_fwu_dut(sim_dut);
+	return new proxy_fwu_dut(num_locations, sim_dut);
 }

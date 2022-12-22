@@ -120,6 +120,7 @@ add_components(
 		"components/service/fwu/test/image_directory_checker"
 		"components/service/fwu/test/metadata_checker"
 		"components/service/fwu/test/metadata_fetcher/volume"
+		"components/service/fwu/test/metadata_fetcher/client"
 		"components/media/volume"
 		"components/media/volume/index"
 		"components/media/volume/base_io_dev"

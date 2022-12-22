@@ -6,10 +6,15 @@
 
 #include <cassert>
 #include <service/fwu/test/fwu_client/remote/remote_fwu_client.h>
+#include <service/fwu/test/metadata_fetcher/client/client_metadata_fetcher.h>
+#include <service/fwu/test/metadata_checker/metadata_checker_v1.h>
 #include "proxy_fwu_dut.h"
 
-proxy_fwu_dut::proxy_fwu_dut(fwu_dut *remote_dut) :
+proxy_fwu_dut::proxy_fwu_dut(
+	unsigned int num_locations,
+	fwu_dut *remote_dut) :
 	fwu_dut(),
+	m_num_locations(num_locations),
 	m_remote_dut(remote_dut)
 {
 
@@ -42,7 +47,12 @@ struct boot_info proxy_fwu_dut::get_boot_info(void) const
 metadata_checker *proxy_fwu_dut::create_metadata_checker(bool is_primary) const
 {
 	(void)is_primary;
-	return NULL;
+
+	/* Use service interface to fetch metadata as volume access is no possible */
+	fwu_client *fwu_client = new remote_fwu_client;
+	metadata_fetcher *metadata_fetcher = new client_metadata_fetcher(fwu_client);
+
+	return new metadata_checker_v1(metadata_fetcher, m_num_locations);
 }
 
 fwu_client *proxy_fwu_dut::create_fwu_client(void)
