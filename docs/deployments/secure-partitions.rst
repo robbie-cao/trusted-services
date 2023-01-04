@@ -23,6 +23,7 @@ needed for PSA certification. For more information, see:
 
   * - Supported Environments
     - * *opteesp* (runs as an S-EL0 SP under OP-TEE)
+      * *sp* (SPMC agnostic S-EL0 SP format)
   * - External Dependencies
     - * | TRNG (platform specific)
       * | Secure storage SP
@@ -42,6 +43,7 @@ facility needed for PSA certification. For more information, see:
 
   * - Supported Environments
     - * *opteesp* (runs as an S-EL0 SP under OP-TEE)
+      * *sp* (SPMC agnostic S-EL0 SP format)
   * - External Dependencies
     - * | TPM Event Log (via SP boot parameter)
       * | Crypto SP
@@ -62,6 +64,7 @@ is a requirement for PSA certification. For more information, see:
 
   * - Supported Environments
     - * *opteesp* (runs as an S-EL0 SP under OP-TEE)
+      * *sp* (SPMC agnostic S-EL0 SP format)
   * - External Dependencies
     - * Depends on configured storage backend
 
@@ -88,6 +91,7 @@ The se-proxy deployment includes proxies for the following services:
 
   * - Supported Environments
     - * *opteesp* (runs as an S-EL0 SP under OP-TEE)
+      * *sp* (SPMC agnostic S-EL0 SP format)
   * - External Dependencies
     - * SE communication peripheral (platform specific)
 
@@ -104,6 +108,7 @@ provides a lightweight alternative to StMM. For more information, see:
 
   * - Supported Environments
     - * *opteesp* (runs as an S-EL0 SP under OP-TEE)
+      * *sp* (SPMC agnostic S-EL0 SP format)
   * - External Dependencies
     - * | Secure storage service instance (e.g. hosted by protected-storage SP)
       * | Crypto service instance (e.g. hosted crypto SP)
@@ -123,11 +128,12 @@ coordinates which tests to run and collects test results.
 
   * - Supported Environments
     - * *opteesp* (runs as an S-EL0 SP under OP-TEE)
+      * *sp* (SPMC agnostic S-EL0 SP format)
   * - External Dependencies
     - * Any hardware accessed by test cases (platform specific)
 
 --------------
 
-*Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

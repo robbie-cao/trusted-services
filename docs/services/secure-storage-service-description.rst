@@ -150,7 +150,7 @@ Persistent Key Store for Crypto Service Provider
 ''''''''''''''''''''''''''''''''''''''''''''''''
 The Crypto service provider uses the Mbed Crypto portion of Mbed TLS to implement crypto
 operations.  Persistent keys are stored via the PSA Internal Trusted Storage C API.
-In the opteesp deployment of the Crypto service provider, a storage client backend is
+In the opteesp and sp deployments of the Crypto service provider, a storage client backend is
 used that accesses a secure store provided by a separate secure partition.  The following
 deployment diagram illustrates the storage frontend/backend combination used:
 
@@ -167,6 +167,6 @@ access is brokered by an S-EL0 proxy:
 
 --------------
 
-*Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

@@ -33,7 +33,7 @@ component are:
   * Can be used with any RPC layer - not tied to MM Communicate RPC.
   * Volatile and non-volatile storage is accessed via instances of the common *storage_backend* interface.
 
-The *smm-gateway/opteesp* deployment integrates the *smm_variable* service provider with the following:
+The *smm-gateway/opteesp* and *smm-gateway/sp* deployments integrate the *smm_variable* service provider with the following:
 
   * An MM Communicate based RPC endpoint.
   * A *mock_store* instance for volatile variables.
@@ -238,6 +238,6 @@ Communicate RPC protocol:
 
 --------------
 
-*Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

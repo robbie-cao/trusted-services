@@ -16,7 +16,7 @@ The following tools are required:
    * Python3.6 and the modules listed in ``<project>/requirements.txt``.
    * GCC supporting the deployment.
 
-       * `opteesp` environment: a host to aarch64 cross-compiler is needed. Please use the compilers specified by the
+       * `opteesp` and `sp` environments: a host to aarch64 cross-compiler is needed. Please use the compilers specified by the
          `OP-TEE documentation`_.
        * `arm-linux` environment: a host to aarch64 linux cross-compiler is needed. Please use the version `9.2-2019.12` of the
          "aarch64-none-linux-gnu" compiler available from `arm Developer`_.
@@ -34,6 +34,6 @@ To build the documentation, please refer to :ref:`Documentation Build Instructio
 .. _CMake download page: https://cmake.org/files/v3.18/
 .. _`AEM FVP`: https://developer.arm.com/-/media/Files/downloads/ecosystem-models/FVP_Base_RevC-2xAEMvA_11.18_16_Linux64.tgz
 
-*Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

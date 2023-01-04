@@ -40,6 +40,7 @@ deployments::
     deployments
         |-- protected-storage/opteesp
         |-- crypto/opteesp
+        |-- crypto/sp
         |-- ts-demo/arm-linux
         |-- component-test/linux-pc
         |-- libts/linux-pc
@@ -61,6 +62,9 @@ under the deployment parent.  This is illustrated in the following::
                 |-- common.cmake            <-- Common cmake file
                 |-- service_init.c          <-- Common initialization code
                 |-- opteesp
+                |       |-- CMakeLists.txt      <-- Includes ../common.cmake to inherit common definitions
+                |       |-- opteesp_service_init.c
+                |-- sp
                         |-- CMakeLists.txt      <-- Includes ../common.cmake to inherit common definitions
                         |-- opteesp_service_init.c
 
@@ -72,6 +76,7 @@ represented in the project structure, one for each supported isolated execution 
 particular environment live under a sub-directory whose name describes the environment.  For example:
 
     - *opteesp*         An S-EL0 secure partition hosted by OP-TEE
+    - *sp*              SPMC agnostic S-EL0 secure partition
     - *arm-linux*       Linux user-space, cross compiled for Arm.
     - *linux-pc*        Native PC POSIX environment
 
@@ -86,6 +91,26 @@ following:
 
 A deployment will include an environment specific build file (see above) that defines the list of environment
 specific components used for a deployment into a particular environment.
+
+opteesp
+"""""""
+
+The opteesp environment uses a very similar SP format to the OP-TEE Trusted Applications. It is an ELF file with an OP-TEE
+specific header structure at its beginning. The SP image is relocatable and it is handled by the ELF loader (ldelf) component
+of OP-TEE. Naturally this environment only works with OP-TEE in the role of the SPMC.
+
+sp
+""
+
+Deployments that use the sp environment can produce SPMC agnostic SP images. This environment generates SP images as flat
+binaries that can be loaded without an ELF loader. The initialization of the stack and the handling of relocation must be done
+in the startup code of the SP. Setting the memory access rights of different sections of the SP image can be either done
+thought load relative memory regions in the manifest or by using the ``FFA_MEM_PERM_SET`` interface of the FF-A v1.1
+specification in the boot phase of the SP.
+
+Trusted Services first builds ELF files for the sp environment deployments and then it generates the memory region nodes of the
+manifest based on the sections of the ELF file. The sections of the ELF is then copied into the flat binary image. The
+environment provides the startup file so all the necessary initialization steps are done before the ``sp_main`` call.
 
 platforms
 '''''''''
@@ -206,6 +231,6 @@ to support activities such as build and test.
 
 --------------
 
-*Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause
