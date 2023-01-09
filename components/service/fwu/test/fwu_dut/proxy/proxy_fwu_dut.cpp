@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -7,13 +7,13 @@
 #include <cassert>
 #include <service/fwu/test/fwu_client/remote/remote_fwu_client.h>
 #include <service/fwu/test/metadata_fetcher/client/client_metadata_fetcher.h>
-#include <service/fwu/test/metadata_checker/metadata_checker_v1.h>
 #include "proxy_fwu_dut.h"
 
 proxy_fwu_dut::proxy_fwu_dut(
 	unsigned int num_locations,
+	unsigned int metadata_version,
 	fwu_dut *remote_dut) :
-	fwu_dut(),
+	fwu_dut(metadata_version),
 	m_num_locations(num_locations),
 	m_remote_dut(remote_dut)
 {
@@ -52,7 +52,7 @@ metadata_checker *proxy_fwu_dut::create_metadata_checker(bool is_primary) const
 	fwu_client *fwu_client = new remote_fwu_client;
 	metadata_fetcher *metadata_fetcher = new client_metadata_fetcher(fwu_client);
 
-	return new metadata_checker_v1(metadata_fetcher, m_num_locations);
+	return fwu_dut::create_metadata_checker(metadata_fetcher, m_num_locations);
 }
 
 fwu_client *proxy_fwu_dut::create_fwu_client(void)

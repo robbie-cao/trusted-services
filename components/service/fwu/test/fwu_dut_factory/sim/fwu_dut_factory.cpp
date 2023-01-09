@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -17,5 +17,6 @@ fwu_dut *fwu_dut_factory::create(
 	unsigned int num_locations,
 	bool allow_partial_updates)
 {
-	return new sim_fwu_dut(num_locations, allow_partial_updates);
+	return new sim_fwu_dut(num_locations,
+		FWU_METADATA_VERSION, allow_partial_updates);
 }

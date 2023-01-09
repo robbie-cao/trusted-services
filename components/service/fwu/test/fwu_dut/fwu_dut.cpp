@@ -9,6 +9,7 @@
 #include <string>
 #include <common/endian/le.h>
 #include <service/fwu/test/metadata_checker/metadata_checker_v1.h>
+#include <service/fwu/test/metadata_checker/metadata_checker_v2.h>
 #include <CppUTest/TestHarness.h>
 #include "fwu_dut.h"
 
@@ -150,6 +151,9 @@ metadata_checker *fwu_dut::create_metadata_checker(
 {
 	if (m_metadata_version == 1)
 		return new metadata_checker_v1(metadata_fetcher, num_images);
+
+	if (m_metadata_version == 2)
+		return new metadata_checker_v2(metadata_fetcher, num_images);
 
 	/* Unsupported metadata version */
 	assert(false);

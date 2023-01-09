@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -9,7 +9,5 @@ if (NOT DEFINED TGT)
 endif()
 
 target_sources(${TGT} PRIVATE
-	"${CMAKE_CURRENT_LIST_DIR}/metadata_checker.cpp"
-	"${CMAKE_CURRENT_LIST_DIR}/metadata_checker_v1.cpp"
-	"${CMAKE_CURRENT_LIST_DIR}/metadata_checker_v2.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/metadata_serializer_v2.c"
 	)

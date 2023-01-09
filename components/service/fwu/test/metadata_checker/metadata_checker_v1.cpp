@@ -4,9 +4,15 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <service/fwu/agent/fw_directory.h>
 #include <protocols/service/fwu/packed-c/metadata_v1.h>
 #include <CppUTest/TestHarness.h>
 #include "metadata_checker_v1.h"
+
+const size_t metadata_checker_v1::MAX_FWU_METADATA_SIZE =
+	offsetof(struct fwu_metadata, img_entry) +
+	FWU_MAX_FW_DIRECTORY_ENTRIES * sizeof(struct fwu_image_entry);
+
 
 metadata_checker_v1::metadata_checker_v1(
 	metadata_fetcher *metadata_fetcher,

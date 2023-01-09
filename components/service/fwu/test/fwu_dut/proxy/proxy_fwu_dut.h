@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -23,10 +23,12 @@ public:
 	 * \brief proxy_fwu_dut constructor
 	 *
 	 * \param[in]  num_locations  The number of updatable fw locations
+	 * \param[in]  metadata_version  FWU metadata version supported by bootloader
 	 * \param[in]  remote_dut  The associated remote fwu dut
 	 */
 	proxy_fwu_dut(
 		unsigned int num_locations,
+		unsigned int metadata_version,
 		fwu_dut *remote_dut);
 
 	~proxy_fwu_dut();

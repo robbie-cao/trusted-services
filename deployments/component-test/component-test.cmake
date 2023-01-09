@@ -112,6 +112,7 @@ add_components(
 		"components/service/fwu/agent"
 		"components/service/fwu/fw_store/banked"
 		"components/service/fwu/fw_store/banked/metadata_serializer/v1"
+		"components/service/fwu/fw_store/banked/metadata_serializer/v2"
 		"components/service/fwu/fw_store/banked/test"
 		"components/service/fwu/installer"
 		"components/service/fwu/installer/raw"

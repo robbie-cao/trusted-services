@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <cassert>
 #include <cstring>
 #include <sstream>
 #include <CppUTest/TestHarness.h>
@@ -14,6 +15,7 @@
 #include <service/fwu/installer/installer_index.h>
 #include <service/fwu/fw_store/banked/volume_id.h>
 #include <service/fwu/fw_store/banked/metadata_serializer/v1/metadata_serializer_v1.h>
+#include <service/fwu/fw_store/banked/metadata_serializer/v2/metadata_serializer_v2.h>
 #include <service/fwu/inspector/direct/direct_fw_inspector.h>
 #include <service/fwu/provider/serializer/packed-c/packedc_fwu_provider_serializer.h>
 #include <service/fwu/test/fwu_client/direct/direct_fwu_client.h>
@@ -22,8 +24,9 @@
 
 sim_fwu_dut::sim_fwu_dut(
 	unsigned int num_locations,
+	unsigned int metadata_version,
 	bool allow_partial_updates) :
-	fwu_dut(),
+	fwu_dut(metadata_version),
 	m_is_booted(false),
 	m_is_first_boot(true),
 	m_boot_info(),
@@ -130,7 +133,7 @@ void sim_fwu_dut::boot(bool from_active_bank)
 	/* Performs the generic update agent initialization that occurs on
 	 * each system boot.
 	 */
-	int status = banked_fw_store_init(&m_fw_store, metadata_serializer_v1());
+	int status = banked_fw_store_init(&m_fw_store, select_metadata_serializer());
 	LONGS_EQUAL(0, status);
 
 	status = update_agent_init(
@@ -464,4 +467,20 @@ void sim_fwu_dut::verify_boot_images(unsigned int boot_index)
 		status = volume_close(volume);
 		LONGS_EQUAL(0, status);
 	}
+}
+
+const struct metadata_serializer *sim_fwu_dut::select_metadata_serializer(void) const
+{
+	unsigned int version = metadata_version();
+
+	if (version == 1)
+		return metadata_serializer_v1();
+
+	if (version == 2)
+		return metadata_serializer_v2();
+
+	/* Metadata version not supported */
+	assert(false);
+
+	return NULL;
 }

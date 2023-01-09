@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -40,10 +40,12 @@ public:
 	 * \brief sim_fwu_dut constructor
 	 *
 	 * \param[in]  num_locations  The number of updatable fw locations
+	 * \param[in]  metadata_version  FWU metadata version supported by bootloader
 	 * \param[in]  allow_partial_updates True if updating a subset of locations is permitted
 	 */
 	sim_fwu_dut(
 		unsigned int num_locations,
+		unsigned int metadata_version,
 		bool allow_partial_updates = false);
 
 	~sim_fwu_dut();
@@ -97,6 +99,8 @@ private:
 
 	void install_factory_images(unsigned int num_locations);
 	void verify_boot_images(unsigned int boot_index);
+
+	const struct metadata_serializer *select_metadata_serializer(void) const;
 
 	bool m_is_booted;
 	bool m_is_first_boot;

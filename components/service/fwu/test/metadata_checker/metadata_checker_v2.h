@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef METADATA_CHECKER_V1_H
-#define METADATA_CHECKER_V1_H
+#ifndef METADATA_CHECKER_V2_H
+#define METADATA_CHECKER_V2_H
 
 #include "metadata_checker.h"
 
 /*
- * A metadata_checker for FWU-A V1 metadata
+ * A metadata_checker for FWU-A V2 metadata
  */
-class metadata_checker_v1 : public metadata_checker
+class metadata_checker_v2 : public metadata_checker
 {
 public:
 
-	metadata_checker_v1(
+	metadata_checker_v2(
 		metadata_fetcher *metadata_fetcher,
 		unsigned int num_images);
 
-	virtual ~metadata_checker_v1();
+	virtual ~metadata_checker_v2();
 
 	void get_active_indices(
 		uint32_t *active_index,
@@ -34,11 +34,9 @@ public:
 
 private:
 
+	static unsigned int alternate_bank_index(unsigned int bank_index);
+
 	static const size_t MAX_FWU_METADATA_SIZE;
-
-	bool is_all_accepted(unsigned int boot_index) const;
-
-	unsigned int m_num_images;
 };
 
-#endif /* METADATA_CHECKER_V1_H */
+#endif /* METADATA_CHECKER_V2_H */

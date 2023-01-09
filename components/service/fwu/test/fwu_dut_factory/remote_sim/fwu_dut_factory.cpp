@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -25,12 +25,14 @@ fwu_dut *fwu_dut_factory::create(
 	/* Construct and set the simulated dut that provides the configured
 	 * device and fwu service provider.
 	 */
-	sim_fwu_dut *sim_dut =  new sim_fwu_dut(num_locations, allow_partial_updates);
+	sim_fwu_dut *sim_dut =  new sim_fwu_dut(num_locations,
+		FWU_METADATA_VERSION, allow_partial_updates);
 
 	fwu_service_context_set_provider(sim_dut->get_service_interface());
 
 	/* Construct a proxy_fwu_dut chained to the sim_fwu_dut. On deletion,
 	 * the proxy_fwu_dut deletes the associated sim_fwu_dut.
 	 */
-	return new proxy_fwu_dut(num_locations, sim_dut);
+	return new proxy_fwu_dut(num_locations,
+		FWU_METADATA_VERSION, sim_dut);
 }
