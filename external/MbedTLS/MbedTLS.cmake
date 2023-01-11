@@ -5,9 +5,9 @@
 #
 #-------------------------------------------------------------------------------
 
-set(MBEDTLS_URL "https://github.com/ARMmbed/mbedtls.git"
+set(MBEDTLS_URL "https://github.com/Mbed-TLS/mbedtls.git"
 		CACHE STRING "Mbed TLS repository URL")
-set(MBEDTLS_REFSPEC "mbedtls-3.1.0"
+set(MBEDTLS_REFSPEC "mbedtls-3.3.0"
 		CACHE STRING "Mbed TLS git refspec")
 set(MBEDTLS_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/mbedtls-src"
 		CACHE PATH "MbedTLS source directory")
