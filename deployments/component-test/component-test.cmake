@@ -96,6 +96,8 @@ add_components(
 		"components/service/block_storage/block_store/device/ram"
 		"components/service/block_storage/block_store/device/ram/test"
 		"components/service/block_storage/block_store/device/null"
+		"components/service/block_storage/block_store/device/file"
+		"components/service/block_storage/block_store/device/file/test"
 		"components/service/block_storage/block_store/client"
 		"components/service/block_storage/block_store/partitioned"
 		"components/service/block_storage/block_store/partitioned/test"
