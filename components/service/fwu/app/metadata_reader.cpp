@@ -77,8 +77,11 @@ int metadata_reader::get_boot_info(
 				}
 			}
 
-			if (!is_handled)
-				IMSG("No metadata recognised");
+			if (!is_handled) {
+
+				/* This is normal on first-boot */
+				status = -1;
+			}
 
 		} else
 			IMSG("Failed to read metadata volume");
