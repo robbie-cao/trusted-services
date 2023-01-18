@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -92,11 +92,18 @@ function (export_sp)
 	if (DEFINED EXPORT_JSON_IN)
 		configure_file(${EXPORT_JSON_IN} ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_NAME}.json @ONLY NEWLINE_STYLE UNIX)
 		install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_NAME}.json DESTINATION ${TS_ENV}/json)
-
 		find_package(Python3 REQUIRED COMPONENTS Interpreter)
-		execute_process(COMMAND ${Python3_EXECUTABLE} ${TS_ROOT}/tools/python/merge_json.py
-				${CMAKE_INSTALL_PREFIX}/${TS_ENV}/json/sp_layout.json
-				${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_NAME}.json
+		# Create a cmake code fragment to merge the SP json files describing the SPs to be loaded by
+		# BL2. This is only needed when FIP packaging is used.
+		# The code fragment ensures merging is done installation time.
+		string(JOIN "\n" install_script
+			"execute_process(COMMAND ${Python3_EXECUTABLE}"
+			"	${TS_ROOT}/tools/python/merge_json.py"
+			"		-vvv"
+			"		-o \${CMAKE_INSTALL_PREFIX}/@TS_ENV@/json/sp_layout.json"
+			"		\${CMAKE_INSTALL_PREFIX}/@TS_ENV@/json/*.json)"
 		)
+		string(CONFIGURE "${install_script}" install_script @ONLY)
+		install(SCRIPT CODE "${install_script}")
 	endif()
 endfunction()
