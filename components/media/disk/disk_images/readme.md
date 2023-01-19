@@ -5,6 +5,10 @@ protective MBR and GPT. The images are intended for test purposes.
 For convenience, there is a C version of the disk image that can be
 built into test deployments.
 
+Once the MBR and GPT have been added, for a sector size of 512 bytes,
+the first usable LBA is 34. 34 free blocks are also needed at the top
+of the LBA space to accommodate theh backup MBR and GPT.
+
 Tools used to create images were:
 
   gdisk
@@ -33,8 +37,26 @@ Tools used to create images were:
 
     srec_cat flash.img -Binary -o ref_partition_data.c -C-Array ref_partition_data -INClude
 
+## Disk Image Descriptions
+
+### ref_partition.img
+Block storage tests assume a reference partition configuration consisting of a set
+of four partitions of varying size. This is a UEFI disk image where two of the
+partitions are big enough for providing backend storage for the Internal Trusted
+Storage and Protected Storage services, at least from a TS test perspective.
+
+### single_location_fw.img
+This UEFI disk image contains the set of partitions you'd expect to find in flash
+for a device where firmware is stored in a single A/B pair of partitions.
+
+### multi_location_fw.img
+This UEFI disk image contains the set of partitions you'd expect to find in flash
+for a device where firmware is distributed across multiple locations. In this case,
+there are locations for AP firmware, SCP firmware and RSS firmware.
+
+
 --------------
 
-*Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause
