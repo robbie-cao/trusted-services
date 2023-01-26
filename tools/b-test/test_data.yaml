@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -121,35 +121,35 @@ data:
       src: "$TS_ROOT/deployments/protected-storage/config/shared-flash-opteesp"
       params:
             - "-GUnix Makefiles"
-    - name: "psa-api-test-crypto"
+    - name: "psa-api-test-crypto-arm-linux"
       src: "$TS_ROOT/deployments/psa-api-test/crypto/arm-linux"
       params:
             - "-GUnix Makefiles"
-    - name: "psa-api-test-crypto"
+    - name: "psa-api-test-crypto-linux-pc"
       src: "$TS_ROOT/deployments/psa-api-test/crypto/linux-pc"
       params:
             - "-GUnix Makefiles"
-    - name: "psa-api-test-initial_attestation"
+    - name: "psa-api-test-initial_attestation-arm-linux"
       src: "$TS_ROOT/deployments/psa-api-test/initial_attestation/arm-linux"
       params:
             - "-GUnix Makefiles"
-    - name: "psa-api-test-initial_attestation"
+    - name: "psa-api-test-initial_attestation-linux-pc"
       src: "$TS_ROOT/deployments/psa-api-test/initial_attestation/linux-pc"
       params:
             - "-GUnix Makefiles"
-    - name: "psa-api-test-internal_trusted_storage"
+    - name: "psa-api-test-internal_trusted_storage-arm-linux"
       src: "$TS_ROOT/deployments/psa-api-test/internal_trusted_storage/arm-linux"
       params:
             - "-GUnix Makefiles"
-    - name: "psa-api-test-internal_trusted_storage"
+    - name: "psa-api-test-internal_trusted_storage-linux-pc"
       src: "$TS_ROOT/deployments/psa-api-test/internal_trusted_storage/linux-pc"
       params:
             - "-GUnix Makefiles"
-    - name: "psa-api-test-protected_storage"
+    - name: "psa-api-test-protected_storage-arm-linux"
       src: "$TS_ROOT/deployments/psa-api-test/protected_storage/arm-linux"
       params:
             - "-GUnix Makefiles"
-    - name: "psa-api-test-protected_storage"
+    - name: "psa-api-test-protected_storage-linux-pc"
       src: "$TS_ROOT/deployments/psa-api-test/protected_storage/linux-pc"
       params:
             - "-GUnix Makefiles"
