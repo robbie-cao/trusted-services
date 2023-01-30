@@ -166,6 +166,7 @@ add_components(
 		"components/media/disk"
 		"components/media/disk/disk_images"
 		"components/media/disk/formatter"
+		"components/media/disk/gpt_iterator"
 		"components/media/disk/test"
 		"components/media/volume"
 		"components/media/volume/index"
