@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -398,4 +398,10 @@ bool partitioned_block_store_add_partition(
 	++partitioned_block_store->num_partitions;
 
 	return true;
+}
+
+const struct storage_partition_info *partitioned_block_store_get_back_store_info(
+	const struct partitioned_block_store *partitioned_block_store)
+{
+	return &partitioned_block_store->back_store_info;
 }
