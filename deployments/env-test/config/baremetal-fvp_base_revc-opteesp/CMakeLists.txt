@@ -20,7 +20,8 @@ include(${TS_ROOT}/environments/opteesp/env.cmake)
 project(trusted-services LANGUAGES C ASM)
 add_executable(env-test)
 target_include_directories(env-test PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
-set(SP_UUID_CANON "33c75baf-ac6a-4fe4-8ac7-e9909bee2d17")
+set(SP_BIN_UUID_CANON "33c75baf-ac6a-4fe4-8ac7-e9909bee2d17")
+set(SP_FFA_UUID_CANON "${TS_RPC_UUID_CANON}")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "ENVTEST" CACHE STRING "Trace prefix")
 
@@ -40,6 +41,7 @@ add_tfa_dependency(TARGET "env-test")
 #  Defines environment and test suites for env-test deployment
 #
 #-------------------------------------------------------------------------------
+
 add_components(TARGET "env-test"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
@@ -87,7 +89,8 @@ install(FILES ${_PROTO_FILES} DESTINATION ${TS_ENV}/lib/protobuf)
 
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
 export_sp(
-	SP_UUID_CANON ${SP_UUID_CANON}
+	SP_FFA_UUID_CANON ${SP_FFA_UUID_CANON}
+	SP_BIN_UUID_CANON ${SP_BIN_UUID_CANON}
 	SP_NAME "env-test"
 	MK_IN ${TS_ROOT}/environments/opteesp/sp.mk.in
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_env-test.dts.in

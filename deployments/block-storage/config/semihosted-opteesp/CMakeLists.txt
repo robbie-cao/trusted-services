@@ -24,7 +24,8 @@ include(${TS_ROOT}/environments/opteesp/env.cmake)
 project(trusted-services LANGUAGES C ASM)
 add_executable(block-storage)
 target_include_directories(block-storage PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
-set(SP_UUID_CANON "63646e80-eb52-462f-ac4f-8cdf3987519c")
+set(SP_BIN_UUID_CANON "63646e80-eb52-462f-ac4f-8cdf3987519c")
+set(SP_FFA_UUID_CANON "${TS_RPC_UUID_CANON}")
 set(SP_HEAP_SIZE "120 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "BLOCK" CACHE STRING "Trace prefix")
 
@@ -44,6 +45,7 @@ add_tfa_dependency(TARGET "block-storage")
 #  that provides NV storage backed by a semihosted file residing in a host
 #  device filesystem.
 #-------------------------------------------------------------------------------
+
 add_components(TARGET "block-storage"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
@@ -88,7 +90,8 @@ install(TARGETS block-storage
 
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
 export_sp(
-	SP_UUID_CANON ${SP_UUID_CANON}
+	SP_FFA_UUID_CANON ${SP_FFA_UUID_CANON}
+	SP_BIN_UUID_CANON ${SP_BIN_UUID_CANON}
 	SP_NAME "block-storage"
 	MK_IN ${TS_ROOT}/environments/opteesp/sp.mk.in
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_block-storage.dts.in

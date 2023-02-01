@@ -20,7 +20,8 @@ include(${TS_ROOT}/environments/opteesp/env.cmake)
 project(trusted-services LANGUAGES C ASM)
 add_executable(fwu)
 target_include_directories(fwu PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
-set(SP_UUID_CANON "6823a838-1b06-470e-9774-0cce8bfb53fd")
+set(SP_BIN_UUID_CANON "6823a838-1b06-470e-9774-0cce8bfb53fd")
+set(SP_FFA_UUID_CANON "${TS_RPC_UUID_CANON}")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 
 target_include_directories(fwu PRIVATE
@@ -38,6 +39,7 @@ set(TRACE_LEVEL "TRACE_LEVEL_DEBUG" CACHE STRING "Trace level")
 #  Deployment specific components
 #
 #-------------------------------------------------------------------------------
+
 add_components(TARGET "fwu"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
@@ -86,7 +88,8 @@ install(FILES ${_PROTO_FILES} DESTINATION ${TS_ENV}/lib/protobuf)
 
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
 export_sp(
-	SP_UUID_CANON ${SP_UUID_CANON}
+	SP_FFA_UUID_CANON ${SP_FFA_UUID_CANON}
+	SP_BIN_UUID_CANON ${SP_BIN_UUID_CANON}
 	SP_NAME "fwu"
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_fwu.dts.in
 	JSON_IN ${TS_ROOT}/environments/opteesp/sp_pkg.json.in

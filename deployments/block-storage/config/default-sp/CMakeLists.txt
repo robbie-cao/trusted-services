@@ -22,8 +22,8 @@ add_executable(block-storage)
 target_include_directories(block-storage PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 
 set(SP_NAME "block-storage")
-set(SP_UUID_CANON "63646e80-eb52-462f-ac4f-8cdf3987519c")
-set(SP_UUID_LE "0x806e6463 0x2f4652eb 0xdf8c4fac 0x9c518739")
+set(SP_BIN_UUID_CANON "63646e80-eb52-462f-ac4f-8cdf3987519c")
+set(SP_FFA_UUID_CANON "${TS_RPC_UUID_CANON}")
 set(SP_HEAP_SIZE "120 * 1024" CACHE STRING "SP heap size in bytes")
 set(SP_STACK_SIZE "64 * 1024" CACHE STRING "Stack size")
 set(TRACE_PREFIX "BLOCK" CACHE STRING "Trace prefix")
@@ -57,11 +57,11 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 
 endif()
 
-compiler_generate_binary_output(TARGET block-storage NAME "${SP_UUID_CANON}.bin" SP_BINARY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SP_UUID_CANON}.bin DESTINATION ${TS_ENV}/bin)
+compiler_generate_binary_output(TARGET block-storage NAME "${SP_BIN_UUID_CANON}.bin" SP_BINARY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SP_BIN_UUID_CANON}.bin DESTINATION ${TS_ENV}/bin)
 
 include(${TS_ROOT}/tools/cmake/common/ExportMemoryRegionsToManifest.cmake REQUIRED)
-export_memory_regions_to_manifest(TARGET block-storage NAME "${SP_UUID_CANON}_memory_regions.dtsi" RES EXPORT_MEMORY_REGIONS_DTSI)
+export_memory_regions_to_manifest(TARGET block-storage NAME "${SP_BIN_UUID_CANON}_memory_regions.dtsi" RES EXPORT_MEMORY_REGIONS_DTSI)
 
 #-------------------------------------------------------------------------------
 #  Deployment specific install options
@@ -76,9 +76,10 @@ install(TARGETS block-storage
 
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake REQUIRED)
 export_sp(
-	SP_UUID_CANON ${SP_UUID_CANON}
+	SP_FFA_UUID_CANON ${SP_FFA_UUID_CANON}
+	SP_BIN_UUID_CANON ${SP_BIN_UUID_CANON}
 	SP_NAME ${SP_NAME}
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_${SP_NAME}.dts.in
-	DTS_MEM_REGIONS ${SP_UUID_CANON}_memory_regions.dtsi
+	DTS_MEM_REGIONS ${SP_BIN_UUID_CANON}_memory_regions.dtsi
 	JSON_IN ${TS_ROOT}/environments/sp/sp_pkg.json.in
 )

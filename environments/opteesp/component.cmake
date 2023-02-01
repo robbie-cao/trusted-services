@@ -15,7 +15,7 @@ endforeach()
 # Ensure elf output naming is symbolize.py compatible.
 # If binary UUID is not defined, fall back to using the SP UUID value.
 if (NOT SP_BIN_UUID_CANON)
-	set(SP_BIN_UUID_CANON "${SP_UUID_CANON}")
+	set(SP_BIN_UUID_CANON "${SP_FFA_UUID_CANON}")
 endif()
 ts_add_uuid_to_exe_name(TGT "${TGT}" UUID "${SP_BIN_UUID_CANON}" )
 
@@ -30,9 +30,10 @@ if ("${_tgt_type}" STREQUAL "EXECUTABLE")
 
 	include(${TS_ROOT}/tools/cmake/common/TargetCompileDefinitions.cmake)
 	set_target_uuids(
-		SP_UUID ${SP_UUID_CANON}
+		SP_UUID ${SP_FFA_UUID_CANON}
 		TGT ${SP_NAME}
 	)
+
 endif()
 
 target_sources(${TGT} PRIVATE

@@ -1,6 +1,7 @@
 {
 	"@EXPORT_SP_NAME@": {
-		"image": "../bin/@EXPORT_SP_UUID_CANON@.bin",
-		"pm": "../manifest/@EXPORT_SP_UUID_CANON@.dts"
+		"uuid": "@EXPORT_SP_BIN_UUID_CANON@",
+		"image": "../bin/@EXPORT_SP_BIN_UUID_CANON@.bin",
+		"pm": "../manifest/@EXPORT_SP_BIN_UUID_CANON@.dts"
 	}
 }

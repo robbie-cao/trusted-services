@@ -13,7 +13,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/Uuid.cmake)
 	.. code:: cmake
 
 		export_sp(
-			SP_UUID_CANON <uuid_str_canon>
+			SP_FFA_UUID_CANON <uuid_str_canon>
 			SP_NAME <name> MK_IN <.mk path>
 			DTS_IN <DTS path>
 			DTS_MEM_REGIONS <Memory region manifest path>
@@ -22,12 +22,12 @@ include(${CMAKE_CURRENT_LIST_DIR}/Uuid.cmake)
 
 	INPUTS:
 
-	``SP_UUID_CANON``
-	The FF_A UUID of the SP as a canonical string.
+	``SP_FFA_UUID_CANON``
+	The FF-A UUID of the SP as a canonical string.
 
 	``SP_BIN_UUID_CANON``
 	The UUID of the SP binary a canonical string. When not set use the
-	SP_UUID_CANON as the SP_BIN_UUID_CANON.
+	SP_FFA_UUID_CANON as the SP_BIN_UUID_CANON.
 
 	``SP_NAME``
 	The name of the SP.
@@ -47,17 +47,17 @@ include(${CMAKE_CURRENT_LIST_DIR}/Uuid.cmake)
 #]===]
 function (export_sp)
 	set(options)
-	set(oneValueArgs SP_UUID_CANON SP_BIN_UUID_CANON SP_UUID_LE SP_NAME MK_IN DTS_IN DTS_MEM_REGIONS JSON_IN)
+	set(oneValueArgs SP_FFA_UUID_CANON SP_BIN_UUID_CANON SP_NAME MK_IN DTS_IN DTS_MEM_REGIONS JSON_IN)
 	set(multiValueArgs)
 	cmake_parse_arguments(EXPORT "${options}" "${oneValueArgs}"
 						"${multiValueArgs}" ${ARGN} )
 
-	if(NOT DEFINED EXPORT_SP_UUID_CANON)
-		message(FATAL_ERROR "export_sp: mandatory parameter SP_UUID_CANON not defined!")
+	if(NOT DEFINED EXPORT_SP_FFA_UUID_CANON)
+		message(FATAL_ERROR "export_sp: mandatory parameter SP_FFA_UUID_CANON not defined!")
 	endif()
 	if(NOT DEFINED EXPORT_SP_BIN_UUID_CANON)
 		# We use the same UUID for the binary and FF-A if the UUID of the SP binary is not set
-		set(EXPORT_SP_BIN_UUID_CANON ${EXPORT_SP_UUID_CANON})
+		set(EXPORT_SP_BIN_UUID_CANON ${EXPORT_SP_FFA_UUID_CANON})
 	endif()
 	if(NOT DEFINED EXPORT_SP_NAME)
 		message(FATAL_ERROR "export_sp: mandatory parameter SP_NAME not defined!")
@@ -73,7 +73,7 @@ function (export_sp)
 
 	# In the SP manifest DT the UUID format is four uint32 numbers (little-endian)
 	# Create a litte endian 4 digit octests representation.
-	uuid_canon_to_le_words(UUID ${EXPORT_SP_UUID_CANON} RES _le_words)
+	uuid_canon_to_le_words(UUID ${EXPORT_SP_FFA_UUID_CANON} RES _le_words)
 	list(JOIN _le_words " 0x" _uuid_le)
 	set(SP_UUID_LE " 0x${_uuid_le}" PARENT_SCOPE)
 	set(EXPORT_SP_UUID_DT " 0x${_uuid_le}")
