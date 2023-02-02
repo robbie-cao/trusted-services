@@ -28,14 +28,14 @@ TEST_GROUP(BlockStorageServiceTests)
 
 		CHECK_TRUE(m_block_store);
 
-		uuid_parse_to_octets(REF_PARTITION_1_GUID,
-			m_partition_1_guid.octets, sizeof(m_partition_1_guid.octets));
-		uuid_parse_to_octets(REF_PARTITION_2_GUID,
-			m_partition_2_guid.octets, sizeof(m_partition_2_guid.octets));
-		uuid_parse_to_octets(REF_PARTITION_3_GUID,
-			m_partition_3_guid.octets, sizeof(m_partition_3_guid.octets));
-		uuid_parse_to_octets(REF_PARTITION_4_GUID,
-			m_partition_4_guid.octets, sizeof(m_partition_4_guid.octets));
+		uuid_guid_octets_from_canonical(&m_partition_1_guid,
+			REF_PARTITION_1_GUID);
+		uuid_guid_octets_from_canonical(&m_partition_2_guid,
+			REF_PARTITION_2_GUID);
+		uuid_guid_octets_from_canonical(&m_partition_3_guid,
+			REF_PARTITION_3_GUID);
+		uuid_guid_octets_from_canonical(&m_partition_4_guid,
+			REF_PARTITION_4_GUID);
 	}
 
 	void teardown()

@@ -24,7 +24,7 @@ TEST_GROUP(SfsBlockStoreTests)
 		struct uuid_octets guid;
 		const struct sfs_flash_info_t *flash_info = NULL;
 
-		uuid_parse_to_octets(REF_PARTITION_2_GUID, guid.octets, sizeof(guid.octets));
+		uuid_guid_octets_from_canonical(&guid, REF_PARTITION_2_GUID);
 
 		block_store = ref_ram_block_store_factory_create();
 		CHECK_TRUE(block_store);

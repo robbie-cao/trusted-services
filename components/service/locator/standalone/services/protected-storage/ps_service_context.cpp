@@ -28,7 +28,8 @@ void ps_service_context::do_init()
 	struct uuid_octets guid;
 	const struct sfs_flash_info_t *flash_info = NULL;
 
-	uuid_parse_to_octets(DISK_GUID_UNIQUE_PARTITION_PSA_PS, guid.octets, sizeof(guid.octets));
+	uuid_guid_octets_from_canonical(&guid,
+		DISK_GUID_UNIQUE_PARTITION_PSA_PS);
 
 	m_block_store = client_block_store_factory_create(
 		"sn:trustedfirmware.org:block-storage:0");

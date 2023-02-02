@@ -20,13 +20,9 @@ static bool gpt_partition_config_listener(
 	 */
 	bool is_configured = false;
 	const partition_entry_t *partition_entry = NULL;
-	uuid_t uuid;
-
-	/* Convert to tf-a uuid encoding */
-	uuid_reverse_octets(partition_guid, (uint8_t*)&uuid, sizeof(uuid));
 
 	/* Check if matching partition entry exists in loaded GPT */
-	partition_entry = get_partition_entry_by_uuid(&uuid);
+	partition_entry = get_partition_entry_by_uuid((uuid_t *)partition_guid->octets);
 
 	if (partition_entry &&
 		back_store_info->block_size &&

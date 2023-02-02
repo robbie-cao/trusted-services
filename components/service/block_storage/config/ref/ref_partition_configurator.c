@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -13,9 +13,7 @@ bool ref_partition_configure(struct partitioned_block_store *subject)
 {
 	struct uuid_octets guid;
 
-	size_t parsed_uuid_len =
-		uuid_parse_to_octets(REF_PARTITION_1_GUID, guid.octets, sizeof(guid.octets));
-	assert(parsed_uuid_len);
+	uuid_guid_octets_from_canonical(&guid, REF_PARTITION_1_GUID);
 	bool is_success = partitioned_block_store_add_partition(
 		subject,
 		&guid,
@@ -26,9 +24,7 @@ bool ref_partition_configure(struct partitioned_block_store *subject)
 	if (!is_success)
 		return false;
 
-	parsed_uuid_len =
-		uuid_parse_to_octets(REF_PARTITION_2_GUID, guid.octets, sizeof(guid.octets));
-	assert(parsed_uuid_len);
+	uuid_guid_octets_from_canonical(&guid, REF_PARTITION_2_GUID);
 	is_success = partitioned_block_store_add_partition(
 		subject,
 		&guid,
@@ -39,9 +35,7 @@ bool ref_partition_configure(struct partitioned_block_store *subject)
 	if (!is_success)
 		return false;
 
-	parsed_uuid_len =
-		uuid_parse_to_octets(REF_PARTITION_3_GUID, guid.octets, sizeof(guid.octets));
-	assert(parsed_uuid_len);
+	uuid_guid_octets_from_canonical(&guid, REF_PARTITION_3_GUID);
 	is_success = partitioned_block_store_add_partition(
 		subject,
 		&guid,
@@ -52,9 +46,7 @@ bool ref_partition_configure(struct partitioned_block_store *subject)
 	if (!is_success)
 		return false;
 
-	parsed_uuid_len =
-		uuid_parse_to_octets(REF_PARTITION_4_GUID, guid.octets, sizeof(guid.octets));
-	assert(parsed_uuid_len);
+	uuid_guid_octets_from_canonical(&guid, REF_PARTITION_4_GUID);
 	is_success = partitioned_block_store_add_partition(
 		subject,
 		&guid,

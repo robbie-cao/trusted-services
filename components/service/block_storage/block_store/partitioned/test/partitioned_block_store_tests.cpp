@@ -37,8 +37,8 @@ TEST_GROUP(PartitionedBlockStoreTests)
 		CHECK_TRUE(back_store);
 
 		/* Configure partition 1 */
-		uuid_parse_to_octets("18ae7d62-0974-4dd3-8d2e-e9c166554165",
-			m_partition_1_guid.octets, sizeof(m_partition_1_guid.octets));
+		uuid_guid_octets_from_canonical(&m_partition_1_guid,
+			"18ae7d62-0974-4dd3-8d2e-e9c166554165");
 
 		CHECK_TRUE(partitioned_block_store_add_partition(
 			&m_partitioned_store,
@@ -48,8 +48,8 @@ TEST_GROUP(PartitionedBlockStoreTests)
 			0, NULL));
 
 		/* Configure partition 2 */
-		uuid_parse_to_octets("7924fda7-4666-41d7-887a-91a913712b93",
-			m_partition_2_guid.octets, sizeof(m_partition_2_guid.octets));
+		uuid_guid_octets_from_canonical(&m_partition_2_guid,
+			"7924fda7-4666-41d7-887a-91a913712b93");
 
 		CHECK_TRUE(partitioned_block_store_add_partition(
 			&m_partitioned_store,

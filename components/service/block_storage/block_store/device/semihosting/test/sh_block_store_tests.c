@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -36,9 +36,8 @@ static bool setup(struct test_failure *failure)
 	}
 
 	struct uuid_octets disk_guid;
-	uuid_parse_to_octets("418edc38-fa66-4871-979b-e67bee88b8f2",
-		disk_guid.octets,
-		sizeof(disk_guid.octets));
+	uuid_guid_octets_from_canonical(&disk_guid,
+		"418edc38-fa66-4871-979b-e67bee88b8f2");
 
 	semihosting_block_store_configure(&sh_block_store,
 		&disk_guid,
