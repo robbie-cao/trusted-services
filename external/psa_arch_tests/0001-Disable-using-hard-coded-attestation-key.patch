@@ -1,7 +1,7 @@
-From dbd25f94eb62a9855bf342dd97503a49ea50f83e Mon Sep 17 00:00:00 2001
+From a2c655d01a3f70a1787650c634af51efa61dbb2d Mon Sep 17 00:00:00 2001
 From: Gyorgy Szing <Gyorgy.Szing@arm.com>
 Date: Tue, 8 Feb 2022 17:06:37 +0000
-Subject: [PATCH 1/1] Disable using hard-coded attestation key
+Subject: [PATCH 1/2] Disable using hard-coded attestation key
 
 Modify platform config to disable using a hard-coded attestation
 key.
@@ -25,4 +25,5 @@ index 6112ba7..1cdf581 100755
  /*
   * Include of PSA defined Header files
 -- 
-2.17.1
+2.34.1
+

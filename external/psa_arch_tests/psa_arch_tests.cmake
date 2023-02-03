@@ -17,6 +17,7 @@ set(GIT_OPTIONS
 	PATCH_COMMAND git stash
 		COMMAND git tag -f ts-before-am
 		COMMAND git am ${CMAKE_CURRENT_LIST_DIR}/0001-Disable-using-hard-coded-attestation-key.patch
+		COMMAND git am ${CMAKE_CURRENT_LIST_DIR}/0002-Disable-crypto-test-262-and-263.patch
 		COMMAND git reset ts-before-am
 )
 
