@@ -23,6 +23,7 @@ add_components(
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/app/test-runner"
+		"components/service/fwu/test/fwu_dut_factory/remote"
  )
 
 include(${TS_ROOT}/external/CppUTest/CppUTest.cmake)

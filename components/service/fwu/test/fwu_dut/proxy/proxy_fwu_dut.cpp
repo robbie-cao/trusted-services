@@ -28,14 +28,14 @@ proxy_fwu_dut::~proxy_fwu_dut()
 
 void proxy_fwu_dut::boot(bool from_active_bank)
 {
-	assert(m_remote_dut);
-	m_remote_dut->boot(from_active_bank);
+	if (m_remote_dut)
+		m_remote_dut->boot(from_active_bank);
 }
 
 void proxy_fwu_dut::shutdown(void)
 {
-	assert(m_remote_dut);
-	m_remote_dut->shutdown();
+	if (m_remote_dut)
+		m_remote_dut->shutdown();
 }
 
 struct boot_info proxy_fwu_dut::get_boot_info(void) const

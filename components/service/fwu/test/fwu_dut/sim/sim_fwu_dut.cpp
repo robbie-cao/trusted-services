@@ -8,6 +8,7 @@
 #include <cstring>
 #include <sstream>
 #include <CppUTest/TestHarness.h>
+#include <common/endian/le.h>
 #include <media/volume/index/volume_index.h>
 #include <media/disk/guid.h>
 #include <service/discovery/provider/discovery_provider.h>
@@ -462,7 +463,7 @@ void sim_fwu_dut::verify_boot_images(unsigned int boot_index)
 		status = volume_open(volume);
 		LONGS_EQUAL(0, status);
 
-		fwu_dut::verify_image(volume);
+		sim_fwu_dut::verify_image(volume);
 
 		status = volume_close(volume);
 		LONGS_EQUAL(0, status);
@@ -483,4 +484,50 @@ const struct metadata_serializer *sim_fwu_dut::select_metadata_serializer(void) 
 	assert(false);
 
 	return NULL;
+}
+
+void sim_fwu_dut::verify_image(
+	struct volume *volume)
+{
+	std::string fixed_header(VALID_IMAGE_HEADER);
+	size_t header_len = fixed_header.size() + sizeof(uint32_t) + sizeof(uint32_t);
+
+	/* Read image header */
+	uint8_t header_buf[header_len];
+	size_t total_bytes_read = 0;
+
+	int status =  volume_read(volume, (uintptr_t)header_buf, header_len, &total_bytes_read);
+	LONGS_EQUAL(0, status);
+	CHECK_TRUE(total_bytes_read == header_len);
+
+	/* Verify header and extract values */
+	MEMCMP_EQUAL(fixed_header.data(), header_buf, fixed_header.size());
+
+	size_t image_size = load_u32_le(header_buf, fixed_header.size());
+	uint32_t seq_num = load_u32_le(header_buf, fixed_header.size() + sizeof(uint32_t));
+
+	CHECK_TRUE(image_size >= header_len);
+
+	/* Read the remainder of the image and check data is as expected */
+	uint8_t expected_fill_val = static_cast<uint8_t>(seq_num);
+
+	while (total_bytes_read < image_size) {
+
+		uint8_t read_buf[1024];
+		size_t bytes_read = 0;
+		size_t bytes_remaining = image_size - total_bytes_read;
+		size_t bytes_to_read = (bytes_remaining > sizeof(read_buf)) ?
+			sizeof(read_buf) : bytes_remaining;
+
+		status =  volume_read(volume, (uintptr_t)read_buf, bytes_to_read, &bytes_read);
+		LONGS_EQUAL(0, status);
+		UNSIGNED_LONGS_EQUAL(bytes_to_read, bytes_read);
+
+		for (size_t i = 0; i < bytes_read; i++)
+			BYTES_EQUAL(expected_fill_val, read_buf[i]);
+
+		total_bytes_read += bytes_read;
+	}
+
+	UNSIGNED_LONGS_EQUAL(image_size, total_bytes_read);
 }

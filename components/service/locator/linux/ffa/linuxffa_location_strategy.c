@@ -117,19 +117,20 @@ static size_t suggest_tf_org_partition_uuids(const char *sn,
 	partition_lookup[] =
 	{
 		/* Services in dedicated SPs */
-		{"crypto",                      "d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0",	0},
-		{"internal-trusted-storage",    "dc1eef48-b17a-4ccf-ac8b-dfcff7711b14",	0},
-		{"protected-storage",           "751bf801-3dde-4768-a514-0f10aeed1790",	0},
-		{"test-runner",                 "33c75baf-ac6a-4fe4-8ac7-e9909bee2d17",	0},
-		{"attestation",                 "a1baf155-8876-4695-8f7c-54955e8db974",	0},
-		{"block-storage",               "63646e80-eb52-462f-ac4f-8cdf3987519c",	0},
+		{"crypto",                      "d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0", 0},
+		{"internal-trusted-storage",    "dc1eef48-b17a-4ccf-ac8b-dfcff7711b14", 0},
+		{"protected-storage",           "751bf801-3dde-4768-a514-0f10aeed1790", 0},
+		{"test-runner",                 "33c75baf-ac6a-4fe4-8ac7-e9909bee2d17", 0},
+		{"attestation",                 "a1baf155-8876-4695-8f7c-54955e8db974", 0},
+		{"block-storage",               "63646e80-eb52-462f-ac4f-8cdf3987519c", 0},
+		{"fwu",                         "6823a838-1b06-470e-9774-0cce8bfb53fd", 0},
 
 		/* Secure Enclave proxy accessed services */
-		{"crypto",                      "46bb39d1-b4d9-45b5-88ff-040027dab249",	SE_PROXY_INTERFACE_ID_CRYPTO},
-		{"internal-trusted-storage",    "46bb39d1-b4d9-45b5-88ff-040027dab249",	SE_PROXY_INTERFACE_ID_ITS},
-		{"protected-storage",           "46bb39d1-b4d9-45b5-88ff-040027dab249",	SE_PROXY_INTERFACE_ID_PS},
-		{"attestation",                 "46bb39d1-b4d9-45b5-88ff-040027dab249",	SE_PROXY_INTERFACE_ID_ATTEST},
-		{NULL,                          NULL,									0}
+		{"crypto",                      "46bb39d1-b4d9-45b5-88ff-040027dab249", SE_PROXY_INTERFACE_ID_CRYPTO},
+		{"internal-trusted-storage",    "46bb39d1-b4d9-45b5-88ff-040027dab249", SE_PROXY_INTERFACE_ID_ITS},
+		{"protected-storage",           "46bb39d1-b4d9-45b5-88ff-040027dab249", SE_PROXY_INTERFACE_ID_PS},
+		{"attestation",                 "46bb39d1-b4d9-45b5-88ff-040027dab249", SE_PROXY_INTERFACE_ID_ATTEST},
+		{NULL,                          NULL,                                   0}
 	};
 
 	const struct service_to_uuid *entry = &partition_lookup[0];

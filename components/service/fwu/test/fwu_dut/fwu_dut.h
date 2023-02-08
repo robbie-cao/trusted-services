@@ -12,7 +12,6 @@
 #include <service/fwu/agent/fw_directory.h>
 #include <service/fwu/test/metadata_checker/metadata_checker.h>
 #include <service/fwu/test/fwu_client/fwu_client.h>
-#include <media/volume/volume.h>
 
 /*
  * An fwu_dut represents a device-under-test for the purpose of testing
@@ -110,19 +109,6 @@ public:
 protected:
 
 	/**
-	 * \brief Verifies an image
-	 *
-	 *  Simulates bootloader image verification. This checks that a valid header
-	 *  exists and if it does, checks that remaining payload data is as expected.
-	 *  The volume object must have already been opened with a seek position at the
-	 *  start of the volume.
-	 *
-	 * \param[in]  volume     The volume to read
-	 */
-	static void verify_image(
-		struct volume *volume);
-
-	/**
 	 * \brief Create a metadata_checker for the configured metadata version
 	 *
 	 *  Creates a metadata_checker using 'new' that is compatible with the metadata
@@ -146,8 +132,9 @@ protected:
 	 */
 	unsigned int metadata_version(void) const;
 
-private:
 	static const char *VALID_IMAGE_HEADER;
+
+private:
 
 	unsigned int m_generated_image_count;
 	unsigned int m_metadata_version;

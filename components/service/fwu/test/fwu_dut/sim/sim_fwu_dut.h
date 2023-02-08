@@ -100,6 +100,8 @@ private:
 	void install_factory_images(unsigned int num_locations);
 	void verify_boot_images(unsigned int boot_index);
 
+	static void verify_image(struct volume *volume);
+
 	const struct metadata_serializer *select_metadata_serializer(void) const;
 
 	bool m_is_booted;

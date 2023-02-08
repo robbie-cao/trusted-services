@@ -83,52 +83,6 @@ void fwu_dut::generate_image_data(
 	++m_generated_image_count;
 }
 
-void fwu_dut::verify_image(
-	struct volume *volume)
-{
-	std::string fixed_header(VALID_IMAGE_HEADER);
-	size_t header_len = fixed_header.size() + sizeof(uint32_t) + sizeof(uint32_t);
-
-	/* Read image header */
-	uint8_t header_buf[header_len];
-	size_t total_bytes_read = 0;
-
-	int status =  volume_read(volume, (uintptr_t)header_buf, header_len, &total_bytes_read);
-	LONGS_EQUAL(0, status);
-	CHECK_TRUE(total_bytes_read == header_len);
-
-	/* Verify header and extract values */
-	MEMCMP_EQUAL(fixed_header.data(), header_buf, fixed_header.size());
-
-	size_t image_size = load_u32_le(header_buf, fixed_header.size());
-	uint32_t seq_num = load_u32_le(header_buf, fixed_header.size() + sizeof(uint32_t));
-
-	CHECK_TRUE(image_size >= header_len);
-
-	/* Read the remainder of the image and check data is as expected */
-	uint8_t expected_fill_val = static_cast<uint8_t>(seq_num);
-
-	while (total_bytes_read < image_size) {
-
-		uint8_t read_buf[1024];
-		size_t bytes_read = 0;
-		size_t bytes_remaining = image_size - total_bytes_read;
-		size_t bytes_to_read = (bytes_remaining > sizeof(read_buf)) ?
-			sizeof(read_buf) : bytes_remaining;
-
-		status =  volume_read(volume, (uintptr_t)read_buf, bytes_to_read, &bytes_read);
-		LONGS_EQUAL(0, status);
-		UNSIGNED_LONGS_EQUAL(bytes_to_read, bytes_read);
-
-		for (size_t i = 0; i < bytes_read; i++)
-			BYTES_EQUAL(expected_fill_val, read_buf[i]);
-
-		total_bytes_read += bytes_read;
-	}
-
-	UNSIGNED_LONGS_EQUAL(image_size, total_bytes_read);
-}
-
 void fwu_dut::whole_volume_image_type_uuid(
 	unsigned int location_index,
 	struct uuid_octets *uuid) const
