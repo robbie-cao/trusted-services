@@ -33,7 +33,7 @@ static inline psa_status_t crypto_caller_key_derivation_setup(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_KEY_DERIVATION_SETUP_SID,
+		.function_id = TFM_CRYPTO_KEY_DERIVATION_SETUP_SID,
 		.alg = alg,
 		.op_handle = *op_handle,
 	};
@@ -59,7 +59,7 @@ static inline psa_status_t crypto_caller_key_derivation_get_capacity(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_KEY_DERIVATION_GET_CAPACITY_SID,
+		.function_id = TFM_CRYPTO_KEY_DERIVATION_GET_CAPACITY_SID,
 		.op_handle = op_handle,
 	};
 	struct psa_invec in_vec[] = {
@@ -84,7 +84,7 @@ static inline psa_status_t crypto_caller_key_derivation_set_capacity(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_KEY_DERIVATION_SET_CAPACITY_SID,
+		.function_id = TFM_CRYPTO_KEY_DERIVATION_SET_CAPACITY_SID,
 		.capacity = capacity,
 		.op_handle = op_handle,
 	};
@@ -109,7 +109,7 @@ static inline psa_status_t crypto_caller_key_derivation_input_bytes(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_KEY_DERIVATION_INPUT_BYTES_SID,
+		.function_id = TFM_CRYPTO_KEY_DERIVATION_INPUT_BYTES_SID,
 		.step = step,
 		.op_handle = op_handle,
 	};
@@ -134,7 +134,7 @@ static inline psa_status_t crypto_caller_key_derivation_input_key(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_KEY_DERIVATION_INPUT_KEY_SID,
+		.function_id = TFM_CRYPTO_KEY_DERIVATION_INPUT_KEY_SID,
 		.key_id = key,
 		.step = step,
 		.op_handle = op_handle,
@@ -159,7 +159,7 @@ static inline psa_status_t crypto_caller_key_derivation_output_bytes(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_KEY_DERIVATION_OUTPUT_BYTES_SID,
+		.function_id = TFM_CRYPTO_KEY_DERIVATION_OUTPUT_BYTES_SID,
 		.op_handle = op_handle,
 	};
 	struct psa_invec in_vec[] = {
@@ -185,7 +185,7 @@ static inline psa_status_t crypto_caller_key_derivation_output_key(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_KEY_DERIVATION_OUTPUT_KEY_SID,
+		.function_id = TFM_CRYPTO_KEY_DERIVATION_OUTPUT_KEY_SID,
 		.op_handle = op_handle,
 	};
 	struct psa_invec in_vec[] = {
@@ -211,7 +211,7 @@ static inline psa_status_t crypto_caller_key_derivation_abort(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_KEY_DERIVATION_ABORT_SID,
+		.function_id = TFM_CRYPTO_KEY_DERIVATION_ABORT_SID,
 		.op_handle = op_handle,
 	};
 	struct psa_invec in_vec[] = {
@@ -239,7 +239,7 @@ static inline psa_status_t crypto_caller_key_derivation_key_agreement(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_KEY_DERIVATION_KEY_AGREEMENT_SID,
+		.function_id = TFM_CRYPTO_KEY_DERIVATION_KEY_AGREEMENT_SID,
 		.key_id = private_key,
 		.step = step,
 		.op_handle = op_handle,
@@ -270,7 +270,7 @@ static inline psa_status_t crypto_caller_raw_key_agreement(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_RAW_KEY_AGREEMENT_SID,
+		.function_id = TFM_CRYPTO_RAW_KEY_AGREEMENT_SID,
 		.alg = alg,
 		.key_id = private_key,
 	};

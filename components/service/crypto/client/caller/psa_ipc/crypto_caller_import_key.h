@@ -33,7 +33,7 @@ static inline psa_status_t crypto_caller_import_key(struct service_client *conte
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_IMPORT_KEY_SID,
+		.function_id = TFM_CRYPTO_IMPORT_KEY_SID,
 	};
 	struct psa_invec in_vec[] = {
 		{ .base = psa_ptr_to_u32(&iov), .len = sizeof(struct psa_ipc_crypto_pack_iovec) },

@@ -44,7 +44,7 @@ static inline psa_status_t crypto_caller_aead_encrypt(
 	size_t in_len;
 	int i;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_AEAD_ENCRYPT_SID,
+		.function_id = TFM_CRYPTO_AEAD_ENCRYPT_SID,
 		.key_id = key,
 		.alg = alg,
 		.aead_in = { .nonce = {0}, .nonce_length = nonce_length },
@@ -105,7 +105,7 @@ static inline psa_status_t crypto_caller_aead_decrypt(
 	size_t in_len;
 	int i;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_AEAD_DECRYPT_SID,
+		.function_id = TFM_CRYPTO_AEAD_DECRYPT_SID,
 		.key_id = key,
 		.alg = alg,
 		.aead_in = { .nonce = {0}, .nonce_length = nonce_length },
@@ -156,7 +156,7 @@ static inline psa_status_t crypto_caller_aead_encrypt_setup(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_AEAD_ENCRYPT_SETUP_SID,
+		.function_id = TFM_CRYPTO_AEAD_ENCRYPT_SETUP_SID,
 		.key_id = key,
 		.alg = alg,
 		.op_handle = (*op_handle),
@@ -186,7 +186,7 @@ static inline psa_status_t crypto_caller_aead_decrypt_setup(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_AEAD_DECRYPT_SETUP_SID,
+		.function_id = TFM_CRYPTO_AEAD_DECRYPT_SETUP_SID,
 		.key_id = key,
 		.alg = alg,
 		.op_handle = (*op_handle),
@@ -217,7 +217,7 @@ static inline psa_status_t crypto_caller_aead_generate_nonce(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_AEAD_GENERATE_NONCE_SID,
+		.function_id = TFM_CRYPTO_AEAD_GENERATE_NONCE_SID,
 		.op_handle = op_handle,
 	};
 
@@ -226,14 +226,13 @@ static inline psa_status_t crypto_caller_aead_generate_nonce(
 			.len = sizeof(struct psa_ipc_crypto_pack_iovec) },
 	};
 	struct psa_outvec out_vec[] = {
-		{ .base = psa_ptr_to_u32(&op_handle), .len = sizeof(uint32_t) },
 		{ .base = psa_ptr_to_u32(nonce), .len = nonce_size },
 	};
 
 	status = psa_call(caller, TFM_CRYPTO_HANDLE, PSA_IPC_CALL, in_vec,
 			  IOVEC_LEN(in_vec), out_vec, IOVEC_LEN(out_vec));
 
-	*nonce_length = out_vec[1].len;
+	*nonce_length = out_vec[0].len;
 
 	return status;
 }
@@ -248,7 +247,7 @@ static inline psa_status_t crypto_caller_aead_set_nonce(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_AEAD_SET_NONCE_SID,
+		.function_id = TFM_CRYPTO_AEAD_SET_NONCE_SID,
 		.op_handle = op_handle,
 	};
 
@@ -277,7 +276,7 @@ static inline psa_status_t crypto_caller_aead_set_lengths(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_AEAD_SET_LENGTHS_SID,
+		.function_id = TFM_CRYPTO_AEAD_SET_LENGTHS_SID,
 		.ad_length = ad_length,
 		.plaintext_length = plaintext_length,
 		.op_handle = op_handle,
@@ -307,7 +306,7 @@ static inline psa_status_t crypto_caller_aead_update_ad(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_AEAD_UPDATE_AD_SID,
+		.function_id = TFM_CRYPTO_AEAD_UPDATE_AD_SID,
 		.op_handle = op_handle,
 	};
 
@@ -349,7 +348,7 @@ static inline psa_status_t crypto_caller_aead_update(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_AEAD_UPDATE_SID,
+		.function_id = TFM_CRYPTO_AEAD_UPDATE_SID,
 		.op_handle = op_handle,
 	};
 
@@ -364,7 +363,6 @@ static inline psa_status_t crypto_caller_aead_update(
 		{ .base = psa_ptr_const_to_u32(input), .len = input_length },
 	};
 	struct psa_outvec out_vec[] = {
-		{ .base = psa_ptr_to_u32(&op_handle), .len = sizeof(uint32_t) },
 		{ .base = psa_ptr_const_to_u32(output), .len = output_size },
 	};
 
@@ -376,7 +374,7 @@ static inline psa_status_t crypto_caller_aead_update(
 	status = psa_call(caller, TFM_CRYPTO_HANDLE, PSA_IPC_CALL, in_vec,
 			  in_len, out_vec, IOVEC_LEN(out_vec));
 
-	*output_length = out_vec[1].len;
+	*output_length = out_vec[0].len;
 
 	return status;
 }
@@ -395,7 +393,7 @@ static inline psa_status_t crypto_caller_aead_finish(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_AEAD_FINISH_SID,
+		.function_id = TFM_CRYPTO_AEAD_FINISH_SID,
 		.op_handle = op_handle,
 	};
 
@@ -448,7 +446,7 @@ static inline psa_status_t crypto_caller_aead_verify(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_AEAD_VERIFY_SID,
+		.function_id = TFM_CRYPTO_AEAD_VERIFY_SID,
 		.op_handle = op_handle,
 	};
 
@@ -494,7 +492,7 @@ static inline psa_status_t crypto_caller_aead_abort(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_AEAD_ABORT_SID,
+		.function_id = TFM_CRYPTO_AEAD_ABORT_SID,
 		.op_handle = op_handle,
 	};
 

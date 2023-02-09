@@ -31,7 +31,7 @@ static inline psa_status_t crypto_caller_destroy_key(struct service_client *cont
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_DESTROY_KEY_SID,
+		.function_id = TFM_CRYPTO_DESTROY_KEY_SID,
 		.key_id = id,
 	};
 	struct psa_invec in_vec[] = {

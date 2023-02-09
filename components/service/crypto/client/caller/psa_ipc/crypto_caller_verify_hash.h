@@ -31,13 +31,13 @@ static inline psa_status_t crypto_caller_common(struct service_client *context,
 						     size_t hash_length,
 						     const uint8_t *signature,
 						     size_t signature_length,
-						     uint32_t sfn_id)
+						     uint32_t function_id)
 {
 	struct service_client *ipc = context;
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = sfn_id,
+		.function_id = function_id,
 		.key_id = id,
 		.alg = alg,
 	};
@@ -63,7 +63,7 @@ static inline psa_status_t crypto_caller_verify_hash(struct service_client *cont
 {
 
 	return crypto_caller_common(context,id,alg,hash,hash_length,
-			signature,signature_length, TFM_CRYPTO_VERIFY_HASH_SID);
+			signature,signature_length, TFM_CRYPTO_ASYMMETRIC_VERIFY_HASH_SID);
 }
 
 static inline psa_status_t crypto_caller_verify_message(struct service_client *context,
@@ -76,7 +76,7 @@ static inline psa_status_t crypto_caller_verify_message(struct service_client *c
 {
 
 	return crypto_caller_common(context,id,alg,hash,hash_length,
-			signature,signature_length, TFM_CRYPTO_VERIFY_MESSAGE_SID);
+			signature,signature_length, TFM_CRYPTO_ASYMMETRIC_VERIFY_MESSAGE_SID);
 }
 
 #ifdef __cplusplus

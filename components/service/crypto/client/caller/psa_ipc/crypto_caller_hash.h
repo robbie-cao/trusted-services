@@ -33,7 +33,7 @@ static inline psa_status_t crypto_caller_hash_setup(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_HASH_SETUP_SID,
+		.function_id = TFM_CRYPTO_HASH_SETUP_SID,
 		.alg = alg,
 		.op_handle = *op_handle,
 	};
@@ -60,7 +60,7 @@ static inline psa_status_t crypto_caller_hash_update(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_HASH_UPDATE_SID,
+		.function_id = TFM_CRYPTO_HASH_UPDATE_SID,
 		.op_handle = op_handle,
 	};
 	struct psa_invec in_vec[] = {
@@ -88,7 +88,7 @@ static inline psa_status_t crypto_caller_hash_finish(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_HASH_FINISH_SID,
+		.function_id = TFM_CRYPTO_HASH_FINISH_SID,
 		.op_handle = op_handle,
 	};
 	struct psa_invec in_vec[] = {
@@ -115,7 +115,7 @@ static inline psa_status_t crypto_caller_hash_abort(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_HASH_ABORT_SID,
+		.function_id = TFM_CRYPTO_HASH_ABORT_SID,
 		.op_handle = op_handle,
 	};
 	struct psa_invec in_vec[] = {
@@ -141,7 +141,7 @@ static inline psa_status_t crypto_caller_hash_verify(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_HASH_VERIFY_SID,
+		.function_id = TFM_CRYPTO_HASH_VERIFY_SID,
 		.op_handle = op_handle,
 	};
 	struct psa_invec in_vec[] = {
@@ -167,11 +167,13 @@ static inline psa_status_t crypto_caller_hash_clone(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_HASH_CLONE_SID,
+		.function_id = TFM_CRYPTO_HASH_CLONE_SID,
 		.op_handle = source_op_handle,
 	};
 	struct psa_invec in_vec[] = {
 		{ .base = psa_ptr_to_u32(&iov), .len = iov_size },
+		{ .base = psa_ptr_to_u32(target_op_handle),
+			.len = sizeof(uint32_t) },
 	};
 	struct psa_outvec out_vec[] = {
 		{ .base = psa_ptr_to_u32(target_op_handle),

@@ -37,7 +37,7 @@ static inline psa_status_t crypto_caller_sign_hash(struct service_client *contex
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_SIGN_HASH_SID,
+		.function_id = TFM_CRYPTO_ASYMMETRIC_SIGN_HASH_SID,
 		.key_id = id,
 		.alg = alg,
 	};
@@ -70,7 +70,7 @@ static inline psa_status_t crypto_caller_sign_message(struct service_client *con
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_SIGN_MESSAGE_SID,
+		.function_id = TFM_CRYPTO_ASYMMETRIC_SIGN_MESSAGE_SID,
 		.key_id = id,
 		.alg = alg,
 	};

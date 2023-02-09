@@ -34,7 +34,7 @@ static inline psa_status_t crypto_caller_mac_sign_setup(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_MAC_SIGN_SETUP_SID,
+		.function_id = TFM_CRYPTO_MAC_SIGN_SETUP_SID,
 		.key_id = key,
 		.alg = alg,
 		.op_handle = *op_handle,
@@ -62,7 +62,7 @@ static inline psa_status_t crypto_caller_mac_verify_setup(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_MAC_VERIFY_SETUP_SID,
+		.function_id = TFM_CRYPTO_MAC_VERIFY_SETUP_SID,
 		.key_id = key,
 		.alg = alg,
 		.op_handle = *op_handle,
@@ -90,7 +90,7 @@ static inline psa_status_t crypto_caller_mac_update(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_MAC_UPDATE_SID,
+		.function_id = TFM_CRYPTO_MAC_UPDATE_SID,
 		.op_handle = op_handle,
 	};
 	struct psa_invec in_vec[] = {
@@ -118,7 +118,7 @@ static inline psa_status_t crypto_caller_mac_sign_finish(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_MAC_SIGN_FINISH_SID,
+		.function_id = TFM_CRYPTO_MAC_SIGN_FINISH_SID,
 		.op_handle = op_handle,
 	};
 	struct psa_invec in_vec[] = {
@@ -147,7 +147,7 @@ static inline psa_status_t crypto_caller_mac_verify_finish(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_MAC_VERIFY_FINISH_SID,
+		.function_id = TFM_CRYPTO_MAC_VERIFY_FINISH_SID,
 		.op_handle = op_handle,
 	};
 	struct psa_invec in_vec[] = {
@@ -172,7 +172,7 @@ static inline psa_status_t crypto_caller_mac_abort(
 	struct rpc_caller *caller = ipc->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_MAC_ABORT_SID,
+		.function_id = TFM_CRYPTO_MAC_ABORT_SID,
 		.op_handle = op_handle,
 	};
 	struct psa_invec in_vec[] = {

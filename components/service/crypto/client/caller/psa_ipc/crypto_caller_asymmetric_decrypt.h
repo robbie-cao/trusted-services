@@ -38,7 +38,7 @@ static inline psa_status_t crypto_caller_asymmetric_decrypt(
 	psa_status_t status;
 	size_t in_len;
 	struct psa_ipc_crypto_pack_iovec iov = {
-		.sfn_id = TFM_CRYPTO_ASYMMETRIC_DECRYPT_SID,
+		.function_id = TFM_CRYPTO_ASYMMETRIC_DECRYPT_SID,
 		.key_id = id,
 		.alg = alg,
 	};

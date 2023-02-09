@@ -28,23 +28,23 @@ struct psa_ipc_crypto_aead_pack_input {
 };
 
 struct psa_ipc_crypto_pack_iovec {
-	uint32_t sfn_id;             /*!< Secure function ID used to dispatch the
-				      *   request
-				      */
-	uint16_t step;               /*!< Key derivation step */
-	psa_key_id_t key_id;         /*!< Key id */
-	psa_algorithm_t alg;         /*!< Algorithm */
-	uint32_t op_handle;          /*!< Frontend context handle associated to a
-				      *   multipart operation
-				      */
-	uint32_t capacity;             /*!< Key derivation capacity */
-	uint32_t ad_length;            /*!< Additional Data length for multipart AEAD */
-	uint32_t plaintext_length;     /*!< Plaintext length for multipart AEAD */
-	struct psa_ipc_crypto_aead_pack_input aead_in; /*!< FixMe: Temporarily used for
-							    *   AEAD until the API is
-							    *   restructured
-							    */
-};
+    psa_key_id_t key_id;     /*!< Key id */
+    psa_algorithm_t alg;     /*!< Algorithm */
+    uint32_t op_handle;      /*!< Frontend context handle associated to a
+                              *   multipart operation
+                              */
+    uint32_t capacity;         /*!< Key derivation capacity */
+    uint32_t ad_length;        /*!< Additional Data length for multipart AEAD */
+    uint32_t plaintext_length; /*!< Plaintext length for multipart AEAD */
+
+    struct psa_ipc_crypto_aead_pack_input aead_in; /*!< Packs AEAD-related inputs */
+
+    uint16_t function_id;    /*!< Used to identify the function in the
+                              *   API dispatcher to the service backend
+                              *   See tfm_crypto_func_sid for detail
+                              */
+    uint16_t step;           /*!< Key derivation step */
+}__packed;
 
 #define iov_size sizeof(struct psa_ipc_crypto_pack_iovec)
 
