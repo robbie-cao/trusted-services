@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -15,7 +15,10 @@ find_path(LINUX_FFA_TEE_DRIVER_INCLUDE_DIR
 if(NOT LINUX_FFA_TEE_DRIVER_INCLUDE_DIR)
 	set(LINUX_FFA_TEE_DRIVER_URL "https://git.gitlab.arm.com/linux-arm/linux-trusted-services.git"
 		CACHE STRING "Linux FF-A TEE driver repository URL")
-	set(LINUX_FFA_TEE_DRIVER_REFSPEC "tee-v1"
+
+	# Note: the aim of this external component is to make the header file defining the IOCTL API
+	#        available. Fetching a moving reference is ok as long as API compatibility is guaranteed.
+	set(LINUX_FFA_TEE_DRIVER_REFSPEC "origin/tee-v1"
 		CACHE STRING "Linux FF-A TEE driver git refspec")
 
 	set(LINUX_FFA_TEE_DRIVER_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/linux_ffa_tee_driver-src"

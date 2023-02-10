@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -19,7 +19,10 @@ if(NOT LINUX_FFA_USER_SHIM_INCLUDE_DIR)
 
 	set(LINUX_FFA_USER_SHIM_URL "https://git.gitlab.arm.com/linux-arm/linux-trusted-services.git"
 		CACHE STRING "Linux FF-A user space shim repository URL")
-	set(LINUX_FFA_USER_SHIM_REFSPEC "v5.0.0"
+
+	# Note: the aim of this external component is to make the header file defining the IOCTL API
+	#        available. Fetching a moving reference is ok as long as API compatibility is guaranteed.
+	set(LINUX_FFA_USER_SHIM_REFSPEC "origin/debugfs-v5"
 		CACHE STRING "Linux FF-A user space shim git refspec")
 
 	set(LINUX_FFA_USER_SHIM_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/linux_ffa_user_shim-src"
