@@ -15,4 +15,5 @@ target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/power_failure_tests.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/rollback_tests.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/oversize_image_tests.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/update_fmp_tests.cpp"
 	)
