@@ -1,0 +1,16 @@
+# Copyright (c) 2021-2022, Arm Limited and contributors. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+
+# Checkpatch configuration for Trusted Services.
+
+--showfile
+#      Please set CODESPELL_FILE in the environment.
+--codespellfile="$CODESPELL_FILE"
+--codespell
+--ignore SPDX_LICENSE_TAG,PREFER_KERNEL_TYPES,USLEEP_RANGE,GERRIT_CHANGE_ID,FILE_PATH_CHANGES
+--no-tree
+--terse
+--strict
+--max-line-length=100

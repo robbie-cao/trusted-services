@@ -22,6 +22,13 @@ add_library(ts SHARED)
 target_include_directories(ts PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 
 #-------------------------------------------------------------------------------
+#  External project source-level dependencies
+#
+#-------------------------------------------------------------------------------
+include(${TS_ROOT}/external/tf_a/tf-a.cmake)
+add_tfa_dependency(TARGET "ts")
+
+#-------------------------------------------------------------------------------
 #  Components that are specific to deployment in the linux-pc environment.
 #
 #-------------------------------------------------------------------------------
@@ -31,9 +38,11 @@ add_components(
 	COMPONENTS
 		"components/rpc/direct"
 		"components/common/tlv"
+		"components/common/uuid"
 		"components/common/endian"
 		"components/common/utils"
 		"components/common/trace"
+		"components/common/crc32/native"
 		"components/config/ramstore"
 		"components/service/common/include"
 		"components/service/common/client"
@@ -47,6 +56,7 @@ add_components(
 		"components/service/locator/standalone/services/protected-storage"
 		"components/service/locator/standalone/services/test-runner"
 		"components/service/locator/standalone/services/attestation"
+		"components/service/locator/standalone/services/block-storage"
 		"components/service/locator/standalone/services/smm-variable"
 		"components/service/attestation/include"
 		"components/service/attestation/claims"
@@ -61,6 +71,17 @@ add_components(
 		"components/service/attestation/key_mngr/local"
 		"components/service/attestation/provider"
 		"components/service/attestation/provider/serializer/packed-c"
+		"components/service/block_storage/block_store"
+		"components/service/block_storage/block_store/device"
+		"components/service/block_storage/block_store/device/ram"
+		"components/service/block_storage/block_store/partitioned"
+		"components/service/block_storage/block_store/client"
+		"components/service/block_storage/provider"
+		"components/service/block_storage/provider/serializer/packed-c"
+		"components/service/block_storage/config/gpt"
+		"components/service/block_storage/config/ref"
+		"components/service/block_storage/factory/ref_ram_gpt"
+		"components/service/block_storage/factory/client"
 		"components/service/crypto/provider"
 		"components/service/crypto/provider/serializer/protobuf"
 		"components/service/crypto/provider/serializer/packed-c"
@@ -83,12 +104,22 @@ add_components(
 		"components/service/secure_storage/backend/secure_storage_client"
 		"components/service/secure_storage/backend/mock_store"
 		"components/service/secure_storage/backend/null_store"
+		"components/service/secure_storage/backend/secure_flash_store"
+		"components/service/secure_storage/backend/secure_flash_store/flash_fs"
+		"components/service/secure_storage/backend/secure_flash_store/flash"
+		"components/service/secure_storage/backend/secure_flash_store/flash/block_store_adapter"
 		"components/service/test_runner/provider"
 		"components/service/test_runner/provider/serializer/packed-c"
 		"components/service/test_runner/provider/backend/mock"
 		"components/service/test_runner/provider/backend/simple_c"
 		"components/service/smm_variable/backend"
 		"components/service/smm_variable/provider"
+		"components/media/disk"
+		"components/media/disk/disk_images"
+		"components/media/disk/formatter"
+		"components/media/volume/index"
+		"components/media/volume/base_io_dev"
+		"components/media/volume/block_io_dev"
 		"protocols/rpc/common/packed-c"
 		"protocols/service/crypto/packed-c"
 		"protocols/service/crypto/protobuf"

@@ -105,40 +105,50 @@ size_t uuid_parse_to_octets(const char *canonical_form, uint8_t *buf, size_t buf
 }
 
 /*
- * TODO: Temorary workaround for optee compatibility
  * The byte order is reversed for the first 4 bytes, then 2 bytes, then 2 bytes.
- * This is because the UUID type in OP-TEE consists of an uint32_t, 2x uint16_t,
- * then uint8_t array.
+ * This is for compatibility with TF-A and OP-TEE where a binary uuid is represented as
+ * an uint32_t, 2x uint16_t, then uint8_t array.
  */
-size_t uuid_parse_to_octets_reversed(const char *canonical_form, uint8_t *buf, size_t buf_size)
+void uuid_reverse_octets(const struct uuid_octets *standard_encoding,
+	uint8_t *buf, size_t buf_size)
+{
+	if (buf_size >= UUID_OCTETS_LEN) {
+		/* Reverse bytes in each section */
+		buf[0] = standard_encoding->octets[3];
+		buf[1] = standard_encoding->octets[2];
+		buf[2] = standard_encoding->octets[1];
+		buf[3] = standard_encoding->octets[0];
+
+		buf[4] = standard_encoding->octets[5];
+		buf[5] = standard_encoding->octets[4];
+
+		buf[6] = standard_encoding->octets[7];
+		buf[7] = standard_encoding->octets[6];
+
+		buf[8] = standard_encoding->octets[8];
+		buf[9] = standard_encoding->octets[9];
+
+		buf[10] = standard_encoding->octets[10];
+		buf[11] = standard_encoding->octets[11];
+		buf[12] = standard_encoding->octets[12];
+		buf[13] = standard_encoding->octets[13];
+		buf[14] = standard_encoding->octets[14];
+		buf[15] = standard_encoding->octets[15];
+	}
+}
+
+size_t uuid_parse_to_octets_reversed(const char *canonical_form,
+	uint8_t *buf, size_t buf_size)
 {
 	size_t valid_chars;
-	uint8_t standard_octets[UUID_OCTETS_LEN];
+	struct uuid_octets standard_encoding;
 
-	valid_chars = uuid_parse_to_octets(canonical_form, standard_octets, sizeof(standard_octets));
+	valid_chars = uuid_parse_to_octets(canonical_form,
+		standard_encoding.octets, sizeof(standard_encoding.octets));
 
-	if ((valid_chars == UUID_CANONICAL_FORM_LEN) && (buf_size >= UUID_OCTETS_LEN)) {
-		/* Reverse bytes in each section */
-		buf[0] = standard_octets[3];
-		buf[1] = standard_octets[2];
-		buf[2] = standard_octets[1];
-		buf[3] = standard_octets[0];
+	if (valid_chars == UUID_CANONICAL_FORM_LEN) {
 
-		buf[4] = standard_octets[5];
-		buf[5] = standard_octets[4];
-
-		buf[6] = standard_octets[7];
-		buf[7] = standard_octets[6];
-
-		buf[8] = standard_octets[8];
-		buf[9] = standard_octets[9];
-
-		buf[10] = standard_octets[10];
-		buf[11] = standard_octets[11];
-		buf[12] = standard_octets[12];
-		buf[13] = standard_octets[13];
-		buf[14] = standard_octets[14];
-		buf[15] = standard_octets[15];
+		uuid_reverse_octets(&standard_encoding, buf, buf_size);
 	}
 
 	return valid_chars;

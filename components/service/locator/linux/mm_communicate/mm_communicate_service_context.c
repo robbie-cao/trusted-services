@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -47,6 +47,9 @@ static rpc_session_handle mm_communicate_service_context_open(
 		(struct mm_communicate_service_context*)context;
 
 	rpc_session_handle session_handle = NULL;
+
+	if (!mm_communicate_caller_check_version())
+		return NULL;
 
 	struct mm_communicate_caller *mm_communicate_caller =
 		(struct mm_communicate_caller*)malloc(sizeof(struct mm_communicate_caller));

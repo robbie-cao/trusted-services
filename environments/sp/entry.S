@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /*
- * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
  */
 
 #include <asm.S>
@@ -43,7 +43,7 @@ FUNC __sp_entry, :
 
 	/* Only R_AARCH64_RELATIVE type is supported */
 	cmp	w8, #R_AARCH64_RELATIVE
-	bne	3f	/* Error */
+	bne	relocation_error
 
 	/*
 	 * Apply relative adjustment on address
@@ -56,9 +56,24 @@ FUNC __sp_entry, :
 	bne	1b
 
 2:
+	/* Clear BSS */
+	adrp	x4, __bss_start
+	add	x4, x4, :lo12:__bss_start
+	adrp	x5, __bss_end
+	add	x5, x5, :lo12:__bss_end
+
+	cmp	x4,	x5
+	b.eq	clear_bss_end
+
+clear_bss:
+	str	xzr,	[x4],	#8
+	cmp	x4,	x5
+	b.lt	clear_bss
+
+clear_bss_end:
 	b	_sp_entry
 
-3:
+relocation_error:
 	adr	X0,	error_invalid_relocation
 	bl	trace_puts
 	b	.

@@ -102,8 +102,8 @@ static struct service_context *query(const char *sn, int *status)
 /*
  * Returns a list of partition UUIDs and interface IDs to identify partitions that
  * could potentially host the requested service.  This mapping is based trustedfirmware.org
- * ffa partition UUIDs. There may be multiple UUIDs because of different depeloyment decisions
- * such as dedicated SP, SP hosting multple services.
+ * ffa partition UUIDs. There may be multiple UUIDs because of different deployment decisions
+ * such as dedicated SP, SP hosting multiple services.
  */
 static size_t suggest_tf_org_partition_uuids(const char *sn,
 	struct ffa_service_location *candidates, size_t candidate_limit)
@@ -122,6 +122,7 @@ static size_t suggest_tf_org_partition_uuids(const char *sn,
 		{"protected-storage",           "751bf801-3dde-4768-a514-0f10aeed1790",	0},
 		{"test-runner",                 "33c75baf-ac6a-4fe4-8ac7-e9909bee2d17",	0},
 		{"attestation",                 "a1baf155-8876-4695-8f7c-54955e8db974",	0},
+		{"block-storage",               "63646e80-eb52-462f-ac4f-8cdf3987519c",	0},
 
 		/* Secure Enclave proxy accessed services */
 		{"crypto",                      "46bb39d1-b4d9-45b5-88ff-040027dab249",	SE_PROXY_INTERFACE_ID_CRYPTO},

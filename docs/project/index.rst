@@ -1,4 +1,4 @@
-About the project
+About the Project
 =================
 
 .. toctree::
@@ -12,10 +12,12 @@ About the project
     license
     maintainers
     versioning_policy
-    todo
+    version_control
+    quality-assurance/index
+    releases
 
 --------------
 
-*Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

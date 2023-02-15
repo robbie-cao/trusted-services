@@ -2,7 +2,7 @@
 /*
  * Copyright (c) 2014, STMicroelectronics International N.V. All rights reserved.
  * Copyright (c) 2015, Linaro Limited. All rights reserved.
- * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
  */
 #ifdef ARM32
 OUTPUT_FORMAT("elf32-littlearm")
@@ -92,7 +92,9 @@ SECTIONS {
 
 	.data : { *(.data .data.* .gnu.linkonce.d.*) }
 	.bss : {
+		__bss_start = .;
 		*(.bss .bss.* .gnu.linkonce.b.* COMMON)
+		__bss_end = .;
 	}
 	.stack : {
 		. = ALIGN(4);

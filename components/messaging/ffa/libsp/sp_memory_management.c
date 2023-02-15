@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
  */
 
 #include "sp_memory_management.h"
@@ -677,7 +677,6 @@ sp_result sp_memory_reclaim(uint64_t handle, uint32_t flags)
 sp_result sp_memory_permission_get(const void *base_address,
 				   struct sp_mem_perm *mem_perm)
 {
-	sp_result sp_res = SP_RESULT_OK;
 	ffa_result result = FFA_OK;
 	uint32_t raw_mem_perm = 0;
 
@@ -721,7 +720,6 @@ sp_result sp_memory_permission_get(const void *base_address,
 sp_result sp_memory_permission_set(const void *base_address, size_t region_size,
 				   const struct sp_mem_perm *mem_perm)
 {
-	sp_result sp_res = SP_RESULT_OK;
 	uint32_t raw_mem_perm = 0;
 
 	/* Checking for invalid parameters*/

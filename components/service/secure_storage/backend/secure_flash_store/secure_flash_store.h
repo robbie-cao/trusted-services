@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2019-2022, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -14,12 +14,15 @@
 extern "C" {
 #endif
 
+struct sfs_flash_info_t;
+
 /**
  * \brief Initializes the secure flash store backend
  *
+ * \param[in] flash_binding Binding to the flash driver
  * \return Pointer to storage backend or NULL on failure
  */
-struct storage_backend *sfs_init(void);
+struct storage_backend *sfs_init(const struct sfs_flash_info_t *flash_binding);
 
 #ifdef __cplusplus
 }

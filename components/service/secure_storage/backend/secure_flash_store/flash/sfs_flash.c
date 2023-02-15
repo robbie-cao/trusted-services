@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, Arm Limited. All rights reserved.
+ * Copyright (c) 2018-2022, Arm Limited. All rights reserved.
  * Copyright (c) 2020 Cypress Semiconductor Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -11,13 +11,6 @@
 #ifndef SFS_MAX_BLOCK_DATA_COPY
 #define SFS_MAX_BLOCK_DATA_COPY 256
 #endif
-
-extern const struct sfs_flash_info_t sfs_flash_info_internal;
-
-const struct sfs_flash_info_t *sfs_flash_get_info(void)
-{
-    return &sfs_flash_info_internal;
-}
 
 psa_status_t sfs_flash_block_to_block_move(const struct sfs_flash_info_t *info,
                                            uint32_t dst_block,

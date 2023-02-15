@@ -1,6 +1,10 @@
 Contributing
 ============
 
+Reporting Security Issues
+-------------------------
+
+Please follow the directions of the `Trusted Firmware Security Center`_
 
 Getting Started
 ---------------
@@ -9,7 +13,6 @@ Getting Started
 - Send an email to the |TS_MAIL_LIST| about your work. This gives everyone
   visibility of whether others are working on something similar.
 - Clone the |TS_REPO| on your own machine.
-- Create a local topic branch based on ``main`` branch of the |TS_REPO|.
 
 Making Changes
 --------------
@@ -81,7 +84,7 @@ Submitting Changes
 .. _Gerrit Signed-off-by Lines guidelines: https://review.trustedfirmware.org/Documentation/user-signedoffby.html
 .. _Gerrit Change-Ids documentation: https://review.trustedfirmware.org/Documentation/user-changeid.html
 .. _`Tim Popes blog entry`: https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
-
+.. _`Trusted Firmware Security Center`: https://developer.trustedfirmware.org/w/collaboration/security_center/
 
 *Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
 

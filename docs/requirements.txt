@@ -6,8 +6,9 @@
 
 # Python dependencies for building the documentation.
 
-Sphinx==2.3.1
-sphinx-rtd-theme==0.4.3
-sphinxcontrib-moderncmakedomain==3.13
-sphinxcontrib-plantuml==0.18
-Jinja2<3.1
+Sphinx==4.5
+sphinx-rtd-theme==1.0.0
+sphinxcontrib-moderncmakedomain==3.21.4
+sphinxcontrib-plantuml==0.23
+Jinja2==2.11.3
+markupsafe==2.0.1

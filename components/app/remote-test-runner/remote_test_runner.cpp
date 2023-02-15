@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -46,18 +46,20 @@ int remote_test_runner::execute(int argc, char *argv[])
     struct test_summary summary;
     std::vector<struct test_result> results;
 
-    if (list_only) {
+    memset(&summary, 0, sizeof(summary));
 
-        test_status = m_client->list_tests(spec, summary, results);
-        output_list(summary, results);
+    test_status = (list_only) ?
+        m_client->list_tests(spec, summary, results) :
+        m_client->run_tests(spec, summary, results);
+
+    if (test_status == TS_TEST_RUNNER_STATUS_SUCCESS) {
+
+        if (list_only)
+            output_list(summary, results);
+        else
+            output_results(summary, results);
     }
     else {
-
-        test_status = m_client->run_tests(spec, summary, results);
-        output_results(summary, results);
-    }
-
-    if (test_status != TS_TEST_RUNNER_STATUS_SUCCESS) {
 
         printf("Tests failed to run with error: %d\n", test_status);
     }
@@ -119,7 +121,12 @@ void remote_test_runner::output_summary(const struct test_summary &summary)
 void remote_test_runner::output_list(const struct test_summary &summary,
                                     const std::vector<struct test_result> &results)
 {
+    for (int i = 0; i < results.size(); ++i) {
 
+        printf("TEST(%s, %s)\n", results[i].group, results[i].name);
+    }
+
+    output_summary(summary);
 }
 
 void remote_test_runner::output_results(const struct test_summary &summary,
