@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -75,7 +75,9 @@ LazyFetch_MakeAvailable(DEP_NAME nanopb
   )
 unset(_cmake_fragment)
 
-#set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${NANOPB_INSTALL_DIR}/)
+if(TARGET stdlib::c)
+	target_link_libraries(nanopb::protobuf-nanopb-static INTERFACE stdlib::c)
+endif()
 
 #### Build access to the protobuf compiler
 #TODO: verify protoc dependencies: python3-protobuf

@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -55,7 +55,7 @@ endfunction()
 get_newlib_compile_flags()
 
 # Get libc specific settings from newlib.
-target_link_libraries(sp PRIVATE stdlib::c)
+target_link_libraries(sp PUBLIC stdlib::c)
 
 target_compile_definitions(sp PRIVATE
 	ARM64=1
