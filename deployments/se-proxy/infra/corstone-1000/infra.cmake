@@ -24,12 +24,9 @@ add_components(TARGET "se-proxy"
 		"components/service/secure_storage/backend/secure_storage_ipc"
 )
 
-# libmetal
-include(${TS_ROOT}/external/openamp/libmetal.cmake)
-
 # OpenAMP
 include(${TS_ROOT}/external/openamp/openamp.cmake)
-target_link_libraries(se-proxy PRIVATE openamp libmetal)
+target_link_libraries(se-proxy PRIVATE openamp)
 
 target_sources(se-proxy PRIVATE
 

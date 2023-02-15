@@ -1,24 +1,23 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2022 Linaro Limited
-# Copyright (c) 2022, Arm Limited. All rights reserved.
+# Copyright (c) 2022-2023, Arm Limited. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
 #-------------------------------------------------------------------------------
 
 set (OPENAMP_URL "https://github.com/OpenAMP/open-amp.git"
-		    CACHE STRING "OpenAMP repository URL")
+		CACHE STRING "OpenAMP repository URL")
 set (OPENAMP_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/openamp_install"
-			    CACHE DIR "OpenAMP installation directory")
+		CACHE PATH "OpenAMP installation directory")
 set (OPENAMP_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/openamp"
-			    CACHE DIR "OpenAMP source code directory")
+		CACHE PATH "OpenAMP source code directory")
 set (OPENAMP_PACKAGE_DIR "${OPENAMP_INSTALL_DIR}/openamp/cmake"
-			    CACHE DIR "OpenAMP CMake package directory")
-set (OPENAMP_TARGET_NAME "openamp")
+		CACHE PATH "OpenAMP CMake package directory")
 set (OPENAMP_REFSPEC "347397decaa43372fc4d00f965640ebde042966d"
-			CACHE STRING "The version of openamp to use")
+		CACHE STRING "The version of openamp to use")
 
-set(GIT_OPTIONS
+set(GIT_OPTIONS_OPENAMP
     GIT_REPOSITORY ${OPENAMP_URL}
     GIT_TAG ${OPENAMP_REFSPEC}
     GIT_SHALLOW FALSE
@@ -29,6 +28,9 @@ if(NOT OPENAMP_DEBUG)
 else()
 	set(OPENAMP_BUILD_TYPE "Debug")
 endif()
+
+# Add libmetal dependency
+include(${TS_ROOT}/external/openamp/libmetal.cmake)
 
 include(FetchContent)
 
@@ -53,7 +55,7 @@ endif()
 
 include(${TS_ROOT}/tools/cmake/common/LazyFetch.cmake REQUIRED)
 LazyFetch_MakeAvailable(DEP_NAME openamp
-    FETCH_OPTIONS "${GIT_OPTIONS}"
+    FETCH_OPTIONS "${GIT_OPTIONS_OPENAMP}"
     INSTALL_DIR "${OPENAMP_INSTALL_DIR}"
     CACHE_FILE "${TS_ROOT}/external/openamp/openamp-init-cache.cmake.in"
     SOURCE_DIR "${OPENAMP_SOURCE_DIR}"
@@ -64,3 +66,4 @@ unset(_cmake_fragment)
 add_library(openamp STATIC IMPORTED)
 set_property(TARGET openamp PROPERTY IMPORTED_LOCATION "${OPENAMP_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}open_amp${CMAKE_STATIC_LIBRARY_SUFFIX}")
 set_property(TARGET openamp PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${OPENAMP_INSTALL_DIR}/include")
+target_link_libraries(openamp INTERFACE libmetal)

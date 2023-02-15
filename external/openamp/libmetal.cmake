@@ -1,22 +1,21 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2021-2022 Linaro Limited
-# Copyright (c) 2021-2022, Arm Limited. All rights reserved.
+# Copyright (c) 2021-2023, Arm Limited. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
 #-------------------------------------------------------------------------------
 
 set (LIBMETAL_URL "https://github.com/OpenAMP/libmetal.git"
-		    CACHE STRING "libmetal repository URL")
+		CACHE STRING "libmetal repository URL")
 set (LIBMETAL_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/libmetal_install"
-		    CACHE DIR "libmetal installation directory")
+		CACHE PATH "libmetal installation directory")
 set(LIBMETAL_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/libmetal"
-		CACHE DIR "libmetal source-code")
+		CACHE PATH "libmetal source-code")
 set (LIBMETAL_PACKAGE_DIR "${LIBMETAL_INSTALL_DIR}/libmetal/cmake"
-			    CACHE DIR "libmetal CMake package directory")
-set (LIBMETAL_TARGET_NAME "libmetal")
+		CACHE PATH "libmetal CMake package directory")
 set (LIBMETAL_REFSPEC "f252f0e007fbfb8b3a52b1d5901250ddac96baad"
-			CACHE STRING "The version of libmetal to use")
+		CACHE STRING "The version of libmetal to use")
 set(LIBMETAL_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/libmetal-build")
 
 set(GIT_OPTIONS
@@ -65,3 +64,6 @@ unset(_cmake_fragment)
 add_library(libmetal STATIC IMPORTED)
 set_property(TARGET libmetal PROPERTY IMPORTED_LOCATION "${LIBMETAL_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}metal${CMAKE_STATIC_LIBRARY_SUFFIX}")
 set_property(TARGET libmetal PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${LIBMETAL_INSTALL_DIR}/include")
+if(TARGET stdlib::c)
+	target_link_libraries(libmetal INTERFACE stdlib::c)
+endif()
