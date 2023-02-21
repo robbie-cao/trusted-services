@@ -11,7 +11,7 @@ set(TS_PLATFORM "arm/corstone1000" CACHE STRING "Target platform location.")
 include(../../../deployment.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
-#  The CMakeLists.txt for building the se-proxy deployment for Corstone-1000
+#  The CMakeLists.txt for building the se-proxy deployment for Corstone1000
 #  using the "opteesp" environment.
 #
 #-------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ add_components(TARGET "se-proxy"
 )
 
 include(../../env/commonsp/se_proxy_sp.cmake REQUIRED)
-include(../../infra/corstone-1000/infra.cmake REQUIRED)
+include(../../infra/corstone1000/infra.cmake REQUIRED)
 include(../../se-proxy.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------

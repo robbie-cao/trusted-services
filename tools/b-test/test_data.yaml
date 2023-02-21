@@ -154,7 +154,7 @@ data:
       params:
             - "-GUnix Makefiles"
     - name: "se-proxy-default-opteesp"
-      src: "$TS_ROOT/deployments/se-proxy/config/corstone-1000-opteesp"
+      src: "$TS_ROOT/deployments/se-proxy/config/corstone1000-opteesp"
       params:
             - "-GUnix Makefiles"
     - name: "se-proxy-default-opteesp"
