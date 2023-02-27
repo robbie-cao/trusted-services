@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -71,4 +71,7 @@ add_library(t_cose STATIC IMPORTED)
 target_link_libraries(t_cose INTERFACE qcbor)
 set_property(TARGET t_cose PROPERTY IMPORTED_LOCATION "${T_COSE_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}t_cose${CMAKE_STATIC_LIBRARY_SUFFIX}")
 set_property(TARGET t_cose PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${T_COSE_INSTALL_DIR}/include")
+if(TARGET stdlib::c)
+	target_link_libraries(t_cose INTERFACE stdlib::c)
+endif()
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${T_COSE_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}t_cose${CMAKE_STATIC_LIBRARY_SUFFIX}")

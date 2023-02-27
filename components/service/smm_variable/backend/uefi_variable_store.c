@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, Arm Limited. All rights reserved.
+ * Copyright (c) 2021-2023, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -200,10 +200,15 @@ efi_status_t uefi_variable_store_set_variable(
 		/* Access permitted */
 		if (info->is_variable_set) {
 
-			/* It's a request to update to an existing variable */
-			if (!(var->Attributes &
+			/*
+			 * It's a request to update to an existing variable,
+			 * note that a variable without attributes means a
+			 * delete variable request, similar to how EDK-2
+			 * and EDK-2 test cases handle this.
+			 */
+			if (!(var->Attributes) || (!(var->Attributes &
 				(EFI_VARIABLE_APPEND_WRITE | EFI_VARIABLE_AUTHENTICATED_WRITE_ACCESS_MASK)) &&
-				!var->DataSize) {
+				!var->DataSize)) {
 
 				/* It's a remove operation - for a remove, the variable
 				 * data must be removed from the storage backend before

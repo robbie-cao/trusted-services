@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -20,8 +20,8 @@ typedef uint64_t psa_storage_uid_t;
 typedef uint32_t psa_storage_create_flags_t;
 
 struct psa_storage_info_t {
-	size_t capacity;
-	size_t size;
+	uint32_t capacity;
+	uint32_t size;
 	psa_storage_create_flags_t flags;
 };
 

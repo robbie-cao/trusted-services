@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -17,6 +17,7 @@ add_components(TARGET "se-proxy"
 		"components/service/common/provider"
 		"components/service/discovery/provider"
 		"components/service/discovery/provider/serializer/packed-c"
+		"components/service/crypto/client/psa"
 		"components/service/crypto/include"
 		"components/service/crypto/provider"
 		"components/service/crypto/provider/serializer/protobuf"
