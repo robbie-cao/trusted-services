@@ -14,10 +14,17 @@ set(GIT_OPTIONS
 	GIT_REPOSITORY ${PSA_ARCH_TESTS_URL}
 	GIT_TAG ${PSA_ARCH_TESTS_REFSPEC}
 	GIT_SHALLOW FALSE
+	PATCH_COMMAND git stash
+		COMMAND git tag -f ts-before-am
+		COMMAND git am ${CMAKE_CURRENT_LIST_DIR}/0001-Disable-using-hard-coded-attestation-key.patch
+		COMMAND git reset ts-before-am
 )
 
-# Ensure list of defines is separated correctly
-string(REPLACE ";" " " PSA_ARCH_TEST_EXTERNAL_DEFS "${PSA_ARCH_TEST_EXTERNAL_DEFS}")
+# Default value matching TS psa-iat service implementation capabilities
+set(TS_PSA_ACS_IAT_OVERRIDE_PK Off CACHE BOOL "If psa-acs is using hardcoded IAT pubic key.")
+if(TS_PSA_ACS_IAT_OVERRIDE_PK)
+	list(APPEND PSA_ARCH_TEST_EXTERNAL_DEFS -DPLATFORM_OVERRIDE_ATTEST_PK)
+endif()
 
 include(${TS_ROOT}/tools/cmake/common/LazyFetch.cmake REQUIRED)
 LazyFetch_MakeAvailable(DEP_NAME psa_arch_tests
