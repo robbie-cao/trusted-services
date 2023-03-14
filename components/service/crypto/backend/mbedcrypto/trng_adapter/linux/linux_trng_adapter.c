@@ -7,7 +7,7 @@
 #include <service/crypto/backend/mbedcrypto/trng_adapter/trng_adapter.h>
 #include <psa/error.h>
 #include <unistd.h>
-#include <sys/syscall.h>
+#include <sys/random.h>
 #include <errno.h>
 
 /*
@@ -33,7 +33,13 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
     int status = MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
     *olen = 0;
 
-    int num_output = syscall(SYS_getrandom, output, len, 0);
+    /*
+     * Use the GRND_INSECURE flag so the call won't block even if there is not
+     * enough entropy available at the time of the syscall, so the crng wasn't
+     * initialized yet. Returns possibly cryptographically insecure random data,
+     * which is fine for testing purposes.
+     */
+    int num_output = getrandom(output, len, GRND_INSECURE);
 
     if (num_output >= 0) {
 
