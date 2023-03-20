@@ -7,6 +7,7 @@
 #include <service/crypto/backend/mbedcrypto/trng_adapter/trng_adapter.h>
 #include <psa/error.h>
 #include <unistd.h>
+#include <linux/random.h>
 #include <sys/random.h>
 #include <errno.h>
 
