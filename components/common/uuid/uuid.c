@@ -23,6 +23,20 @@ static uint8_t hex_to_nibble(char hex)
 	return nibble;
 }
 
+static char nibble_to_hex(uint8_t nibble)
+{
+	char hex;
+
+	nibble &= 0x0f;
+
+	if (nibble <= 9)
+		hex = '0' + nibble;
+	else
+		hex = 'a' + nibble - 10;
+
+	return hex;
+}
+
 static uint8_t hex_to_byte(const char *hex)
 {
 	/* Takes a validated input and returns the byte value */
@@ -35,7 +49,7 @@ size_t uuid_is_valid(const char *canonical_form)
 {
 	size_t valid_chars = 0;
 
-	/* Note that a vaild canonical uuid may be part of a longer string
+	/* Note that a valid canonical uuid may be part of a longer string
 	 * such as a urn.
 	 */
 	size_t input_len = strnlen(canonical_form, UUID_CANONICAL_FORM_LEN);
@@ -194,4 +208,39 @@ void uuid_guid_octets_from_canonical(struct uuid_octets *uuid_octets,
 		uuid_octets->octets, sizeof(uuid_octets->octets));
 
 	assert(valid_chars == UUID_CANONICAL_FORM_LEN);
+}
+
+void uuid_canonical_from_octets(struct uuid_canonical *canonical_form,
+	const struct uuid_octets *uuid_octets)
+{
+	unsigned int octet_index = 0;
+	unsigned int char_index = 0;
+
+	while (octet_index < UUID_OCTETS_LEN) {
+
+		canonical_form->characters[char_index++] =
+			nibble_to_hex(uuid_octets->octets[octet_index] >> 4);
+
+		canonical_form->characters[char_index++] =
+			nibble_to_hex(uuid_octets->octets[octet_index] & 0x0f);
+
+		++octet_index;
+
+		if ((octet_index == 4) ||
+			(octet_index == 6) ||
+			(octet_index == 8) ||
+			(octet_index == 10))
+			canonical_form->characters[char_index++] = '-';
+	}
+
+	canonical_form->characters[char_index] = '\0';
+}
+
+void uuid_canonical_from_guid_octets(struct uuid_canonical *canonical_form,
+	const struct uuid_octets *uuid_octets)
+{
+	struct uuid_octets reversed_octets;
+
+	uuid_reverse_octets(uuid_octets, reversed_octets.octets, sizeof(reversed_octets.octets));
+	uuid_canonical_from_octets(canonical_form, &reversed_octets);
 }

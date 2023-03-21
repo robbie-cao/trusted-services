@@ -101,6 +101,19 @@ void uuid_octets_from_canonical(struct uuid_octets *uuid_octets,
 void uuid_guid_octets_from_canonical(struct uuid_octets *uuid_octets,
 	const char *canonical_form);
 
+/*
+ * Converts an octet representation in standard byte order to a canonical string.
+ */
+void uuid_canonical_from_octets(struct uuid_canonical *canonical_form,
+	const struct uuid_octets *uuid_octets);
+
+/*
+ * Converts an octet representation in GUID byte order to a canonical string.
+ */
+void uuid_canonical_from_guid_octets(struct uuid_canonical *canonical_form,
+	const struct uuid_octets *uuid_octets);
+
+
 #ifdef __cplusplus
 }
 #endif

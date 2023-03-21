@@ -157,3 +157,25 @@ TEST(UuidTests, checkNilUuidOperations) {
 	uuid_guid_octets_from_canonical(&uuid, "00000000-0000-0000-0000-000000000003");
 	CHECK_FALSE(uuid_is_nil(uuid.octets));
 }
+
+TEST(UuidTests, roundTrip) {
+
+	/* A valid UUID using lower-case */
+	const char *uuid_text = "d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0";
+	CHECK_TRUE(uuid_is_valid(uuid_text));
+
+	struct uuid_octets uuid;
+	struct uuid_canonical canonical_uuid;
+
+	/* Round trip using standard octet order */
+	uuid_octets_from_canonical(&uuid, uuid_text);
+	uuid_canonical_from_octets(&canonical_uuid, &uuid);
+
+	MEMCMP_EQUAL(uuid_text, canonical_uuid.characters, sizeof(canonical_uuid.characters));
+
+	/* Round trip using GUID octet order */
+	uuid_guid_octets_from_canonical(&uuid, uuid_text);
+	uuid_canonical_from_guid_octets(&canonical_uuid, &uuid);
+
+	MEMCMP_EQUAL(uuid_text, canonical_uuid.characters, sizeof(canonical_uuid.characters));
+}
