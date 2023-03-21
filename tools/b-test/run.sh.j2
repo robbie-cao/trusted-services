@@ -27,6 +27,9 @@ TS_ROOT=${TS_ROOT:-$(git rev-parse --show-toplevel)}
 # Number of threads to use in parallel
 NUMBER_OF_PROCESSORS=${NUMBER_OF_PROCESSORS:-$(( $(nproc) * 2 )) }
 
+# By default run as much as we can
+FAIL_FAST=${FAIL_FAST:-0}
+
 # Global exit code.
 exit_code=0
 
@@ -145,8 +148,12 @@ Some variables to note
         NUMBER_OF_PROCESSORS=$NUMBER_OF_PROCESSORS
     - CMAKE_EXTRA_FLAGS: additional environment specific CMake flags
         CMAKE_EXTRA_FLAGS=-DNEWLIB_LIBC_PATH=/path/to/newlib
+	- FAIL_FAST: <0/1> see -f
+	    FAIL_FAST=$FAIL_FAST
 
 Options:
+	-f|--fail-fast
+	        - exit after the first test failure
     -p <regexp>
             - filter out all test cases whose name is not matching regexp.
               regexp is a regular expression understood by grep
@@ -189,6 +196,7 @@ process_commands() {
 			{{config.name}})
 				{{config.name}} || {
 					exit_code=$?
+					[ "$FAIL_FAST" -ne 0 ] && break
 				}
 				;;
 			{% endfor %}
@@ -207,6 +215,7 @@ process_commands() {
 				do
 					"$_test" || {
 						exit_code=$?
+						[ "$FAIL_FAST" -ne 0 ] && break
 					}
 				done
 				break
@@ -246,6 +255,9 @@ do
 					break
 				}
 			fi
+			;;
+		--f|--fail-fast)
+			FAIL_FAST=1
 			;;
 		*)
 			# parse commands
