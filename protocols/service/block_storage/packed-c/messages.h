@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
@@ -34,7 +34,7 @@ struct __attribute__ ((__packed__)) ts_block_storage_get_partition_info_in
 /* Mandatory fixed sized output parameters */
 struct __attribute__ ((__packed__)) ts_block_storage_get_partition_info_out
 {
-	uint32_t num_blocks;
+	uint64_t num_blocks;
 	uint32_t block_size;
 	uint8_t partition_guid[TS_BLOCK_STORAGE_GUID_OCTET_LEN];
 	uint8_t parent_guid[TS_BLOCK_STORAGE_GUID_OCTET_LEN];
@@ -83,7 +83,7 @@ struct __attribute__ ((__packed__)) ts_block_storage_close_in
 struct __attribute__ ((__packed__)) ts_block_storage_read_in
 {
 	uint64_t handle;
-	uint32_t lba;
+	uint64_t lba;
 	uint32_t offset;
 	uint32_t len;
 };
@@ -100,7 +100,7 @@ struct __attribute__ ((__packed__)) ts_block_storage_read_in
 struct __attribute__ ((__packed__)) ts_block_storage_write_in
 {
 	uint64_t handle;
-	uint32_t lba;
+	uint64_t lba;
 	uint32_t offset;
 };
 
@@ -122,7 +122,7 @@ struct __attribute__ ((__packed__)) ts_block_storage_write_out
 struct __attribute__ ((__packed__)) ts_block_storage_erase_in
 {
 	uint64_t handle;
-	uint32_t begin_lba;
+	uint64_t begin_lba;
 	uint32_t num_blocks;
 };
 

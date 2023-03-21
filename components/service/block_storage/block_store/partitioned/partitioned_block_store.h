@@ -127,8 +127,8 @@ void partitioned_block_store_attach_config_listener(
 bool partitioned_block_store_add_partition(
 	struct partitioned_block_store *partitioned_block_store,
 	const struct uuid_octets *partition_guid,
-	uint32_t starting_lba,
-	uint32_t ending_lba,
+	uint64_t starting_lba,
+	uint64_t ending_lba,
 	uint64_t attributes,
 	const char *owner);
 

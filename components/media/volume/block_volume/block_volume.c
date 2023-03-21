@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -196,7 +196,7 @@ static int block_volume_read(
 
 	while ((bytes_read < length) && (this_instance->file_pos < this_instance->size)) {
 
-		uint32_t lba = this_instance->file_pos / this_instance->partition_info.block_size;
+		uint64_t lba = this_instance->file_pos / this_instance->partition_info.block_size;
 		size_t offset = this_instance->file_pos % this_instance->partition_info.block_size;
 
 		size_t bytes_remaining_in_block = this_instance->partition_info.block_size - offset;
@@ -243,7 +243,7 @@ static int block_volume_write(
 
 	while ((bytes_written < length) && (this_instance->file_pos < this_instance->size)) {
 
-		uint32_t lba = this_instance->file_pos / this_instance->partition_info.block_size;
+		uint64_t lba = this_instance->file_pos / this_instance->partition_info.block_size;
 		size_t offset = this_instance->file_pos % this_instance->partition_info.block_size;
 
 		size_t bytes_remaining_in_block = this_instance->partition_info.block_size - offset;

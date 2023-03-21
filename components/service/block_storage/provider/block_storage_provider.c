@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -186,7 +186,7 @@ static rpc_status_t read_handler(void *context, struct call_req *req)
 		get_block_storage_serializer(this_instance, req);
 
 	storage_partition_handle_t handle = 0;
-	uint32_t lba = 0;
+	uint64_t lba = 0;
 	size_t offset = 0;
 	size_t len = 0;
 
@@ -227,7 +227,7 @@ static rpc_status_t write_handler(void *context, struct call_req *req)
 		get_block_storage_serializer(this_instance, req);
 
 	storage_partition_handle_t handle = 0;
-	uint32_t lba = 0;
+	uint64_t lba = 0;
 	size_t offset = 0;
 	const uint8_t *data = NULL;
 	size_t data_len = 0;
@@ -272,7 +272,7 @@ static rpc_status_t erase_handler(void *context, struct call_req *req)
 		get_block_storage_serializer(this_instance, req);
 
 	storage_partition_handle_t handle = 0;
-	uint32_t begin_lba = 0;
+	uint64_t begin_lba = 0;
 	size_t num_blocks = 0;
 
 	if (serializer)

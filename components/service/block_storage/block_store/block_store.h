@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -131,7 +131,7 @@ struct block_store_interface
 	psa_status_t (*read)(void *context,
 		uint32_t client_id,
 		storage_partition_handle_t handle,
-		uint32_t lba,
+		uint64_t lba,
 		size_t offset,
 		size_t buffer_size,
 		uint8_t *buffer,
@@ -157,7 +157,7 @@ struct block_store_interface
 	psa_status_t (*write)(void *context,
 		uint32_t client_id,
 		storage_partition_handle_t handle,
-		uint32_t lba,
+		uint64_t lba,
 		size_t offset,
 		const uint8_t *data,
 		size_t data_len,
@@ -186,7 +186,7 @@ struct block_store_interface
 	psa_status_t (*erase)(void *context,
 		uint32_t client_id,
 		storage_partition_handle_t handle,
-		uint32_t begin_lba,
+		uint64_t begin_lba,
 		size_t num_blocks);
 };
 
@@ -234,7 +234,7 @@ psa_status_t block_store_close(struct block_store *block_store,
 psa_status_t block_store_read(struct block_store *block_store,
 	uint32_t client_id,
 	storage_partition_handle_t handle,
-	uint32_t lba,
+	uint64_t lba,
 	size_t offset,
 	size_t buffer_size,
 	uint8_t *buffer,
@@ -243,7 +243,7 @@ psa_status_t block_store_read(struct block_store *block_store,
 psa_status_t block_store_write(struct block_store *block_store,
 	uint32_t client_id,
 	storage_partition_handle_t handle,
-	uint32_t lba,
+	uint64_t lba,
 	size_t offset,
 	const uint8_t *data,
 	size_t data_len,
@@ -252,7 +252,7 @@ psa_status_t block_store_write(struct block_store *block_store,
 psa_status_t block_store_erase(struct block_store *block_store,
 	uint32_t client_id,
 	storage_partition_handle_t handle,
-	uint32_t begin_lba,
+	uint64_t begin_lba,
 	size_t num_blocks);
 
 #ifdef __cplusplus

@@ -151,7 +151,7 @@ static psa_status_t partitioned_block_store_close(void *context,
 static psa_status_t partitioned_block_store_read(void *context,
 	uint32_t client_id,
 	storage_partition_handle_t handle,
-	uint32_t lba,
+	uint64_t lba,
 	size_t offset,
 	size_t buffer_size,
 	uint8_t *buffer,
@@ -200,7 +200,7 @@ static psa_status_t partitioned_block_store_read(void *context,
 static psa_status_t partitioned_block_store_write(void *context,
 	uint32_t client_id,
 	storage_partition_handle_t handle,
-	uint32_t lba,
+	uint64_t lba,
 	size_t offset,
 	const uint8_t *data,
 	size_t data_len,
@@ -248,7 +248,7 @@ static psa_status_t partitioned_block_store_write(void *context,
 static psa_status_t partitioned_block_store_erase(void *context,
 	uint32_t client_id,
 	storage_partition_handle_t handle,
-	uint32_t begin_lba,
+	uint64_t begin_lba,
 	size_t num_blocks)
 {
 	const struct partitioned_block_store *partitioned_block_store =
@@ -367,8 +367,8 @@ void partitioned_block_store_attach_config_listener(
 bool partitioned_block_store_add_partition(
 	struct partitioned_block_store *partitioned_block_store,
 	const struct uuid_octets *partition_guid,
-	uint32_t starting_lba,
-	uint32_t ending_lba,
+	uint64_t starting_lba,
+	uint64_t ending_lba,
 	uint64_t attributes,
 	const char *owner)
 {

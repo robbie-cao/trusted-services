@@ -70,7 +70,7 @@ TEST(RamBlockStoreTests, writeReadEraseBlock)
 	uint8_t read_buffer[BLOCK_SIZE];
 	size_t data_len = 0;
 	size_t num_written = 0;
-	uint32_t lba = 10;
+	uint64_t lba = 10;
 
 	psa_status_t status =
 		block_store_open(m_block_store, CLIENT_ID, &m_partition_guid, &handle);
@@ -119,7 +119,7 @@ TEST(RamBlockStoreTests, writeBiggerThanBlock)
 	uint8_t read_buffer[BLOCK_SIZE];
 	size_t data_len = 0;
 	size_t num_written = 0;
-	uint32_t lba = 10;
+	uint64_t lba = 10;
 
 	psa_status_t status =
 		block_store_open(m_block_store, CLIENT_ID, &m_partition_guid, &handle);
@@ -150,7 +150,7 @@ TEST(RamBlockStoreTests, writeToInvalidBlock)
 	storage_partition_handle_t handle;
 	uint8_t write_buffer[BLOCK_SIZE];
 	size_t num_written = 0;
-	uint32_t lba = NUM_BLOCKS + 7;
+	uint64_t lba = NUM_BLOCKS + 7;
 
 	psa_status_t status =
 		block_store_open(m_block_store, CLIENT_ID, &m_partition_guid, &handle);

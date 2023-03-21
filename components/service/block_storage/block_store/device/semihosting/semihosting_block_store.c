@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -22,7 +22,7 @@ static psa_status_t seek(long handle, ssize_t pos)
 
 static psa_status_t prepare_for_read(
 	const struct semihosting_block_store *this_instance,
-	uint32_t lba, size_t offset,
+	uint64_t lba, size_t offset,
 	size_t requested_read_len,
 	size_t *adjusted_read_len)
 {
@@ -95,7 +95,7 @@ static psa_status_t write_erased(
 
 static psa_status_t prepare_for_write(
 	const struct semihosting_block_store *this_instance,
-	uint32_t lba, size_t offset,
+	uint64_t lba, size_t offset,
 	size_t requested_write_len,
 	size_t *adjusted_write_len)
 {
@@ -170,7 +170,7 @@ static psa_status_t semihosting_block_store_close(void *context,
 static psa_status_t semihosting_block_store_read(void *context,
 	uint32_t client_id,
 	storage_partition_handle_t handle,
-	uint32_t lba,
+	uint64_t lba,
 	size_t offset,
 	size_t buffer_size,
 	uint8_t *buffer,
@@ -227,7 +227,7 @@ static psa_status_t semihosting_block_store_read(void *context,
 static psa_status_t semihosting_block_store_write(void *context,
 	uint32_t client_id,
 	storage_partition_handle_t handle,
-	uint32_t lba,
+	uint64_t lba,
 	size_t offset,
 	const uint8_t *data,
 	size_t data_len,
@@ -284,7 +284,7 @@ static psa_status_t semihosting_block_store_write(void *context,
 static psa_status_t semihosting_block_store_erase(void *context,
 	uint32_t client_id,
 	storage_partition_handle_t handle,
-	uint32_t begin_lba,
+	uint64_t begin_lba,
 	size_t num_blocks)
 {
 	struct semihosting_block_store *this_instance = (struct semihosting_block_store*)context;

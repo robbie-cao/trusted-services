@@ -31,9 +31,9 @@ static bool gpt_partition_config_listener(
 		!(partition_entry->length % back_store_info->block_size)) {
 
 		/* Partition entry exists and values look sane */
-		uint32_t starting_lba =
+		uint64_t starting_lba =
 			partition_entry->start / back_store_info->block_size;
-		uint32_t ending_lba =
+		uint64_t ending_lba =
 			starting_lba + (partition_entry->length / back_store_info->block_size) - 1;
 
 		if (ending_lba >= starting_lba) {

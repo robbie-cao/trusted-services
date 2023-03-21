@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -37,7 +37,7 @@ struct storage_partition
 	size_t num_blocks;
 
 	/* Backend storage block that corresponds to LBA zero */
-	uint32_t base_lba;
+	uint64_t base_lba;
 
 	/* Access control list for controlling access to configured owner */
 	struct storage_partition_acl acl;
@@ -136,7 +136,7 @@ bool storage_partition_is_access_permitted(
  */
 bool storage_partition_is_lba_legal(
 	const struct storage_partition *partition,
-	uint32_t lba);
+	uint64_t lba);
 
 /**
  * \brief Clip the length if it exceeds the limits of the partition
@@ -149,7 +149,7 @@ bool storage_partition_is_lba_legal(
  */
 size_t storage_partition_clip_length(
 	const struct storage_partition *partition,
-	uint32_t lba,
+	uint64_t lba,
 	size_t offset,
 	size_t req_len);
 
@@ -163,7 +163,7 @@ size_t storage_partition_clip_length(
  */
 size_t storage_partition_clip_num_blocks(
 	const struct storage_partition *partition,
-	uint32_t lba,
+	uint64_t lba,
 	size_t num_blocks);
 
 #ifdef __cplusplus

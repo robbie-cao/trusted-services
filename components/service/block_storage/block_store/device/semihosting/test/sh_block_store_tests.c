@@ -164,7 +164,7 @@ static bool check_block(struct test_failure *failure,
 }
 
 static bool erase_blocks(struct test_failure *failure,
-	uint32_t begin_lba,
+	uint64_t begin_lba,
 	size_t num_blocks)
 {
 	bool success = true;

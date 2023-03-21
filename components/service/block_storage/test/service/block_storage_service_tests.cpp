@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -154,7 +154,7 @@ TEST(BlockStorageServiceTests, blockAccessOperations)
 	LONGS_EQUAL(PSA_SUCCESS, status);
 
 	/* Write over the entire partition */
-	for (uint32_t lba = 0; lba < info.num_blocks; ++lba) {
+	for (uint64_t lba = 0; lba < info.num_blocks; ++lba) {
 
 		memset(write_buffer, lba & 0xff, sizeof(write_buffer));
 
@@ -166,7 +166,7 @@ TEST(BlockStorageServiceTests, blockAccessOperations)
 	}
 
 	/* Expect to read the same data back */
-	for (uint32_t lba = 0; lba < info.num_blocks; ++lba) {
+	for (uint64_t lba = 0; lba < info.num_blocks; ++lba) {
 
 		size_t data_len;
 
@@ -188,7 +188,7 @@ TEST(BlockStorageServiceTests, blockAccessOperations)
 	LONGS_EQUAL(PSA_ERROR_STORAGE_FAILURE, status);
 
 	/* Erase a set of blocks */
-	uint32_t erase_begin_lba = 0;
+	uint64_t erase_begin_lba = 0;
 	size_t erase_len = 3;
 	status = block_store_erase(
 		m_block_store, LOCAL_CLIENT_ID, handle,
@@ -196,7 +196,7 @@ TEST(BlockStorageServiceTests, blockAccessOperations)
 	LONGS_EQUAL(PSA_SUCCESS, status);
 
 	/* Write over the erased blocks - this should now work */
-	for (uint32_t lba = erase_begin_lba; lba < erase_len; ++lba) {
+	for (uint64_t lba = erase_begin_lba; lba < erase_len; ++lba) {
 
 		memset(write_buffer, lba & 0xff, sizeof(write_buffer));
 

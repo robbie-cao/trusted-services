@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -19,7 +19,7 @@ static void calc_sub_block_pos(
 	const struct sfs_flash_block_store_adapter *context,
 	uint32_t block_id,
 	size_t offset,
-	uint32_t *sub_block_lba,
+	uint64_t *sub_block_lba,
 	size_t *sub_block_offset)
 {
 	size_t sub_block_size = context->flash_info.sector_size;
@@ -53,7 +53,7 @@ static psa_status_t sfs_flash_read(
 	psa_status_t status = PSA_SUCCESS;
 	struct sfs_flash_block_store_adapter *context = get_context(info);
 	size_t total_bytes_read = 0;
-	uint32_t sub_block_lba;
+	uint64_t sub_block_lba;
 	size_t sub_block_offset;
 
 	calc_sub_block_pos(context, block_id, offset, &sub_block_lba, &sub_block_offset);
@@ -100,7 +100,7 @@ static psa_status_t sfs_flash_write(
 	psa_status_t status = PSA_SUCCESS;
 	struct sfs_flash_block_store_adapter *context = get_context(info);
 	size_t total_bytes_written = 0;
-	uint32_t sub_block_lba;
+	uint64_t sub_block_lba;
 	size_t sub_block_offset;
 
 	calc_sub_block_pos(context, block_id, offset, &sub_block_lba, &sub_block_offset);
@@ -151,7 +151,7 @@ static psa_status_t sfs_flash_erase(
 {
 	psa_status_t status = PSA_ERROR_GENERIC_ERROR;
 	struct sfs_flash_block_store_adapter *context = get_context(info);
-	uint32_t sub_block_lba;
+	uint64_t sub_block_lba;
 	size_t sub_block_offset;
 
 	calc_sub_block_pos(context, block_id, 0, &sub_block_lba, &sub_block_offset);

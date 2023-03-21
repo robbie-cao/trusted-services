@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -15,7 +15,7 @@
 #define RAM_BLOCK_STORE_ERASED_VALUE	    (0xff)
 
 static bool is_block_erased(const struct ram_block_store *ram_block_store,
-	uint32_t lba,
+	uint64_t lba,
 	size_t offset,
 	size_t len)
 {
@@ -75,7 +75,7 @@ static psa_status_t ram_block_store_close(void *context,
 static psa_status_t ram_block_store_read(void *context,
 	uint32_t client_id,
 	storage_partition_handle_t handle,
-	uint32_t lba,
+	uint64_t lba,
 	size_t offset,
 	size_t buffer_size,
 	uint8_t *buffer,
@@ -116,7 +116,7 @@ static psa_status_t ram_block_store_read(void *context,
 static psa_status_t ram_block_store_write(void *context,
 	uint32_t client_id,
 	storage_partition_handle_t handle,
-	uint32_t lba,
+	uint64_t lba,
 	size_t offset,
 	const uint8_t *data,
 	size_t data_len,
@@ -160,7 +160,7 @@ static psa_status_t ram_block_store_write(void *context,
 static psa_status_t ram_block_store_erase(void *context,
 	uint32_t client_id,
 	storage_partition_handle_t handle,
-	uint32_t begin_lba,
+	uint64_t begin_lba,
 	size_t num_blocks)
 {
 	struct ram_block_store *ram_block_store = (struct ram_block_store*)context;

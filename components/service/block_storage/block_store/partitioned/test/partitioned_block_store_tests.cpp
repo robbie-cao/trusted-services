@@ -144,8 +144,8 @@ TEST(PartitionedBlockStoreTests, writeReadEraseBlock)
 	uint8_t read_buffer[BACK_STORE_BLOCK_SIZE];
 	size_t data_len = 0;
 	size_t num_written = 0;
-	uint32_t lba_1 = 10;
-	uint32_t lba_2 = 7;
+	uint64_t lba_1 = 10;
+	uint64_t lba_2 = 7;
 
 	/* Open sessions associated with both partitions */
 	psa_status_t status = block_store_open(
@@ -315,8 +315,8 @@ TEST(PartitionedBlockStoreTests, writeToInvalidBlock)
 		m_block_store, &m_partition_2_guid, &info_2);
 	LONGS_EQUAL(PSA_SUCCESS, status);
 
-	uint32_t lba_1 = info_1.num_blocks;
-	uint32_t lba_2 = info_2.num_blocks + 1000;
+	uint64_t lba_1 = info_1.num_blocks;
+	uint64_t lba_2 = info_2.num_blocks + 1000;
 
 	status = block_store_open(
 		m_block_store, LOCAL_CLIENT_ID, &m_partition_1_guid, &handle_1);

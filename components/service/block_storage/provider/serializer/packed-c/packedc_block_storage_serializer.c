@@ -113,7 +113,7 @@ rpc_status_t deserialize_close_req(const struct call_param_buf *req_buf,
 /* Operation: read */
 rpc_status_t deserialize_read_req(const struct call_param_buf *req_buf,
 	storage_partition_handle_t *handle,
-	uint32_t *lba,
+	uint64_t *lba,
 	size_t *offset,
 	size_t *len)
 {
@@ -137,7 +137,7 @@ rpc_status_t deserialize_read_req(const struct call_param_buf *req_buf,
 /* Operation: write */
 rpc_status_t deserialize_write_req(const struct call_param_buf *req_buf,
 	storage_partition_handle_t *handle,
-	uint32_t *lba,
+	uint64_t *lba,
 	size_t *offset,
 	const uint8_t **data,
 	size_t *data_len)
@@ -185,7 +185,7 @@ rpc_status_t serialize_write_resp(struct call_param_buf *resp_buf,
 /* Operation: erase */
 rpc_status_t deserialize_erase_req(const struct call_param_buf *req_buf,
 	storage_partition_handle_t *handle,
-	uint32_t *begin_lba,
+	uint64_t *begin_lba,
 	size_t *num_blocks)
 {
 	rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
