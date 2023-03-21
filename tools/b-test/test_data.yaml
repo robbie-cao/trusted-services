@@ -153,7 +153,7 @@ data:
       src: "$TS_ROOT/deployments/psa-api-test/protected_storage/linux-pc"
       params:
             - "-GUnix Makefiles"
-    - name: "se-proxy-default-opteesp"
+    - name: "se-proxy-corstone1000-opteesp"
       src: "$TS_ROOT/deployments/se-proxy/config/corstone1000-opteesp"
       params:
             - "-GUnix Makefiles"
