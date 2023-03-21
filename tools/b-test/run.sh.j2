@@ -86,9 +86,9 @@ function _cmake() {
 	local retval=0
 
 	# jinja2 is removing single newlines. Adding a comment stops this behavior.
-	if _cmake "$log_file" -S {{config.src}} -B "$b_dir" $ccache_option {% for param in config.params %} "{{param}}" {% endfor %} ${CMAKE_EXTRA_FLAGS} #keep newline
+	if _cmake "$log_file" -S "{{config.src}}" -B "$b_dir" $ccache_option {% for param in config.params %} "{{param}}" {% endfor %} ${CMAKE_EXTRA_FLAGS} #keep newline
 	then
-		if _cmake "$log_file" --build "$b_dir" -j ${NUMBER_OF_PROCESSORS} --verbose
+		if _cmake "$log_file" --build "$b_dir" -j "${NUMBER_OF_PROCESSORS}" --verbose
 		then
 			if _cmake "$log_file" --install "$b_dir" --prefix ./install
 			then
