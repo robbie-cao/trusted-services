@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -12,23 +12,37 @@
 TEMPLATES:=$(wildcard *.j2)
 OUTPUTS:=$(TEMPLATES:%.j2=%)
 
+FILTER_PATTERN ?=
+
+ifneq (,${FILTER_PATTERN})
+FILTER_ARG=-p "${FILTER_PATTERN}"
+endif
+
 all:
 	${MAKE} config
-	bash run.sh
+	bash run.sh ${FILTER_ARG}
 
 config: ${OUTPUTS}
 
 list:
 	${MAKE} config
-	bash run.sh help
+	bash run.sh ${FILTER_ARG} help
 
 # run a command of the generated script
 r-%:
 	${MAKE} config
-	bash run.sh "$*"
+	bash run.sh ${FILTER_ARG} "$*"
 
 define help_msg
 *************************************************************
+Variables:
+  Variables can be passed as arguments (make <var>=<value>)
+  or be set in the environment (e.g. export <var>=<value>;
+  make ...).
+
+  FILTER_PATTERN - grep regexp to limit test scope to tests
+                   whose name matches. To see the selected tests
+                   run: make FILTER_PATTERN=<pattern> list
 Available targets:
   all          - generate and run test script
   config       - run script generation only

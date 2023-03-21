@@ -30,6 +30,13 @@ NUMBER_OF_PROCESSORS=${NUMBER_OF_PROCESSORS:-$(( $(nproc) * 2 )) }
 # Global exit code.
 exit_code=0
 
+# List of supported tests.
+test_list=(
+{% for config in data %}
+	"{{config.name}}"
+{% endfor %}
+)
+
 # Convert test name to build directory
 function name-to-bdir() {
 	printf "./build-%s" "$1"
@@ -123,31 +130,34 @@ Build test runner
 =================
 
 Invocation::
-	``$0 <command>``
+    ``$0 [<options>] [<command>]``
 
 The file "user.env" is sourced from the current directory. Use it to set
 environment specific defaults. For config variables see the start of this script
 and any "$<XXXX>" in the "params" array of any command in test_data.yaml
 Some variables to note
-	- VERBOSE : make the script output more info.
-		VERBOSE=$VERBOSE
-	- TS_ROOT : Root directory of the TS repo.
-		TS_ROOT=$TS_ROOT
-	- NUMBER_OF_PROCESSORS: number of processors in the system. Used for setting the number of
-		parallel processes during build
-		NUMBER_OF_PROCESSORS=$NUMBER_OF_PROCESSORS
-	- CMAKE_EXTRA_FLAGS: additional environment specific CMake flags
-		CMAKE_EXTRA_FLAGS=-DNEWLIB_LIBC_PATH=/path/to/newlib
+    - VERBOSE : <0/1> make the script output more info.
+        VERBOSE=$VERBOSE
+    - TS_ROOT : Root directory of the TS repo.
+        TS_ROOT=$TS_ROOT
+    - NUMBER_OF_PROCESSORS: number of processors in the system. Used for setting
+        the number of parallel processes during build
+        NUMBER_OF_PROCESSORS=$NUMBER_OF_PROCESSORS
+    - CMAKE_EXTRA_FLAGS: additional environment specific CMake flags
+        CMAKE_EXTRA_FLAGS=-DNEWLIB_LIBC_PATH=/path/to/newlib
 
-Available commands:
-	""      - no command/default -> run all test cases
-	clean   - remove build directories
-	help    - print this text
-	<test case> - run a single build
-		available test cases:
-		{% for config in data %}
-			{{config.name}}
-		{% endfor %}
+Options:
+    -p <regexp>
+            - filter out all test cases whose name is not matching regexp.
+              regexp is a regular expression understood by grep
+Commands:
+    ""      - no command/default -> run all test cases
+    clean   - remove build directories
+    help    - print this text
+    <test case> - run the specified test. This can be specified multiple times
+              to allow running a list of tests.
+        available test cases $([ -n "$pattern" ] && echo "( matching '$pattern' )"):
+            $(echo "${test_list[@]}" | sed "s/ /\n            /g")
 END_HELP
 }
 
@@ -170,27 +180,80 @@ fi
 
 _ccache=$(which ccache 2>/dev/null) || true "never mind"
 
-case $1 in
-	{% for config in data %}
-	{{config.name}})
-		{{config.name}} || exit_code=$?
-		;;
-	{% endfor %}
-	clean)
-		do_clean || exit_code=$?
-		;;
-	help)
-		do_help
-		;;
-	"")
-		{% for config in data %}
-		{{config.name}} || exit_code=$?
-		{% endfor %}
-		;;
-	*)
-		do_help
-		exit_code=1
-		;;
-esac
+process_commands() {
+	local exit_code=0
+	while true
+	do
+		case $1 in
+			{% for config in data %}
+			{{config.name}})
+				{{config.name}} || {
+					exit_code=$?
+				}
+				;;
+			{% endfor %}
+			clean)
+				do_clean || {
+					exit_code=$?
+					break
+				}
+				;;
+			help)
+				do_help
+				break
+				;;
+			"")
+				for _test in "${test_list[@]}"
+				do
+					"$_test" || {
+						exit_code=$?
+					}
+				done
+				break
+				;;
+			*)
+				echo "${COLOR_RED}Error: invalid command: $1 $COLOR_RESET"
+				do_help
+				exit_code=1
+				break
+				;;
+		esac
+		shift
+		[ 0 -eq $# ] && break
+	done
+	return $exit_code
+}
+
+while true
+do
+	# parse options
+	case $1 in
+		-p)
+			shift
+			pattern=$1
+			if [ -z "$pattern" ]
+			then
+				echo "${COLOR_RED}Error: missing argument <search regexp>. $COLOR_RESET"
+				exit_code=1
+				break
+			else
+				readarray -t test_list < <(printf "%s\n" "${test_list[@]}" | grep -- "$pattern")
+				{% raw %}
+				[ 0 -eq ${#test_list[@]} ] && {
+				{% endraw %}
+					echo "${COLOR_RED}Error: -p <regexp> matches no tests. $COLOR_RESET"
+					exit_code=1
+					break
+				}
+			fi
+			;;
+		*)
+			# parse commands
+			process_commands "$@" || exit_code=$?
+			break
+			;;
+	esac
+	shift
+done
 
 exit $exit_code
