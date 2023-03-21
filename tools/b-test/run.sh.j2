@@ -152,6 +152,8 @@ Some variables to note
 	    FAIL_FAST=$FAIL_FAST
 
 Options:
+    --color|--no-color
+	        - force or disable output coloring
 	-f|--fail-fast
 	        - exit after the first test failure
     -p <regexp>
@@ -168,22 +170,52 @@ Commands:
 END_HELP
 }
 
+set_color_mode() {
+	_tput=$(which tput 2>/dev/null) || true "never mind"
+
+	local mode="$1"
+
+	[ "$mode" = "auto" ] || [ "$mode" = "on" ] || [ "$mode" = "off" ] || {
+		echo "ERROR: invalid argument. Valid values are auto, on and off."
+		return 1
+	}
+
+
+	# If requested mode is on, but cannot use colors, fail with an error.
+	[ -z "$_tput" ] && [ "$mode" = "on" ] && {
+		echo "set_color_mode(), ERROR: command tput can not be found, failed to force colors to on."
+		return 1
+	}
+
+	# If tput is not available turn colors off
+	[ -z "$_tput" ] && mode="off"
+
+	# If mode == auto and running in a terminal, turn colors on
+	[ "$mode" = "auto" ] && [ -t 0 ] && mode="on"
+
+
+	# By default enable colored output if tput is present and running in a terminal
+	if [ "$mode" = "on" ]
+	then
+		COLOR_YELLOW=$(tput setaf 3)
+		COLOR_RESET=$(tput sgr0)
+		COLOR_RED=$(tput setaf 1)
+		COLOR_GREEN=$(tput setaf 2)
+	else
+		COLOR_YELLOW=
+		COLOR_RESET=
+		COLOR_RED=
+		COLOR_GREEN=
+	fi
+
+	return 0
+}
+
 #################### Entry point ###################################
 
 OS_ID=$(uname -o )
 
-if [ -n $(which tput) -a -t ]
-then
-	COLOR_YELLOW=$(tput setaf 3)
-	COLOR_RESET=$(tput sgr0)
-	COLOR_RED=$(tput setaf 1)
-	COLOR_GREEN=$(tput setaf 2)
-else
-	COLOR_YELLOW=
-	COLOR_RESET=
-	COLOR_RED=
-	COLOR_GREEN=
-fi
+set_color_mode "auto"
 
 _ccache=$(which ccache 2>/dev/null) || true "never mind"
 
@@ -255,6 +287,12 @@ do
 					break
 				}
 			fi
+			;;
+		--no-color)
+			set_color_mode "off"
+			;;
+		--color)
+			set_color_mode "on"
 			;;
 		--f|--fail-fast)
 			FAIL_FAST=1
