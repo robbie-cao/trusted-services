@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2021-2023, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -39,7 +39,7 @@ struct delegate_variable_store
  *
  * A uefi_variable_store provides a variable store using a persistent and a
  * volatile storage backend.  The persistent storage backend may be realized
- * by another trusted service such as the ptotected storage or internal trusted
+ * by another trusted service such as the protected storage or internal trusted
  * storage service.
  */
 struct uefi_variable_store
@@ -108,7 +108,7 @@ void uefi_variable_store_set_storage_limits(
  * @param[in]  context uefi_variable_store instance
  * @param[in]  var The 'access variable' structure
  *
- * @return     EFI_SUCCESS if succesful
+ * @return     EFI_SUCCESS if successful
  */
 efi_status_t uefi_variable_store_set_variable(
 	struct uefi_variable_store *context,
@@ -124,7 +124,7 @@ efi_status_t uefi_variable_store_set_variable(
  * @param[in]  max_data_len The maximum variable data length
  * @param[out] total_len The total length of the header + data
  *
- * @return     EFI_SUCCESS if succesful
+ * @return     EFI_SUCCESS if successful
  */
 efi_status_t uefi_variable_store_get_variable(
 	struct uefi_variable_store *context,
@@ -142,7 +142,7 @@ efi_status_t uefi_variable_store_get_variable(
  * @param[in]  max_name_len The maximum variable name length
  * @param[out] total_len The total length of the output
  *
- * @return     EFI_SUCCESS if succesful
+ * @return     EFI_SUCCESS if successful
  */
 efi_status_t uefi_variable_store_get_next_variable_name(
 	struct uefi_variable_store *context,
@@ -156,7 +156,7 @@ efi_status_t uefi_variable_store_get_next_variable_name(
  * @param[in]  context uefi_variable_store instance
  * @param[inout] var_info Returns info
  *
- * @return     EFI_SUCCESS if succesful
+ * @return     EFI_SUCCESS if successful
  */
 efi_status_t uefi_variable_store_query_variable_info(
 	struct uefi_variable_store *context,
@@ -170,7 +170,7 @@ efi_status_t uefi_variable_store_query_variable_info(
  *
  * @param[in]  context uefi_variable_store instance
   *
- * @return     EFI_SUCCESS if succesful
+ * @return     EFI_SUCCESS if successful
  */
 efi_status_t uefi_variable_store_exit_boot_service(
 	struct uefi_variable_store *context);
@@ -183,7 +183,7 @@ efi_status_t uefi_variable_store_exit_boot_service(
  * @param[in]  context uefi_variable_store instance
  * @param[in]  property The variable check property
  *
- * @return     EFI_SUCCESS if succesful
+ * @return     EFI_SUCCESS if successful
  */
 efi_status_t uefi_variable_store_set_var_check_property(
 	struct uefi_variable_store *context,
@@ -197,7 +197,7 @@ efi_status_t uefi_variable_store_set_var_check_property(
  * @param[in]  context uefi_variable_store instance
  * @param[out] property The variable check property
  *
- * @return     EFI_SUCCESS if succesful
+ * @return     EFI_SUCCESS if successful
  */
 efi_status_t uefi_variable_store_get_var_check_property(
 	struct uefi_variable_store *context,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -130,7 +130,7 @@ TEST_GROUP(SmmVariableServiceTests)
 		efi_status = m_client->exit_boot_service();
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
-		/* Access to the boot variablel should now be forbidden */
+		/* Access to the boot variable should now be forbidden */
 		efi_status = m_client->get_variable(
 			m_common_guid,
 			boot_var_name,
@@ -167,7 +167,7 @@ TEST_GROUP(SmmVariableServiceTests)
 			m_common_guid,
 			var_name_1,
 			set_data,
-			0);
+			EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS);
 
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -205,7 +205,7 @@ TEST_GROUP(SmmVariableServiceTests)
 			m_common_guid,
 			var_name_1,
 			std::string("Different variable data"),
-			0);
+			EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS);
 
 		UNSIGNED_LONGLONGS_EQUAL(EFI_WRITE_PROTECTED, efi_status);
 
@@ -241,7 +241,7 @@ TEST(SmmVariableServiceTests, setAndGet)
 		m_common_guid,
 		var_name,
 		set_data,
-		0);
+		EFI_VARIABLE_BOOTSERVICE_ACCESS);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -262,7 +262,7 @@ TEST(SmmVariableServiceTests, setAndGet)
 		m_common_guid,
 		var_name,
 		append_data,
-		EFI_VARIABLE_APPEND_WRITE);
+		EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_APPEND_WRITE);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -295,7 +295,7 @@ TEST(SmmVariableServiceTests, setAndGetNv)
 		m_common_guid,
 		var_name,
 		set_data,
-		EFI_VARIABLE_NON_VOLATILE);
+		EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_NON_VOLATILE);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -316,6 +316,7 @@ TEST(SmmVariableServiceTests, setAndGetNv)
 		m_common_guid,
 		var_name,
 		append_data,
+		EFI_VARIABLE_BOOTSERVICE_ACCESS |
 		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_APPEND_WRITE);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
@@ -349,7 +350,7 @@ TEST(SmmVariableServiceTests, getVarSize)
 		m_common_guid,
 		var_name,
 		set_data,
-		0);
+		EFI_VARIABLE_BOOTSERVICE_ACCESS);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -380,7 +381,7 @@ TEST(SmmVariableServiceTests, getVarSizeNv)
 		m_common_guid,
 		var_name,
 		set_data,
-		EFI_VARIABLE_NON_VOLATILE);
+		EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_NON_VOLATILE);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -439,7 +440,7 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 		m_common_guid,
 		var_name_1,
 		set_data,
-		EFI_VARIABLE_NON_VOLATILE);
+		EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_NON_VOLATILE);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -447,7 +448,7 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 		m_common_guid,
 		var_name_2,
 		set_data,
-		EFI_VARIABLE_NON_VOLATILE);
+		EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_NON_VOLATILE);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -455,7 +456,7 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 		m_common_guid,
 		var_name_3,
 		set_data,
-		0);
+		EFI_VARIABLE_BOOTSERVICE_ACCESS);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -520,7 +521,7 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Now that the enumeration test is completed, it's safe to
-	 * run tests that leavev variables behind.
+	 * run tests that leave variables behind.
 	 */
 	runtimeStateAccessControl();
 	setReadOnlyConstraint();
@@ -537,7 +538,7 @@ TEST(SmmVariableServiceTests, setSizeConstraint)
 		m_common_guid,
 		var_name_1,
 		set_data,
-		0);
+		EFI_VARIABLE_BOOTSERVICE_ACCESS);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -560,7 +561,7 @@ TEST(SmmVariableServiceTests, setSizeConstraint)
 		m_common_guid,
 		var_name_1,
 		std::string("A data value that exceeds the MaxSize constraint"),
-		0);
+		EFI_VARIABLE_BOOTSERVICE_ACCESS);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 
 	/* But setting a value that's within the constraints should work */
@@ -568,7 +569,7 @@ TEST(SmmVariableServiceTests, setSizeConstraint)
 		m_common_guid,
 		var_name_1,
 		std::string("Small value"),
-		0);
+		EFI_VARIABLE_BOOTSERVICE_ACCESS);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Removing should be allowed though */
@@ -582,7 +583,7 @@ TEST(SmmVariableServiceTests, setSizeConstraint)
 		m_common_guid,
 		var_name_1,
 		std::string("Another try to set a value that exceeds the MaxSize constraint"),
-		0);
+		EFI_VARIABLE_BOOTSERVICE_ACCESS);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 }
 
