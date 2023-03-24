@@ -38,7 +38,6 @@ static int32_t invoke_mm_service(struct mm_communicate_ep *call_ep, uint16_t sou
 				 EFI_MM_COMMUNICATE_HEADER *header,
 				 size_t buffer_size)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
 	struct mm_service_call_req call_req = { 0 };
 	int32_t result = 0;
 

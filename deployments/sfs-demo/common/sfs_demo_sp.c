@@ -9,6 +9,7 @@
 #include "service/secure_storage/backend/secure_storage_client/secure_storage_client.h"
 #include "psa/internal_trusted_storage.h"
 #include "sp_api.h"
+#include "sp_discovery.h"
 #include "sp_messaging.h"
 #include "sp_rxtx.h"
 #include "trace.h"

@@ -180,7 +180,7 @@ unsigned int sn_get_service_instance(const char *sn)
 			size_t digit_index = fields.instance_pos + fields.instance_len - 1 - i;
 			char digit = sn[digit_index];
 
-			if (isdigit(digit)) {
+			if (isdigit((int)digit)) {
 
 			   instance += ((digit - '0') * multiplier);
 			   multiplier *= 10;

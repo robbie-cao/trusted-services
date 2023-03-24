@@ -46,7 +46,7 @@ size_t uuid_is_valid(const char *canonical_form)
 				if (canonical_form[i] != '-') return 0;
 			}
 			else {
-				if (!isxdigit(canonical_form[i])) return 0;
+				if (!isxdigit((int)canonical_form[i])) return 0;
 			}
 		}
 	}

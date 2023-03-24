@@ -281,10 +281,9 @@ static void test_communication(struct ffa_direct_msg *msg)
 	    sp_msg.args.args64[3] == 0xBC &&sp_msg.args.args64[4] == 0xCD) {
 		return_ok(msg);
 	} else {
-		DMSG("Failed SP communication %x %x %x %x",
-		     sp_msg.args.args64[1],
-		     sp_msg.args.args64[2], sp_msg.args.args64[3],
-		     sp_msg.args.args64[4]);
+		DMSG("Failed SP communication %lx %lx %lx %lx",
+		     sp_msg.args.args64[1], sp_msg.args.args64[2],
+		     sp_msg.args.args64[3], sp_msg.args.args64[4]);
 
 		return_error(ERR_SP_COMMUNICATION, msg);
 	}
@@ -374,7 +373,6 @@ static void test_mem_retrieve(struct ffa_direct_msg *msg)
 static void test_mem_relinquish(struct ffa_direct_msg *msg)
 {
 	ffa_result res = FFA_OK;
-	struct sp_memory_descriptor descriptor = {0};
 	uint64_t handle = 0;
 	uint16_t endpoint_id = 0;
 	struct sp_memory_transaction_flags flags = {
@@ -388,7 +386,6 @@ static void test_mem_relinquish(struct ffa_direct_msg *msg)
 	ffa_id_get(&endpoint_id);
 	handle = (uint64_t)msg->args.args64[1] |
 		 (((uint64_t)msg->args.args64[2]) << 32);
-	descriptor.tag = 0;
 
 	res = sp_memory_relinquish(handle, &endpoint_id, 1, &flags);
 	if (res) {
