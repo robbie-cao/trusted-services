@@ -102,11 +102,5 @@ function (export_sp)
 	if (DEFINED EXPORT_JSON_IN)
 		configure_file(${EXPORT_JSON_IN} ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_NAME}.json @ONLY NEWLINE_STYLE UNIX)
 		install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_NAME}.json DESTINATION ${TS_ENV}/json)
-
-		find_package(Python3 REQUIRED COMPONENTS Interpreter)
-		execute_process(COMMAND ${Python3_EXECUTABLE} ${TS_ROOT}/tools/python/merge_json.py
-				${CMAKE_INSTALL_PREFIX}/${TS_ENV}/json/sp_layout.json
-				${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_SP_NAME}.json
-		)
 	endif()
 endfunction()
