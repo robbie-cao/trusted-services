@@ -27,7 +27,12 @@ set(GIT_OPTIONS
 	GIT_REPOSITORY ${MBEDTLS_URL}
 	GIT_TAG ${MBEDTLS_REFSPEC}
 	GIT_SHALLOW FALSE
-	PATCH_COMMAND ${Python3_EXECUTABLE} scripts/config.py crypto
+	PATCH_COMMAND
+		git stash
+		COMMAND git branch -f bf-am
+		COMMAND git am ${CMAKE_CURRENT_LIST_DIR}/0001-Add-capability-to-build-libmbedcrypto-only.patch
+		COMMAND git reset bf-am
+		COMMAND ${Python3_EXECUTABLE} scripts/config.py crypto
 )
 
 # Only pass libc settings to Mbed TLS if needed. For environments where the standard
@@ -48,13 +53,14 @@ LazyFetch_MakeAvailable(DEP_NAME MbedTLS
 	INSTALL_DIR ${MBEDTLS_INSTALL_DIR}
 	PACKAGE_DIR ${MBEDTLS_INSTALL_DIR}/cmake
 	CACHE_FILE "${TS_ROOT}/external/MbedTLS/mbedtls-init-cache.cmake.in"
+	SOURCE_DIR "${MBEDTLS_SOURCE_DIR}"
 )
 unset(_cmake_fragment)
 
 # Link the libraries created by Mbed TLS to libc if needed. For environments where the standard
 # library is not overridden, this is not needed.
 if(TARGET stdlib::c)
-	foreach(_mbedtls_tgt IN ITEMS "MbedTLS::mbedcrypto" "MbedTLS::mbedx509" "MbedTLS::mbedtls")
+	foreach(_mbedtls_tgt IN ITEMS "MbedTLS::mbedcrypto")
 		target_link_libraries(${_mbedtls_tgt} INTERFACE stdlib::c)
 	endforeach()
 	unset(_mbedtls_tgt)
