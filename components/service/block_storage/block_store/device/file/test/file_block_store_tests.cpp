@@ -4,13 +4,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <cstring>
+#include <CppUTest/TestHarness.h>
 #include <cstdio>
-#include <string>
+#include <cstring>
 #include <stdint.h>
+#include <string>
+
 #include "common/uuid/uuid.h"
 #include "service/block_storage/block_store/device/file/file_block_store.h"
-#include "CppUTest/TestHarness.h"
 
 TEST_GROUP(FileBlockStoreTests)
 {
@@ -19,44 +20,32 @@ TEST_GROUP(FileBlockStoreTests)
 		m_filename = std::string("file_block_store.tmp");
 		memset(m_disk_guid.octets, 0, sizeof(m_disk_guid.octets));
 
-		struct block_store *block_store = file_block_store_init(
-			&m_file_block_store,
-			m_filename.c_str(),
-			BLOCK_SIZE);
+		struct block_store *block_store =
+			file_block_store_init(&m_file_block_store, m_filename.c_str(), BLOCK_SIZE);
 
 		CHECK_TRUE(block_store);
 
-		psa_status_t status = file_block_store_configure(
-			&m_file_block_store,
-			&m_disk_guid,
-			NUM_BLOCKS, BLOCK_SIZE);
+		psa_status_t status = file_block_store_configure(&m_file_block_store, &m_disk_guid,
+								 NUM_BLOCKS, BLOCK_SIZE);
 
 		LONGS_EQUAL(PSA_SUCCESS, status);
 
-		status = block_store_open(
-			&m_file_block_store.base_block_device.base_block_store,
-			CLIENT_ID,
-			&m_disk_guid,
-			&m_partition_handle);
+		status = block_store_open(&m_file_block_store.base_block_device.base_block_store,
+					  CLIENT_ID, &m_disk_guid, &m_partition_handle);
 
 		LONGS_EQUAL(PSA_SUCCESS, status);
 	}
 
 	void teardown()
 	{
-		block_store_close(
-			&m_file_block_store.base_block_device.base_block_store,
-			CLIENT_ID,
-			m_partition_handle);
+		block_store_close(&m_file_block_store.base_block_device.base_block_store, CLIENT_ID,
+				  m_partition_handle);
 
 		file_block_store_deinit(&m_file_block_store);
 		remove(m_filename.c_str());
 	}
 
-	void set_block(
-		size_t lba, size_t offset,
-		size_t len, uint8_t val,
-		size_t *num_written)
+	void set_block(size_t lba, size_t offset, size_t len, uint8_t val, size_t * num_written)
 	{
 		struct block_store *bs = &m_file_block_store.base_block_device.base_block_store;
 		uint8_t write_buf[len];
@@ -64,27 +53,20 @@ TEST_GROUP(FileBlockStoreTests)
 		memset(write_buf, val, len);
 		*num_written = 0;
 
-		psa_status_t status = block_store_write(
-			bs, CLIENT_ID, m_partition_handle,
-			lba, offset,
-			write_buf, len, num_written);
+		psa_status_t status = block_store_write(bs, CLIENT_ID, m_partition_handle, lba,
+							offset, write_buf, len, num_written);
 
 		LONGS_EQUAL(PSA_SUCCESS, status);
 	}
 
-	void check_block(
-		size_t lba, size_t offset,
-		size_t len, uint8_t expected_val)
+	void check_block(size_t lba, size_t offset, size_t len, uint8_t expected_val)
 	{
 		struct block_store *bs = &m_file_block_store.base_block_device.base_block_store;
 		uint8_t read_buf[len];
 		size_t num_read = 0;
 
-		psa_status_t status = block_store_read(
-			bs, CLIENT_ID, m_partition_handle,
-			lba, offset,
-			len, read_buf,
-			&num_read);
+		psa_status_t status = block_store_read(bs, CLIENT_ID, m_partition_handle, lba,
+						       offset, len, read_buf, &num_read);
 
 		LONGS_EQUAL(PSA_SUCCESS, status);
 		UNSIGNED_LONGS_EQUAL(len, num_read);
@@ -93,15 +75,12 @@ TEST_GROUP(FileBlockStoreTests)
 			BYTES_EQUAL(expected_val, read_buf[i]);
 	}
 
-	void erase_blocks(
-		uint32_t begin_lba,
-		size_t num_blocks)
+	void erase_blocks(uint32_t begin_lba, size_t num_blocks)
 	{
 		struct block_store *bs = &m_file_block_store.base_block_device.base_block_store;
 
-		psa_status_t status = block_store_erase(
-			bs, CLIENT_ID, m_partition_handle,
-			begin_lba, num_blocks);
+		psa_status_t status =
+			block_store_erase(bs, CLIENT_ID, m_partition_handle, begin_lba, num_blocks);
 
 		LONGS_EQUAL(PSA_SUCCESS, status);
 	}
@@ -160,26 +139,19 @@ TEST(FileBlockStoreTests, initWithExistingDiskImage)
 	UNSIGNED_LONGS_EQUAL(BLOCK_SIZE, num_written);
 
 	/* Close the block_store opened during setup. This will have created a disk image file */
-	block_store_close(
-		&m_file_block_store.base_block_device.base_block_store,
-		CLIENT_ID,
-		m_partition_handle);
+	block_store_close(&m_file_block_store.base_block_device.base_block_store, CLIENT_ID,
+			  m_partition_handle);
 
 	file_block_store_deinit(&m_file_block_store);
 
 	/* Re-initialise and open */
-	struct block_store *block_store = file_block_store_init(
-		&m_file_block_store,
-		m_filename.c_str(),
-		BLOCK_SIZE);
+	struct block_store *block_store =
+		file_block_store_init(&m_file_block_store, m_filename.c_str(), BLOCK_SIZE);
 
 	CHECK_TRUE(block_store);
 
-	psa_status_t status = block_store_open(
-		block_store,
-		CLIENT_ID,
-		&m_disk_guid,
-		&m_partition_handle);
+	psa_status_t status =
+		block_store_open(block_store, CLIENT_ID, &m_disk_guid, &m_partition_handle);
 
 	LONGS_EQUAL(PSA_SUCCESS, status);
 

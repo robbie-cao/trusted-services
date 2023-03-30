@@ -5,18 +5,17 @@
  *
  */
 
-#include <trace.h>
-#include <protocols/service/fwu/packed-c/status.h>
-#include <media/volume/index/volume_index.h>
-#include <service/fwu/installer/installer.h>
-#include <service/fwu/installer/installer_index.h>
-#include <service/fwu/agent/fw_directory.h>
-#include <service/fwu/fw_store/banked/volume_id.h>
 #include "direct_fw_inspector.h"
 
-int direct_fw_inspector_inspect(
-	struct fw_directory *fw_dir,
-	unsigned int boot_index)
+#include "media/volume/index/volume_index.h"
+#include "protocols/service/fwu/packed-c/status.h"
+#include "service/fwu/agent/fw_directory.h"
+#include "service/fwu/fw_store/banked/volume_id.h"
+#include "service/fwu/installer/installer.h"
+#include "service/fwu/installer/installer_index.h"
+#include "trace.h"
+
+int direct_fw_inspector_inspect(struct fw_directory *fw_dir, unsigned int boot_index)
 {
 	int status = FWU_STATUS_SUCCESS;
 
@@ -35,7 +34,6 @@ int direct_fw_inspector_inspect(
 	unsigned int index = 0;
 
 	do {
-
 		struct installer *installer = installer_index_get(index);
 
 		if (!installer)
@@ -45,9 +43,8 @@ int direct_fw_inspector_inspect(
 		 * was booted from, determined the correct volume_id based on the
 		 * most recent boot_index.
 		 */
-		unsigned int volume_id = banked_volume_id(
-			installer->location_id,
-			banked_usage_id(boot_index));
+		unsigned int volume_id =
+			banked_volume_id(installer->location_id, banked_usage_id(boot_index));
 
 		/* Delegate volume inspection to the installer that will have
 		 * the necessary package format knowledge to extract information
@@ -57,7 +54,6 @@ int direct_fw_inspector_inspect(
 		status = installer_enumerate(installer, volume_id, fw_dir);
 
 		if (status != FWU_STATUS_SUCCESS) {
-
 			EMSG("Failed to enumerate contents of volume %d", volume_id);
 			break;
 		}

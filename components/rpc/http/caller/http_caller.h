@@ -9,13 +9,14 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <rpc_caller.h>
+
+#include "rpc_caller.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define HTTP_CALLER_MAX_URL_LEN	      (2048)
+#define HTTP_CALLER_MAX_URL_LEN (2048)
 
 /*
  * An RPC caller that makes call requests via a REST API 'call' endpoint

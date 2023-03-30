@@ -30,7 +30,6 @@ struct volume;
  * Holds state while iterating over partition table entries
  */
 struct gpt_iterator {
-
 	unsigned int num_entries;
 	unsigned int entry_size;
 	unsigned int cur_index;
@@ -52,41 +51,35 @@ struct gpt_iterator {
  *
  * \return IO Status code (0 for success)
  */
-int gpt_iterator_init(
-	struct gpt_iterator *iter,
-	struct volume *volume);
+int gpt_iterator_init(struct gpt_iterator *iter, struct volume *volume);
 
 /**
  * \brief De-initialize the iterator
  *
  * \param[in]  iter      The subject gpt_iterator
  */
-void gpt_iterator_deinit(
-	struct gpt_iterator *iter);
+void gpt_iterator_deinit(struct gpt_iterator *iter);
 
 /**
  * \brief Set iterator position to first partition entry
  *
  * \param[in]  iter      The subject gpt_iterator
  */
-void gpt_iterator_first(
-	struct gpt_iterator *iter);
+void gpt_iterator_first(struct gpt_iterator *iter);
 
 /**
  * \brief Iterate to the next entry
  *
  * \param[in]  iter      The subject gpt_iterator
  */
-void gpt_iterator_next(
-	struct gpt_iterator *iter);
+void gpt_iterator_next(struct gpt_iterator *iter);
 
 /**
  * \brief Returns true if iterated beyond final entry
  *
  * \param[in]  iter      The subject gpt_iterator
  */
-bool gpt_iterator_is_done(
-	const struct gpt_iterator *iter);
+bool gpt_iterator_is_done(const struct gpt_iterator *iter);
 
 /**
  * \brief Returns the partition entry at the current iterator position
@@ -96,10 +89,7 @@ bool gpt_iterator_is_done(
  *
  * \return IO Status code (0 for success)
  */
-int gpt_iterator_current(
-	struct gpt_iterator *iter,
-	gpt_entry_t *entry);
-
+int gpt_iterator_current(struct gpt_iterator *iter, gpt_entry_t *entry);
 
 #ifdef __cplusplus
 }

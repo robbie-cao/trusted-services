@@ -36,12 +36,8 @@ struct fw_store;
  *
  * \return Status
  */
-int img_dir_serializer_serialize(
-	const struct fw_directory *fw_dir,
-	const struct fw_store *fw_store,
-	uint8_t *buf,
-	size_t buf_size,
-	size_t *data_len);
+int img_dir_serializer_serialize(const struct fw_directory *fw_dir, const struct fw_store *fw_store,
+				 uint8_t *buf, size_t buf_size, size_t *data_len);
 
 /**
  * \brief Return the length in bytes of the serialized image directory
@@ -50,8 +46,7 @@ int img_dir_serializer_serialize(
  *
  * \return Size in bytes
  */
-size_t img_dir_serializer_get_len(
-	const struct fw_directory *fw_dir);
+size_t img_dir_serializer_get_len(const struct fw_directory *fw_dir);
 
 #ifdef __cplusplus
 }

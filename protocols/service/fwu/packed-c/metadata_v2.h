@@ -12,14 +12,15 @@
 #define FWU_PROTO_METADATA_V2_H
 
 #include <stdint.h>
-#include <protocols/common/osf/uuid.h>
+
 #include "metadata.h"
+#include "protocols/common/osf/uuid.h"
 
 /* Bank state definitions */
-#define FWU_METADATA_V2_NUM_BANK_STATES      (4)
-#define FWU_METADATA_V2_BANK_STATE_INVALID   (0xff)
-#define FWU_METADATA_V2_BANK_STATE_VALID     (0xfe)
-#define FWU_METADATA_V2_BANK_STATE_ACCEPTED  (0xfc)
+#define FWU_METADATA_V2_NUM_BANK_STATES	    (4)
+#define FWU_METADATA_V2_BANK_STATE_INVALID  (0xff)
+#define FWU_METADATA_V2_BANK_STATE_VALID    (0xfe)
+#define FWU_METADATA_V2_BANK_STATE_ACCEPTED (0xfc)
 
 /*
  * Version 2 FWU metadata data structure (mandatory)
@@ -27,8 +28,7 @@
  * The metadata structure is variable length. The actual length is determined
  * from the metadata_size member.
  */
-struct __attribute__ ((__packed__)) fwu_metadata {
-
+struct __attribute__((__packed__)) fwu_metadata {
 	/* Metadata CRC value */
 	uint32_t crc_32;
 
@@ -49,12 +49,10 @@ struct __attribute__ ((__packed__)) fwu_metadata {
 
 	/* Bank state bitmaps */
 	uint8_t bank_state[FWU_METADATA_V2_NUM_BANK_STATES];
-
 };
 
 /* Properties of image in a bank */
-struct __attribute__ ((__packed__)) fwu_img_bank_info {
-
+struct __attribute__((__packed__)) fwu_img_bank_info {
 	/* UUID of the image in this bank */
 	uint8_t img_uuid[OSF_UUID_OCTET_LEN];
 
@@ -66,12 +64,10 @@ struct __attribute__ ((__packed__)) fwu_img_bank_info {
 
 	/* reserved (MBZ) */
 	uint32_t reserved;
-
 };
 
 /* Image entry information */
-struct __attribute__ ((__packed__)) fwu_image_entry {
-
+struct __attribute__((__packed__)) fwu_image_entry {
 	/* UUID identifying the image type */
 	uint8_t img_type_uuid[OSF_UUID_OCTET_LEN];
 
@@ -80,7 +76,6 @@ struct __attribute__ ((__packed__)) fwu_image_entry {
 
 	/* Per-bank info related to the image */
 	struct fwu_img_bank_info img_bank_info[FWU_METADATA_NUM_BANKS];
-
 };
 
 /*
@@ -92,8 +87,7 @@ struct __attribute__ ((__packed__)) fwu_image_entry {
  * not required. The fw_store_desc is assumed to be present if metadata_size
  * > header_size.
  */
-struct __attribute__ ((__packed__)) fwu_fw_store_desc {
-
+struct __attribute__((__packed__)) fwu_fw_store_desc {
 	/* Number of banks */
 	uint8_t num_banks;
 

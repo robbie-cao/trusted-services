@@ -7,10 +7,10 @@
 #ifndef FWU_PROVIDER_H
 #define FWU_PROVIDER_H
 
-#include <rpc/common/endpoint/rpc_interface.h>
-#include <service/common/provider/service_provider.h>
-#include <service/discovery/provider/discovery_provider.h>
-#include <protocols/rpc/common/packed-c/encoding.h>
+#include "protocols/rpc/common/packed-c/encoding.h"
+#include "rpc/common/endpoint/rpc_interface.h"
+#include "service/common/provider/service_provider.h"
+#include "service/discovery/provider/discovery_provider.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,8 +31,7 @@ struct update_agent;
  * serialization/deserialization and parameter sanitation. Request are delegated
  * to the associated update_agent.
  */
-struct fwu_provider
-{
+struct fwu_provider {
 	struct service_provider base_provider;
 	const struct fwu_provider_serializer *serializers[TS_RPC_ENCODING_LIMIT];
 	struct discovery_provider discovery_provider;
@@ -47,17 +46,15 @@ struct fwu_provider
  *
  * \return A pointer to the exposed rpc_interface or NULL on failure
  */
-struct rpc_interface *fwu_provider_init(
-	struct fwu_provider *context,
-	struct update_agent *update_agent);
+struct rpc_interface *fwu_provider_init(struct fwu_provider *context,
+					struct update_agent *update_agent);
 
 /**
  * \brief De-initialise a fwu_provider
  *
  * \param[in] context    The subject fwu_provider context
  */
-void fwu_provider_deinit(
-	struct fwu_provider *context);
+void fwu_provider_deinit(struct fwu_provider *context);
 
 /**
  * \brief Register a serializer
@@ -66,10 +63,8 @@ void fwu_provider_deinit(
  * \param[in] encoding   The encoding scheme
  * \param[in] serializer The serializer
  */
-void fwu_provider_register_serializer(
-	struct fwu_provider *context,
-	unsigned int encoding,
-	const struct fwu_provider_serializer *serializer);
+void fwu_provider_register_serializer(struct fwu_provider *context, unsigned int encoding,
+				      const struct fwu_provider_serializer *serializer);
 
 #ifdef __cplusplus
 } /* extern "C" */

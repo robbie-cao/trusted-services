@@ -4,11 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <vector>
-#include <protocols/service/fwu/packed-c/status.h>
 #include <CppUTest/TestHarness.h>
-#include <service/fwu/test/fwu_dut_factory/fwu_dut_factory.h>
-#include <service/fwu/test/fwu_dut/fwu_dut.h>
+#include <vector>
+
+#include "protocols/service/fwu/packed-c/status.h"
+#include "service/fwu/test/fwu_dut/fwu_dut.h"
+#include "service/fwu/test/fwu_dut_factory/fwu_dut_factory.h"
 
 /*
  * Tests that check update rollback during the trial state where an
@@ -78,7 +79,8 @@ TEST(FwuRollbackTests, selectPreviousPriorToActivation)
 	m_dut->generate_image_data(&image_data);
 
 	status = m_fwu_client->write_stream(stream_handle,
-		reinterpret_cast<const uint8_t *>(image_data.data()), image_data.size());
+					    reinterpret_cast<const uint8_t *>(image_data.data()),
+					    image_data.size());
 	LONGS_EQUAL(FWU_STATUS_SUCCESS, status);
 
 	status = m_fwu_client->commit(stream_handle, false);
@@ -142,7 +144,8 @@ TEST(FwuRollbackTests, selectPreviousAfterActivation)
 	m_dut->generate_image_data(&image_data);
 
 	status = m_fwu_client->write_stream(stream_handle,
-		reinterpret_cast<const uint8_t *>(image_data.data()), image_data.size());
+					    reinterpret_cast<const uint8_t *>(image_data.data()),
+					    image_data.size());
 	LONGS_EQUAL(FWU_STATUS_SUCCESS, status);
 
 	status = m_fwu_client->commit(stream_handle, false);
@@ -213,7 +216,8 @@ TEST(FwuRollbackTests, bootloaderFallback)
 	m_dut->generate_image_data(&image_data);
 
 	status = m_fwu_client->write_stream(stream_handle,
-		reinterpret_cast<const uint8_t *>(image_data.data()), image_data.size());
+					    reinterpret_cast<const uint8_t *>(image_data.data()),
+					    image_data.size());
 	LONGS_EQUAL(FWU_STATUS_SUCCESS, status);
 
 	status = m_fwu_client->commit(stream_handle, false);

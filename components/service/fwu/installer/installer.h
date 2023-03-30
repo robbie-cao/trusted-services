@@ -11,8 +11,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <common/uuid/uuid.h>
-#include <service/fwu/agent/install_type.h>
+
+#include "common/uuid/uuid.h"
+#include "service/fwu/agent/install_type.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,9 +43,7 @@ struct installer_interface {
 	 *
 	 * \return FWU status
 	 */
-	int (*begin)(void *context,
-		uint32_t current_volume_id,
-		uint32_t update_volume_id);
+	int (*begin)(void *context, uint32_t current_volume_id, uint32_t update_volume_id);
 
 	/**
 	 * \brief Finalize a transaction of one or more image install operations
@@ -70,8 +69,7 @@ struct installer_interface {
 	 *
 	 * \return FWU status
 	 */
-	int (*open)(void *context,
-		const struct image_info *image_info);
+	int (*open)(void *context, const struct image_info *image_info);
 
 	/**
 	 * \brief Commit installed data (called once per open)
@@ -91,9 +89,7 @@ struct installer_interface {
 	 *
 	 * \return FWU status
 	 */
-	int (*write)(void *context,
-		const uint8_t *data,
-		size_t data_len);
+	int (*write)(void *context, const uint8_t *data, size_t data_len);
 
 	/**
 	 * \brief Enumerate the collection of images that can be handled by the installer
@@ -108,9 +104,7 @@ struct installer_interface {
 	 *
 	 * \return FWU status
 	 */
-	int (*enumerate)(void *context,
-		uint32_t volume_id,
-		struct fw_directory *fw_directory);
+	int (*enumerate)(void *context, uint32_t volume_id, struct fw_directory *fw_directory);
 };
 
 /**
@@ -118,7 +112,6 @@ struct installer_interface {
  *
  */
 struct installer {
-
 	/* The installation type handled by the installer */
 	enum install_type install_type;
 
@@ -172,41 +165,25 @@ static inline uint32_t installer_status(const struct installer *installer)
 	return installer->install_status;
 }
 
-void installer_init(
-	struct installer *installer,
-	enum install_type install_type,
-	uint32_t location_id,
-	const struct uuid_octets *location_uuid,
-	void *context,
-	const struct installer_interface *interface);
+void installer_init(struct installer *installer, enum install_type install_type,
+		    uint32_t location_id, const struct uuid_octets *location_uuid, void *context,
+		    const struct installer_interface *interface);
 
-int installer_begin(
-	struct installer *installer,
-	uint32_t current_volume_id,
-	uint32_t update_volume_id);
+int installer_begin(struct installer *installer, uint32_t current_volume_id,
+		    uint32_t update_volume_id);
 
-int installer_finalize(
-	struct installer *installer);
+int installer_finalize(struct installer *installer);
 
-void installer_abort(
-	struct installer *installer);
+void installer_abort(struct installer *installer);
 
-int installer_open(
-	struct installer *installer,
-	const struct image_info *image_info);
+int installer_open(struct installer *installer, const struct image_info *image_info);
 
-int installer_commit(
-	struct installer *installer);
+int installer_commit(struct installer *installer);
 
-int installer_write(
-	struct installer *installer,
-	const uint8_t *data,
-	size_t data_len);
+int installer_write(struct installer *installer, const uint8_t *data, size_t data_len);
 
-int installer_enumerate(
-	struct installer *installer,
-	uint32_t volume_id,
-	struct fw_directory *fw_directory);
+int installer_enumerate(struct installer *installer, uint32_t volume_id,
+			struct fw_directory *fw_directory);
 
 #ifdef __cplusplus
 }

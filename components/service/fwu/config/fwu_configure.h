@@ -8,7 +8,7 @@
 #ifndef FWU_CONFIGURE_H
 #define FWU_CONFIGURE_H
 
-#include <common/uuid/uuid.h>
+#include "common/uuid/uuid.h"
 
 #ifdef __cplusplus
 extern "C" {

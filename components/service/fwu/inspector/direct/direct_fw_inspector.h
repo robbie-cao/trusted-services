@@ -8,12 +8,11 @@
 #ifndef DIRECT_FW_INSPECTOR_H
 #define DIRECT_FW_INSPECTOR_H
 
-#include <service/fwu/inspector/fw_inspector.h>
+#include "service/fwu/inspector/fw_inspector.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 /**
  * \brief direct_fw_inspector inspect method
@@ -29,9 +28,7 @@ extern "C" {
  *
  * \return FWU status
  */
-int direct_fw_inspector_inspect(
-	struct fw_directory *fw_dir,
-	unsigned int boot_index);
+int direct_fw_inspector_inspect(struct fw_directory *fw_dir, unsigned int boot_index);
 
 #ifdef __cplusplus
 }

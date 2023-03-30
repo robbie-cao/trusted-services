@@ -4,15 +4,16 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <stddef.h>
-#include <string.h>
-#include <protocols/service/fwu/packed-c/status.h>
-#include <service/fwu/fw_store/fw_store.h>
 #include "stream_manager.h"
 
-static uint32_t generate_handle(
-	struct stream_manager *subject,
-	struct stream_context *context)
+#include <stddef.h>
+#include <string.h>
+
+#include "protocols/service/fwu/packed-c/status.h"
+#include "service/fwu/fw_store/fw_store.h"
+
+static uint32_t generate_handle(struct stream_manager *subject,
+				const struct stream_context *const context)
 {
 	/* Handle includes rolling count value to protect against use of a stale handle */
 	uint32_t new_handle = context - subject->contexts;
@@ -27,9 +28,7 @@ static uint32_t index_from_handle(uint32_t handle)
 	return handle & 0xffff;
 }
 
-static void add_to_free_list(
-	struct stream_manager *subject,
-	struct stream_context *context)
+static void add_to_free_list(struct stream_manager *subject, struct stream_context *context)
 {
 	context->type = FWU_STREAM_TYPE_NONE;
 	context->handle = 0;
@@ -38,25 +37,18 @@ static void add_to_free_list(
 	subject->free = context;
 }
 
-static struct stream_context *alloc_stream_context(
-	struct stream_manager *subject,
-	enum fwu_stream_type type,
-	uint32_t *handle)
+static struct stream_context *alloc_stream_context(struct stream_manager *subject,
+						   enum fwu_stream_type type, uint32_t *handle)
 {
 	struct stream_context *context = NULL;
 
 	/* Re-cycle least-recently used context if there are no free contexts */
 	if (!subject->free && subject->active_tail) {
-
-		stream_manager_close(
-			subject,
-			subject->active_tail->handle,
-			false);
+		stream_manager_close(subject, subject->active_tail->handle, false);
 	}
 
 	/* Active contexts are held in a linked list in most recently allocated order */
 	if (subject->free) {
-
 		context = subject->free;
 		subject->free = context->next;
 
@@ -79,9 +71,7 @@ static struct stream_context *alloc_stream_context(
 	return context;
 }
 
-static void free_stream_context(
-	struct stream_manager *subject,
-	struct stream_context *context)
+static void free_stream_context(struct stream_manager *subject, struct stream_context *context)
 {
 	/* Remove from active list */
 	if (context->prev)
@@ -98,17 +88,14 @@ static void free_stream_context(
 	add_to_free_list(subject, context);
 }
 
-static struct stream_context *get_active_context(
-	struct stream_manager *subject,
-	uint32_t handle)
+static struct stream_context *get_active_context(struct stream_manager *subject, uint32_t handle)
 {
 	struct stream_context *context = NULL;
 	uint32_t index = index_from_handle(handle);
 
 	if ((index < FWU_STREAM_MANAGER_POOL_SIZE) &&
-		(subject->contexts[index].type != FWU_STREAM_TYPE_NONE) &&
-		(subject->contexts[index].handle == handle)) {
-
+	    (subject->contexts[index].type != FWU_STREAM_TYPE_NONE) &&
+	    (subject->contexts[index].handle == handle)) {
 		/* Handle qualifies an active stream context */
 		context = &subject->contexts[index];
 	}
@@ -116,8 +103,7 @@ static struct stream_context *get_active_context(
 	return context;
 }
 
-void stream_manager_init(
-	struct stream_manager *subject)
+void stream_manager_init(struct stream_manager *subject)
 {
 	subject->free = NULL;
 	subject->active_head = NULL;
@@ -128,17 +114,13 @@ void stream_manager_init(
 		add_to_free_list(subject, &subject->contexts[i]);
 }
 
-void stream_manager_deinit(
-	struct stream_manager *subject)
+void stream_manager_deinit(struct stream_manager *subject)
 {
 	(void)subject;
 }
 
-int stream_manager_open_buffer_stream(
-	struct stream_manager *subject,
-	const uint8_t *data,
-	size_t data_len,
-	uint32_t *handle)
+int stream_manager_open_buffer_stream(struct stream_manager *subject, const uint8_t *data,
+				      size_t data_len, uint32_t *handle)
 {
 	struct stream_context *context;
 	int status = FWU_STATUS_UNKNOWN;
@@ -149,22 +131,17 @@ int stream_manager_open_buffer_stream(
 	 * being updated while a read stream is open.
 	 */
 	for (size_t i = 0; i < FWU_STREAM_MANAGER_POOL_SIZE; i++) {
-
 		context = &subject->contexts[i];
 
 		if ((context->type == FWU_STREAM_TYPE_BUFFER) &&
-			(context->variant.buffer.data == data))
+		    (context->variant.buffer.data == data))
 			free_stream_context(subject, context);
 	}
 
 	/* Allocate and initialize a new stream */
-	context = alloc_stream_context(
-		subject,
-		FWU_STREAM_TYPE_BUFFER,
-		handle);
+	context = alloc_stream_context(subject, FWU_STREAM_TYPE_BUFFER, handle);
 
 	if (context) {
-
 		context->variant.buffer.data = data;
 		context->variant.buffer.data_len = data_len;
 		context->variant.buffer.pos = 0;
@@ -175,12 +152,9 @@ int stream_manager_open_buffer_stream(
 	return status;
 }
 
-int stream_manager_open_install_stream(
-	struct stream_manager *subject,
-	struct fw_store *fw_store,
-	struct installer *installer,
-	const struct image_info *image_info,
-	uint32_t *stream_handle)
+int stream_manager_open_install_stream(struct stream_manager *subject, struct fw_store *fw_store,
+				       struct installer *installer,
+				       const struct image_info *image_info, uint32_t *stream_handle)
 {
 	struct stream_context *context;
 	int status = FWU_STATUS_UNKNOWN;
@@ -191,23 +165,18 @@ int stream_manager_open_install_stream(
 	 * same installer, resulting in image corruption.
 	 */
 	for (size_t i = 0; i < FWU_STREAM_MANAGER_POOL_SIZE; i++) {
-
 		context = &subject->contexts[i];
 
 		if ((context->type == FWU_STREAM_TYPE_INSTALL) &&
-			(context->variant.install.fw_store == fw_store) &&
-			(context->variant.install.installer == installer))
+		    (context->variant.install.fw_store == fw_store) &&
+		    (context->variant.install.installer == installer))
 			free_stream_context(subject, context);
 	}
 
 	/* Allocate and initialize a new stream */
-	context = alloc_stream_context(
-		subject,
-		FWU_STREAM_TYPE_INSTALL,
-		stream_handle);
+	context = alloc_stream_context(subject, FWU_STREAM_TYPE_INSTALL, stream_handle);
 
 	if (context) {
-
 		context->variant.install.fw_store = fw_store;
 		context->variant.install.installer = installer;
 		context->variant.install.image_info = image_info;
@@ -218,25 +187,19 @@ int stream_manager_open_install_stream(
 	return status;
 }
 
-int stream_manager_close(
-	struct stream_manager *subject,
-	uint32_t handle,
-	bool accepted)
+int stream_manager_close(struct stream_manager *subject, uint32_t handle, bool accepted)
 {
 	int status = FWU_STATUS_UNKNOWN;
 	struct stream_context *context = get_active_context(subject, handle);
 
 	if (context) {
-
 		status = FWU_STATUS_SUCCESS;
 
 		if (context->type == FWU_STREAM_TYPE_INSTALL) {
-
-			status = fw_store_commit_image(
-				context->variant.install.fw_store,
-				context->variant.install.installer,
-				context->variant.install.image_info,
-				accepted);
+			status = fw_store_commit_image(context->variant.install.fw_store,
+						       context->variant.install.installer,
+						       context->variant.install.image_info,
+						       accepted);
 		}
 
 		free_stream_context(subject, context);
@@ -245,12 +208,9 @@ int stream_manager_close(
 	return status;
 }
 
-void stream_manager_cancel_streams(
-	struct stream_manager *subject,
-	enum fwu_stream_type type)
+void stream_manager_cancel_streams(struct stream_manager *subject, enum fwu_stream_type type)
 {
 	for (size_t i = 0; i < FWU_STREAM_MANAGER_POOL_SIZE; i++) {
-
 		struct stream_context *context = &subject->contexts[i];
 
 		if (context->type == type)
@@ -258,18 +218,14 @@ void stream_manager_cancel_streams(
 	}
 }
 
-bool stream_manager_is_open_streams(
-	const struct stream_manager *subject,
-	enum fwu_stream_type type)
+bool stream_manager_is_open_streams(const struct stream_manager *subject, enum fwu_stream_type type)
 {
 	bool any_open = false;
 
 	for (size_t i = 0; i < FWU_STREAM_MANAGER_POOL_SIZE; i++) {
-
 		const struct stream_context *context = &subject->contexts[i];
 
 		if (context->type == type) {
-
 			any_open = true;
 			break;
 		}
@@ -278,45 +234,31 @@ bool stream_manager_is_open_streams(
 	return any_open;
 }
 
-int stream_manager_write(
-	struct stream_manager *subject,
-	uint32_t handle,
-	const uint8_t *data,
-	size_t data_len)
+int stream_manager_write(struct stream_manager *subject, uint32_t handle, const uint8_t *data,
+			 size_t data_len)
 {
 	int status = FWU_STATUS_UNKNOWN;
 	struct stream_context *context = get_active_context(subject, handle);
 
 	if (context && context->type == FWU_STREAM_TYPE_INSTALL) {
-
-		status = fw_store_write_image(
-			context->variant.install.fw_store,
-			context->variant.install.installer,
-			data, data_len);
+		status = fw_store_write_image(context->variant.install.fw_store,
+					      context->variant.install.installer, data, data_len);
 	}
 
 	return status;
 }
 
-int stream_manager_read(
-	struct stream_manager *subject,
-	uint32_t handle,
-	uint8_t *buf,
-	size_t buf_size,
-	size_t *read_len,
-	size_t *total_len)
+int stream_manager_read(struct stream_manager *subject, uint32_t handle, uint8_t *buf,
+			size_t buf_size, size_t *read_len, size_t *total_len)
 {
 	int status = FWU_STATUS_UNKNOWN;
 	struct stream_context *context = get_active_context(subject, handle);
 
 	if (context) {
-
 		if (context->type == FWU_STREAM_TYPE_BUFFER) {
-
 			size_t pos = context->variant.buffer.pos;
 			size_t remaining_len = context->variant.buffer.data_len - pos;
-			size_t len_to_read =
-				(remaining_len <= buf_size) ? remaining_len : buf_size;
+			size_t len_to_read = (remaining_len <= buf_size) ? remaining_len : buf_size;
 
 			memcpy(buf, &context->variant.buffer.data[pos], len_to_read);
 
@@ -326,7 +268,6 @@ int stream_manager_read(
 
 			status = FWU_STATUS_SUCCESS;
 		} else {
-
 			/* Reading from other types of stream is forbidden */
 			status = FWU_STATUS_DENIED;
 		}

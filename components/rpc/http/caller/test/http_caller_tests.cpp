@@ -5,11 +5,12 @@
  */
 
 #include <CppUTest/TestHarness.h>
-#include <protocols/rpc/common/packed-c/status.h>
-#include <protocols/service/discovery/packed-c/opcodes.h>
-#include <service/locator/remote/restapi/restapi_location.h>
-#include <rpc/http/caller/http_caller.h>
-#include <psa/error.h>
+
+#include "protocols/rpc/common/packed-c/status.h"
+#include "protocols/service/discovery/packed-c/opcodes.h"
+#include "psa/error.h"
+#include "rpc/http/caller/http_caller.h"
+#include "service/locator/remote/restapi/restapi_location.h"
 
 /*
  * http_caller tests rely on a fw test api server running on the local host
@@ -51,8 +52,7 @@ TEST(RpcCallerTests, callUnavailableApiEndpoint)
 {
 	int status;
 
-	status = http_caller_open(&http_caller_under_test,
-		RESTAPI_LOCATOR_API_URL "foo/call/");
+	status = http_caller_open(&http_caller_under_test, RESTAPI_LOCATOR_API_URL "foo/call/");
 	LONGS_EQUAL(0, status);
 
 	rpc_call_handle call_handle;
@@ -67,9 +67,8 @@ TEST(RpcCallerTests, callUnavailableApiEndpoint)
 	uint8_t *resp_buf = NULL;
 	size_t resp_len = 0;
 
-	rpc_status = rpc_caller_invoke(rpc_caller, call_handle,
-		251, &op_status,
-		&resp_buf, &resp_len);
+	rpc_status =
+		rpc_caller_invoke(rpc_caller, call_handle, 251, &op_status, &resp_buf, &resp_len);
 	LONGS_EQUAL(TS_RPC_ERROR_EP_DOES_NOT_EXIT, rpc_status);
 
 	rpc_caller_end(rpc_caller, call_handle);
@@ -79,8 +78,7 @@ TEST(RpcCallerTests, callAvailableApiEndpoint)
 {
 	int status;
 
-	status = http_caller_open(&http_caller_under_test,
-		RESTAPI_LOCATOR_API_URL "fwu/call/");
+	status = http_caller_open(&http_caller_under_test, RESTAPI_LOCATOR_API_URL "fwu/call/");
 	LONGS_EQUAL(0, status);
 
 	rpc_call_handle call_handle;
@@ -96,8 +94,8 @@ TEST(RpcCallerTests, callAvailableApiEndpoint)
 	size_t resp_len = 0;
 
 	rpc_status = rpc_caller_invoke(rpc_caller, call_handle,
-		TS_DISCOVERY_OPCODE_GET_SERVICE_INFO, &op_status,
-		&resp_buf, &resp_len);
+				       TS_DISCOVERY_OPCODE_GET_SERVICE_INFO, &op_status, &resp_buf,
+				       &resp_len);
 	LONGS_EQUAL(TS_RPC_CALL_ACCEPTED, rpc_status);
 	LONGS_EQUAL(PSA_SUCCESS, op_status);
 	CHECK_TRUE(resp_len > 0);

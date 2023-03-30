@@ -7,7 +7,7 @@
 #ifndef PROXY_FWU_DUT_H
 #define PROXY_FWU_DUT_H
 
-#include <service/fwu/test/fwu_dut/fwu_dut.h>
+#include "service/fwu/test/fwu_dut/fwu_dut.h"
 
 /*
  * A proxy_fwu_dut is an fwu_dut that acts as a proxy for a full fwu_dut
@@ -15,10 +15,8 @@
  * integrations where the fwu service is being accessed via RPC e.g. from
  * Nwd.
  */
-class proxy_fwu_dut : public fwu_dut
-{
+class proxy_fwu_dut : public fwu_dut {
 public:
-
 	/**
 	 * \brief proxy_fwu_dut constructor
 	 *
@@ -26,10 +24,8 @@ public:
 	 * \param[in]  metadata_version  FWU metadata version supported by bootloader
 	 * \param[in]  remote_dut  The associated remote fwu dut
 	 */
-	proxy_fwu_dut(
-		unsigned int num_locations,
-		unsigned int metadata_version,
-		fwu_dut *remote_dut);
+	proxy_fwu_dut(unsigned int num_locations, unsigned int metadata_version,
+		      fwu_dut *remote_dut);
 
 	~proxy_fwu_dut();
 
@@ -42,7 +38,6 @@ public:
 	fwu_client *create_fwu_client(void);
 
 private:
-
 	unsigned int m_num_locations;
 	fwu_dut *m_remote_dut;
 };

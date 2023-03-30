@@ -4,7 +4,8 @@
  */
 
 #include <stdio.h>
-#include <trace.h>
+
+#include "trace.h"
 
 #if TRACE_LEVEL >= TRACE_LEVEL_ERROR
 
@@ -13,4 +14,4 @@ void trace_puts(const char *str)
 	puts(str);
 }
 
-#endif  /* TRACE_LEVEL >= TRACE_LEVEL_ERROR */
+#endif /* TRACE_LEVEL >= TRACE_LEVEL_ERROR */

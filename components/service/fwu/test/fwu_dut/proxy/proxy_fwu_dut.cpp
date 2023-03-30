@@ -4,20 +4,19 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <cassert>
-#include <service/fwu/test/fwu_client/remote/remote_fwu_client.h>
-#include <service/fwu/test/metadata_fetcher/client/client_metadata_fetcher.h>
 #include "proxy_fwu_dut.h"
 
-proxy_fwu_dut::proxy_fwu_dut(
-	unsigned int num_locations,
-	unsigned int metadata_version,
-	fwu_dut *remote_dut) :
-	fwu_dut(metadata_version),
-	m_num_locations(num_locations),
-	m_remote_dut(remote_dut)
-{
+#include <cassert>
 
+#include "service/fwu/test/fwu_client/remote/remote_fwu_client.h"
+#include "service/fwu/test/metadata_fetcher/client/client_metadata_fetcher.h"
+
+proxy_fwu_dut::proxy_fwu_dut(unsigned int num_locations, unsigned int metadata_version,
+			     fwu_dut *remote_dut)
+	: fwu_dut(metadata_version)
+	, m_num_locations(num_locations)
+	, m_remote_dut(remote_dut)
+{
 }
 
 proxy_fwu_dut::~proxy_fwu_dut()

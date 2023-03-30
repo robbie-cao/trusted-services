@@ -11,7 +11,7 @@
  * is required.
  */
 #ifndef RESTAPI_LOCATOR_API_URL
-#define RESTAPI_LOCATOR_API_URL      "http://127.0.0.1/api/v1/services/"
+#define RESTAPI_LOCATOR_API_URL "http://127.0.0.1/api/v1/services/"
 #endif
 
 #endif /* RESTAPI_LOCATION_STRATEGY_H */

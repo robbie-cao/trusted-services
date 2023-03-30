@@ -8,7 +8,7 @@
 #ifndef GPT_FWU_CONFIGURE_H
 #define GPT_FWU_CONFIGURE_H
 
-#include <common/uuid/uuid.h>
+#include "common/uuid/uuid.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,9 +32,8 @@ extern "C" {
  *
  * \return Status code (0 for success)
  */
-int gpt_fwu_configure(const struct uuid_octets *device_uuid,
-	unsigned int initial_location_id,
-	unsigned int *location_count);
+int gpt_fwu_configure(const struct uuid_octets *device_uuid, unsigned int initial_location_id,
+		      unsigned int *location_count);
 
 #ifdef __cplusplus
 }

@@ -8,8 +8,9 @@
 #define MEDIA_VOLUME_FACTORY_H
 
 #include <stddef.h>
-#include <common/uuid/uuid.h>
-#include <media/volume/volume.h>
+
+#include "common/uuid/uuid.h"
+#include "media/volume/volume.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,10 +31,8 @@ extern "C" {
  *
  * \return Status (0 on success)
  */
-int volume_factory_init(
-	struct uuid_octets *device_uuids,
-	size_t device_uuids_size,
-	size_t *num_device_uuids);
+int volume_factory_init(struct uuid_octets *device_uuids, size_t device_uuids_size,
+			size_t *num_device_uuids);
 
 /**
  * \brief  De-initialises the volume_factory
@@ -52,17 +51,15 @@ void volume_factory_deinit(void);
  *
  * \return Pointer to volume or NULL
  */
-struct volume *volume_factory_create_volume(
-	const struct uuid_octets *partition_uuid,
-	const struct uuid_octets *device_uuid);
+struct volume *volume_factory_create_volume(const struct uuid_octets *partition_uuid,
+					    const struct uuid_octets *device_uuid);
 
 /**
  * \brief  Destroys a volume object
  *
  * \param[in] volume   Volume to destroy
  */
-void volume_factory_destroy_volume(
-	struct volume *volume);
+void volume_factory_destroy_volume(struct volume *volume);
 
 #ifdef __cplusplus
 }

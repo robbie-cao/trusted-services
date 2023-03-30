@@ -10,9 +10,10 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <common/uuid/uuid.h>
-#include <service/fwu/inspector/fw_inspector.h>
+
+#include "common/uuid/uuid.h"
 #include "fw_directory.h"
+#include "service/fwu/inspector/fw_inspector.h"
 #include "stream_manager.h"
 
 #ifdef __cplusplus
@@ -67,19 +68,15 @@ struct update_agent {
  *
  * \return Status (0 for success).  Uses fwu protocol status codes.
  */
-int update_agent_init(
-	struct update_agent *update_agent,
-	unsigned int boot_index,
-	fw_inspector_inspect fw_inspect_method,
-	struct fw_store *fw_store);
+int update_agent_init(struct update_agent *update_agent, unsigned int boot_index,
+		      fw_inspector_inspect fw_inspect_method, struct fw_store *fw_store);
 
 /**
  * \brief De-initialise the update_agent
  *
  * \param[in]  update_agent    The subject update_agent
  */
-void update_agent_deinit(
-	struct update_agent *update_agent);
+void update_agent_deinit(struct update_agent *update_agent);
 
 /**
  * \brief Begin staging
@@ -88,8 +85,7 @@ void update_agent_deinit(
  *
  * \return 0 on successfully transitioning to the STAGING state
  */
-int update_agent_begin_staging(
-	struct update_agent *update_agent);
+int update_agent_begin_staging(struct update_agent *update_agent);
 
 /**
  * \brief End staging
@@ -98,8 +94,7 @@ int update_agent_begin_staging(
  *
  * \return 0 on successfully transitioning to the TRIAL state
  */
-int update_agent_end_staging(
-	struct update_agent *update_agent);
+int update_agent_end_staging(struct update_agent *update_agent);
 
 /**
  * \brief Cancel staging
@@ -108,8 +103,7 @@ int update_agent_end_staging(
  *
  * \return 0 on successfully transitioning to the REGULAR state
  */
-int update_agent_cancel_staging(
-	struct update_agent *update_agent);
+int update_agent_cancel_staging(struct update_agent *update_agent);
 
 /**
  * \brief Accept an updated image
@@ -119,9 +113,8 @@ int update_agent_cancel_staging(
  *
  * \return Status (0 on success)
  */
-int update_agent_accept(
-	struct update_agent *update_agent,
-	const struct uuid_octets *image_type_uuid);
+int update_agent_accept(struct update_agent *update_agent,
+			const struct uuid_octets *image_type_uuid);
 
 /**
  * \brief Select previous version
@@ -132,8 +125,7 @@ int update_agent_accept(
  *
  * \return Status (0 on success)
  */
-int update_agent_select_previous(
-	struct update_agent *update_agent);
+int update_agent_select_previous(struct update_agent *update_agent);
 
 /**
  * \brief Open a stream for accessing an fwu stream
@@ -147,10 +139,8 @@ int update_agent_select_previous(
  *
  * \return Status (0 on success)
  */
-int update_agent_open(
-	struct update_agent *update_agent,
-	const struct uuid_octets *uuid,
-	uint32_t *handle);
+int update_agent_open(struct update_agent *update_agent, const struct uuid_octets *uuid,
+		      uint32_t *handle);
 
 /**
  * \brief Close a stream and commit any writes to the stream
@@ -161,10 +151,7 @@ int update_agent_open(
  *
  * \return Status (0 on success)
  */
-int update_agent_commit(
-	struct update_agent *update_agent,
-	uint32_t handle,
-	bool accepted);
+int update_agent_commit(struct update_agent *update_agent, uint32_t handle, bool accepted);
 
 /**
  * \brief Write to a previously opened stream
@@ -176,11 +163,8 @@ int update_agent_commit(
  *
  * \return Status (0 on success)
  */
-int update_agent_write_stream(
-	struct update_agent *update_agent,
-	uint32_t handle,
-	const uint8_t *data,
-	size_t data_len);
+int update_agent_write_stream(struct update_agent *update_agent, uint32_t handle,
+			      const uint8_t *data, size_t data_len);
 
 /**
  * \brief Read from a previously opened stream
@@ -194,14 +178,8 @@ int update_agent_write_stream(
  *
  * \return Status (0 on success)
  */
-int update_agent_read_stream(
-	struct update_agent *update_agent,
-	uint32_t handle,
-	uint8_t *buf,
-	size_t buf_size,
-	size_t *read_len,
-	size_t *total_len);
-
+int update_agent_read_stream(struct update_agent *update_agent, uint32_t handle, uint8_t *buf,
+			     size_t buf_size, size_t *read_len, size_t *total_len);
 
 #ifdef __cplusplus
 }

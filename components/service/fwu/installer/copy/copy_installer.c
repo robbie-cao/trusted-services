@@ -5,19 +5,19 @@
  *
  */
 
+#include "copy_installer.h"
+
 #include <assert.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include <util.h>
-#include <media/volume/index/volume_index.h>
-#include <protocols/service/fwu/packed-c/status.h>
-#include "copy_installer.h"
 
-#define COPY_CHUNK_SIZE		(4096)
+#include "media/volume/index/volume_index.h"
+#include "protocols/service/fwu/packed-c/status.h"
+#include "util.h"
 
+#define COPY_CHUNK_SIZE (4096)
 
-static int close_volumes_on_error(
-	struct copy_installer *subject)
+static int close_volumes_on_error(struct copy_installer *subject)
 {
 	volume_close(subject->source_volume);
 	volume_close(subject->destination_volume);
@@ -25,9 +25,7 @@ static int close_volumes_on_error(
 	return FWU_STATUS_UNKNOWN;
 }
 
-static int copy_volume_contents(
-	struct copy_installer *subject,
-	size_t target_copy_len)
+static int copy_volume_contents(struct copy_installer *subject, size_t target_copy_len)
 {
 	int status = FWU_STATUS_SUCCESS;
 	size_t copy_len = 0;
@@ -37,27 +35,20 @@ static int copy_volume_contents(
 		return FWU_STATUS_UNKNOWN;
 
 	while (copy_len < target_copy_len) {
-
 		size_t actual_read_len = 0;
 		size_t actual_write_len = 0;
 		size_t remaining_len = target_copy_len - copy_len;
-		size_t requested_read_len = (remaining_len < COPY_CHUNK_SIZE) ?
-			remaining_len : COPY_CHUNK_SIZE;
+		size_t requested_read_len = (remaining_len < COPY_CHUNK_SIZE) ? remaining_len :
+										COPY_CHUNK_SIZE;
 
-		status = volume_read(
-			subject->source_volume,
-			(uintptr_t)copy_buf,
-			requested_read_len,
-			&actual_read_len);
+		status = volume_read(subject->source_volume, (uintptr_t)copy_buf,
+				     requested_read_len, &actual_read_len);
 
 		if (status)
 			break;
 
-		status = volume_write(
-			subject->destination_volume,
-			(const uintptr_t)copy_buf,
-			actual_read_len,
-			&actual_write_len);
+		status = volume_write(subject->destination_volume, (const uintptr_t)copy_buf,
+				      actual_read_len, &actual_write_len);
 
 		if (status)
 			break;
@@ -75,25 +66,18 @@ static int copy_volume_contents(
 	return status;
 }
 
-static int copy_installer_begin(void *context,
-	unsigned int current_volume_id,
-	unsigned int update_volume_id)
+static int copy_installer_begin(void *context, unsigned int current_volume_id,
+				unsigned int update_volume_id)
 {
 	struct copy_installer *subject = (struct copy_installer *)context;
 
-	int status = volume_index_find(
-		update_volume_id,
-		&subject->destination_volume);
+	int status = volume_index_find(update_volume_id, &subject->destination_volume);
 
 	if (status == 0) {
-
-		status = volume_index_find(
-			current_volume_id,
-			&subject->source_volume);
+		status = volume_index_find(current_volume_id, &subject->source_volume);
 	}
 
 	if (status != 0) {
-
 		subject->destination_volume = NULL;
 		subject->source_volume = NULL;
 	}
@@ -117,7 +101,6 @@ static int copy_installer_finalize(void *context)
 	int destination_status = volume_open(subject->destination_volume);
 
 	if (destination_status) {
-
 		volume_close(subject->source_volume);
 		return destination_status;
 	}
@@ -149,11 +132,10 @@ static int copy_installer_finalize(void *context)
 	source_status = volume_close(subject->source_volume);
 	destination_status = volume_close(subject->destination_volume);
 
-	return
-		(copy_status) ? copy_status :
-		(destination_status) ? destination_status :
-		(source_status) ? source_status :
-		FWU_STATUS_SUCCESS;
+	return (copy_status)	    ? copy_status :
+	       (destination_status) ? destination_status :
+	       (source_status)	    ? source_status :
+				      FWU_STATUS_SUCCESS;
 }
 
 static void copy_installer_abort(void *context)
@@ -164,8 +146,7 @@ static void copy_installer_abort(void *context)
 	subject->destination_volume = NULL;
 }
 
-static int copy_installer_open(void *context,
-	const struct image_info *image_info)
+static int copy_installer_open(void *context, const struct image_info *image_info)
 {
 	(void)context;
 	(void)image_info;
@@ -180,9 +161,7 @@ static int copy_installer_commit(void *context)
 	return FWU_STATUS_DENIED;
 }
 
-static int copy_installer_write(void *context,
-	const uint8_t *data,
-	size_t data_len)
+static int copy_installer_write(void *context, const uint8_t *data, size_t data_len)
 {
 	(void)context;
 	(void)data;
@@ -191,9 +170,8 @@ static int copy_installer_write(void *context,
 	return FWU_STATUS_DENIED;
 }
 
-static int copy_installer_enumerate(void *context,
-	uint32_t volume_id,
-	struct fw_directory *fw_directory)
+static int copy_installer_enumerate(void *context, uint32_t volume_id,
+				    struct fw_directory *fw_directory)
 {
 	(void)volume_id;
 	(void)fw_directory;
@@ -204,18 +182,13 @@ static int copy_installer_enumerate(void *context,
 	return FWU_STATUS_SUCCESS;
 }
 
-void copy_installer_init(struct copy_installer *subject,
-	const struct uuid_octets *location_uuid,
-	uint32_t location_id)
+void copy_installer_init(struct copy_installer *subject, const struct uuid_octets *location_uuid,
+			 uint32_t location_id)
 {
 	/* Define concrete installer interface */
 	static const struct installer_interface interface = {
-		copy_installer_begin,
-		copy_installer_finalize,
-		copy_installer_abort,
-		copy_installer_open,
-		copy_installer_commit,
-		copy_installer_write,
+		copy_installer_begin,	 copy_installer_finalize, copy_installer_abort,
+		copy_installer_open,	 copy_installer_commit,	  copy_installer_write,
 		copy_installer_enumerate
 	};
 
@@ -223,11 +196,8 @@ void copy_installer_init(struct copy_installer *subject,
 	 * installer that always updates a whole volume by copying
 	 * from another.
 	 */
-	installer_init(&subject->base_installer,
-		INSTALL_TYPE_WHOLE_VOLUME_COPY,
-		location_id,
-		location_uuid,
-		subject, &interface);
+	installer_init(&subject->base_installer, INSTALL_TYPE_WHOLE_VOLUME_COPY, location_id,
+		       location_uuid, subject, &interface);
 
 	/* Initialize copy_installer specifics */
 	subject->source_volume = NULL;

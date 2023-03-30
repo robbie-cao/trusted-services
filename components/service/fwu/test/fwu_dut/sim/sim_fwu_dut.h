@@ -7,22 +7,23 @@
 #ifndef SIM_FWU_DUT_H
 #define SIM_FWU_DUT_H
 
-#include <string>
 #include <cstddef>
-#include <common/uuid/uuid.h>
-#include <media/volume/block_volume/block_volume.h>
-#include <service/block_storage/block_store/device/ram/ram_block_store.h>
-#include <service/block_storage/block_store/partitioned/partitioned_block_store.h>
-#include <service/fwu/agent/update_agent.h>
-#include <service/fwu/agent/fw_directory.h>
-#include <service/fwu/fw_store/banked/banked_fw_store.h>
-#include <service/fwu/fw_store/banked/bank_scheme.h>
-#include <service/fwu/installer/raw/raw_installer.h>
-#include <service/fwu/installer/copy/copy_installer.h>
-#include <service/fwu/provider/fwu_provider.h>
-#include <service/fwu/test/metadata_checker/metadata_checker.h>
-#include <service/fwu/test/fwu_client/fwu_client.h>
-#include <service/fwu/test/fwu_dut/fwu_dut.h>
+#include <string>
+
+#include "common/uuid/uuid.h"
+#include "media/volume/block_volume/block_volume.h"
+#include "service/block_storage/block_store/device/ram/ram_block_store.h"
+#include "service/block_storage/block_store/partitioned/partitioned_block_store.h"
+#include "service/fwu/agent/fw_directory.h"
+#include "service/fwu/agent/update_agent.h"
+#include "service/fwu/fw_store/banked/bank_scheme.h"
+#include "service/fwu/fw_store/banked/banked_fw_store.h"
+#include "service/fwu/installer/copy/copy_installer.h"
+#include "service/fwu/installer/raw/raw_installer.h"
+#include "service/fwu/provider/fwu_provider.h"
+#include "service/fwu/test/fwu_client/fwu_client.h"
+#include "service/fwu/test/fwu_dut/fwu_dut.h"
+#include "service/fwu/test/metadata_checker/metadata_checker.h"
 
 /*
  * An sim_fwu_dut is an aggregate of components that simulates
@@ -32,10 +33,8 @@
  * realizations. As much as possible, the set of components that forms
  * the DUT is the same as what is used in real deployments.
  */
-class sim_fwu_dut : public fwu_dut
-{
+class sim_fwu_dut : public fwu_dut {
 public:
-
 	/**
 	 * \brief sim_fwu_dut constructor
 	 *
@@ -43,10 +42,8 @@ public:
 	 * \param[in]  metadata_version  FWU metadata version supported by bootloader
 	 * \param[in]  allow_partial_updates True if updating a subset of locations is permitted
 	 */
-	sim_fwu_dut(
-		unsigned int num_locations,
-		unsigned int metadata_version,
-		bool allow_partial_updates = false);
+	sim_fwu_dut(unsigned int num_locations, unsigned int metadata_version,
+		    bool allow_partial_updates = false);
 
 	~sim_fwu_dut();
 
@@ -61,7 +58,6 @@ public:
 	struct rpc_interface *get_service_interface(void);
 
 private:
-
 	/* Maximum locations supported */
 	static const unsigned int MAX_LOCATIONS = 4;
 
@@ -76,17 +72,12 @@ private:
 	static const size_t FW_VOLUME_NUM_BLOCKS = 20;
 	static const size_t METADATA_VOLUME_NUM_BLOCKS = 4;
 
-	void fw_partition_guid(
-		unsigned int location_index,
-		unsigned int bank_index,
-		struct uuid_octets *uuid) const;
+	void fw_partition_guid(unsigned int location_index, unsigned int bank_index,
+			       struct uuid_octets *uuid) const;
 
-	void fwu_metadata_partition_guid(
-		bool is_primary,
-		struct uuid_octets *uuid) const;
+	void fwu_metadata_partition_guid(bool is_primary, struct uuid_octets *uuid) const;
 
-	void disk_guid(
-		struct uuid_octets *uuid) const;
+	void disk_guid(struct uuid_octets *uuid) const;
 
 	void construct_storage(unsigned int num_locations);
 	void destroy_storage(void);
@@ -118,8 +109,8 @@ private:
 
 	/* Pools of volume objects */
 	size_t m_fw_volume_used_count;
-	struct block_volume m_fw_volume_pool[
-		MAX_LOCATIONS * BANK_SCHEME_NUM_BANKS + FWU_METADATA_VOLUMES];
+	struct block_volume
+		m_fw_volume_pool[MAX_LOCATIONS * BANK_SCHEME_NUM_BANKS + FWU_METADATA_VOLUMES];
 
 	/* Pools of different types of installer */
 	size_t m_raw_installer_used_count;

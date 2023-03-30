@@ -7,8 +7,8 @@
 #ifndef INSTALLER_FACTORY_H
 #define INSTALLER_FACTORY_H
 
-#include <common/uuid/uuid.h>
-#include <service/fwu/agent/install_type.h>
+#include "common/uuid/uuid.h"
+#include "service/fwu/agent/install_type.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,19 +37,16 @@ struct installer;
  *
  * \return The constructed installer or NULL if no suitable installer can be constructed.
  */
-struct installer *installer_factory_create_installer(
-	enum install_type installation_type,
-	unsigned int location_id,
-	const struct uuid_octets *location_uuid);
+struct installer *installer_factory_create_installer(enum install_type installation_type,
+						     unsigned int location_id,
+						     const struct uuid_octets *location_uuid);
 
 /**
  * \brief  Destroy an installer
  *
  * \param[in] installer     Installer to destroy
  */
-void installer_factory_destroy_installer(
-	struct installer *installer);
-
+void installer_factory_destroy_installer(struct installer *installer);
 
 #ifdef __cplusplus
 }

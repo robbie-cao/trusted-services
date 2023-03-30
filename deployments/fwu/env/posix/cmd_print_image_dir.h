@@ -8,7 +8,7 @@
 #ifndef CMD_PRINT_IMAGE_DIR_H
 #define CMD_PRINT_IMAGE_DIR_H
 
-#include <service/fwu/app/fwu_app.h>
+#include "service/fwu/app/fwu_app.h"
 
 void cmd_print_image_dir(fwu_app &app);
 

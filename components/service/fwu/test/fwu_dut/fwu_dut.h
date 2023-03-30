@@ -8,20 +8,19 @@
 #define FWU_DUT_H
 
 #include <vector>
-#include <common/uuid/uuid.h>
-#include <service/fwu/agent/fw_directory.h>
-#include <service/fwu/test/metadata_checker/metadata_checker.h>
-#include <service/fwu/test/fwu_client/fwu_client.h>
+
+#include "common/uuid/uuid.h"
+#include "service/fwu/agent/fw_directory.h"
+#include "service/fwu/test/fwu_client/fwu_client.h"
+#include "service/fwu/test/metadata_checker/metadata_checker.h"
 
 /*
  * An fwu_dut represents a device-under-test for the purpose of testing
  * firmware update functionality. The fwu_dut presents a common interface
  * that decouples test cases from details of the concrete device under test.
  */
-class fwu_dut
-{
+class fwu_dut {
 public:
-
 	fwu_dut();
 	fwu_dut(unsigned int metadata_version);
 	virtual ~fwu_dut();
@@ -66,8 +65,7 @@ public:
 	 *
 	 * \return The constructed metadata_checker
 	 */
-	virtual metadata_checker *create_metadata_checker(
-		bool is_primary = true) const = 0;
+	virtual metadata_checker *create_metadata_checker(bool is_primary = true) const = 0;
 
 	/**
 	 * \brief Factory method to construct a fwu_client
@@ -89,9 +87,7 @@ public:
 	 * \param[in] image_data   Image data written to the provided vector
 	 * \param[in] image_size   The required image size
 	 */
-	void generate_image_data(
-		std::vector<uint8_t> *image_data,
-		size_t image_size = 4096);
+	void generate_image_data(std::vector<uint8_t> *image_data, size_t image_size = 4096);
 
 	/**
 	 * \brief Returns image type UUIDs
@@ -102,12 +98,10 @@ public:
 	 * \param[in]  location_index  0..num_locations-1
 	 * \param[out] uuid            Outputs the GUID octets
 	 */
-	virtual void whole_volume_image_type_uuid(
-		unsigned int location_index,
-		struct uuid_octets *uuid) const;
+	virtual void whole_volume_image_type_uuid(unsigned int location_index,
+						  struct uuid_octets *uuid) const;
 
 protected:
-
 	/**
 	 * \brief Create a metadata_checker for the configured metadata version
 	 *
@@ -118,9 +112,8 @@ protected:
 	 * \param[in]  metadata_fetcher     To fetch the metadata
 	 * \param[in]  num_images           The expected number of images
 	 */
-	metadata_checker *create_metadata_checker(
-		metadata_fetcher *metadata_fetcher,
-		unsigned int num_images) const;
+	metadata_checker *create_metadata_checker(metadata_fetcher *metadata_fetcher,
+						  unsigned int num_images) const;
 
 	/**
 	 * \brief Returns the configured FWU metadata version
@@ -135,7 +128,6 @@ protected:
 	static const char *VALID_IMAGE_HEADER;
 
 private:
-
 	unsigned int m_generated_image_count;
 	unsigned int m_metadata_version;
 };

@@ -4,38 +4,37 @@
  */
 
 #include <stddef.h>
-#include <sp_api.h>
-#include <sp_discovery.h>
-#include <sp_messaging.h>
-#include <sp_rxtx.h>
-#include <trace.h>
-#include <rpc/ffarpc/endpoint/ffarpc_call_ep.h>
-#include <protocols/rpc/common/packed-c/status.h>
-#include <config/ramstore/config_ramstore.h>
-#include <config/loader/sp/sp_config_loader.h>
-#include <media/volume/factory/volume_factory.h>
-#include <service/fwu/config/fwu_configure.h>
-#include <service/discovery/provider/discovery_provider.h>
-#include <service/discovery/provider/serializer/packed-c/packedc_discovery_provider_serializer.h>
-#include <service/fwu/provider/fwu_provider.h>
-#include <service/fwu/provider/serializer/packed-c/packedc_fwu_provider_serializer.h>
-#include <service/fwu/fw_store/banked/bank_scheme.h>
-#include <service/fwu/fw_store/banked/metadata_serializer/v1/metadata_serializer_v1.h>
-#include <service/fwu/fw_store/banked/metadata_serializer/v2/metadata_serializer_v2.h>
-#include <service/fwu/inspector/direct/direct_fw_inspector.h>
-#include <service/fwu/agent/update_agent.h>
-#include <service/fwu/fw_store/banked/banked_fw_store.h>
 
+#include "config/loader/sp/sp_config_loader.h"
+#include "config/ramstore/config_ramstore.h"
+#include "media/volume/factory/volume_factory.h"
+#include "protocols/rpc/common/packed-c/status.h"
+#include "rpc/ffarpc/endpoint/ffarpc_call_ep.h"
+#include "service/discovery/provider/discovery_provider.h"
+#include "service/discovery/provider/serializer/packed-c/packedc_discovery_provider_serializer.h"
+#include "service/fwu/agent/update_agent.h"
+#include "service/fwu/config/fwu_configure.h"
+#include "service/fwu/fw_store/banked/bank_scheme.h"
+#include "service/fwu/fw_store/banked/banked_fw_store.h"
+#include "service/fwu/fw_store/banked/metadata_serializer/v1/metadata_serializer_v1.h"
+#include "service/fwu/fw_store/banked/metadata_serializer/v2/metadata_serializer_v2.h"
+#include "service/fwu/inspector/direct/direct_fw_inspector.h"
+#include "service/fwu/provider/fwu_provider.h"
+#include "service/fwu/provider/serializer/packed-c/packedc_fwu_provider_serializer.h"
+#include "sp_api.h"
+#include "sp_discovery.h"
+#include "sp_messaging.h"
+#include "sp_rxtx.h"
+#include "trace.h"
 
 /* Set default limit on the number of storage devices to update */
 #ifndef FWU_SP_MAX_STORAGE_DEVICES
-#define FWU_SP_MAX_STORAGE_DEVICES		(1)
+#define FWU_SP_MAX_STORAGE_DEVICES (1)
 #endif
 
 /* Parameters that should be passed forward by the bootloader */
-#define HARD_CODED_BOOT_INDEX			(0)
-#define HARD_CODED_METADATA_VER			(2)
-
+#define HARD_CODED_BOOT_INDEX	(0)
+#define HARD_CODED_METADATA_VER (2)
 
 static bool sp_init(uint16_t *own_sp_id);
 static bool configure_for_platform(void);
@@ -87,31 +86,26 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 		goto fatal_error;
 	}
 
-	if (update_agent_init(&update_agent, HARD_CODED_BOOT_INDEX,
-			direct_fw_inspector_inspect, &fw_store)) {
+	if (update_agent_init(&update_agent, HARD_CODED_BOOT_INDEX, direct_fw_inspector_inspect,
+			      &fw_store)) {
 		EMSG("Failed to init update agent");
 		goto fatal_error;
 	}
 
 	/* Initialise the FWU service provider */
-	service_iface = fwu_provider_init(
-		&service_provider,
-		&update_agent);
+	service_iface = fwu_provider_init(&service_provider, &update_agent);
 
 	if (!service_iface) {
 		EMSG("Failed to init service provider");
 		goto fatal_error;
 	}
 
-	fwu_provider_register_serializer(
-		&service_provider,
-		TS_RPC_ENCODING_PACKED_C,
-		packedc_fwu_provider_serializer_instance());
+	fwu_provider_register_serializer(&service_provider, TS_RPC_ENCODING_PACKED_C,
+					 packedc_fwu_provider_serializer_instance());
 
-	discovery_provider_register_serializer(
-		&service_provider.discovery_provider,
-		TS_RPC_ENCODING_PACKED_C,
-		packedc_discovery_provider_serializer_instance());
+	discovery_provider_register_serializer(&service_provider.discovery_provider,
+					       TS_RPC_ENCODING_PACKED_C,
+					       packedc_discovery_provider_serializer_instance());
 
 	/* Associate service interface with FFA call endpoint */
 	ffa_call_ep_init(&ffarpc_call_ep, service_iface, own_id);
@@ -140,7 +134,8 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 fatal_error:
 	/* SP is not viable */
 	EMSG("FWU SP error");
-	while (1) {}
+	while (1) {
+	}
 }
 
 void sp_interrupt_handler(uint32_t interrupt_id)
@@ -150,11 +145,10 @@ void sp_interrupt_handler(uint32_t interrupt_id)
 
 static bool sp_init(uint16_t *own_id)
 {
-	sp_result sp_res = SP_RESULT_INTERNAL_ERROR;
 	static uint8_t tx_buffer[4096] __aligned(4096);
 	static uint8_t rx_buffer[4096] __aligned(4096);
 
-	sp_res = sp_rxtx_buffer_map(tx_buffer, rx_buffer, sizeof(rx_buffer));
+	sp_result sp_res = sp_rxtx_buffer_map(tx_buffer, rx_buffer, sizeof(rx_buffer));
 	if (sp_res != SP_RESULT_OK) {
 		EMSG("Failed to map RXTX buffers: %d", sp_res);
 		return false;
@@ -174,11 +168,10 @@ static bool configure_for_platform(void)
 	struct uuid_octets device_uuids[FWU_SP_MAX_STORAGE_DEVICES];
 	size_t num_storage_devices = 0;
 
-	int status = volume_factory_init(device_uuids,
-		FWU_SP_MAX_STORAGE_DEVICES, &num_storage_devices);
+	int status =
+		volume_factory_init(device_uuids, FWU_SP_MAX_STORAGE_DEVICES, &num_storage_devices);
 
 	if (status) {
-
 		EMSG("Failed to init volume factory: %d", status);
 		return false;
 	}
@@ -186,7 +179,6 @@ static bool configure_for_platform(void)
 	status = fwu_configure(device_uuids, num_storage_devices);
 
 	if (status) {
-
 		EMSG("Failed to setup FWU configuration: %d", status);
 		return false;
 	}

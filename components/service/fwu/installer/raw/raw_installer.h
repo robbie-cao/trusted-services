@@ -11,9 +11,10 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <common/uuid/uuid.h>
-#include <service/fwu/installer/installer.h>
-#include <media/volume/volume.h>
+
+#include "common/uuid/uuid.h"
+#include "media/volume/volume.h"
+#include "service/fwu/installer/installer.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,9 +48,8 @@ struct raw_installer {
  * \param[in]  location_uuid The associated location UUID
  * \param[in]  location_id Identifies where to install qualifying images
  */
-void raw_installer_init(struct raw_installer *subject,
-	const struct uuid_octets *location_uuid,
-	uint32_t location_id);
+void raw_installer_init(struct raw_installer *subject, const struct uuid_octets *location_uuid,
+			uint32_t location_id);
 
 /**
  * \brief De-initialize a raw_installer

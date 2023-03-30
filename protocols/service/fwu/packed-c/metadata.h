@@ -16,7 +16,7 @@
  * With the default configuration, a dual bank A/B scheme is used.
  */
 #ifndef FWU_METADATA_NUM_BANKS
-#define FWU_METADATA_NUM_BANKS            (2)
+#define FWU_METADATA_NUM_BANKS (2)
 #endif
 
 #endif /* FWU_PROTO_METADATA_H */

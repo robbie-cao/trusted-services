@@ -9,18 +9,17 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <common/uuid/uuid.h>
-#include <service/fwu/test/fwu_client/fwu_client.h>
-#include <protocols/service/fwu/packed-c/fwu_proto.h>
+
+#include "common/uuid/uuid.h"
+#include "protocols/service/fwu/packed-c/fwu_proto.h"
+#include "service/fwu/test/fwu_client/fwu_client.h"
 
 /*
  * Provides check methods for checking the contents of the image
  * directory fetched from the update agent.
  */
-class image_directory_checker
-{
+class image_directory_checker {
 public:
-
 	image_directory_checker();
 	~image_directory_checker();
 
@@ -31,11 +30,10 @@ public:
 	bool is_contents_equal(const image_directory_checker &rhs) const;
 
 	const struct ts_fwu_image_directory *get_header(void) const;
-	const struct ts_fwu_image_info_entry *find_entry(
-		const struct uuid_octets *img_type_uuid) const;
+	const struct ts_fwu_image_info_entry *
+	find_entry(const struct uuid_octets *img_type_uuid) const;
 
 private:
-
 	static const size_t MAX_IMAGES = 50;
 
 	void alloc_buffer(void);

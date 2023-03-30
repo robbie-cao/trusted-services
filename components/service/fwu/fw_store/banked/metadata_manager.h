@@ -8,8 +8,8 @@
 #ifndef METADATA_MANAGER_H
 #define METADATA_MANAGER_H
 
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -30,7 +30,6 @@ struct metadata_serializer;
  * Manages the FWU metadata seen by the boot loader.
  */
 struct metadata_manager {
-
 	/* Volume objects for IO operations to NV storage */
 	struct volume *primary_metadata_volume;
 	struct volume *backup_metadata_volume;
@@ -55,17 +54,15 @@ struct metadata_manager {
  *
  * \return Status 0 on success
  */
-int metadata_manager_init(
-	struct metadata_manager *subject,
-	const struct metadata_serializer *serializer);
+int metadata_manager_init(struct metadata_manager *subject,
+			  const struct metadata_serializer *serializer);
 
 /**
  * \brief De-initialize the metadata_manager
  *
  * \param[in] subject      This instance
  */
-void metadata_manager_deinit(
-	struct metadata_manager *subject);
+void metadata_manager_deinit(struct metadata_manager *subject);
 
 /**
  * \brief Check integrity of FWU metadata and repair if necessary
@@ -81,9 +78,8 @@ void metadata_manager_deinit(
  *
  * \return Status 0 if intact or if repair was successful
  */
-int metadata_manager_check_and_repair(
-	struct metadata_manager *subject,
-	const struct fw_directory *fw_dir);
+int metadata_manager_check_and_repair(struct metadata_manager *subject,
+				      const struct fw_directory *fw_dir);
 
 /**
  * \brief Update the FWU metadata seen by the boot loader
@@ -96,12 +92,9 @@ int metadata_manager_check_and_repair(
  *
  * \return Status 0 if successful
  */
-int metadata_manager_update(
-	struct metadata_manager *subject,
-	uint32_t active_index,
-	uint32_t previous_active_index,
-	const struct fw_directory *fw_dir,
-	const struct bank_tracker *bank_tracker);
+int metadata_manager_update(struct metadata_manager *subject, uint32_t active_index,
+			    uint32_t previous_active_index, const struct fw_directory *fw_dir,
+			    const struct bank_tracker *bank_tracker);
 
 /**
  * \brief Get the active index values from the metadata
@@ -112,10 +105,8 @@ int metadata_manager_update(
  *
  * \return Status 0 if successful
  */
-int metadata_manager_get_active_indices(
-	const struct metadata_manager *subject,
-	uint32_t *active_index,
-	uint32_t *previous_active_index);
+int metadata_manager_get_active_indices(const struct metadata_manager *subject,
+					uint32_t *active_index, uint32_t *previous_active_index);
 
 /**
  * \brief Fetch the FWU metadata that should be seen by the boot loader
@@ -132,19 +123,15 @@ int metadata_manager_get_active_indices(
  *
  * \return Status 0 if successful
  */
-int metadata_manager_fetch(
-	struct metadata_manager *subject,
-	const uint8_t **data,
-	size_t *data_len,
-	bool *is_dirty);
+int metadata_manager_fetch(struct metadata_manager *subject, const uint8_t **data, size_t *data_len,
+			   bool *is_dirty);
 
 /**
  * \brief Invalidate the metadata cache
  *
  * \param[in]  subject   This instance
  */
-void metadata_manager_cache_invalidate(
-	struct metadata_manager *subject);
+void metadata_manager_cache_invalidate(struct metadata_manager *subject);
 
 /**
  * \brief Preload the bank_tracker with NV state from metadata
@@ -154,9 +141,8 @@ void metadata_manager_cache_invalidate(
  *
  * \return Status 0 if successful
  */
-void metadata_manager_preload_bank_tracker(
-	const struct metadata_manager *subject,
-	struct bank_tracker *bank_tracker);
+void metadata_manager_preload_bank_tracker(const struct metadata_manager *subject,
+					   struct bank_tracker *bank_tracker);
 
 #ifdef __cplusplus
 }

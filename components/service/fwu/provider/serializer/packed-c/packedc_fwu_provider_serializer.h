@@ -7,7 +7,7 @@
 #ifndef PACKEDC_FWU_PROVIDER_SERIALIZER_H
 #define PACKEDC_FWU_PROVIDER_SERIALIZER_H
 
-#include <service/fwu/provider/serializer/fwu_provider_serializer.h>
+#include "service/fwu/provider/serializer/fwu_provider_serializer.h"
 
 #ifdef __cplusplus
 extern "C" {

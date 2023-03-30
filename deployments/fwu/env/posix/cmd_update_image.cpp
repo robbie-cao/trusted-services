@@ -4,22 +4,20 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "cmd_update_image.h"
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <common/uuid/uuid.h>
-#include "cmd_update_image.h"
 
+#include "common/uuid/uuid.h"
 
-int cmd_update_image(
-	fwu_app &app,
-	const std::string &img_type_uuid,
-	const std::string &img_filename)
+int cmd_update_image(fwu_app &app, const std::string &img_type_uuid,
+		     const std::string &img_filename)
 {
 	FILE *fp = fopen(img_filename.c_str(), "rb");
 
 	if (!fp) {
-
 		printf("Error: failed to open image file: %s\n", img_filename.c_str());
 		return -1;
 	}
@@ -33,7 +31,6 @@ int cmd_update_image(
 	uint8_t *img_buf = (uint8_t *)malloc(img_size);
 
 	if (!img_buf) {
-
 		fclose(fp);
 		printf("Error: failed to allocate image buffer\n");
 		return -1;
@@ -41,8 +38,8 @@ int cmd_update_image(
 
 	/* Read file contents into buffer */
 	if (fread(img_buf, 1, img_size, fp)) {
-
 		fclose(fp);
+		free(img_buf);
 		printf("Error: failed to read image file\n");
 		return -1;
 	}

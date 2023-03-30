@@ -16,24 +16,18 @@
  * input metadata version is supported.
  */
 class metadata_version_specific_reader {
-
 public:
+	virtual ~metadata_version_specific_reader()
+	{
+	}
 
-	virtual ~metadata_version_specific_reader() {}
+	virtual bool is_supported(const uint8_t *buf, size_t data_len) const = 0;
 
-	virtual bool is_supported(
-		const uint8_t *buf,
-		size_t data_len) const = 0;
+	virtual void get_version(const uint8_t *buf, size_t data_len,
+				 unsigned int &version) const = 0;
 
-	virtual void get_version(
-		const uint8_t *buf,
-		size_t data_len,
-		unsigned int &version) const = 0;
-
-	virtual void get_active_index(
-		const uint8_t *buf,
-		size_t data_len,
-		unsigned int &active_index) const = 0;
+	virtual void get_active_index(const uint8_t *buf, size_t data_len,
+				      unsigned int &active_index) const = 0;
 };
 
 /*
@@ -41,17 +35,13 @@ public:
  * The caller doesn't need to worry about the version of metadata being used.
  */
 class metadata_reader {
-
 public:
-
 	static metadata_reader *instance();
 	~metadata_reader();
 
 	void register_reader(metadata_version_specific_reader *reader);
 
-	int get_boot_info(
-		unsigned int &active_index,
-		unsigned int &metadata_version) const;
+	int get_boot_info(unsigned int &active_index, unsigned int &metadata_version) const;
 
 private:
 	metadata_reader();

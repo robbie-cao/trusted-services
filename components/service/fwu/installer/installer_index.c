@@ -4,26 +4,27 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <assert.h>
-#include <string.h>
-#include <stdint.h>
-#include <trace.h>
-#include "installer.h"
 #include "installer_index.h"
 
+#include <assert.h>
+#include <stdint.h>
+#include <string.h>
+
+#include "installer.h"
+#include "trace.h"
+
 #ifndef INSTALLER_INDEX_LIMIT
-#define INSTALLER_INDEX_LIMIT        (8)
+#define INSTALLER_INDEX_LIMIT (8)
 #endif
 
 #ifndef INSTALLER_INDEX_LOCATION_ID_LIMIT
-#define INSTALLER_INDEX_LOCATION_ID_LIMIT    (8)
+#define INSTALLER_INDEX_LOCATION_ID_LIMIT (8)
 #endif
 
 /**
  * Singleton index of installers to use for different classes of image.
  */
 static struct {
-
 	/* An index for registered installers to handle update installation
 	 * for the platform. The set of registered installers will have been
 	 * selected for compatibility with the class of update image handled
@@ -49,14 +50,12 @@ static void add_location_id(uint32_t location_id)
 	 * location_ids that have already been added.
 	 */
 	for (size_t i = 0; i < installer_index.num_location_ids; i++) {
-
 		if (location_id == installer_index.location_ids[i])
 			return;
 	}
 
 	/* It's a new location_id so add it */
 	if (installer_index.num_location_ids < INSTALLER_INDEX_LOCATION_ID_LIMIT) {
-
 		installer_index.location_ids[installer_index.num_location_ids] = location_id;
 		++installer_index.num_location_ids;
 	} else {
@@ -74,16 +73,13 @@ void installer_index_clear(void)
 	memset(&installer_index, 0, sizeof(installer_index));
 }
 
-void installer_index_register(
-	struct installer *installer)
+void installer_index_register(struct installer *installer)
 {
 	assert(installer);
 
 	if (installer_index.num_registered < INSTALLER_INDEX_LIMIT) {
-
 		installer_index.installers[installer_index.num_registered] = installer;
 		++installer_index.num_registered;
-
 
 		add_location_id(installer->location_id);
 	} else {
@@ -91,19 +87,15 @@ void installer_index_register(
 	}
 }
 
-struct installer *installer_index_find(
-	enum install_type install_type,
-	uint32_t location_id)
+struct installer *installer_index_find(enum install_type install_type, uint32_t location_id)
 {
 	struct installer *result = NULL;
 
 	for (size_t i = 0; i < installer_index.num_registered; i++) {
-
 		struct installer *installer = installer_index.installers[i];
 
 		if ((installer->install_type == install_type) &&
-			(installer->location_id == location_id)) {
-
+		    (installer->location_id == location_id)) {
 			result = installer;
 			break;
 		}
@@ -112,18 +104,14 @@ struct installer *installer_index_find(
 	return result;
 }
 
-struct installer *installer_index_find_by_location_uuid(
-	const struct uuid_octets *location_uuid)
+struct installer *installer_index_find_by_location_uuid(const struct uuid_octets *location_uuid)
 {
 	struct installer *result = NULL;
 
 	for (size_t i = 0; i < installer_index.num_registered; i++) {
-
 		struct installer *installer = installer_index.installers[i];
 
-		if (uuid_is_equal(location_uuid->octets,
-				installer->location_uuid.octets)) {
-
+		if (uuid_is_equal(location_uuid->octets, installer->location_uuid.octets)) {
 			result = installer;
 			break;
 		}
@@ -132,8 +120,7 @@ struct installer *installer_index_find_by_location_uuid(
 	return result;
 }
 
-struct installer *installer_index_get(
-	unsigned int index)
+struct installer *installer_index_get(unsigned int index)
 {
 	struct installer *result = NULL;
 

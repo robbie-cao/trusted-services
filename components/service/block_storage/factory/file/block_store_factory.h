@@ -45,7 +45,6 @@ void file_block_store_factory_destroy(struct block_store *block_store);
  */
 void file_block_store_factory_set_filename(const char *filename);
 
-
 #ifdef __cplusplus
 }
 #endif

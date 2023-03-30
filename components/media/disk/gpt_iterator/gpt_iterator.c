@@ -5,17 +5,16 @@
  *
  */
 
-#include <assert.h>
-#include <errno.h>
-#include <string.h>
-#include <stddef.h>
-#include <media/volume/volume.h>
 #include "gpt_iterator.h"
 
+#include <assert.h>
+#include <errno.h>
+#include <stddef.h>
+#include <string.h>
 
-int gpt_iterator_init(
-	struct gpt_iterator *iter,
-	struct volume *volume)
+#include "media/volume/volume.h"
+
+int gpt_iterator_init(struct gpt_iterator *iter, struct volume *volume)
 {
 	assert(iter);
 	assert(volume);
@@ -62,13 +61,11 @@ int gpt_iterator_init(
 	 */
 	size_t min_required_entry_size =
 		offsetof(gpt_entry_t, name) + EFI_NAMELEN * sizeof(unsigned short);
-	size_t max_expected_entry_size =
-		sizeof(gpt_entry_t) * 2;
+	size_t max_expected_entry_size = sizeof(gpt_entry_t) * 2;
 
 	if ((memcmp(GPT_SIGNATURE, gpt_header.signature, sizeof(gpt_header.signature)) != 0) ||
-		(gpt_header.part_size < min_required_entry_size) ||
-		(gpt_header.part_size > max_expected_entry_size) ||
-		(iter->num_entries > 128))
+	    gpt_header.part_size < min_required_entry_size ||
+	    gpt_header.part_size > max_expected_entry_size || iter->num_entries > 128)
 		return -EIO;
 
 	iter->num_entries = gpt_header.list_num;
@@ -77,8 +74,7 @@ int gpt_iterator_init(
 	return 0;
 }
 
-void gpt_iterator_deinit(
-	struct gpt_iterator *iter)
+void gpt_iterator_deinit(struct gpt_iterator *iter)
 {
 	assert(iter);
 
@@ -86,33 +82,28 @@ void gpt_iterator_deinit(
 		volume_close(iter->volume);
 }
 
-void gpt_iterator_first(
-	struct gpt_iterator *iter)
+void gpt_iterator_first(struct gpt_iterator *iter)
 {
 	assert(iter);
 
 	iter->cur_index = 0;
 }
 
-void gpt_iterator_next(
-	struct gpt_iterator *iter)
+void gpt_iterator_next(struct gpt_iterator *iter)
 {
 	assert(iter);
 
 	++iter->cur_index;
 }
 
-bool gpt_iterator_is_done(
-	const struct gpt_iterator *iter)
+bool gpt_iterator_is_done(const struct gpt_iterator *iter)
 {
 	assert(iter);
 
 	return (iter->cur_index >= iter->num_entries);
 }
 
-int gpt_iterator_current(
-	struct gpt_iterator *iter,
-	gpt_entry_t *entry)
+int gpt_iterator_current(struct gpt_iterator *iter, gpt_entry_t *entry)
 {
 	assert(iter);
 	assert(iter->volume);

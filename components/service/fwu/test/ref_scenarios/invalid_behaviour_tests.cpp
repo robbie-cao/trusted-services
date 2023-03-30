@@ -4,12 +4,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <vector>
-#include <protocols/service/fwu/packed-c/status.h>
 #include <CppUTest/TestHarness.h>
-#include <service/fwu/test/image_directory_checker/image_directory_checker.h>
-#include <service/fwu/test/fwu_dut_factory/fwu_dut_factory.h>
-#include <service/fwu/test/fwu_dut/fwu_dut.h>
+#include <vector>
+
+#include "protocols/service/fwu/packed-c/status.h"
+#include "service/fwu/test/fwu_dut/fwu_dut.h"
+#include "service/fwu/test/fwu_dut_factory/fwu_dut_factory.h"
+#include "service/fwu/test/image_directory_checker/image_directory_checker.h"
 
 /*
  * Tests that check defenses against invalid behaviour from a client.
@@ -74,16 +75,14 @@ TEST(FwuInvalidBehaviourTests, invalidOperationsInRegular)
 	std::string image_data("some image data...");
 
 	stream_handle = 67;
-	status = m_fwu_client->write_stream(
-		stream_handle,
-		reinterpret_cast<const uint8_t*>(image_data.data()),
-		image_data.size());
+	status = m_fwu_client->write_stream(stream_handle,
+					    reinterpret_cast<const uint8_t *>(image_data.data()),
+					    image_data.size());
 	LONGS_EQUAL(FWU_STATUS_UNKNOWN, status);
 
 	/* An attempt to commit with an invalid handle should fail in a similar way */
 	stream_handle = 771;
-	status = m_fwu_client->commit(
-		stream_handle, false);
+	status = m_fwu_client->commit(stream_handle, false);
 	LONGS_EQUAL(FWU_STATUS_UNKNOWN, status);
 }
 
@@ -199,7 +198,8 @@ TEST(FwuInvalidBehaviourTests, invalidOperationsInTrial)
 	m_dut->generate_image_data(&image_data);
 
 	status = m_fwu_client->write_stream(stream_handle,
-		reinterpret_cast<const uint8_t *>(image_data.data()), image_data.size());
+					    reinterpret_cast<const uint8_t *>(image_data.data()),
+					    image_data.size());
 	LONGS_EQUAL(FWU_STATUS_SUCCESS, status);
 
 	status = m_fwu_client->commit(stream_handle, false);
@@ -261,5 +261,3 @@ TEST(FwuInvalidBehaviourTests, invalidOperationsInTrial)
 
 	m_dut->shutdown();
 }
-
-

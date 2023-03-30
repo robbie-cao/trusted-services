@@ -4,21 +4,22 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <stdlib.h>
-#include <common/uuid/uuid.h>
-#include <media/disk/guid.h>
-#include <media/volume/block_volume/block_volume.h>
-#include <media/volume/index/volume_index.h>
-#include <media/volume/volume.h>
-#include <service/block_storage/factory/ref_ram_gpt/block_store_factory.h>
-#include <service/fwu/fw_store/banked/metadata_manager.h>
-#include <service/fwu/fw_store/banked/metadata_serializer/metadata_serializer.h>
-#include <service/fwu/fw_store/banked/metadata_serializer/v1/metadata_serializer_v1.h>
-#include <service/fwu/fw_store/banked/bank_tracker.h>
-#include <service/fwu/fw_store/banked/volume_id.h>
-#include <service/fwu/agent/fw_directory.h>
-#include <service/fwu/inspector/mock/mock_fw_inspector.h>
 #include <CppUTest/TestHarness.h>
+#include <stdlib.h>
+
+#include "common/uuid/uuid.h"
+#include "media/disk/guid.h"
+#include "media/volume/block_volume/block_volume.h"
+#include "media/volume/index/volume_index.h"
+#include "media/volume/volume.h"
+#include "service/block_storage/factory/ref_ram_gpt/block_store_factory.h"
+#include "service/fwu/agent/fw_directory.h"
+#include "service/fwu/fw_store/banked/bank_tracker.h"
+#include "service/fwu/fw_store/banked/metadata_manager.h"
+#include "service/fwu/fw_store/banked/metadata_serializer/metadata_serializer.h"
+#include "service/fwu/fw_store/banked/metadata_serializer/v1/metadata_serializer_v1.h"
+#include "service/fwu/fw_store/banked/volume_id.h"
+#include "service/fwu/inspector/mock/mock_fw_inspector.h"
 
 TEST_GROUP(FwuMetadataManagerTests)
 {
@@ -36,22 +37,20 @@ TEST_GROUP(FwuMetadataManagerTests)
 
 		/* Construct primary metadata volume */
 		uuid_guid_octets_from_canonical(&partition_guid,
-			DISK_GUID_UNIQUE_PARTITION_PRIMARY_FWU_METADATA);
+						DISK_GUID_UNIQUE_PARTITION_PRIMARY_FWU_METADATA);
 
-		result = block_volume_init(&m_primary_block_volume,
-			m_block_store, &partition_guid,
-			&m_primary_volume);
+		result = block_volume_init(&m_primary_block_volume, m_block_store, &partition_guid,
+					   &m_primary_volume);
 
 		LONGS_EQUAL(0, result);
 		CHECK_TRUE(m_primary_volume);
 
 		/* Construct backup metadata volume */
 		uuid_guid_octets_from_canonical(&partition_guid,
-			DISK_GUID_UNIQUE_PARTITION_BACKUP_FWU_METADATA);
+						DISK_GUID_UNIQUE_PARTITION_BACKUP_FWU_METADATA);
 
-		result = block_volume_init(&m_backup_block_volume,
-			m_block_store, &partition_guid,
-			&m_backup_volume);
+		result = block_volume_init(&m_backup_block_volume, m_block_store, &partition_guid,
+					   &m_backup_volume);
 
 		LONGS_EQUAL(0, result);
 		CHECK_TRUE(m_backup_volume);
@@ -75,7 +74,7 @@ TEST_GROUP(FwuMetadataManagerTests)
 		ref_ram_gpt_block_store_factory_destroy(m_block_store);
 	}
 
-	void corrupt_metadata(struct volume *volume)
+	void corrupt_metadata(struct volume * volume)
 	{
 		int status;
 		size_t metadata_size = m_serializer->size(&m_fw_directory);
@@ -85,8 +84,7 @@ TEST_GROUP(FwuMetadataManagerTests)
 		status = volume_open(volume);
 		LONGS_EQUAL(0, status);
 
-		status = volume_read(volume,
-			(uintptr_t)metadata_buf, metadata_size, &actual_len);
+		status = volume_read(volume, (uintptr_t)metadata_buf, metadata_size, &actual_len);
 		LONGS_EQUAL(0, status);
 		UNSIGNED_LONGS_EQUAL(metadata_size, actual_len);
 
@@ -100,8 +98,8 @@ TEST_GROUP(FwuMetadataManagerTests)
 		status = volume_seek(volume, IO_SEEK_SET, 0);
 		LONGS_EQUAL(0, status);
 
-		status = volume_write(volume,
-			(const uintptr_t)metadata_buf, metadata_size, &actual_len);
+		status = volume_write(volume, (const uintptr_t)metadata_buf, metadata_size,
+				      &actual_len);
 		LONGS_EQUAL(0, status);
 		UNSIGNED_LONGS_EQUAL(metadata_size, actual_len);
 
@@ -141,8 +139,8 @@ TEST(FwuMetadataManagerTests, checkAndRepairAccessibleStorage)
 
 	/* An update to the metadata should result in both primary and backup copies
 	 * being initialized. */
-	result = metadata_manager_update(&m_metadata_manager, 0, 1,
-		&m_fw_directory, &m_bank_tracker);
+	result = metadata_manager_update(&m_metadata_manager, 0, 1, &m_fw_directory,
+					 &m_bank_tracker);
 	LONGS_EQUAL(0, result);
 
 	/* If the update was successful, check_and_repair shouldn't have anything to do. */
@@ -157,10 +155,7 @@ TEST(FwuMetadataManagerTests, checkAndRepairAccessibleStorage)
 
 	/* Corrupt either copy randomly a few times and expect to always repair */
 	for (size_t i = 0; i < 100; ++i) {
-
-		struct volume *volume = (rand() & 1) ?
-			m_primary_volume :
-			m_backup_volume;
+		struct volume *volume = (rand() & 1) ? m_primary_volume : m_backup_volume;
 
 		corrupt_metadata(volume);
 		metadata_manager_cache_invalidate(&m_metadata_manager);

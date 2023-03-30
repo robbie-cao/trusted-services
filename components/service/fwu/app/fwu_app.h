@@ -9,9 +9,10 @@
 
 #include <stdint.h>
 #include <vector>
-#include <common/uuid/uuid.h>
-#include <service/fwu/agent/update_agent.h>
-#include <service/fwu/fw_store/banked/banked_fw_store.h>
+
+#include "common/uuid/uuid.h"
+#include "service/fwu/agent/update_agent.h"
+#include "service/fwu/fw_store/banked/banked_fw_store.h"
 
 /*
  * The fwu_app class is intended to provide the core for an application
@@ -23,7 +24,6 @@
  * different application areas without overloading the base app.
  */
 class fwu_app {
-
 public:
 	fwu_app();
 	virtual ~fwu_app();
@@ -38,8 +38,7 @@ public:
 	 *
 	 * \return Status (0 on success)
 	 */
-	int configure(
-		const char *disk_img_filename);
+	int configure(const char *disk_img_filename);
 
 	/**
 	 * \brief Get boot info from the FWU metadata
@@ -49,9 +48,7 @@ public:
 	 *
 	 * \return Status (0 on success)
 	 */
-	int get_boot_info(
-		unsigned int &active_index,
-		unsigned int &metadata_version);
+	int get_boot_info(unsigned int &active_index, unsigned int &metadata_version);
 
 	/**
 	 * \brief Initialise the update agent
@@ -61,9 +58,7 @@ public:
 	 *
 	 * \return Status (0 on success)
 	 */
-	int init_update_agent(
-		unsigned int boot_index,
-		unsigned int metadata_version);
+	int init_update_agent(unsigned int boot_index, unsigned int metadata_version);
 
 	/**
 	 * \brief Update a single image
@@ -77,10 +72,8 @@ public:
 	 *
 	 * \return Status (0 on success)
 	 */
-	int update_image(
-		const struct uuid_octets &img_type_uuid,
-		const uint8_t *img_data,
-		size_t img_size);
+	int update_image(const struct uuid_octets &img_type_uuid, const uint8_t *img_data,
+			 size_t img_size);
 
 	/**
 	 * \brief Read an object from the update agent
@@ -90,12 +83,9 @@ public:
 	 *
 	 * \return Status (0 on success)
 	 */
-	int read_object(
-		const struct uuid_octets &object_uuid,
-		std::vector<uint8_t> &data);
+	int read_object(const struct uuid_octets &object_uuid, std::vector<uint8_t> &data);
 
 protected:
-
 	/**
 	 * \brief Return pointer to update_agent struct
 	 *
@@ -104,11 +94,9 @@ protected:
 	struct update_agent *update_agent();
 
 private:
-
 	static const size_t MAX_STORAGE_DEVICES = 4;
 
-	static const struct metadata_serializer *select_metadata_serializer(
-		unsigned int version);
+	static const struct metadata_serializer *select_metadata_serializer(unsigned int version);
 
 	struct update_agent m_update_agent;
 	struct fw_store m_fw_store;

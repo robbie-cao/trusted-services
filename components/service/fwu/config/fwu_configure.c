@@ -5,12 +5,14 @@
  *
  */
 
-#include <media/volume/index/volume_index.h>
-#include <media/volume/factory/volume_factory.h>
-#include <service/fwu/installer/installer_index.h>
-#include <service/fwu/installer/factory/installer_factory.h>
-#include <service/fwu/config/gpt/gpt_fwu_configure.h>
 #include "fwu_configure.h"
+
+#include <service/fwu/config/gpt/gpt_fwu_configure.h>
+
+#include "media/volume/factory/volume_factory.h"
+#include "media/volume/index/volume_index.h"
+#include "service/fwu/installer/factory/installer_factory.h"
+#include "service/fwu/installer/installer_index.h"
 
 int fwu_configure(const struct uuid_octets *device_uuids, size_t num_device_uuids)
 {
@@ -20,11 +22,9 @@ int fwu_configure(const struct uuid_octets *device_uuids, size_t num_device_uuid
 	installer_index_init();
 
 	for (size_t i = 0; i < num_device_uuids; i++) {
-
 		unsigned int new_location_count = 0;
 
-		int status = gpt_fwu_configure(&device_uuids[i],
-			location_id, &new_location_count);
+		int status = gpt_fwu_configure(&device_uuids[i], location_id, &new_location_count);
 
 		if (status)
 			return status;

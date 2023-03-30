@@ -5,32 +5,30 @@
  *
  */
 
-#include <errno.h>
-#include <trace.h>
-#include <stdint.h>
-#include <media/disk/guid.h>
-#include <media/disk/gpt_iterator/gpt_iterator.h>
-#include <media/volume/factory/volume_factory.h>
-#include <media/volume/index/volume_index.h>
-#include <service/fwu/fw_store/banked/volume_id.h>
-#include <service/fwu/installer/factory/installer_factory.h>
-#include <service/fwu/installer/installer_index.h>
-#include <service/fwu/installer/installer.h>
 #include "gpt_fwu_configure.h"
 
-static struct installer *create_and_register_installers(
-	const struct uuid_octets *partition_type_uuid,
-	unsigned int location_id);
+#include <errno.h>
+#include <stdint.h>
 
-static int create_and_register_metadata_volume(
-	const struct uuid_octets *device_uuid,
-	gpt_entry_t *entry,
-	unsigned *metadata_count);
+#include "media/disk/gpt_iterator/gpt_iterator.h"
+#include "media/disk/guid.h"
+#include "media/volume/factory/volume_factory.h"
+#include "media/volume/index/volume_index.h"
+#include "service/fwu/fw_store/banked/volume_id.h"
+#include "service/fwu/installer/factory/installer_factory.h"
+#include "service/fwu/installer/installer.h"
+#include "service/fwu/installer/installer_index.h"
+#include "trace.h"
 
+static struct installer *
+create_and_register_installers(const struct uuid_octets *partition_type_uuid,
+			       unsigned int location_id);
 
-int gpt_fwu_configure(const struct uuid_octets *device_uuid,
-	unsigned int initial_location_id,
-	unsigned int *location_count)
+static int create_and_register_metadata_volume(const struct uuid_octets *device_uuid,
+					       gpt_entry_t *entry, unsigned int *metadata_count);
+
+int gpt_fwu_configure(const struct uuid_octets *device_uuid, unsigned int initial_location_id,
+		      unsigned int *location_count)
 {
 	struct uuid_octets gpt_guid;
 	unsigned int next_location_id = initial_location_id;
@@ -39,7 +37,7 @@ int gpt_fwu_configure(const struct uuid_octets *device_uuid,
 	*location_count = 0;
 
 	uuid_guid_octets_from_canonical(&gpt_guid, DISK_GUID_UNIQUE_PARTITION_DISK_HEADER);
-	struct volume *gpt_volume = volume_factory_create_volume( &gpt_guid, device_uuid);
+	struct volume *gpt_volume = volume_factory_create_volume(&gpt_guid, device_uuid);
 
 	if (!gpt_volume) {
 		/* The case where there is no GPT volume is not necessarily an error.
@@ -67,7 +65,6 @@ int gpt_fwu_configure(const struct uuid_octets *device_uuid,
 	gpt_iterator_first(&gpt_iter);
 
 	while (!gpt_iterator_is_done(&gpt_iter)) {
-
 		gpt_entry_t entry;
 
 		status = gpt_iterator_current(&gpt_iter, &entry);
@@ -82,7 +79,6 @@ int gpt_fwu_configure(const struct uuid_octets *device_uuid,
 
 		/* Skip unused entry */
 		if (uuid_is_nil(partition_type_guid->octets)) {
-
 			gpt_iterator_next(&gpt_iter);
 			continue;
 		}
@@ -97,22 +93,19 @@ int gpt_fwu_configure(const struct uuid_octets *device_uuid,
 			installer_index_find_by_location_uuid(partition_type_guid);
 
 		if (!installer) {
-
 			/* No installer for the partition type has yet been registered. This
 			 * is either because this is the first partition of this type to be
 			 * encountered or because the partition is not updatable. Find out by
 			 * attempting to construct one or more installers.
 			 */
-			installer =
-				create_and_register_installers(partition_type_guid, next_location_id);
+			installer = create_and_register_installers(partition_type_guid,
+								   next_location_id);
 
 			if (installer)
 				++next_location_id;
-
 		}
 
 		if (installer) {
-
 			/* This configurator relies on the partition name to identify the bank
 			 * index that the partition corresponds to. This convention also needs
 			 * to be used by the bootloader to ensure that there is a consistent
@@ -126,7 +119,6 @@ int gpt_fwu_configure(const struct uuid_octets *device_uuid,
 			else if (entry.name[0] == '1')
 				bank_index = 1;
 			else {
-
 				EMSG("Invalid bank index in partition name");
 				goto abnormal_exit;
 			}
@@ -138,30 +130,26 @@ int gpt_fwu_configure(const struct uuid_octets *device_uuid,
 				(const struct uuid_octets *)&entry.unique_uuid, device_uuid);
 
 			if (!volume) {
-
 				EMSG("Failed to create volume");
 				goto abnormal_exit;
 			}
 
-			status = volume_index_add(
-				banked_volume_id(installer->location_id,
-					banked_usage_id(bank_index)), volume);
+			status = volume_index_add(banked_volume_id(installer->location_id,
+								   banked_usage_id(bank_index)),
+						  volume);
 
 			if (status) {
-
 				volume_factory_destroy_volume(volume);
 				EMSG("Failed to register volume");
 				goto abnormal_exit;
 			}
 
 		} else {
-
 			/* Not an updatable partition but it might be for FWU metadata */
-			status = create_and_register_metadata_volume(device_uuid,
-				&entry, &metadata_partition_count);
+			status = create_and_register_metadata_volume(device_uuid, &entry,
+								     &metadata_partition_count);
 
 			if (status) {
-
 				EMSG("Failed to create metadata volume");
 				goto abnormal_exit;
 			}
@@ -180,9 +168,9 @@ abnormal_exit:
 	return status;
 }
 
-static struct installer *create_and_register_installers(
-	const struct uuid_octets *partition_type_uuid,
-	unsigned int location_id)
+static struct installer *
+create_and_register_installers(const struct uuid_octets *partition_type_uuid,
+			       unsigned int location_id)
 {
 	/* Attempt to create a complete set of installers for updating images
 	 * contained within a partition of the specified type. The installer_factory
@@ -193,29 +181,26 @@ static struct installer *create_and_register_installers(
 	struct installer *last_constructed = NULL;
 	struct installer *installer = NULL;
 
-	installer = installer_factory_create_installer(
-		INSTALL_TYPE_WHOLE_VOLUME, location_id, partition_type_uuid);
+	installer = installer_factory_create_installer(INSTALL_TYPE_WHOLE_VOLUME, location_id,
+						       partition_type_uuid);
 
 	if (installer) {
-
 		installer_index_register(installer);
 		last_constructed = installer;
 	}
 
-	installer = installer_factory_create_installer(
-		INSTALL_TYPE_SUB_VOLUME, location_id, partition_type_uuid);
+	installer = installer_factory_create_installer(INSTALL_TYPE_SUB_VOLUME, location_id,
+						       partition_type_uuid);
 
 	if (installer) {
-
 		installer_index_register(installer);
 		last_constructed = installer;
 	}
 
-	installer = installer_factory_create_installer(
-		INSTALL_TYPE_WHOLE_VOLUME_COPY, location_id, partition_type_uuid);
+	installer = installer_factory_create_installer(INSTALL_TYPE_WHOLE_VOLUME_COPY, location_id,
+						       partition_type_uuid);
 
 	if (installer) {
-
 		installer_index_register(installer);
 		last_constructed = installer;
 	}
@@ -223,10 +208,8 @@ static struct installer *create_and_register_installers(
 	return last_constructed;
 }
 
-static int create_and_register_metadata_volume(
-	const struct uuid_octets *device_uuid,
-	gpt_entry_t *entry,
-	unsigned *metadata_count)
+static int create_and_register_metadata_volume(const struct uuid_octets *device_uuid,
+					       gpt_entry_t *entry, unsigned int *metadata_count)
 {
 	struct uuid_octets guid;
 
@@ -252,7 +235,6 @@ static int create_and_register_metadata_volume(
 		return -EIO;
 
 	if (volume_index_add(volume_id, volume)) {
-
 		volume_factory_destroy_volume(volume);
 		return -EIO;
 	}

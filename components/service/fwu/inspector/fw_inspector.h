@@ -35,9 +35,7 @@ struct fw_directory;
  *
  * \return FWU status
  */
-typedef int (*fw_inspector_inspect)(
-	struct fw_directory *fw_dir,
-	unsigned int boot_index);
+typedef int (*fw_inspector_inspect)(struct fw_directory *fw_dir, unsigned int boot_index);
 
 #ifdef __cplusplus
 }

@@ -21,15 +21,12 @@
  */
 
 /* Location UUID for application processor firmware */
-#define LOCATION_UUID_AP_FW \
-	"2451cd6e-90fe-4b15-bf10-a69bce2d4486"
+#define LOCATION_UUID_AP_FW "2451cd6e-90fe-4b15-bf10-a69bce2d4486"
 
 /* Location UUID for SCP firmware */
-#define LOCATION_UUID_SCP_FW \
-	"691d5ea3-27fe-4104-badd-7539c00a9095"
+#define LOCATION_UUID_SCP_FW "691d5ea3-27fe-4104-badd-7539c00a9095"
 
 /* Location UUID for RSS firmware */
-#define LOCATION_UUID_RSS_FW \
-	"c948a156-58cb-4c38-b406-e60bff2223d5"
+#define LOCATION_UUID_RSS_FW "c948a156-58cb-4c38-b406-e60bff2223d5"
 
 #endif /* INSTALLER_FACTORY_LOCATIONS_H */

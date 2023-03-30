@@ -4,16 +4,17 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <string>
-#include <cstring>
-#include <common/uuid/uuid.h>
-#include <service/block_storage/factory/ref_ram_gpt/block_store_factory.h>
-#include <service/block_storage/config/ref/ref_partition_configurator.h>
-#include <media/volume/index/volume_index.h>
-#include <media/volume/block_volume/block_volume.h>
-#include <media/disk/gpt_iterator/gpt_iterator.h>
-#include <media/disk/guid.h>
 #include <CppUTest/TestHarness.h>
+#include <cstring>
+#include <string>
+
+#include "common/uuid/uuid.h"
+#include "media/disk/gpt_iterator/gpt_iterator.h"
+#include "media/disk/guid.h"
+#include "media/volume/block_volume/block_volume.h"
+#include "media/volume/index/volume_index.h"
+#include "service/block_storage/config/ref/ref_partition_configurator.h"
+#include "service/block_storage/factory/ref_ram_gpt/block_store_factory.h"
 
 TEST_GROUP(GptIteratorTests)
 {
@@ -27,13 +28,12 @@ TEST_GROUP(GptIteratorTests)
 
 		/* Use partition exposed for accessing the disk header */
 		uuid_guid_octets_from_canonical(&m_partition_guid,
-			DISK_GUID_UNIQUE_PARTITION_DISK_HEADER);
+						DISK_GUID_UNIQUE_PARTITION_DISK_HEADER);
 
 		m_volume = NULL;
 
-		int status = block_volume_init(&m_block_volume,
-			m_block_store, &m_partition_guid,
-			&m_volume);
+		int status = block_volume_init(&m_block_volume, m_block_store, &m_partition_guid,
+					       &m_volume);
 
 		LONGS_EQUAL(0, status);
 		CHECK_TRUE(m_volume);
@@ -131,7 +131,6 @@ TEST(GptIteratorTests, iterateOverRefGpt)
 	gpt_iterator_next(&m_iter);
 
 	while (!gpt_iterator_is_done(&m_iter)) {
-
 		status = gpt_iterator_current(&m_iter, &gpt_entry);
 		LONGS_EQUAL(0, status);
 		CHECK_FALSE(check_in_use(&gpt_entry));

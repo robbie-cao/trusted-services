@@ -9,7 +9,8 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <service/fwu/agent/install_type.h>
+
+#include "service/fwu/agent/install_type.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,8 +45,7 @@ void installer_index_clear(void);
  *
  * @param[in] installer      The installer to use
  */
-void installer_index_register(
-	struct installer *installer);
+void installer_index_register(struct installer *installer);
 
 /**
  * @brief  Find an installer for the specified type and location
@@ -55,9 +55,7 @@ void installer_index_register(
  *
  * @return Pointer to a concrete installer or NULL if none found
  */
-struct installer *installer_index_find(
-	enum install_type install_type,
-	uint32_t location_id);
+struct installer *installer_index_find(enum install_type install_type, uint32_t location_id);
 
 /**
  * @brief  Find a registered installer associated with the specified location UUID
@@ -66,8 +64,7 @@ struct installer *installer_index_find(
  *
  * @return Pointer to a concrete installer or NULL if none found
  */
-struct installer *installer_index_find_by_location_uuid(
-	const struct uuid_octets *location_uuid);
+struct installer *installer_index_find_by_location_uuid(const struct uuid_octets *location_uuid);
 
 /**
  * @brief  Iterator function

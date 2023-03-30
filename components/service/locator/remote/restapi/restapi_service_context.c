@@ -4,18 +4,19 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "restapi_service_context.h"
+
 #include <stdlib.h>
 #include <string.h>
-#include <trace.h>
-#include <rpc/http/caller/http_caller.h>
-#include "restapi_service_context.h"
+
+#include "rpc/http/caller/http_caller.h"
+#include "trace.h"
 
 /**
  * A service_context that represents a service instance reached via
  * a remote REST API
  */
-struct restapi_service_context
-{
+struct restapi_service_context {
 	struct service_context service_context;
 	char rpc_call_url[HTTP_CALLER_MAX_URL_LEN];
 };
@@ -24,7 +25,6 @@ struct restapi_service_context
 static rpc_session_handle restapi_service_context_open(void *context, struct rpc_caller **caller);
 static void restapi_service_context_close(void *context, rpc_session_handle session_handle);
 static void restapi_service_context_relinquish(void *context);
-
 
 struct service_context *restapi_service_context_create(const char *service_url)
 {
@@ -52,10 +52,10 @@ static rpc_session_handle restapi_service_context_open(void *context, struct rpc
 	struct restapi_service_context *this_context = (struct restapi_service_context *)context;
 	rpc_session_handle session_handle = NULL;
 
-	struct http_caller *http_caller = (struct http_caller *)calloc(1, sizeof(struct http_caller));
+	struct http_caller *http_caller =
+		(struct http_caller *)calloc(1, sizeof(struct http_caller));
 
 	if (http_caller) {
-
 		*caller = http_caller_init(http_caller);
 
 		int status = http_caller_open(http_caller, this_context->rpc_call_url);
@@ -63,8 +63,7 @@ static rpc_session_handle restapi_service_context_open(void *context, struct rpc
 		if (status == 0) {
 			/* Successfully opened session */
 			session_handle = http_caller;
-		}
-		else {
+		} else {
 			/* Failed to open session */
 			http_caller_close(http_caller);
 			http_caller_deinit(http_caller);
@@ -82,7 +81,6 @@ static void restapi_service_context_close(void *context, rpc_session_handle sess
 	(void)context;
 
 	if (http_caller) {
-
 		http_caller_close(http_caller);
 		http_caller_deinit(http_caller);
 		free(http_caller);

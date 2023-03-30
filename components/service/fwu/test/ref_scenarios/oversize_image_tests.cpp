@@ -4,12 +4,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <vector>
-#include <protocols/service/fwu/packed-c/status.h>
 #include <CppUTest/TestHarness.h>
-#include <service/fwu/test/image_directory_checker/image_directory_checker.h>
-#include <service/fwu/test/fwu_dut_factory/fwu_dut_factory.h>
-#include <service/fwu/test/fwu_dut/fwu_dut.h>
+#include <vector>
+
+#include "protocols/service/fwu/packed-c/status.h"
+#include "service/fwu/test/fwu_dut/fwu_dut.h"
+#include "service/fwu/test/fwu_dut_factory/fwu_dut_factory.h"
+#include "service/fwu/test/image_directory_checker/image_directory_checker.h"
 
 /*
  * Tests that check behaviour when oversize images are installed.
@@ -38,8 +39,7 @@ TEST_GROUP(FwuOversizeImageTests)
 		int status = dir_checker.fetch_image_directory(m_fwu_client);
 		LONGS_EQUAL(0, status);
 
-		const struct ts_fwu_image_info_entry *img_entry =
-			dir_checker.find_entry(uuid);
+		const struct ts_fwu_image_info_entry *img_entry = dir_checker.find_entry(uuid);
 		CHECK_TRUE(img_entry);
 
 		return static_cast<size_t>(img_entry->img_max_size);
@@ -77,7 +77,8 @@ TEST(FwuOversizeImageTests, maxSizeInstall)
 	LONGS_EQUAL(FWU_STATUS_SUCCESS, status);
 
 	status = m_fwu_client->write_stream(stream_handle,
-		reinterpret_cast<const uint8_t *>(image_data.data()), image_data.size());
+					    reinterpret_cast<const uint8_t *>(image_data.data()),
+					    image_data.size());
 	LONGS_EQUAL(FWU_STATUS_SUCCESS, status);
 
 	status = m_fwu_client->commit(stream_handle, false);
@@ -120,7 +121,8 @@ TEST(FwuOversizeImageTests, oversizeInstallCancelStaging)
 	LONGS_EQUAL(FWU_STATUS_SUCCESS, status);
 
 	status = m_fwu_client->write_stream(stream_handle,
-		reinterpret_cast<const uint8_t *>(image_data.data()), image_data.size());
+					    reinterpret_cast<const uint8_t *>(image_data.data()),
+					    image_data.size());
 	LONGS_EQUAL(FWU_STATUS_OUT_OF_BOUNDS, status);
 
 	/* Client response to the error by cancelling staging */
@@ -161,7 +163,8 @@ TEST(FwuOversizeImageTests, oversizeInstallEndStaging)
 	LONGS_EQUAL(FWU_STATUS_SUCCESS, status);
 
 	status = m_fwu_client->write_stream(stream_handle,
-		reinterpret_cast<const uint8_t *>(image_data.data()), image_data.size());
+					    reinterpret_cast<const uint8_t *>(image_data.data()),
+					    image_data.size());
 	LONGS_EQUAL(FWU_STATUS_OUT_OF_BOUNDS, status);
 
 	status = m_fwu_client->commit(stream_handle, false);
@@ -211,7 +214,8 @@ TEST(FwuOversizeImageTests, oversizeInstallMultiLocationEndStaging)
 	LONGS_EQUAL(FWU_STATUS_SUCCESS, status);
 
 	status = m_fwu_client->write_stream(stream_handle,
-		reinterpret_cast<const uint8_t *>(image_data.data()), image_data.size());
+					    reinterpret_cast<const uint8_t *>(image_data.data()),
+					    image_data.size());
 	LONGS_EQUAL(FWU_STATUS_SUCCESS, status);
 
 	status = m_fwu_client->commit(stream_handle, false);
@@ -226,7 +230,8 @@ TEST(FwuOversizeImageTests, oversizeInstallMultiLocationEndStaging)
 	LONGS_EQUAL(FWU_STATUS_SUCCESS, status);
 
 	status = m_fwu_client->write_stream(stream_handle,
-		reinterpret_cast<const uint8_t *>(image_data.data()), image_data.size());
+					    reinterpret_cast<const uint8_t *>(image_data.data()),
+					    image_data.size());
 	LONGS_EQUAL(FWU_STATUS_OUT_OF_BOUNDS, status);
 
 	status = m_fwu_client->commit(stream_handle, false);
@@ -241,7 +246,8 @@ TEST(FwuOversizeImageTests, oversizeInstallMultiLocationEndStaging)
 	LONGS_EQUAL(FWU_STATUS_SUCCESS, status);
 
 	status = m_fwu_client->write_stream(stream_handle,
-		reinterpret_cast<const uint8_t *>(image_data.data()), image_data.size());
+					    reinterpret_cast<const uint8_t *>(image_data.data()),
+					    image_data.size());
 	LONGS_EQUAL(FWU_STATUS_SUCCESS, status);
 
 	status = m_fwu_client->commit(stream_handle, false);

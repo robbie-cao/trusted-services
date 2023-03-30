@@ -4,8 +4,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <common/uuid/uuid.h>
 #include "print_uuid.h"
+
+#include "common/uuid/uuid.h"
 
 std::string print_uuid(const uint8_t *uuid_octets)
 {

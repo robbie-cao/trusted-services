@@ -4,19 +4,21 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <assert.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <trace.h>
-#include <curl/curl.h>
-#include <protocols/rpc/common/packed-c/status.h>
-#include <protocols/rpc/common/packed-c/header.h>
 #include "http_caller.h"
 
-#define USER_AGENT	"libcurl-agent/1.0"
+#include <assert.h>
+#include <curl/curl.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "protocols/rpc/common/packed-c/header.h"
+#include "protocols/rpc/common/packed-c/status.h"
+#include "trace.h"
+
+#define USER_AGENT "libcurl-agent/1.0"
 
 struct payload_buffer {
 	uint8_t *data;
@@ -24,10 +26,9 @@ struct payload_buffer {
 	size_t pos;
 };
 
-
 static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_len);
 static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t opcode,
-	rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len);
+				rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len);
 static void call_end(void *context, rpc_call_handle handle);
 
 static size_t request_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
@@ -36,8 +37,8 @@ static size_t request_callback(char *ptr, size_t size, size_t nmemb, void *userd
 	struct payload_buffer *buf = (struct payload_buffer *)userdata;
 
 	size_t bytes_remaining = buf->size - buf->pos;
-	size_t bytes_to_send = (bytes_remaining < bytes_requested) ?
-		bytes_remaining : bytes_requested;
+	size_t bytes_to_send = (bytes_remaining < bytes_requested) ? bytes_remaining :
+								     bytes_requested;
 
 	memcpy(ptr, &buf->data[buf->pos], bytes_to_send);
 
@@ -64,9 +65,7 @@ static size_t response_callback(char *ptr, size_t size, size_t nmemb, void *user
 	return bytes_received;
 }
 
-static bool send_head_request(const char *url,
-	struct payload_buffer *response_buf,
-	long *http_code)
+static bool send_head_request(const char *url, struct payload_buffer *response_buf, long *http_code)
 {
 	assert(url);
 	assert(response_buf);
@@ -77,7 +76,6 @@ static bool send_head_request(const char *url,
 	*http_code = 0;
 
 	if (curl_session) {
-
 		curl_easy_setopt(curl_session, CURLOPT_URL, url);
 		curl_easy_setopt(curl_session, CURLOPT_NOBODY, 1L);
 		curl_easy_setopt(curl_session, CURLOPT_WRITEFUNCTION, response_callback);
@@ -87,9 +85,9 @@ static bool send_head_request(const char *url,
 		CURLcode status = curl_easy_perform(curl_session);
 
 		if (status == CURLE_OK) {
-
 			status = curl_easy_getinfo(curl_session, CURLINFO_RESPONSE_CODE, http_code);
-			is_success = (status == CURLE_OK) && (*http_code >= 200) && (*http_code < 300);
+			is_success = (status == CURLE_OK) && (*http_code >= 200) &&
+				     (*http_code < 300);
 		}
 
 		curl_easy_cleanup(curl_session);
@@ -100,9 +98,8 @@ static bool send_head_request(const char *url,
 	return is_success;
 }
 
-static bool send_put_request(const char *url,
-	struct payload_buffer *request_buf,
-	struct payload_buffer *response_buf)
+static bool send_put_request(const char *url, struct payload_buffer *request_buf,
+			     struct payload_buffer *response_buf)
 {
 	bool is_success = false;
 
@@ -113,12 +110,12 @@ static bool send_put_request(const char *url,
 	CURL *curl_session = curl_easy_init();
 
 	if (curl_session) {
-
 		curl_easy_setopt(curl_session, CURLOPT_UPLOAD, 1L);
 		curl_easy_setopt(curl_session, CURLOPT_URL, url);
 		curl_easy_setopt(curl_session, CURLOPT_READFUNCTION, request_callback);
 		curl_easy_setopt(curl_session, CURLOPT_READDATA, (void *)request_buf);
-		curl_easy_setopt(curl_session, CURLOPT_INFILESIZE_LARGE, (curl_off_t)request_buf->size);
+		curl_easy_setopt(curl_session, CURLOPT_INFILESIZE_LARGE,
+				 (curl_off_t)request_buf->size);
 		curl_easy_setopt(curl_session, CURLOPT_WRITEFUNCTION, response_callback);
 		curl_easy_setopt(curl_session, CURLOPT_WRITEDATA, (void *)response_buf);
 		curl_easy_setopt(curl_session, CURLOPT_USERAGENT, USER_AGENT);
@@ -126,11 +123,12 @@ static bool send_put_request(const char *url,
 		CURLcode status = curl_easy_perform(curl_session);
 
 		if (status == CURLE_OK) {
-
 			long http_code = 0;
 
-			status = curl_easy_getinfo(curl_session, CURLINFO_RESPONSE_CODE, &http_code);
-			is_success = (status == CURLE_OK) && (http_code >= 200) && (http_code < 300);
+			status =
+				curl_easy_getinfo(curl_session, CURLINFO_RESPONSE_CODE, &http_code);
+			is_success = (status == CURLE_OK) && (http_code >= 200) &&
+				     (http_code < 300);
 		}
 
 		curl_easy_cleanup(curl_session);
@@ -141,10 +139,8 @@ static bool send_put_request(const char *url,
 	return is_success;
 }
 
-static void prepare_call_url(const struct http_caller *s,
-	unsigned int opcode,
-	char *url_buf,
-	size_t url_buf_size)
+static void prepare_call_url(const struct http_caller *s, unsigned int opcode, char *url_buf,
+			     size_t url_buf_size)
 {
 	size_t base_url_len = strnlen(s->rpc_call_url, HTTP_CALLER_MAX_URL_LEN);
 
@@ -156,14 +152,12 @@ static void prepare_call_url(const struct http_caller *s,
 
 	/* Ensure '/' is present before adding opcode */
 	if (url_buf[base_url_len - 1] != '/') {
-
 		url_buf[base_url_len] = '/';
 		base_url_len += 1;
 	}
 
 	size_t remaining_space = url_buf_size - base_url_len;
-	size_t opcode_len = snprintf(&url_buf[base_url_len],
-		remaining_space, "%u", opcode);
+	size_t opcode_len = snprintf(&url_buf[base_url_len], remaining_space, "%u", opcode);
 
 	assert(opcode_len < remaining_space);
 }
@@ -234,9 +228,7 @@ int http_caller_close(struct http_caller *s)
 	return 0;
 }
 
-static rpc_call_handle call_begin(void *context,
-	uint8_t **req_buf,
-	size_t req_len)
+static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_len)
 {
 	assert(context);
 	assert(req_buf || !req_len);
@@ -245,13 +237,11 @@ static rpc_call_handle call_begin(void *context,
 	struct http_caller *s = (struct http_caller *)context;
 
 	if (!s->req_body_buf) {
-
 		size_t req_body_size = sizeof(struct ts_rpc_req_hdr) + req_len;
 
 		s->req_body_buf = malloc(req_body_size);
 
 		if (s->req_body_buf) {
-
 			memset(s->req_body_buf, 0, req_body_size);
 
 			handle = s;
@@ -271,12 +261,8 @@ static rpc_call_handle call_begin(void *context,
 	return handle;
 }
 
-static rpc_status_t call_invoke(void *context,
-	rpc_call_handle handle,
-	uint32_t opcode,
-	rpc_opstatus_t *opstatus,
-	uint8_t **resp_buf,
-	size_t *resp_len)
+static rpc_status_t call_invoke(void *context, const rpc_call_handle handle, uint32_t opcode,
+				rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len)
 {
 	rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
 	struct http_caller *s = (struct http_caller *)context;
@@ -284,10 +270,9 @@ static rpc_status_t call_invoke(void *context,
 	*resp_len = 0;
 
 	if ((handle == s) && s->req_body_buf) {
-
 		struct ts_rpc_req_hdr *rpc_hdr = (struct ts_rpc_req_hdr *)s->req_body_buf;
-		struct payload_buffer request_buf = {0};
-		struct payload_buffer response_buf = {0};
+		struct payload_buffer request_buf = { 0 };
+		struct payload_buffer response_buf = { 0 };
 
 		rpc_status = TS_RPC_ERROR_EP_DOES_NOT_EXIT;
 
@@ -300,27 +285,25 @@ static rpc_status_t call_invoke(void *context,
 
 		prepare_call_url(s, opcode, call_url, sizeof(call_url));
 
-		if (send_put_request(call_url, &request_buf, &response_buf) &&
-			response_buf.data &&
-			response_buf.size >= sizeof(struct ts_rpc_resp_hdr)) {
-
-			struct ts_rpc_resp_hdr *resp_hdr = (struct ts_rpc_resp_hdr *)response_buf.data;
-			size_t response_param_len = response_buf.size - sizeof(struct ts_rpc_resp_hdr);
+		if (send_put_request(call_url, &request_buf, &response_buf) && response_buf.data &&
+		    response_buf.size >= sizeof(struct ts_rpc_resp_hdr)) {
+			struct ts_rpc_resp_hdr *resp_hdr =
+				(struct ts_rpc_resp_hdr *)response_buf.data;
+			size_t response_param_len =
+				response_buf.size - sizeof(struct ts_rpc_resp_hdr);
 
 			if (resp_hdr->param_len == response_param_len) {
-
 				rpc_status = resp_hdr->rpc_status;
 
 				if (rpc_status == TS_RPC_CALL_ACCEPTED) {
-
-					*resp_buf = &response_buf.data[sizeof(struct ts_rpc_resp_hdr)];
+					*resp_buf =
+						&response_buf.data[sizeof(struct ts_rpc_resp_hdr)];
 					*resp_len = response_param_len;
 
 					*opstatus = resp_hdr->op_status;
 				}
 
 			} else {
-
 				rpc_status = TS_RPC_ERROR_INVALID_RESP_BODY;
 			}
 		}
@@ -329,12 +312,11 @@ static rpc_status_t call_invoke(void *context,
 	return rpc_status;
 }
 
-static void call_end(void *context, rpc_call_handle handle)
+static void call_end(void *context, const rpc_call_handle handle)
 {
 	struct http_caller *s = (struct http_caller *)context;
 
 	if ((handle == s) && s->req_body_buf) {
-
 		free(s->req_body_buf);
 		s->req_body_buf = NULL;
 

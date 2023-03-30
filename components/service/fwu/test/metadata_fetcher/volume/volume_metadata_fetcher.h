@@ -7,20 +7,17 @@
 #ifndef VOLUME_METADATA_FETCHER_H
 #define VOLUME_METADATA_FETCHER_H
 
-#include <service/fwu/test/metadata_fetcher/metadata_fetcher.h>
-#include <media/volume/block_volume/block_volume.h>
+#include "media/volume/block_volume/block_volume.h"
+#include "service/fwu/test/metadata_fetcher/metadata_fetcher.h"
 
 /*
  * A metadata_fetcher that fetches fwu metadata from a storage volume
  * that provides access to the disk partition used for fwu metadata.
  */
-class volume_metadata_fetcher : public metadata_fetcher
-{
+class volume_metadata_fetcher : public metadata_fetcher {
 public:
-
-	volume_metadata_fetcher(
-		const struct uuid_octets *partition_guid,
-		struct block_store *block_store);
+	volume_metadata_fetcher(const struct uuid_octets *partition_guid,
+				struct block_store *block_store);
 
 	~volume_metadata_fetcher();
 

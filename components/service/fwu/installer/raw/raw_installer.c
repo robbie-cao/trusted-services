@@ -5,29 +5,26 @@
  *
  */
 
+#include "raw_installer.h"
+
 #include <assert.h>
 #include <stddef.h>
 #include <string.h>
-#include <media/volume/index/volume_index.h>
-#include <service/fwu/agent/fw_directory.h>
-#include <protocols/service/fwu/packed-c/status.h>
-#include "raw_installer.h"
 
+#include "media/volume/index/volume_index.h"
+#include "protocols/service/fwu/packed-c/status.h"
+#include "service/fwu/agent/fw_directory.h"
 
-static int raw_installer_begin(void *context,
-	unsigned int current_volume_id,
-	unsigned int update_volume_id)
+static int raw_installer_begin(void *context, unsigned int current_volume_id,
+			       unsigned int update_volume_id)
 {
 	struct raw_installer *subject = (struct raw_installer *)context;
 
 	(void)current_volume_id;
 
-	int status = volume_index_find(
-		update_volume_id,
-		&subject->target_volume);
+	int status = volume_index_find(update_volume_id, &subject->target_volume);
 
 	if (status == 0) {
-
 		assert(subject->target_volume);
 
 		subject->commit_count = 0;
@@ -43,7 +40,6 @@ static int raw_installer_finalize(void *context)
 
 	/* Close volume if left open */
 	if (subject->is_open) {
-
 		assert(subject->target_volume);
 
 		volume_close(subject->target_volume);
@@ -58,8 +54,7 @@ static void raw_installer_abort(void *context)
 	raw_installer_finalize(context);
 }
 
-static int raw_installer_open(void *context,
-	const struct image_info *image_info)
+static int raw_installer_open(void *context, const struct image_info *image_info)
 {
 	struct raw_installer *subject = (struct raw_installer *)context;
 	int status = FWU_STATUS_DENIED;
@@ -71,20 +66,17 @@ static int raw_installer_open(void *context,
 	 * install into a particular location.
 	 */
 	if (!subject->is_open && subject->commit_count < 1) {
-
 		assert(subject->target_volume);
 
 		status = volume_open(subject->target_volume);
 
 		if (!status) {
-
 			/* Prior to writing to the volume to install the image, ensure
 			 * that the volume is erased.
 			 */
 			status = volume_erase(subject->target_volume);
 
 			if (!status) {
-
 				subject->is_open = true;
 				subject->bytes_written = 0;
 			} else {
@@ -103,7 +95,6 @@ static int raw_installer_commit(void *context)
 	int status = FWU_STATUS_DENIED;
 
 	if (subject->is_open) {
-
 		assert(subject->target_volume);
 
 		status = volume_close(subject->target_volume);
@@ -112,7 +103,6 @@ static int raw_installer_commit(void *context)
 		subject->is_open = false;
 
 		if (!status && !subject->bytes_written) {
-
 			/* Installing a zero length image can imply an image delete
 			 * operation. For certain types of installer, this is a legitimate
 			 * operation. For a raw_installer, there really is no way to
@@ -125,22 +115,18 @@ static int raw_installer_commit(void *context)
 	return status;
 }
 
-static int raw_installer_write(void *context,
-	const uint8_t *data,
-	size_t data_len)
+static int raw_installer_write(void *context, const uint8_t *data, size_t data_len)
 {
 	struct raw_installer *subject = (struct raw_installer *)context;
 	int status = FWU_STATUS_DENIED;
 
 	if (subject->is_open) {
-
 		assert(subject->target_volume);
 
 		size_t len_written = 0;
 
-		status = volume_write(subject->target_volume,
-			(const uintptr_t)data, data_len,
-			&len_written);
+		status = volume_write(subject->target_volume, (const uintptr_t)data, data_len,
+				      &len_written);
 
 		subject->bytes_written += len_written;
 
@@ -154,9 +140,8 @@ static int raw_installer_write(void *context,
 	return status;
 }
 
-static int raw_installer_enumerate(void *context,
-	uint32_t volume_id,
-	struct fw_directory *fw_directory)
+static int raw_installer_enumerate(void *context, uint32_t volume_id,
+				   struct fw_directory *fw_directory)
 {
 	struct raw_installer *subject = (struct raw_installer *)context;
 	struct volume *volume = NULL;
@@ -172,7 +157,7 @@ static int raw_installer_enumerate(void *context,
 	 * prepare an entry in the fw_directory to represent the whole volume
 	 * as an advertised updatable image.
 	 */
-	struct image_info image_info = {0};
+	struct image_info image_info = { 0 };
 
 	/* Limit the advertised max size to the volume size. The volume needs
 	 * to be open to query its size.
@@ -205,29 +190,21 @@ static int raw_installer_enumerate(void *context,
 	return status;
 }
 
-void raw_installer_init(struct raw_installer *subject,
-	const struct uuid_octets *location_uuid,
-	uint32_t location_id)
+void raw_installer_init(struct raw_installer *subject, const struct uuid_octets *location_uuid,
+			uint32_t location_id)
 {
 	/* Define concrete installer interface */
 	static const struct installer_interface interface = {
-		raw_installer_begin,
-		raw_installer_finalize,
-		raw_installer_abort,
-		raw_installer_open,
-		raw_installer_commit,
-		raw_installer_write,
+		raw_installer_begin,	raw_installer_finalize, raw_installer_abort,
+		raw_installer_open,	raw_installer_commit,	raw_installer_write,
 		raw_installer_enumerate
 	};
 
 	/* Initialize base installer - a raw_installer is a type of
 	 * installer that always updates a whole volume.
 	 */
-	installer_init(&subject->base_installer,
-		INSTALL_TYPE_WHOLE_VOLUME,
-		location_id,
-		location_uuid,
-		subject, &interface);
+	installer_init(&subject->base_installer, INSTALL_TYPE_WHOLE_VOLUME, location_id,
+		       location_uuid, subject, &interface);
 
 	/* Initialize raw_installer specifics */
 	subject->target_volume = NULL;

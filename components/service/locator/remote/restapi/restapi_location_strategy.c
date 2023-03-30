@@ -4,31 +4,30 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <assert.h>
-#include <unistd.h>
-#include <string.h>
-#include <trace.h>
-#include <service/locator/service_name.h>
-#include <rpc/http/caller/http_caller.h>
 #include "restapi_location_strategy.h"
-#include "restapi_service_context.h"
-#include "restapi_location.h"
 
+#include <assert.h>
+#include <string.h>
+#include <unistd.h>
+
+#include "restapi_location.h"
+#include "restapi_service_context.h"
+#include "rpc/http/caller/http_caller.h"
+#include "service/locator/service_name.h"
+#include "trace.h"
 
 /* Maximum wait for an unresponsive API server. During testing, this period
  * may need to accommodate the boot time for a device under test.
  */
 #ifndef RESTAPI_LOCATOR_MAX_API_WAIT
-#define RESTAPI_LOCATOR_MAX_API_WAIT  (120)
+#define RESTAPI_LOCATOR_MAX_API_WAIT (120)
 #endif
-
 
 static bool probe_api_server(void)
 {
 	unsigned int seconds_waited = 0;
 
 	do {
-
 		long http_code = 0;
 
 		if (http_caller_probe(RESTAPI_LOCATOR_API_URL, &http_code))
@@ -36,7 +35,6 @@ static bool probe_api_server(void)
 
 		/* Failed to reach API or received an error response */
 		if (http_code == 0) {
-
 			/* It's possible that the device hosting the API server is in the
 			 * process of booting up so it's worth waiting and trying again.
 			 */
@@ -44,7 +42,6 @@ static bool probe_api_server(void)
 			++seconds_waited;
 
 		} else {
-
 			/* The server was reached but it returned an error */
 			EMSG("API server HTTP error: %ld", http_code);
 			return false;
@@ -89,7 +86,6 @@ static struct service_context *query(const char *sn, int *status)
 	prepare_service_url(sn, service_url, sizeof(service_url));
 
 	if (!http_caller_probe(service_url, &http_code)) {
-
 		if (http_code != 404)
 			EMSG("Unexpected HTTP error: %ld", http_code);
 

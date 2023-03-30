@@ -9,8 +9,9 @@
 #define FWU_COPY_INSTALLER_H
 
 #include <stdint.h>
-#include <service/fwu/installer/installer.h>
-#include <media/volume/volume.h>
+
+#include "media/volume/volume.h"
+#include "service/fwu/installer/installer.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,9 +43,8 @@ struct copy_installer {
  * \param[in]  location_uuid The associated location UUID
  * \param[in]  location_id Identifies where to install qualifying images
  */
-void copy_installer_init(struct copy_installer *subject,
-	const struct uuid_octets *location_uuid,
-	uint32_t location_id);
+void copy_installer_init(struct copy_installer *subject, const struct uuid_octets *location_uuid,
+			 uint32_t location_id);
 
 /**
  * \brief De-initialize a copy_installer

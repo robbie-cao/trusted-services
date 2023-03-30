@@ -28,12 +28,12 @@ extern "C" {
  */
 
 /* FWU metadata volume IDs. A single location is assumed. */
-#define BANKED_VOLUME_ID_PRIMARY_METADATA       (0xffff0000)
-#define BANKED_VOLUME_ID_BACKUP_METADATA        (0xffff0001)
+#define BANKED_VOLUME_ID_PRIMARY_METADATA (0xffff0000)
+#define BANKED_VOLUME_ID_BACKUP_METADATA  (0xffff0001)
 
 /* Per-location usage IDs for the banked_fw store */
-#define BANKED_USAGE_ID_FW_BANK_A        (0)
-#define BANKED_USAGE_ID_FW_BANK_B        (1)
+#define BANKED_USAGE_ID_FW_BANK_A (0)
+#define BANKED_USAGE_ID_FW_BANK_B (1)
 
 /**
  * \brief Return a volume id constructed from a usage and location id
@@ -50,9 +50,7 @@ extern "C" {
  *
  * \return volume id
  */
-static inline unsigned int banked_volume_id(
-	unsigned int location_id,
-	unsigned int usage_id)
+static inline unsigned int banked_volume_id(unsigned int location_id, unsigned int usage_id)
 {
 	return (location_id << 16) | (usage_id & 0xffff);
 }
@@ -66,8 +64,7 @@ static inline unsigned int banked_volume_id(
  */
 static inline unsigned int banked_usage_id(unsigned int bank_index)
 {
-	return (bank_index == 0) ?
-		BANKED_USAGE_ID_FW_BANK_A : BANKED_USAGE_ID_FW_BANK_B;
+	return (bank_index == 0) ? BANKED_USAGE_ID_FW_BANK_A : BANKED_USAGE_ID_FW_BANK_B;
 }
 
 #ifdef __cplusplus

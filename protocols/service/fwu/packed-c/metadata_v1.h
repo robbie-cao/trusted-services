@@ -12,24 +12,24 @@
 #define FWU_PROTO_METADATA_V1_H
 
 #include <stdint.h>
-#include <protocols/common/osf/uuid.h>
+
 #include "metadata.h"
+#include "protocols/common/osf/uuid.h"
 
 /**
  * FWU metadata version corresponding to these structure definitions.
  */
-#define FWU_METADATA_VERSION           (1)
+#define FWU_METADATA_VERSION (1)
 
 /**
  * The number of image entries in the metadata structure.
  */
 #ifndef FWU_METADATA_NUM_IMAGE_ENTRIES
-#define FWU_METADATA_NUM_IMAGE_ENTRIES    (1)
+#define FWU_METADATA_NUM_IMAGE_ENTRIES (1)
 #endif
 
 /* Properties of image in a bank */
-struct __attribute__ ((__packed__)) fwu_image_properties {
-
+struct __attribute__((__packed__)) fwu_image_properties {
 	/* UUID of the image in this bank */
 	uint8_t img_uuid[OSF_UUID_OCTET_LEN];
 
@@ -41,12 +41,10 @@ struct __attribute__ ((__packed__)) fwu_image_properties {
 
 	/* reserved (MBZ) */
 	uint32_t reserved;
-
 };
 
 /* Image entry information */
-struct __attribute__ ((__packed__)) fwu_image_entry {
-
+struct __attribute__((__packed__)) fwu_image_entry {
 	/* UUID identifying the image type */
 	uint8_t img_type_uuid[OSF_UUID_OCTET_LEN];
 
@@ -55,7 +53,6 @@ struct __attribute__ ((__packed__)) fwu_image_entry {
 
 	/* Properties of images with img_type_uuid in the different FW banks */
 	struct fwu_image_properties img_props[FWU_METADATA_NUM_BANKS];
-
 };
 
 /*
@@ -65,8 +62,7 @@ struct __attribute__ ((__packed__)) fwu_image_entry {
  * 2. Rollback to previous working FW bank.
  * 3. Get properties of all images present in all banks.
  */
-struct __attribute__ ((__packed__)) fwu_metadata {
-
+struct __attribute__((__packed__)) fwu_metadata {
 	/* Metadata CRC value */
 	uint32_t crc_32;
 
@@ -81,7 +77,6 @@ struct __attribute__ ((__packed__)) fwu_metadata {
 
 	/* Image entry information */
 	struct fwu_image_entry img_entry[FWU_METADATA_NUM_IMAGE_ENTRIES];
-
 };
 
 #endif /* FWU_PROTO_METADATA_V1_H */

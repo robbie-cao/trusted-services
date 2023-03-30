@@ -8,7 +8,8 @@
 #define MEDIA_VOLUME_H
 
 #include <stddef.h>
-#include <common/uuid/uuid.h>
+
+#include "common/uuid/uuid.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,7 +32,6 @@ extern "C" {
  * erase function pointer may be set to NULL;
  */
 struct volume {
-
 	/* IO device handle for volume access */
 	uintptr_t dev_handle;
 
@@ -48,9 +48,8 @@ struct volume {
 	int (*erase)(uintptr_t context);
 
 	/* Optional function to get storage IDs for the volume */
-	int (*get_storage_ids)(uintptr_t context,
-		struct uuid_octets *partition_guid,
-		struct uuid_octets *parent_guid);
+	int (*get_storage_ids)(uintptr_t context, struct uuid_octets *partition_guid,
+			       struct uuid_octets *parent_guid);
 };
 
 /**
@@ -62,10 +61,8 @@ struct volume {
  * @param[in] io_dev_funcs   io_dev function struct for concrete handlers
  * @param[in] concrete_volume Pointer to the concrete volume instance
  */
-void volume_init(
-	struct volume *this_volume,
-	const io_dev_funcs_t *io_dev_funcs,
-	uintptr_t concrete_volume);
+void volume_init(struct volume *this_volume, const io_dev_funcs_t *io_dev_funcs,
+		 uintptr_t concrete_volume);
 
 /**
  * @brief  Open the volume for IO operations
@@ -74,8 +71,7 @@ void volume_init(
  *
  * @return 0 on success
  */
-int volume_open(
-	struct volume *this_volume);
+int volume_open(struct volume *this_volume);
 
 /**
  * @brief  Close the volume when done with IO operations
@@ -84,8 +80,7 @@ int volume_open(
  *
  * @return 0 on success
  */
-int volume_close(
-	struct volume *this_volume);
+int volume_close(struct volume *this_volume);
 
 /**
  * @brief  Seek to the specified position
@@ -96,10 +91,7 @@ int volume_close(
  *
  * @return 0 on success
  */
-int volume_seek(
-	struct volume *this_volume,
-	io_seek_mode_t mode,
-	signed long long offset);
+int volume_seek(struct volume *this_volume, io_seek_mode_t mode, signed long long offset);
 
 /**
  * @brief  Get the size of the volume
@@ -109,9 +101,7 @@ int volume_seek(
  *
  * @return 0 on success
  */
-int volume_size(
-	struct volume *this_volume,
-	size_t *size);
+int volume_size(struct volume *this_volume, size_t *size);
 
 /**
  * @brief  Read from the volume
@@ -125,11 +115,7 @@ int volume_size(
  *
  * @return 0 on success
  */
-int volume_read(
-	struct volume *this_volume,
-	uintptr_t buffer,
-	size_t length,
-	size_t *length_read);
+int volume_read(struct volume *this_volume, uintptr_t buffer, size_t length, size_t *length_read);
 
 /**
  * @brief  Write the volume
@@ -143,11 +129,8 @@ int volume_read(
  *
  * @return 0 on success
  */
-int volume_write(
-	struct volume *this_volume,
-	const uintptr_t buffer,
-	size_t length,
-	size_t *length_written);
+int volume_write(struct volume *this_volume, const uintptr_t buffer, size_t length,
+		 size_t *length_written);
 
 /**
  * @brief  Erase the entire volume
@@ -156,8 +139,7 @@ int volume_write(
  *
  * @return 0 on success
  */
-int volume_erase(
-	struct volume *this_volume);
+int volume_erase(struct volume *this_volume);
 
 /**
  * @brief  Get GUIDs to identify the storage associated with the volume
@@ -170,10 +152,8 @@ int volume_erase(
  *
  * @return 0 on success, ENOSYS if not supported
  */
-int volume_get_storage_ids(
-	struct volume *this_volume,
-	struct uuid_octets *partition_guid,
-	struct uuid_octets *parent_guid);
+int volume_get_storage_ids(struct volume *this_volume, struct uuid_octets *partition_guid,
+			   struct uuid_octets *parent_guid);
 
 #ifdef __cplusplus
 }

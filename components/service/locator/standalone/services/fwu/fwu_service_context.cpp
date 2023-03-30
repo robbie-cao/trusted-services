@@ -6,23 +6,19 @@
 
 #include "fwu_service_context.h"
 
-
 struct rpc_interface *fwu_service_context::m_provider_iface = NULL;
 
-fwu_service_context::fwu_service_context(const char *sn) :
-	standalone_service_context(sn),
-	m_rpc_demux()
+fwu_service_context::fwu_service_context(const char *sn)
+	: standalone_service_context(sn)
+	, m_rpc_demux()
 {
-
 }
 
 fwu_service_context::~fwu_service_context()
 {
-
 }
 
-void fwu_service_context::set_provider(
-	struct rpc_interface *iface)
+void fwu_service_context::set_provider(struct rpc_interface *iface)
 {
 	m_provider_iface = iface;
 }
@@ -36,7 +32,6 @@ void fwu_service_context::do_init()
 	struct rpc_interface *rpc_iface = rpc_demux_init(&m_rpc_demux);
 
 	if (m_provider_iface) {
-
 		/* A service provider is available. This facility allows a test
 		 * case to apply an fwu_provider with a particular configuration
 		 * to suite test goals.
@@ -53,8 +48,7 @@ void fwu_service_context::do_deinit()
 	set_provider(NULL);
 }
 
-void fwu_service_context_set_provider(
-	struct rpc_interface *iface)
+void fwu_service_context_set_provider(struct rpc_interface *iface)
 {
 	fwu_service_context::set_provider(iface);
 }

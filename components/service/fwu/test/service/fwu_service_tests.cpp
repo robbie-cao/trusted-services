@@ -4,12 +4,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <vector>
-#include <protocols/service/fwu/packed-c/status.h>
 #include <CppUTest/TestHarness.h>
-#include <service/fwu/test/image_directory_checker/image_directory_checker.h>
-#include <service/fwu/test/fwu_dut_factory/fwu_dut_factory.h>
-#include <service/fwu/test/fwu_dut/fwu_dut.h>
+#include <vector>
+
+#include "protocols/service/fwu/packed-c/status.h"
+#include "service/fwu/test/fwu_dut/fwu_dut.h"
+#include "service/fwu/test/fwu_dut_factory/fwu_dut_factory.h"
+#include "service/fwu/test/image_directory_checker/image_directory_checker.h"
 
 /*
  * FWU service level tests that can be run with other service level tests.

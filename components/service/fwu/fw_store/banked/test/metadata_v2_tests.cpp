@@ -4,15 +4,15 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <cstddef>
-#include <protocols/service/fwu/packed-c/metadata_v2.h>
 #include <CppUTest/TestHarness.h>
+#include <cstddef>
+
+#include "protocols/service/fwu/packed-c/metadata_v2.h"
 
 /* Tests check FWU metadata protocol definitions are aligned to the FWU-A
  * specification.
 */
-TEST_GROUP(FwuMetadataV2Tests)
-{
+TEST_GROUP(FwuMetadataV2Tests){
 
 };
 
@@ -23,12 +23,14 @@ TEST(FwuMetadataV2Tests, checkHeaderStructure)
 	UNSIGNED_LONGS_EQUAL(0x04, offsetof(fwu_metadata, version));
 	UNSIGNED_LONGS_EQUAL(0x08, offsetof(fwu_metadata, metadata_size));
 	UNSIGNED_LONGS_EQUAL(0x0c, offsetof(fwu_metadata, header_size));
-	UNSIGNED_LONGS_EQUAL(0x0e, offsetof(fwu_metadata, active_index));  /* Note spec incorrectly says 0x0d - fed back */
+	/* Note: spec incorrectly says 0x0d - fed back */
+	UNSIGNED_LONGS_EQUAL(0x0e, offsetof(fwu_metadata, active_index));
 	UNSIGNED_LONGS_EQUAL(0x0f, offsetof(fwu_metadata, previous_active_index));
 	UNSIGNED_LONGS_EQUAL(0x10, offsetof(fwu_metadata, bank_state));
 
 	/* Check header size aligns with expected offset of optional fw_store_desc */
-	UNSIGNED_LONGS_EQUAL(0x14, sizeof(struct fwu_metadata));  /* Note spec incorrectly says 0x11 - fed back */
+	/* Note: spec incorrectly says 0x11 - fed back */
+	UNSIGNED_LONGS_EQUAL(0x14, sizeof(struct fwu_metadata));
 }
 
 TEST(FwuMetadataV2Tests, checkFwStoreDescStructure)

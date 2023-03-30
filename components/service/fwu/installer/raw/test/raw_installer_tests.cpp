@@ -4,20 +4,21 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <CppUTest/TestHarness.h>
 #include <cstdlib>
 #include <cstring>
-#include <common/uuid/uuid.h>
-#include <media/disk/guid.h>
-#include <media/volume/block_volume/block_volume.h>
-#include <media/volume/index/volume_index.h>
-#include <media/volume/volume.h>
-#include <service/block_storage/factory/ref_ram_gpt/block_store_factory.h>
-#include <service/block_storage/config/ref/ref_partition_configurator.h>
-#include <service/fwu/installer/raw/raw_installer.h>
-#include <service/fwu/installer/installer_index.h>
-#include <service/fwu/fw_store/banked/volume_id.h>
-#include <service/fwu/agent/fw_directory.h>
-#include <CppUTest/TestHarness.h>
+
+#include "common/uuid/uuid.h"
+#include "media/disk/guid.h"
+#include "media/volume/block_volume/block_volume.h"
+#include "media/volume/index/volume_index.h"
+#include "media/volume/volume.h"
+#include "service/block_storage/config/ref/ref_partition_configurator.h"
+#include "service/block_storage/factory/ref_ram_gpt/block_store_factory.h"
+#include "service/fwu/agent/fw_directory.h"
+#include "service/fwu/fw_store/banked/volume_id.h"
+#include "service/fwu/installer/installer_index.h"
+#include "service/fwu/installer/raw/raw_installer.h"
 
 TEST_GROUP(FwuRawInstallerTests)
 {
@@ -39,9 +40,8 @@ TEST_GROUP(FwuRawInstallerTests)
 		/* Construct fw volume A */
 		uuid_guid_octets_from_canonical(&partition_guid, REF_PARTITION_1_GUID);
 
-		result = block_volume_init(&m_block_volume_a,
-			m_block_store, &partition_guid,
-			&m_fw_volume_a);
+		result = block_volume_init(&m_block_volume_a, m_block_store, &partition_guid,
+					   &m_fw_volume_a);
 
 		LONGS_EQUAL(0, result);
 		CHECK_TRUE(m_fw_volume_a);
@@ -49,9 +49,8 @@ TEST_GROUP(FwuRawInstallerTests)
 		/* Construct fw volume B */
 		uuid_guid_octets_from_canonical(&partition_guid, REF_PARTITION_2_GUID);
 
-		result = block_volume_init(&m_block_volume_b,
-			m_block_store, &partition_guid,
-			&m_fw_volume_b);
+		result = block_volume_init(&m_block_volume_b, m_block_store, &partition_guid,
+					   &m_fw_volume_b);
 
 		LONGS_EQUAL(0, result);
 		CHECK_TRUE(m_fw_volume_b);
@@ -61,7 +60,7 @@ TEST_GROUP(FwuRawInstallerTests)
 		 * fw_directory.
 		 */
 		uuid_guid_octets_from_canonical(&m_image_info.img_type_uuid,
-			"1c22ca2c-9732-49e6-ba3b-eed40e27fda3");
+						"1c22ca2c-9732-49e6-ba3b-eed40e27fda3");
 
 		m_image_info.max_size =
 			(REF_PARTITION_1_ENDING_LBA - REF_PARTITION_1_STARTING_LBA + 1) *
@@ -80,20 +79,17 @@ TEST_GROUP(FwuRawInstallerTests)
 		 * banked_fw_store to be completely decoupled from the details
 		 * of which fw volumes need updating on a platform.
 		 */
-		volume_index_add(
-			banked_volume_id(FW_STORE_LOCATION_ID, BANKED_USAGE_ID_FW_BANK_A),
-			m_fw_volume_a);
-		volume_index_add(
-			banked_volume_id(FW_STORE_LOCATION_ID, BANKED_USAGE_ID_FW_BANK_B),
-			m_fw_volume_b);
+		volume_index_add(banked_volume_id(FW_STORE_LOCATION_ID, BANKED_USAGE_ID_FW_BANK_A),
+				 m_fw_volume_a);
+		volume_index_add(banked_volume_id(FW_STORE_LOCATION_ID, BANKED_USAGE_ID_FW_BANK_B),
+				 m_fw_volume_b);
 
 		/* A platform configuration will also determine which installers are
 		 * assigned to which locations. This provides flexibility to configure
 		 * appropriate installers to handle alternative fw packages and installation
 		 * strategies.
 		 */
-		raw_installer_init(&m_installer,
-			&m_image_info.img_type_uuid, FW_STORE_LOCATION_ID);
+		raw_installer_init(&m_installer, &m_image_info.img_type_uuid, FW_STORE_LOCATION_ID);
 
 		installer_index_register(&m_installer.base_installer);
 	}
@@ -121,13 +117,12 @@ TEST_GROUP(FwuRawInstallerTests)
 			m_image[i] = (uint8_t)rand();
 	}
 
-	int write_image_in_random_len_chunks(struct installer *installer)
+	int write_image_in_random_len_chunks(struct installer * installer)
 	{
 		int status = 0;
 		size_t bytes_written = 0;
 
 		while ((bytes_written < m_image_len) && !status) {
-
 			size_t write_len = rand() % 100 + 1;
 
 			if ((bytes_written + write_len) > m_image_len)
@@ -140,7 +135,7 @@ TEST_GROUP(FwuRawInstallerTests)
 		return status;
 	}
 
-	void check_update_installed(struct volume *volume)
+	void check_update_installed(struct volume * volume)
 	{
 		int status = 0;
 		size_t total_read = 0;
@@ -150,18 +145,15 @@ TEST_GROUP(FwuRawInstallerTests)
 		LONGS_EQUAL(0, status);
 
 		while (total_read < m_image_len) {
-
 			uint8_t read_buf[1000];
 			size_t len_read = 0;
 			size_t bytes_remaining = m_image_len - total_read;
-			size_t req_len = (bytes_remaining > sizeof(read_buf)) ?
-				sizeof(read_buf) : bytes_remaining;
+			size_t req_len = (bytes_remaining > sizeof(read_buf)) ? sizeof(read_buf) :
+										bytes_remaining;
 
 			memset(read_buf, 0, sizeof(read_buf));
 
-			status = io_read(file_handle,
-				(uintptr_t)read_buf, req_len,
-				&len_read);
+			status = io_read(file_handle, (uintptr_t)read_buf, req_len, &len_read);
 			LONGS_EQUAL(0, status);
 			UNSIGNED_LONGS_EQUAL(req_len, len_read);
 
@@ -194,17 +186,17 @@ TEST(FwuRawInstallerTests, normalInstallFlow)
 	create_image(REF_PARTITION_BLOCK_SIZE * 2 + 111);
 
 	/* Expect to find a suitable installer for the given image_info */
-	struct installer *installer = installer_index_find(
-		m_image_info.install_type, m_image_info.location_id);
+	struct installer *installer =
+		installer_index_find(m_image_info.install_type, m_image_info.location_id);
 	CHECK_TRUE(installer);
 	UNSIGNED_LONGS_EQUAL(FW_STORE_LOCATION_ID, installer->location_id);
 
 	/* Begin installation transaction - installing into volume A */
 	status = installer_begin(installer,
-		banked_volume_id(FW_STORE_LOCATION_ID,
-			BANKED_USAGE_ID_FW_BANK_B),  /* Current volume */
-		banked_volume_id(FW_STORE_LOCATION_ID,
-			BANKED_USAGE_ID_FW_BANK_A)); /* Update volume */
+				 banked_volume_id(FW_STORE_LOCATION_ID,
+						  BANKED_USAGE_ID_FW_BANK_B), /* Current volume */
+				 banked_volume_id(FW_STORE_LOCATION_ID,
+						  BANKED_USAGE_ID_FW_BANK_A)); /* Update volume */
 	LONGS_EQUAL(0, status);
 
 	/* Open install stream */

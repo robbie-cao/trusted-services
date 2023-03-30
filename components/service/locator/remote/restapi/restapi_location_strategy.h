@@ -7,7 +7,7 @@
 #ifndef RESTAPI_LOCATION_STRATEGY_H
 #define RESTAPI_LOCATION_STRATEGY_H
 
-#include <service_locator.h>
+#include "service_locator.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -7,7 +7,7 @@
 #ifndef FWU_DUT_FACTORY_H
 #define FWU_DUT_FACTORY_H
 
-#include <service/fwu/test/fwu_dut/fwu_dut.h>
+#include "service/fwu/test/fwu_dut/fwu_dut.h"
 
 /*
  * A factory for constructing fwu_dut objects. To allow for different test
@@ -15,10 +15,8 @@
  * possible. The fwu_dut_factory provides a common interface to allow test
  * cases that depend on a fwu_dut to be reused in different deployments.
  */
-class fwu_dut_factory
-{
+class fwu_dut_factory {
 public:
-
 	/**
 	 * \brief Factory method to construct concrete fwu_dut objects
 	 *
@@ -27,12 +25,9 @@ public:
 	 *
 	 * \return The constructed fwu_dut
 	 */
-	static fwu_dut *create(
-		unsigned int num_locations,
-		bool allow_partial_updates = false);
+	static fwu_dut *create(unsigned int num_locations, bool allow_partial_updates = false);
 
 private:
-
 	static const unsigned int FWU_METADATA_VERSION = 2;
 };
 

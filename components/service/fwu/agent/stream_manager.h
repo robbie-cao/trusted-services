@@ -8,8 +8,8 @@
 #define FWU_STREAM_MANAGER_H
 
 #include <stdbool.h>
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 /**
  * Manages the set of streams used by the update_agent for image installation
@@ -35,17 +35,13 @@ struct image_info;
  *  The default stream subject size
  */
 #ifndef FWU_STREAM_MANAGER_POOL_SIZE
-#define FWU_STREAM_MANAGER_POOL_SIZE        (4)
+#define FWU_STREAM_MANAGER_POOL_SIZE (4)
 #endif
 
 /**
  *  Identifier for the type of stream
  */
-enum fwu_stream_type {
-	FWU_STREAM_TYPE_NONE,
-	FWU_STREAM_TYPE_BUFFER,
-	FWU_STREAM_TYPE_INSTALL
-};
+enum fwu_stream_type { FWU_STREAM_TYPE_NONE, FWU_STREAM_TYPE_BUFFER, FWU_STREAM_TYPE_INSTALL };
 
 /**
  * A stream context
@@ -57,7 +53,6 @@ struct stream_context {
 	struct stream_context *prev;
 
 	union stream_variant {
-
 		/* Buffer stream variant */
 		struct buffer_variant {
 			size_t pos;
@@ -115,11 +110,8 @@ void stream_manager_deinit(struct stream_manager *subject);
  *
  * \return FWU status
  */
-int stream_manager_open_buffer_stream(
-	struct stream_manager *subject,
-	const uint8_t *data,
-	size_t data_len,
-	uint32_t *stream_handle);
+int stream_manager_open_buffer_stream(struct stream_manager *subject, const uint8_t *data,
+				      size_t data_len, uint32_t *stream_handle);
 
 /**
  * \brief Open an install stream
@@ -135,12 +127,10 @@ int stream_manager_open_buffer_stream(
  *
  * \return FWU status
  */
-int stream_manager_open_install_stream(
-	struct stream_manager *subject,
-	struct fw_store *fw_store,
-	struct installer *installer,
-	const struct image_info *image_info,
-	uint32_t *stream_handle);
+int stream_manager_open_install_stream(struct stream_manager *subject, struct fw_store *fw_store,
+				       struct installer *installer,
+				       const struct image_info *image_info,
+				       uint32_t *stream_handle);
 
 /**
  * \brief Close a previously opened stream
@@ -151,10 +141,7 @@ int stream_manager_open_install_stream(
  *
  * \return FWU status
  */
-int stream_manager_close(
-	struct stream_manager *subject,
-	uint32_t stream_handle,
-	bool accepted);
+int stream_manager_close(struct stream_manager *subject, uint32_t stream_handle, bool accepted);
 
 /**
  * \brief Cancel all streams of the specified type
@@ -162,9 +149,7 @@ int stream_manager_close(
  * \param[in]  subject    The subject stream_manager
  * \param[in]  type       Type of stream to cancel
  */
-void stream_manager_cancel_streams(
-	struct stream_manager *subject,
-	enum fwu_stream_type type);
+void stream_manager_cancel_streams(struct stream_manager *subject, enum fwu_stream_type type);
 
 /**
  * \brief Check for any open streams of the specified type
@@ -174,9 +159,8 @@ void stream_manager_cancel_streams(
  *
  * \return True is any are open
  */
-bool stream_manager_is_open_streams(
-	const struct stream_manager *subject,
-	enum fwu_stream_type type);
+bool stream_manager_is_open_streams(const struct stream_manager *subject,
+				    enum fwu_stream_type type);
 
 /**
  * \brief Write to a previously opened stream
@@ -188,11 +172,8 @@ bool stream_manager_is_open_streams(
  *
  * \return Status (0 on success)
  */
-int stream_manager_write(
-	struct stream_manager *subject,
-	uint32_t stream_handle,
-	const uint8_t *data,
-	size_t data_len);
+int stream_manager_write(struct stream_manager *subject, uint32_t stream_handle,
+			 const uint8_t *data, size_t data_len);
 
 /**
  * \brief Read from a previously opened stream
@@ -206,14 +187,8 @@ int stream_manager_write(
  *
  * \return Status (0 on success)
  */
-int stream_manager_read(
-	struct stream_manager *subject,
-	uint32_t handle,
-	uint8_t *buf,
-	size_t buf_size,
-	size_t *read_len,
-	size_t *total_len);
-
+int stream_manager_read(struct stream_manager *subject, uint32_t handle, uint8_t *buf,
+			size_t buf_size, size_t *read_len, size_t *total_len);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -5,25 +5,24 @@
  *
  */
 
+#include "metadata_serializer_v1.h"
+
 #include <assert.h>
 #include <stddef.h>
 #include <string.h>
-#include <common/uuid/uuid.h>
-#include <protocols/service/fwu/packed-c/metadata_v1.h>
-#include <protocols/service/fwu/packed-c/status.h>
-#include <media/volume/volume.h>
-#include <media/volume/index/volume_index.h>
-#include <service/fwu/agent/fw_directory.h>
-#include <service/fwu/fw_store/banked/bank_tracker.h>
-#include <service/fwu/fw_store/banked/volume_id.h>
-#include <service/fwu/fw_store/banked/metadata_serializer/metadata_serializer.h>
-#include "metadata_serializer_v1.h"
 
+#include "common/uuid/uuid.h"
+#include "media/volume/index/volume_index.h"
+#include "media/volume/volume.h"
+#include "protocols/service/fwu/packed-c/metadata_v1.h"
+#include "protocols/service/fwu/packed-c/status.h"
+#include "service/fwu/agent/fw_directory.h"
+#include "service/fwu/fw_store/banked/bank_tracker.h"
+#include "service/fwu/fw_store/banked/metadata_serializer/metadata_serializer.h"
+#include "service/fwu/fw_store/banked/volume_id.h"
 
-static int serialize_image_entries(
-	struct fwu_metadata *metadata,
-	const struct fw_directory *fw_dir,
-	const struct bank_tracker *bank_tracker)
+static int serialize_image_entries(struct fwu_metadata *metadata, const struct fw_directory *fw_dir,
+				   const struct bank_tracker *bank_tracker)
 {
 	size_t image_index = 0;
 
@@ -42,21 +41,18 @@ static int serialize_image_entries(
 		 * are assumed to have the same parent location, identified by the location
 		 * uuid.
 		 */
-		struct uuid_octets location_uuid = {0};
+		struct uuid_octets location_uuid = { 0 };
 		struct fwu_image_entry *entry = &metadata->img_entry[image_index];
 
 		/* Serialize bank storage info */
-		for (size_t bank_index = 0;
-			bank_index < BANK_SCHEME_NUM_BANKS; bank_index++) {
-
-			struct uuid_octets img_uuid = {0};
+		for (size_t bank_index = 0; bank_index < BANK_SCHEME_NUM_BANKS; bank_index++) {
+			struct uuid_octets img_uuid = { 0 };
 			struct volume *volume = NULL;
 
-			int status = volume_index_find(
-				banked_volume_id(
-					image_info->location_id,
-					banked_usage_id(bank_index)),
-				&volume);
+			int status =
+				volume_index_find(banked_volume_id(image_info->location_id,
+								   banked_usage_id(bank_index)),
+						  &volume);
 
 			if (!status && volume)
 				volume_get_storage_ids(volume, &img_uuid, &location_uuid);
@@ -65,15 +61,15 @@ static int serialize_image_entries(
 
 			memcpy(properties->img_uuid, img_uuid.octets, OSF_UUID_OCTET_LEN);
 			properties->reserved = 0;
-			properties->accepted = bank_tracker_is_accepted(
-				bank_tracker, bank_index, image_index) ? 1 : 0;
+			properties->accepted =
+				bank_tracker_is_accepted(bank_tracker, bank_index, image_index) ?
+					1 :
+					0;
 		}
 
 		/* Serialize per-image UUIDs */
-		memcpy(entry->img_type_uuid,
-			image_info->img_type_uuid.octets, OSF_UUID_OCTET_LEN);
-		memcpy(entry->location_uuid,
-			location_uuid.octets, OSF_UUID_OCTET_LEN);
+		memcpy(entry->img_type_uuid, image_info->img_type_uuid.octets, OSF_UUID_OCTET_LEN);
+		memcpy(entry->location_uuid, location_uuid.octets, OSF_UUID_OCTET_LEN);
 
 		++image_index;
 
@@ -82,29 +78,22 @@ static int serialize_image_entries(
 	return FWU_STATUS_SUCCESS;
 }
 
-static size_t metadata_serializer_size(
-	const struct fw_directory *fw_dir)
+static size_t metadata_serializer_size(const struct fw_directory *fw_dir)
 {
-	return
-		offsetof(struct fwu_metadata, img_entry) +
-		fw_directory_num_images(fw_dir) * sizeof(struct fwu_image_entry);
+	return offsetof(struct fwu_metadata, img_entry) +
+	       fw_directory_num_images(fw_dir) * sizeof(struct fwu_image_entry);
 }
 
 static size_t metadata_serializer_max_size(void)
 {
-	return
-		offsetof(struct fwu_metadata, img_entry) +
-		FWU_MAX_FW_DIRECTORY_ENTRIES * sizeof(struct fwu_image_entry);
+	return offsetof(struct fwu_metadata, img_entry) +
+	       FWU_MAX_FW_DIRECTORY_ENTRIES * sizeof(struct fwu_image_entry);
 }
 
-static int metadata_serializer_serialize(
-	uint32_t active_index,
-	uint32_t previous_active_index,
-	const struct fw_directory *fw_dir,
-	const struct bank_tracker *bank_tracker,
-	uint8_t *buf,
-	size_t buf_size,
-	size_t *metadata_len)
+static int metadata_serializer_serialize(uint32_t active_index, uint32_t previous_active_index,
+					 const struct fw_directory *fw_dir,
+					 const struct bank_tracker *bank_tracker, uint8_t *buf,
+					 size_t buf_size, size_t *metadata_len)
 {
 	int status = FWU_STATUS_UNKNOWN;
 	size_t serialized_size = metadata_serializer_size(fw_dir);
@@ -112,7 +101,6 @@ static int metadata_serializer_serialize(
 	*metadata_len = 0;
 
 	if (serialized_size <= buf_size) {
-
 		struct fwu_metadata *metadata = (struct fwu_metadata *)buf;
 
 		/* Serialize metadata header */
@@ -131,10 +119,9 @@ static int metadata_serializer_serialize(
 	return status;
 }
 
-static void metadata_serializer_deserialize_bank_info(
-	struct bank_tracker *bank_tracker,
-	const uint8_t *serialized_metadata,
-	size_t metadata_len)
+static void metadata_serializer_deserialize_bank_info(struct bank_tracker *bank_tracker,
+						      const uint8_t *serialized_metadata,
+						      size_t metadata_len)
 {
 	const struct fwu_metadata *metadata = (const struct fwu_metadata *)serialized_metadata;
 
@@ -147,19 +134,15 @@ static void metadata_serializer_deserialize_bank_info(
 
 	/* Deserialize image accept state */
 	if (metadata_len >= offsetof(struct fwu_metadata, img_entry)) {
-
-		size_t num_images =
-			(metadata_len - offsetof(struct fwu_metadata, img_entry)) /
-			sizeof(struct fwu_image_entry);
+		size_t num_images = (metadata_len - offsetof(struct fwu_metadata, img_entry)) /
+				    sizeof(struct fwu_image_entry);
 
 		for (size_t image_index = 0; image_index < num_images; image_index++) {
-
 			const struct fwu_image_entry *image_entry =
 				&metadata->img_entry[image_index];
 
-			for (size_t bank_index = 0;
-				bank_index < BANK_SCHEME_NUM_BANKS; bank_index++) {
-
+			for (size_t bank_index = 0; bank_index < BANK_SCHEME_NUM_BANKS;
+			     bank_index++) {
 				if (image_entry->img_props[bank_index].accepted)
 					bank_tracker_accept(bank_tracker, bank_index, image_index);
 			}
@@ -167,11 +150,10 @@ static void metadata_serializer_deserialize_bank_info(
 	}
 }
 
-static void metadata_serializer_deserialize_active_indices(
-	uint32_t *active_index,
-	uint32_t *previous_active_index,
-	const uint8_t *serialized_metadata,
-	size_t metadata_len)
+static void metadata_serializer_deserialize_active_indices(uint32_t *active_index,
+							   uint32_t *previous_active_index,
+							   const uint8_t *serialized_metadata,
+							   size_t metadata_len)
 {
 	const struct fwu_metadata *metadata = (const struct fwu_metadata *)serialized_metadata;
 
@@ -184,10 +166,8 @@ static void metadata_serializer_deserialize_active_indices(
 const struct metadata_serializer *metadata_serializer_v1(void)
 {
 	static const struct metadata_serializer serializer = {
-		metadata_serializer_serialize,
-		metadata_serializer_size,
-		metadata_serializer_max_size,
-		metadata_serializer_deserialize_bank_info,
+		metadata_serializer_serialize, metadata_serializer_size,
+		metadata_serializer_max_size, metadata_serializer_deserialize_bank_info,
 		metadata_serializer_deserialize_active_indices
 	};
 

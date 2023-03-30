@@ -36,7 +36,6 @@ struct bank_tracker;
  * support for runtime selection of the metadata serializer is possible.
  */
 struct metadata_serializer {
-
 	/**
 	 * \brief Serialize FWU metadata
 	 *
@@ -52,14 +51,9 @@ struct metadata_serializer {
 	 *
 	 * \return Status
 	 */
-	int (*serialize)(
-		uint32_t active_index,
-		uint32_t previous_active_index,
-		const struct fw_directory *fw_dir,
-		const struct bank_tracker *bank_tracker,
-		uint8_t *buf,
-		size_t buf_size,
-		size_t *metadata_len);
+	int (*serialize)(uint32_t active_index, uint32_t previous_active_index,
+			 const struct fw_directory *fw_dir, const struct bank_tracker *bank_tracker,
+			 uint8_t *buf, size_t buf_size, size_t *metadata_len);
 
 	/**
 	 * \brief Return serialized FWU metadata size
@@ -68,8 +62,7 @@ struct metadata_serializer {
 	 *
 	 * \return Size in bytes
 	 */
-	size_t (*size)(
-		const struct fw_directory *fw_dir);
+	size_t (*size)(const struct fw_directory *fw_dir);
 
 	/**
 	 * \brief Return the maximum serialized FWU metadata size
@@ -85,10 +78,8 @@ struct metadata_serializer {
 	 * \param[in]  serialized_metadata  Serialized metadata
 	 * \param[in]  metadata_len   Length of serialized metadata
 	 */
-	void (*deserialize_bank_info)(
-		struct bank_tracker *bank_tracker,
-		const uint8_t *serialized_metadata,
-		size_t metadata_len);
+	void (*deserialize_bank_info)(struct bank_tracker *bank_tracker,
+				      const uint8_t *serialized_metadata, size_t metadata_len);
 
 	/**
 	 * \brief De-serialize active indices
@@ -98,11 +89,8 @@ struct metadata_serializer {
 	 * \param[in]  serialized_metadata  Serialized metadata
 	 * \param[in]  metadata_len   Length of serialized metadata
 	 */
-	void (*deserialize_active_indices)(
-		uint32_t *active_index,
-		uint32_t *previous_active_index,
-		const uint8_t *serialized_metadata,
-		size_t metadata_len);
+	void (*deserialize_active_indices)(uint32_t *active_index, uint32_t *previous_active_index,
+					   const uint8_t *serialized_metadata, size_t metadata_len);
 };
 
 #ifdef __cplusplus

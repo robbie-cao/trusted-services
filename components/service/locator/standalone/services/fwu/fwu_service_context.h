@@ -7,20 +7,17 @@
 #ifndef STANDALONE_FWU_SERVICE_CONTEXT_H
 #define STANDALONE_FWU_SERVICE_CONTEXT_H
 
-#include <service/locator/standalone/standalone_service_context.h>
-#include <rpc/common/demux/rpc_demux.h>
+#include "rpc/common/demux/rpc_demux.h"
+#include "service/locator/standalone/standalone_service_context.h"
 
-class fwu_service_context : public standalone_service_context
-{
+class fwu_service_context : public standalone_service_context {
 public:
-	fwu_service_context(const char *sn);
+	explicit fwu_service_context(const char *sn);
 	virtual ~fwu_service_context();
 
-	static void set_provider(
-		struct rpc_interface *iface);
+	static void set_provider(struct rpc_interface *iface);
 
 private:
-
 	void do_init();
 	void do_deinit();
 
@@ -38,7 +35,6 @@ private:
 #define FWU_SERVICE_CONTEXT_EXPORTED
 #endif
 
-FWU_SERVICE_CONTEXT_EXPORTED void fwu_service_context_set_provider(
-	struct rpc_interface *iface);
+FWU_SERVICE_CONTEXT_EXPORTED void fwu_service_context_set_provider(struct rpc_interface *iface);
 
 #endif /* STANDALONE_FWU_SERVICE_CONTEXT_H */

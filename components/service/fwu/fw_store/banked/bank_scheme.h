@@ -17,7 +17,7 @@ extern "C" {
 /**
  * Definitions for an A/B banked scheme.
  */
-#define BANK_SCHEME_NUM_BANKS    (2)
+#define BANK_SCHEME_NUM_BANKS (2)
 
 /**
  * \brief Returns the index of the next bank to use

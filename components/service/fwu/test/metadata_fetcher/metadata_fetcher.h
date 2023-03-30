@@ -15,18 +15,14 @@
  * fwu metadata and writing it to a presented buffer. Different concrete
  * fetching methods can be used for alternative test configurations.
  */
-class metadata_fetcher
-{
+class metadata_fetcher {
 public:
-
 	metadata_fetcher()
 	{
-
 	}
 
 	virtual ~metadata_fetcher()
 	{
-
 	}
 
 	virtual void open(void) = 0;

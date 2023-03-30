@@ -4,12 +4,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <CppUTest/TestHarness.h>
 #include <cstdint>
 #include <vector>
-#include <CppUTest/TestHarness.h>
-#include <service/fwu/test/image_directory_checker/image_directory_checker.h>
-#include <service/fwu/test/fwu_dut_factory/fwu_dut_factory.h>
-#include <service/fwu/test/fwu_dut/fwu_dut.h>
+
+#include "service/fwu/test/fwu_dut/fwu_dut.h"
+#include "service/fwu/test/fwu_dut_factory/fwu_dut_factory.h"
+#include "service/fwu/test/image_directory_checker/image_directory_checker.h"
 
 /*
  * Tests that focus on retrieving and checking the contents of the image
@@ -60,7 +61,6 @@ TEST(FwuImageDirectoryTests, streamedReads)
 	image_directory_checker checker_b;
 
 	for (unsigned int i = 0; i < 100; ++i) {
-
 		/* Try lots of reads */
 		status = checker_b.fetch_image_directory(m_fwu_client);
 		LONGS_EQUAL(0, status);
@@ -88,7 +88,6 @@ TEST(FwuImageDirectoryTests, streamRecycling)
 	 * attack where streams are opened but never closed.
 	 */
 	for (unsigned int i = 0; i < 200; ++i) {
-
 		int status = 0;
 		uint32_t stream_handle = 0;
 
@@ -109,22 +108,17 @@ TEST(FwuImageDirectoryTests, streamRecycling)
 	CHECK_TRUE(stream_index > 0);
 
 	do {
-
 		int status = 0;
 
 		--stream_index;
 
-		status = m_fwu_client->commit(
-			stream_handles[stream_index],
-			false);
+		status = m_fwu_client->commit(stream_handles[stream_index], false);
 
 		if (!status) {
-
 			/* Operation successful so expect this to be a recently opened stream */
 			LONGS_EQUAL(0, cancelled_count);
 			++successfully_closed_count;
 		} else {
-
 			/* Operation failed so expect this to be an older stream */
 			CHECK_TRUE(successfully_closed_count > 0);
 			++cancelled_count;
@@ -152,15 +146,13 @@ TEST(FwuImageDirectoryTests, singleFwLocation)
 	status = checker.fetch_image_directory(m_fwu_client);
 	LONGS_EQUAL(0, status);
 
-	const struct ts_fwu_image_directory *dir_header =
-		checker.get_header();
+	const struct ts_fwu_image_directory *dir_header = checker.get_header();
 
 	/* Expect directory header to reflect correct values */
 	CHECK_TRUE(dir_header);
 	UNSIGNED_LONGS_EQUAL(offsetof(struct ts_fwu_image_directory, img_info_entry),
-		dir_header->img_info_offset);
-	UNSIGNED_LONGS_EQUAL(sizeof(struct ts_fwu_image_info_entry),
-		dir_header->img_info_size);
+			     dir_header->img_info_offset);
+	UNSIGNED_LONGS_EQUAL(sizeof(struct ts_fwu_image_info_entry), dir_header->img_info_size);
 	UNSIGNED_LONGS_EQUAL(2, dir_header->directory_version);
 	UNSIGNED_LONGS_EQUAL(1, dir_header->correct_boot);
 	UNSIGNED_LONGS_EQUAL(0, dir_header->reserved);
@@ -195,8 +187,7 @@ TEST(FwuImageDirectoryTests, multipleFwLocations)
 	status = checker.fetch_image_directory(m_fwu_client);
 	LONGS_EQUAL(0, status);
 
-	const struct ts_fwu_image_directory *dir_header =
-		checker.get_header();
+	const struct ts_fwu_image_directory *dir_header = checker.get_header();
 
 	/* Expect directory header to reflect correct values */
 	CHECK_TRUE(dir_header);
@@ -205,7 +196,6 @@ TEST(FwuImageDirectoryTests, multipleFwLocations)
 	CHECK_TRUE(dir_header->num_images >= num_locations);
 
 	for (unsigned int location_id = 0; location_id < num_locations; location_id++) {
-
 		/* Expect an image entry for whole volume updates for each location */
 		struct uuid_octets expected_img_type_uuid;
 
@@ -236,8 +226,7 @@ TEST(FwuImageDirectoryTests, zeroFwLocations)
 	status = checker.fetch_image_directory(m_fwu_client);
 	LONGS_EQUAL(0, status);
 
-	const struct ts_fwu_image_directory *dir_header =
-		checker.get_header();
+	const struct ts_fwu_image_directory *dir_header = checker.get_header();
 
 	/* Expect directory header to reflect correct values */
 	CHECK_TRUE(dir_header);

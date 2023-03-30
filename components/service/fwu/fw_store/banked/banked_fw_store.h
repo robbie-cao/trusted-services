@@ -9,9 +9,10 @@
 #define BANKED_FW_STORE_H
 
 #include <stdint.h>
-#include <service/fwu/fw_store/fw_store.h>
-#include "metadata_manager.h"
+
 #include "bank_tracker.h"
+#include "metadata_manager.h"
+#include "service/fwu/fw_store/fw_store.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,18 +52,14 @@ struct fw_store {
  *
  * \return FWU status code
  */
-int banked_fw_store_init(
-	struct fw_store *fw_store,
-	const struct metadata_serializer *serializer);
+int banked_fw_store_init(struct fw_store *fw_store, const struct metadata_serializer *serializer);
 
 /**
  * \brief De-initialize a banked_fw_store
  *
  * \param[in]  fw_store    The subject fw_store
  */
-void banked_fw_store_deinit(
-	struct fw_store *fw_store);
-
+void banked_fw_store_deinit(struct fw_store *fw_store);
 
 #ifdef __cplusplus
 }

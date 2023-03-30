@@ -7,7 +7,7 @@
 #ifndef DIRECT_FWU_CLIENT_H
 #define DIRECT_FWU_CLIENT_H
 
-#include <service/fwu/test/fwu_client/fwu_client.h>
+#include "service/fwu/test/fwu_client/fwu_client.h"
 
 /* Public interface dependencies */
 struct update_agent;
@@ -17,11 +17,9 @@ struct update_agent;
  * used for component level testing where tests and update_agent are
  * combined in the same build.
  */
-class direct_fwu_client : public fwu_client
-{
+class direct_fwu_client : public fwu_client {
 public:
-
-	direct_fwu_client(struct update_agent *update_agent);
+	explicit direct_fwu_client(struct update_agent *update_agent);
 	~direct_fwu_client();
 
 	int begin_staging(void);
@@ -30,33 +28,20 @@ public:
 
 	int cancel_staging(void);
 
-	int accept(
-		const struct uuid_octets *image_type_uuid);
+	int accept(const struct uuid_octets *image_type_uuid);
 
 	int select_previous(void);
 
-	int open(
-		const struct uuid_octets *uuid,
-		uint32_t *handle);
+	int open(const struct uuid_octets *uuid, uint32_t *handle);
 
-	int commit(
-		uint32_t handle,
-		bool accepted);
+	int commit(uint32_t handle, bool accepted);
 
-	int write_stream(
-		uint32_t handle,
-		const uint8_t *data,
-		size_t data_len);
+	int write_stream(uint32_t handle, const uint8_t *data, size_t data_len);
 
-	int read_stream(
-		uint32_t handle,
-		uint8_t *buf,
-		size_t buf_size,
-		size_t *read_len,
-		size_t *total_len);
+	int read_stream(uint32_t handle, uint8_t *buf, size_t buf_size, size_t *read_len,
+			size_t *total_len);
 
 private:
-
 	static const size_t READ_BUF_SIZE = 512;
 
 	struct update_agent *m_update_agent;

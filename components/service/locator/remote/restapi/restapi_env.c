@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <service_locator.h>
 #include "restapi_location_strategy.h"
+#include "service_locator.h"
 
 void service_locator_envinit(void)
 {

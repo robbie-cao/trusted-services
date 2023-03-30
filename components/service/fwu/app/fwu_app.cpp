@@ -4,30 +4,32 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "fwu_app.h"
+
 #include <cassert>
 #include <cstddef>
 #include <cstring>
 #include <errno.h>
-#include <media/volume/factory/volume_factory.h>
-#include <service/block_storage/factory/file/block_store_factory.h>
-#include <service/fwu/installer/factory/installer_factory.h>
-#include <service/fwu/fw_store/banked/bank_scheme.h>
-#include <service/fwu/fw_store/banked/metadata_serializer/v1/metadata_serializer_v1.h>
-#include <service/fwu/fw_store/banked/metadata_serializer/v2/metadata_serializer_v2.h>
-#include <service/fwu/inspector/direct/direct_fw_inspector.h>
-#include <service/fwu/agent/update_agent.h>
-#include <service/fwu/fw_store/banked/banked_fw_store.h>
-#include <service/fwu/config/fwu_configure.h>
+
+#include "media/volume/factory/volume_factory.h"
 #include "metadata_reader.h"
-#include "fwu_app.h"
+#include "service/block_storage/factory/file/block_store_factory.h"
+#include "service/fwu/agent/update_agent.h"
+#include "service/fwu/config/fwu_configure.h"
+#include "service/fwu/fw_store/banked/bank_scheme.h"
+#include "service/fwu/fw_store/banked/banked_fw_store.h"
+#include "service/fwu/fw_store/banked/metadata_serializer/v1/metadata_serializer_v1.h"
+#include "service/fwu/fw_store/banked/metadata_serializer/v2/metadata_serializer_v2.h"
+#include "service/fwu/inspector/direct/direct_fw_inspector.h"
+#include "service/fwu/installer/factory/installer_factory.h"
 
 extern "C" {
-#include <trace.h>
+#include "trace.h"
 }
 
-fwu_app::fwu_app() :
-	m_update_agent(),
-	m_fw_store()
+fwu_app::fwu_app()
+	: m_update_agent()
+	, m_fw_store()
 {
 	memset(&m_update_agent, 0, sizeof(m_update_agent));
 	memset(&m_fw_store, 0, sizeof(m_fw_store));
@@ -42,8 +44,7 @@ fwu_app::~fwu_app()
 	volume_factory_deinit();
 }
 
-int fwu_app::configure(
-	const char *disk_img_filename)
+int fwu_app::configure(const char *disk_img_filename)
 {
 	if (disk_img_filename)
 		file_block_store_factory_set_filename(disk_img_filename);
@@ -51,11 +52,9 @@ int fwu_app::configure(
 	struct uuid_octets device_uuids[MAX_STORAGE_DEVICES];
 	size_t num_storage_devices = 0;
 
-	int status = volume_factory_init(device_uuids,
-		MAX_STORAGE_DEVICES, &num_storage_devices);
+	int status = volume_factory_init(device_uuids, MAX_STORAGE_DEVICES, &num_storage_devices);
 
 	if (status) {
-
 		EMSG("Failed to init volume factory: %d", status);
 		return -EIO;
 	}
@@ -63,7 +62,6 @@ int fwu_app::configure(
 	status = fwu_configure(device_uuids, num_storage_devices);
 
 	if (status) {
-
 		EMSG("Failed to setup FWU configuration: %d", status);
 		return -EIO;
 	}
@@ -71,28 +69,21 @@ int fwu_app::configure(
 	return 0;
 }
 
-int fwu_app::get_boot_info(
-	unsigned int &active_index,
-	unsigned int &metadata_version)
+int fwu_app::get_boot_info(unsigned int &active_index, unsigned int &metadata_version)
 {
 	return metadata_reader::instance()->get_boot_info(active_index, metadata_version);
 }
 
-int fwu_app::init_update_agent(
-	unsigned int boot_index,
-	unsigned int metadata_version)
+int fwu_app::init_update_agent(unsigned int boot_index, unsigned int metadata_version)
 {
 	if (boot_index >= BANK_SCHEME_NUM_BANKS) {
-
 		IMSG("Invalid boot index");
 		return -1;
 	}
 
-	const struct metadata_serializer *serializer =
-		select_metadata_serializer(metadata_version);
+	const struct metadata_serializer *serializer = select_metadata_serializer(metadata_version);
 
 	if (!serializer) {
-
 		IMSG("Unsupported FWU metadata version");
 		return -1;
 	}
@@ -101,16 +92,14 @@ int fwu_app::init_update_agent(
 	int status = banked_fw_store_init(&m_fw_store, serializer);
 
 	if (status) {
-
 		IMSG("fw store initialisation error %d", status);
 		return -1;
 	}
 
-	status = update_agent_init(&m_update_agent, boot_index,
-		direct_fw_inspector_inspect, &m_fw_store);
+	status = update_agent_init(&m_update_agent, boot_index, direct_fw_inspector_inspect,
+				   &m_fw_store);
 
 	if (status) {
-
 		IMSG("update agent initialisation error %d", status);
 		return -1;
 	}
@@ -119,10 +108,8 @@ int fwu_app::init_update_agent(
 	return 0;
 }
 
-int fwu_app::update_image(
-	const struct uuid_octets &img_type_uuid,
-	const uint8_t *img_data,
-	size_t img_size)
+int fwu_app::update_image(const struct uuid_octets &img_type_uuid, const uint8_t *img_data,
+			  size_t img_size)
 {
 	int status = update_agent_begin_staging(&m_update_agent);
 
@@ -131,17 +118,14 @@ int fwu_app::update_image(
 
 	uint32_t stream_handle = 0;
 
-	status = update_agent_open(&m_update_agent,
-		&img_type_uuid, &stream_handle);
+	status = update_agent_open(&m_update_agent, &img_type_uuid, &stream_handle);
 
 	if (!status) {
-
-		status = update_agent_write_stream(&m_update_agent,
-			stream_handle, img_data, img_size);
+		status = update_agent_write_stream(&m_update_agent, stream_handle, img_data,
+						   img_size);
 
 		if (!status)
-			status = update_agent_commit(&m_update_agent,
-				stream_handle, false);
+			status = update_agent_commit(&m_update_agent, stream_handle, false);
 	}
 
 	if (!status)
@@ -152,9 +136,7 @@ int fwu_app::update_image(
 	return status;
 }
 
-int fwu_app::read_object(
-	const struct uuid_octets &object_uuid,
-	std::vector<uint8_t> &data)
+int fwu_app::read_object(const struct uuid_octets &object_uuid, std::vector<uint8_t> &data)
 {
 	uint32_t stream_handle = 0;
 	int status = update_agent_open(&m_update_agent, &object_uuid, &stream_handle);
@@ -172,23 +154,17 @@ int fwu_app::read_object(
 	data.resize(vector_capacity);
 
 	do {
-
 		size_t data_len_read = 0;
 		size_t requested_read_len = vector_capacity - read_so_far;
 
-		status = update_agent_read_stream(
-			&m_update_agent,
-			stream_handle,
-			&data[read_so_far],
-			requested_read_len,
-			&data_len_read,
-			&reported_total_len);
+		status = update_agent_read_stream(&m_update_agent, stream_handle,
+						  &data[read_so_far], requested_read_len,
+						  &data_len_read, &reported_total_len);
 
 		read_so_far += data_len_read;
 		data.resize(read_so_far);
 
 		if (reported_total_len > vector_capacity) {
-
 			vector_capacity = reported_total_len;
 			data.resize(vector_capacity);
 		}
@@ -196,7 +172,6 @@ int fwu_app::read_object(
 		assert(read_so_far <= reported_total_len);
 
 		if (read_so_far == reported_total_len) {
-
 			/* Read all the data */
 			if (vector_capacity > reported_total_len)
 				data.resize(reported_total_len);
@@ -216,8 +191,7 @@ struct update_agent *fwu_app::update_agent()
 	return &m_update_agent;
 }
 
-const struct metadata_serializer *fwu_app::select_metadata_serializer(
-	unsigned int version)
+const struct metadata_serializer *fwu_app::select_metadata_serializer(unsigned int version)
 {
 	if (version == 1)
 		return metadata_serializer_v1();

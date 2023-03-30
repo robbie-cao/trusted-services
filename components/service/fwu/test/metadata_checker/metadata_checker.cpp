@@ -4,15 +4,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <CppUTest/TestHarness.h>
 #include "metadata_checker.h"
 
-metadata_checker::metadata_checker(
-	size_t max_metadata_size,
-	metadata_fetcher *metadata_fetcher) :
-	m_metadata_fetcher(metadata_fetcher),
-	m_meta_buf(NULL),
-	m_meta_buf_size(max_metadata_size)
+#include <CppUTest/TestHarness.h>
+
+metadata_checker::metadata_checker(size_t max_metadata_size, metadata_fetcher *metadata_fetcher)
+	: m_metadata_fetcher(metadata_fetcher)
+	, m_meta_buf(NULL)
+	, m_meta_buf_size(max_metadata_size)
 {
 	m_metadata_fetcher->open();
 
@@ -24,7 +23,7 @@ metadata_checker::~metadata_checker()
 {
 	m_metadata_fetcher->close();
 
-	delete [] m_meta_buf;
+	delete[] m_meta_buf;
 	m_meta_buf = NULL;
 
 	delete m_metadata_fetcher;

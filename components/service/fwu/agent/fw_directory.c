@@ -5,14 +5,15 @@
  *
  */
 
+#include "fw_directory.h"
+
 #include <assert.h>
 #include <stddef.h>
 #include <string.h>
-#include <protocols/service/fwu/packed-c/status.h>
-#include "fw_directory.h"
 
-void fw_directory_init(
-	struct fw_directory *fw_directory)
+#include "protocols/service/fwu/packed-c/status.h"
+
+void fw_directory_init(struct fw_directory *fw_directory)
 {
 	assert(fw_directory);
 
@@ -22,23 +23,20 @@ void fw_directory_init(
 	memset(fw_directory, 0, sizeof(struct fw_directory));
 }
 
-void fw_directory_deinit(
-	struct fw_directory *fw_directory)
+void fw_directory_deinit(struct fw_directory *fw_directory)
 {
 	(void)fw_directory;
 }
 
-void fw_directory_set_boot_info(
-	struct fw_directory *fw_directory,
-	const struct boot_info *boot_info)
+void fw_directory_set_boot_info(struct fw_directory *fw_directory,
+				const struct boot_info *boot_info)
 {
 	assert(fw_directory);
 	fw_directory->boot_info = *boot_info;
 }
 
-int fw_directory_add_image_info(
-	struct fw_directory *fw_directory,
-	const struct image_info *image_info)
+int fw_directory_add_image_info(struct fw_directory *fw_directory,
+				const struct image_info *image_info)
 {
 	assert(fw_directory);
 	assert(image_info);
@@ -46,7 +44,6 @@ int fw_directory_add_image_info(
 	int status = FWU_STATUS_UNKNOWN;
 
 	if (fw_directory->num_images < FWU_MAX_FW_DIRECTORY_ENTRIES) {
-
 		uint32_t image_index = fw_directory->num_images;
 
 		fw_directory->entries[image_index] = *image_info;
@@ -60,9 +57,8 @@ int fw_directory_add_image_info(
 	return status;
 }
 
-const struct image_info *fw_directory_find_image_info(
-	const struct fw_directory *fw_directory,
-	const struct uuid_octets *img_type_uuid)
+const struct image_info *fw_directory_find_image_info(const struct fw_directory *fw_directory,
+						      const struct uuid_octets *img_type_uuid)
 {
 	assert(fw_directory);
 	assert(img_type_uuid);
@@ -70,10 +66,8 @@ const struct image_info *fw_directory_find_image_info(
 	const struct image_info *info = NULL;
 
 	for (size_t i = 0; i < fw_directory->num_images; i++) {
-
 		if (uuid_is_equal(img_type_uuid->octets,
-				fw_directory->entries[i].img_type_uuid.octets)) {
-
+				  fw_directory->entries[i].img_type_uuid.octets)) {
 			info = &fw_directory->entries[i];
 			break;
 		}
@@ -82,16 +76,14 @@ const struct image_info *fw_directory_find_image_info(
 	return info;
 }
 
-const struct boot_info *fw_directory_get_boot_info(
-	const struct fw_directory *fw_directory)
+const struct boot_info *fw_directory_get_boot_info(const struct fw_directory *fw_directory)
 {
 	assert(fw_directory);
 	return &fw_directory->boot_info;
 }
 
-const struct image_info *fw_directory_get_image_info(
-	const struct fw_directory *fw_directory,
-	size_t index)
+const struct image_info *fw_directory_get_image_info(const struct fw_directory *fw_directory,
+						     size_t index)
 {
 	assert(fw_directory);
 
@@ -103,8 +95,7 @@ const struct image_info *fw_directory_get_image_info(
 	return info;
 }
 
-size_t fw_directory_num_images(
-	const struct fw_directory *fw_directory)
+size_t fw_directory_num_images(const struct fw_directory *fw_directory)
 {
 	assert(fw_directory);
 	return fw_directory->num_images;

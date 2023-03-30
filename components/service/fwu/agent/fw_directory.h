@@ -11,7 +11,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <common/uuid/uuid.h>
+
+#include "common/uuid/uuid.h"
 #include "install_type.h"
 
 #ifdef __cplusplus
@@ -23,7 +24,7 @@ extern "C" {
  * Can be overridden by an external definition.
  */
 #ifndef FWU_MAX_FW_DIRECTORY_ENTRIES
-#define FWU_MAX_FW_DIRECTORY_ENTRIES	(20)
+#define FWU_MAX_FW_DIRECTORY_ENTRIES (20)
 #endif
 
 /**
@@ -71,7 +72,7 @@ struct image_info {
 	/* The version of the currently active version of this image. */
 	uint32_t active_version;
 
-	/* Bitmap of access permissions for this iamge. */
+	/* Bitmap of access permissions for this image. */
 	uint32_t permissions;
 
 	/* The index [0..n] of the image in the fw directory. */
@@ -108,16 +109,14 @@ struct fw_directory {
  *
  * \param[in]  fw_directory    The subject fw_directory
  */
-void fw_directory_init(
-	struct fw_directory *fw_directory);
+void fw_directory_init(struct fw_directory *fw_directory);
 
 /**
  * \brief De-initialise a fw_directory
  *
  * \param[in]  fw_directory    The subject fw_directory
  */
-void fw_directory_deinit(
-	struct fw_directory *fw_directory);
+void fw_directory_deinit(struct fw_directory *fw_directory);
 
 /**
  * \brief Sets the boot_info held by the fw_directory
@@ -127,9 +126,8 @@ void fw_directory_deinit(
  * \param[in]  fw_directory    The subject fw_directory
  * \param[in]  boot_info       boot_info for most recent system boot
  */
-void fw_directory_set_boot_info(
-	struct fw_directory *fw_directory,
-	const struct boot_info *boot_info);
+void fw_directory_set_boot_info(struct fw_directory *fw_directory,
+				const struct boot_info *boot_info);
 
 /**
  * \brief Adds an image_info to the directory
@@ -141,9 +139,8 @@ void fw_directory_set_boot_info(
  *
  * \return FWU status
  */
-int fw_directory_add_image_info(
-	struct fw_directory *fw_directory,
-	const struct image_info *image_info);
+int fw_directory_add_image_info(struct fw_directory *fw_directory,
+				const struct image_info *image_info);
 
 /**
  * \brief Find an image_info entry
@@ -155,9 +152,8 @@ int fw_directory_add_image_info(
  *
  * \return Pointer to image_info or NULL
  */
-const struct image_info *fw_directory_find_image_info(
-	const struct fw_directory *fw_directory,
-	const struct uuid_octets *img_type_uuid);
+const struct image_info *fw_directory_find_image_info(const struct fw_directory *fw_directory,
+						      const struct uuid_octets *img_type_uuid);
 
 /**
  * \brief Get the boot_info
@@ -166,8 +162,7 @@ const struct image_info *fw_directory_find_image_info(
  *
  * \return Pointer to the boot_info
  */
-const struct boot_info *fw_directory_get_boot_info(
-	const struct fw_directory *fw_directory);
+const struct boot_info *fw_directory_get_boot_info(const struct fw_directory *fw_directory);
 
 /**
  * \brief Get an image_info by index
@@ -179,9 +174,8 @@ const struct boot_info *fw_directory_get_boot_info(
  *
  * \return Pointer to the image_info or NULL if index invalid
  */
-const struct image_info *fw_directory_get_image_info(
-	const struct fw_directory *fw_directory,
-	size_t index);
+const struct image_info *fw_directory_get_image_info(const struct fw_directory *fw_directory,
+						     size_t index);
 
 /**
  * \brief Get the number of image_info entries held
@@ -190,8 +184,7 @@ const struct image_info *fw_directory_get_image_info(
  *
  * \return Number of entries
  */
-size_t fw_directory_num_images(
-	const struct fw_directory *fw_directory);
+size_t fw_directory_num_images(const struct fw_directory *fw_directory);
 
 #ifdef __cplusplus
 }

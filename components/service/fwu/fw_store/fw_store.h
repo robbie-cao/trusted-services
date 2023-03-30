@@ -39,10 +39,8 @@ struct uuid_octets;
  *
  * \return FWU status code
  */
-int fw_store_synchronize(
-	struct fw_store *fw_store,
-	struct fw_directory *fw_dir,
-	unsigned int boot_index);
+int fw_store_synchronize(struct fw_store *fw_store, struct fw_directory *fw_dir,
+			 unsigned int boot_index);
 
 /**
  * \brief Begin to install one or more images
@@ -54,16 +52,14 @@ int fw_store_synchronize(
  *
  * \return FWU status code
  */
-int fw_store_begin_install(
-	struct fw_store *fw_store);
+int fw_store_begin_install(struct fw_store *fw_store);
 
 /**
  * \brief Cancel any install operation in progress
  *
  * \param[in]  fw_store  The subject fw_store
  */
-void fw_store_cancel_install(
-	struct fw_store *fw_store);
+void fw_store_cancel_install(struct fw_store *fw_store);
 
 /**
  * \brief Finalize the installation of a set of images
@@ -75,8 +71,7 @@ void fw_store_cancel_install(
  *
  * \return FWU status code
  */
-int fw_store_finalize_install(
-	struct fw_store *fw_store);
+int fw_store_finalize_install(struct fw_store *fw_store);
 
 /**
  * \brief Select an installer
@@ -90,10 +85,8 @@ int fw_store_finalize_install(
  *
  * \return FWU status code
  */
-int fw_store_select_installer(
-	struct fw_store *fw_store,
-	const struct image_info *image_info,
-	struct installer **installer);
+int fw_store_select_installer(struct fw_store *fw_store, const struct image_info *image_info,
+			      struct installer **installer);
 
 /**
  * \brief Write image data during image installation
@@ -105,11 +98,8 @@ int fw_store_select_installer(
  *
  * \return FWU status code
  */
-int fw_store_write_image(
-	struct fw_store *fw_store,
-	struct installer *installer,
-	const uint8_t *data,
-	size_t data_len);
+int fw_store_write_image(struct fw_store *fw_store, struct installer *installer,
+			 const uint8_t *data, size_t data_len);
 
 /**
  * \brief Commit image data
@@ -123,11 +113,8 @@ int fw_store_write_image(
  *
  * \return FWU status code
  */
-int fw_store_commit_image(
-	struct fw_store *fw_store,
-	struct installer *installer,
-	const struct image_info *image_info,
-	bool accepted);
+int fw_store_commit_image(struct fw_store *fw_store, struct installer *installer,
+			  const struct image_info *image_info, bool accepted);
 
 /**
  * \brief Notify that an updated image has been accepted
@@ -137,9 +124,7 @@ int fw_store_commit_image(
  *
  * \return True if all necessary images have been accepted
  */
-bool fw_store_notify_accepted(
-	struct fw_store *fw_store,
-	const struct image_info *image_info);
+bool fw_store_notify_accepted(struct fw_store *fw_store, const struct image_info *image_info);
 
 /**
  * \brief Check if image is accepted
@@ -149,9 +134,7 @@ bool fw_store_notify_accepted(
  *
  * \return True if image has been accepted
  */
-bool fw_store_is_accepted(
-	const struct fw_store *fw_store,
-	const struct image_info *image_info);
+bool fw_store_is_accepted(const struct fw_store *fw_store, const struct image_info *image_info);
 
 /**
  * \brief Check if the booted firmware is being trialed
@@ -160,8 +143,7 @@ bool fw_store_is_accepted(
  *
  * \return True if trialed
  */
-bool fw_store_is_trial(
-	const struct fw_store *fw_store);
+bool fw_store_is_trial(const struct fw_store *fw_store);
 
 /**
  * \brief Commit to the complete update
@@ -170,8 +152,7 @@ bool fw_store_is_trial(
  *
  * \return FWU status code
  */
-int fw_store_commit_to_update(
-	struct fw_store *fw_store);
+int fw_store_commit_to_update(struct fw_store *fw_store);
 
 /**
  * \brief Revert back to the previous good version (if possible)
@@ -180,8 +161,7 @@ int fw_store_commit_to_update(
  *
  * \return FWU status code
  */
-int fw_store_revert_to_previous(
-	struct fw_store *fw_store);
+int fw_store_revert_to_previous(struct fw_store *fw_store);
 
 /**
  * \brief Export fw_store specific objects
@@ -198,12 +178,8 @@ int fw_store_revert_to_previous(
  *
  * \return True if UUID identifies an object held by the fw_store
  */
-bool fw_store_export(
-	struct fw_store *fw_store,
-	const struct uuid_octets *uuid,
-	const uint8_t **data,
-	size_t *data_len,
-	int *status);
+bool fw_store_export(struct fw_store *fw_store, const struct uuid_octets *uuid,
+		     const uint8_t **data, size_t *data_len, int *status);
 
 #ifdef __cplusplus
 }

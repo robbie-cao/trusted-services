@@ -4,32 +4,31 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-
-#include <string>
-#include <cstring>
-#include <common/uuid/uuid.h>
-#include <service/block_storage/block_store/device/ram/ram_block_store.h>
-#include <media/volume/block_volume/block_volume.h>
-#include <media/volume/index/volume_index.h>
 #include <CppUTest/TestHarness.h>
+#include <cstring>
+#include <string>
+
+#include "common/uuid/uuid.h"
+#include "media/volume/block_volume/block_volume.h"
+#include "media/volume/index/volume_index.h"
+#include "service/block_storage/block_store/device/ram/ram_block_store.h"
 
 TEST_GROUP(BlockVolumeTests)
 {
 	void setup()
 	{
 		uuid_guid_octets_from_canonical(&m_partition_guid,
-			"6152f22b-8128-4c1f-981f-3bd279519907");
+						"6152f22b-8128-4c1f-981f-3bd279519907");
 
-		m_block_store = ram_block_store_init(&m_ram_block_store,
-			&m_partition_guid, NUM_BLOCKS, BLOCK_SIZE);
+		m_block_store = ram_block_store_init(&m_ram_block_store, &m_partition_guid,
+						     NUM_BLOCKS, BLOCK_SIZE);
 
 		CHECK_TRUE(m_block_store);
 
 		m_volume = NULL;
 
-		int result = block_volume_init(&m_block_volume,
-			m_block_store, &m_partition_guid,
-			&m_volume);
+		int result = block_volume_init(&m_block_volume, m_block_store, &m_partition_guid,
+					       &m_volume);
 
 		LONGS_EQUAL(0, result);
 		CHECK_TRUE(m_volume);
@@ -55,7 +54,6 @@ TEST_GROUP(BlockVolumeTests)
 	struct block_volume m_block_volume;
 	struct volume *m_volume;
 };
-
 
 TEST(BlockVolumeTests, openClose)
 {
@@ -88,12 +86,10 @@ TEST(BlockVolumeTests, readAndWrite)
 
 	/* Write message a few times. Expect file pointer to advance on each write */
 	for (size_t i = 0; i < num_iterations; ++i) {
-
 		size_t len_written = 0;
 
-		result = volume_write(m_volume,
-			(const uintptr_t)message.c_str(), message.size(),
-			&len_written);
+		result = volume_write(m_volume, (const uintptr_t)message.c_str(), message.size(),
+				      &len_written);
 
 		LONGS_EQUAL(0, result);
 		UNSIGNED_LONGS_EQUAL(message.size(), len_written);
@@ -106,14 +102,12 @@ TEST(BlockVolumeTests, readAndWrite)
 	uint8_t read_buf[message.size()];
 
 	for (size_t i = 0; i < num_iterations; ++i) {
-
 		size_t len_read = 0;
 
 		memset(read_buf, 0, sizeof(read_buf));
 
-		result = volume_read(m_volume,
-			(const uintptr_t)read_buf, sizeof(read_buf),
-			&len_read);
+		result = volume_read(m_volume, (const uintptr_t)read_buf, sizeof(read_buf),
+				     &len_read);
 
 		LONGS_EQUAL(0, result);
 		UNSIGNED_LONGS_EQUAL(message.size(), len_read);
@@ -206,7 +200,6 @@ TEST(BlockVolumeTests, multipleImageInstall)
 	CHECK_TRUE(volume);
 
 	for (size_t i = 0; i < 3; ++i) {
-
 		size_t len = 0;
 
 		/* Each iteration represents an update installation where arbitrary sized
@@ -231,7 +224,7 @@ TEST(BlockVolumeTests, multipleImageInstall)
 		LONGS_EQUAL(0, result);
 		UNSIGNED_LONGS_EQUAL(chunk2.size(), len);
 
-		std::string chunk3("The third chunck is soooooooooooooooooooooooooooo much longer");
+		std::string chunk3("The third chunk is soooooooooooooooooooooooooooo much longer");
 		result = volume_write(volume, (const uintptr_t)chunk3.c_str(), chunk3.size(), &len);
 		LONGS_EQUAL(0, result);
 		UNSIGNED_LONGS_EQUAL(chunk3.size(), len);
@@ -273,12 +266,10 @@ TEST(BlockVolumeTests, oversizeWrite)
 	CHECK_TRUE(space_remaining > 0);
 
 	for (size_t i = 0; i < num_whole_messages; ++i) {
-
 		size_t len_written = 0;
 
-		result = volume_write(m_volume,
-			(const uintptr_t)message.c_str(), message.size(),
-			&len_written);
+		result = volume_write(m_volume, (const uintptr_t)message.c_str(), message.size(),
+				      &len_written);
 
 		LONGS_EQUAL(0, result);
 		UNSIGNED_LONGS_EQUAL(message.size(), len_written);
@@ -287,9 +278,8 @@ TEST(BlockVolumeTests, oversizeWrite)
 	/* Writing the message one more time should exceed the volume size */
 	size_t len_written = 0;
 
-	result = volume_write(m_volume,
-		(const uintptr_t)message.c_str(), message.size(),
-		&len_written);
+	result = volume_write(m_volume, (const uintptr_t)message.c_str(), message.size(),
+			      &len_written);
 
 	LONGS_EQUAL(0, result);
 
@@ -303,14 +293,12 @@ TEST(BlockVolumeTests, oversizeWrite)
 	uint8_t read_buf[message.size()];
 
 	for (size_t i = 0; i < num_whole_messages; ++i) {
-
 		size_t len_read = 0;
 
 		memset(read_buf, 0, sizeof(read_buf));
 
-		result = volume_read(m_volume,
-			(const uintptr_t)read_buf, sizeof(read_buf),
-			&len_read);
+		result = volume_read(m_volume, (const uintptr_t)read_buf, sizeof(read_buf),
+				     &len_read);
 
 		LONGS_EQUAL(0, result);
 		UNSIGNED_LONGS_EQUAL(message.size(), len_read);
@@ -322,9 +310,7 @@ TEST(BlockVolumeTests, oversizeWrite)
 
 	memset(read_buf, 0, sizeof(read_buf));
 
-	result = volume_read(m_volume,
-		(const uintptr_t)read_buf, sizeof(read_buf),
-		&len_read);
+	result = volume_read(m_volume, (const uintptr_t)read_buf, sizeof(read_buf), &len_read);
 
 	LONGS_EQUAL(0, result);
 	UNSIGNED_LONGS_EQUAL(space_remaining, len_read);

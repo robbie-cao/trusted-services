@@ -4,20 +4,21 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <cstring>
-#include <media/volume/volume.h>
-#include <CppUTest/TestHarness.h>
 #include "volume_metadata_fetcher.h"
 
-volume_metadata_fetcher::volume_metadata_fetcher(
-	const struct uuid_octets *partition_guid,
-	struct block_store *block_store) :
-	metadata_fetcher(),
-	m_meta_block_volume(),
-	m_meta_volume(NULL)
+#include <CppUTest/TestHarness.h>
+#include <cstring>
+
+#include "media/volume/volume.h"
+
+volume_metadata_fetcher::volume_metadata_fetcher(const struct uuid_octets *partition_guid,
+						 struct block_store *block_store)
+	: metadata_fetcher()
+	, m_meta_block_volume()
+	, m_meta_volume(NULL)
 {
-	int status = block_volume_init(&m_meta_block_volume,
-		block_store, partition_guid, &m_meta_volume);
+	int status = block_volume_init(&m_meta_block_volume, block_store, partition_guid,
+				       &m_meta_volume);
 	LONGS_EQUAL(0, status);
 	CHECK_TRUE(m_meta_volume);
 }
@@ -48,9 +49,7 @@ void volume_metadata_fetcher::fetch(uint8_t *buf, size_t buf_size)
 
 	size_t length_read = 0;
 
-	status =  volume_read(m_meta_volume,
-		(uintptr_t)buf, buf_size,
-		 &length_read);
+	status = volume_read(m_meta_volume, (uintptr_t)buf, buf_size, &length_read);
 
 	LONGS_EQUAL(0, status);
 	UNSIGNED_LONGS_EQUAL(buf_size, length_read);
