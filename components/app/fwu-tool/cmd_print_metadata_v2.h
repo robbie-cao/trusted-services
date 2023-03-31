@@ -8,7 +8,7 @@
 #ifndef CMD_PRINT_METADATA_V2_H
 #define CMD_PRINT_METADATA_V2_H
 
-#include "service/fwu/app/fwu_app.h"
+#include "app/fwu_app.h"
 
 void cmd_print_metadata_v2(fwu_app &app);
 

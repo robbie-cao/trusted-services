@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "service/fwu/app/fwu_app.h"
+#include "app/fwu_app.h"
 
 int cmd_update_image(fwu_app &app, const std::string &img_type_uuid,
 		     const std::string &img_filename);

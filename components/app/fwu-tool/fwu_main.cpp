@@ -16,7 +16,7 @@
 #include "cmd_print_metadata_v2.h"
 #include "cmd_update_image.h"
 #include "common/uuid/uuid.h"
-#include "service/fwu/app/fwu_app.h"
+#include "app/fwu_app.h"
 
 static bool option_selected(const char *option_switch, int argc, char *argv[]);
 
