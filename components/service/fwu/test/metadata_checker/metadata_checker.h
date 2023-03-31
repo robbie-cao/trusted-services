@@ -41,7 +41,7 @@ protected:
 
 private:
 	metadata_checker(const metadata_checker &);
-	operator=(const metadata_checker &);
+	const metadata_checker &operator=(const metadata_checker &);
 };
 
 #endif /* METADATA_CHECKER_H */

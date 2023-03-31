@@ -29,7 +29,7 @@
  *    a separate storage volume.
  */
 
-static bool check_supported_locations(const char *supported_uuids[],
+static bool check_supported_locations(const char *const supported_uuids[],
 				      const struct uuid_octets *location_uuid)
 {
 	bool is_supported = false;

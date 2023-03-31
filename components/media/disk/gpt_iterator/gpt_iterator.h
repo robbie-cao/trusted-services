@@ -14,6 +14,8 @@
 extern "C" {
 #endif
 
+//This seems to be missing from TF-A:tf-a-src/include/tools_share/uuid.h
+#include <stdint.h>
 /**
  * Export tf-a version with C++ linkage support.
  */

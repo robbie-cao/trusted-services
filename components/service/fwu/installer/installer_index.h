@@ -20,6 +20,7 @@ extern "C" {
  * Interface dependencies
  */
 struct installer;
+struct uuid_octets;
 
 /**
  * @brief  Initialize the installer index
