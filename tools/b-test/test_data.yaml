@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -62,6 +62,19 @@ data:
             - "-GUnix Makefiles"
     - name: "env-test-n1sdp-opteesp"
       src: "$TS_ROOT/deployments/env-test/config/n1sdp-opteesp"
+      params:
+            - "-GUnix Makefiles"
+    - name: "fwu-tool-linux-pc"
+      src: "$TS_ROOT/deployments/fwu-tool/linux-pc"
+      os_id : "GNU/Linux"
+      params:
+            - "-GUnix Makefiles"
+    - name: "fwu-default-opteesp"
+      src: "$TS_ROOT/deployments/fwu/config/default-opteesp"
+      params:
+            - "-GUnix Makefiles"
+    - name: "fwu-default-sp"
+      src: "$TS_ROOT/deployments/fwu/config/default-sp"
       params:
             - "-GUnix Makefiles"
     - name: "internal-trusted-storage-default-opteesp"
