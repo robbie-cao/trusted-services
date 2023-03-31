@@ -25,7 +25,7 @@ CMAKE_EXTRA_FLAGS=${CMAKE_EXTRA_FLAGS:-""}
 TS_ROOT=${TS_ROOT:-$(git rev-parse --show-toplevel)}
 
 # Number of threads to use in parallel
-NUMBER_OF_PROCESSORS=${NUMBER_OF_PROCESSORS:-$(( $(nproc) * 2 )) }
+NUMBER_OF_PROCESSORS=${NUMBER_OF_PROCESSORS:-$(( $(nproc) * 2 ))}
 
 # By default run as much as we can
 FAIL_FAST=${FAIL_FAST:-0}
