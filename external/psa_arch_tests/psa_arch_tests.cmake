@@ -6,7 +6,7 @@
 #-------------------------------------------------------------------------------
 
 set(PSA_ARCH_TESTS_URL "https://github.com/ARM-software/psa-arch-tests.git" CACHE STRING "psa-arch-tests repository URL")
-set(PSA_ARCH_TESTS_REFSPEC "38cb53a4d9e292435ddf7899960b15af62decfbe" CACHE STRING "psa-arch-tests refspec")
+set(PSA_ARCH_TESTS_REFSPEC "7f286dae2b080d70bf7d4ae081431d960a5ea293" CACHE STRING "psa-arch-tests refspec")
 set(PSA_ARCH_TESTS_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/psa_arch_tests-src" CACHE PATH "psa-arch-tests source.")
 set(PSA_ARCH_TESTS_BUILD_TYPE "Release" CACHE STRING "psa-arch-tests build type.")
 
@@ -14,18 +14,7 @@ set(GIT_OPTIONS
 	GIT_REPOSITORY ${PSA_ARCH_TESTS_URL}
 	GIT_TAG ${PSA_ARCH_TESTS_REFSPEC}
 	GIT_SHALLOW FALSE
-	PATCH_COMMAND git stash
-		COMMAND git tag -f ts-before-am
-		COMMAND git am ${CMAKE_CURRENT_LIST_DIR}/0001-Disable-using-hard-coded-attestation-key.patch
-		COMMAND git am ${CMAKE_CURRENT_LIST_DIR}/0002-Disable-crypto-test-262-and-263.patch
-		COMMAND git reset ts-before-am
 )
-
-# Default value matching TS psa-iat service implementation capabilities
-set(TS_PSA_ACS_IAT_OVERRIDE_PK Off CACHE BOOL "If psa-acs is using hardcoded IAT pubic key.")
-if(TS_PSA_ACS_IAT_OVERRIDE_PK)
-	list(APPEND PSA_ARCH_TEST_EXTERNAL_DEFS -DPLATFORM_OVERRIDE_ATTEST_PK)
-endif()
 
 include(${TS_ROOT}/tools/cmake/common/LazyFetch.cmake REQUIRED)
 LazyFetch_MakeAvailable(DEP_NAME psa_arch_tests

@@ -15,7 +15,7 @@ set(TS_ARCH_TEST_SUITE INITIAL_ATTESTATION CACHE STRING "Arch test suite")
 #  Set additional defines needed for build.
 #-------------------------------------------------------------------------------
 list(APPEND PSA_ARCH_TEST_EXTERNAL_DEFS
-	-DPSA_ALG_MD4=0x02000002)
+	-DPSA_ALG_MD4=0x02000002 -DPLATFORM_HAS_ATTEST_PK)
 
 #-------------------------------------------------------------------------------
 #  The arch test build system puts its build output under a test suite specific
