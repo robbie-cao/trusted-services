@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022, Arm Limited and contributors. All rights reserved.
+# Copyright (c) 2021-2023, Arm Limited and contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -9,7 +9,7 @@
 #      Please set CODESPELL_FILE in the environment.
 --codespellfile="$CODESPELL_FILE"
 --codespell
---ignore SPDX_LICENSE_TAG,PREFER_KERNEL_TYPES,USLEEP_RANGE,GERRIT_CHANGE_ID,FILE_PATH_CHANGES
+--ignore SPDX_LICENSE_TAG,PREFER_KERNEL_TYPES,USLEEP_RANGE,GERRIT_CHANGE_ID,FILE_PATH_CHANGES,UNNECESSARY_PARENTHESES,PREFER_DEFINED_ATTRIBUTE_MACRO,BIT_MACRO
 --no-tree
 --terse
 --strict
