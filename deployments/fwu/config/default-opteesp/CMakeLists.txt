@@ -97,7 +97,6 @@ export_sp(
 	SP_UUID_CANON ${SP_UUID_CANON}
 	SP_UUID_LE ${SP_UUID_LE}
 	SP_NAME "fwu"
-	MK_IN ${TS_ROOT}/environments/opteesp/sp.mk.in
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_fwu.dts.in
 	JSON_IN ${TS_ROOT}/environments/opteesp/sp_pkg.json.in
 )
