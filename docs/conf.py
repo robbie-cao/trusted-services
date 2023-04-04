@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # -- Metadata about this file ------------------------------------------------
-__copyright__ = "Copyright (c) 2020-2022 Arm Limited and Contributors."
+__copyright__ = "Copyright (c) 2020-2023 Arm Limited and Contributors."
 __license__ = "SPDX-License-Identifier: BSD-3-Clause"
 
 # Configuration file for the Sphinx documentation builder.
@@ -91,7 +91,7 @@ html_static_path = ['_static']
 
 #Add custom css for HTML. Used to allow full page width rendering
 def setup(app):
-    app.add_stylesheet('css/custom.css')
+    app.add_css_file('css/custom.css')
 
 
 # -- Options for autosectionlabel --------------------------------------------

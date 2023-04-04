@@ -29,7 +29,7 @@ Most test and demo applications are integrated into the OP-TEE build flow, and c
 the makefiles in the ``op-tee/build`` repository.
 
 To build all such binaries build the ``ffa-test-all`` target. For available targets please refer to
-fvp-psa-sp.mk_. As an example to build the ``ts-service-test`` application execute the following
+`fvp-psa-sp.mk`. As an example to build the ``ts-service-test`` application execute the following
 commands from the root of the workspace::
 
     make -C build ffa-ts-service-test
@@ -143,8 +143,8 @@ If all is well, you should see something like::
 
 --------------
 
-.. _fvp-psa-sp.mk :https://github.com/OP-TEE/build/blob/master/fvp-psa-sp.mk
+.. _fvp-psa-sp.mk: https://github.com/OP-TEE/build/blob/master/fvp-psa-sp.mk
 
-*Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause
