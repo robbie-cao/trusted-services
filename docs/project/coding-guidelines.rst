@@ -38,8 +38,8 @@ C source files should include a copyright and license comment block at the head 
     * SPDX-License-Identifier: BSD-3-Clause
     */
 
-Boring stuff is not for smart people and the project uses the `Uncrustify`_ code beautifier to easy formatting the
-source. (See :download:`../../.uncrustify.cfg`)
+Boring stuff is not for smart people and the project uses the `Clang-Format`_ code beautifier to easy formatting the
+source. (See :download:`../../.clang-format`)
 
 CMake Rules
 -----------
@@ -80,7 +80,7 @@ Please refer to :doc:`/developer/writing-documentation`.
 .. _`snake_case`: https://en.wikipedia.org/wiki/Snake_case
 .. _`CMake Documentation`: https://github.com/Kitware/CMake/blob/master/Help/dev/documentation.rst
 .. _`EditorConfig`: https://editorconfig.org/
-.. _`Uncrustify`: https://github.com/uncrustify/uncrustify
+.. _`Clang-Format`: https://clang.llvm.org/docs/ClangFormat.html
 
 *Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
 

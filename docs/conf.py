@@ -91,7 +91,7 @@ html_static_path = ['_static']
 
 #Add custom css for HTML. Used to allow full page width rendering
 def setup(app):
-    app.add_stylesheet('css/custom.css')
+    app.add_css_file('css/custom.css')
 
 
 # -- Options for autosectionlabel --------------------------------------------
