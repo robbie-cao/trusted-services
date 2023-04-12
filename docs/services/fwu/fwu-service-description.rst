@@ -1,5 +1,3 @@
-Firmware Update Service
-=======================
 Overview
 --------
 The ability to update device firmware and related resources is a key requirement for
@@ -41,8 +39,8 @@ project maintains a reference integration with the following characteristics:
   - TF-A is used as the bootloader with separate firmware components packaged in a FIP
     image.
   - The Update Agent runs within a secure partition and exposes an FF-A based ABI that
-    conforms to the Arm FWU-A specification.
-  - Test and development on FVP or QEMU platforms.
+    conforms to the `Arm FWU-A specification`_.
+  - Test and development on supported :ref:`Target Platforms`.
 
 Source Code Location
 --------------------
@@ -58,43 +56,45 @@ following subdirectories (relative to the project root).
     - Service components for implementing the FWU service provider.
   * - protocols/service/fwu
     - Public service access protocol (ABI) definition.
-  * - media/volume
+  * - components/media/volume
     - Storage volume access.
 
 Testing is covered in more detail in a later section. However, if you want a simple way
 of building and testing FWU components, the component-test deployment may be built for a
 native PC environment. The built executable includes an extensive set of FWU related tests
 that exercise the core Update Agent in various configurations. To build and run these tests
-on a Linux PC, use the following (from TS root directory)::
+on a Linux PC, use the following (from TS root directory):
 
-  cd deployments/component-test/linux-pc
-  cmake -B build
-  cd build
-  make
-  ./component-test -v -g Fwu
+.. code-block:: bash
 
-  Output will look like this:
-  TEST(FwuCopyInstallerTests, installAndCopy) - 1 ms
-  TEST(FwuRawInstallerTests, normalInstallFlow) - 1 ms
-  TEST(FwuMetadataManagerTests, checkAndRepairInaccessibleStorage) - 0 ms
-  TEST(FwuMetadataManagerTests, checkAndRepairAccessibleStorage) - 1 ms
-  TEST(FwuRollbackTests, bootloaderFallback) - 0 ms
-  TEST(FwuRollbackTests, selectPreviousAfterActivation) - 0 ms
-  TEST(FwuRollbackTests, selectPreviousPriorToActivation) - 0 ms
-  TEST(FwuPowerFailureTests, powerFailureDuringTrial) - 0 ms
-  TEST(FwuPowerFailureTests, powerFailureDuringStaging) - 0 ms
-  TEST(FwuUpdateScenarioTests, partialFirmwareUpdateFlow) - 0 ms
-  TEST(FwuUpdateScenarioTests, wholeFirmwareUpdateFlow) - 0 ms
-  TEST(FwuInvalidBehaviourTests, invalidOperationsInTrial) - 0 ms
-  TEST(FwuInvalidBehaviourTests, invalidOperationsInStaging) - 0 ms
-  TEST(FwuInvalidBehaviourTests, invalidOperationsInRegular) - 0 ms
-  TEST(FwuImageDirectoryTests, zeroFwLocations) - 0 ms
-  TEST(FwuImageDirectoryTests, multipleFwLocations) - 0 ms
-  TEST(FwuImageDirectoryTests, singleFwLocation) - 1 ms
-  TEST(FwuImageDirectoryTests, streamRecycling) - 0 ms
-  TEST(FwuImageDirectoryTests, streamedReads) - 0 ms
+    mkdir -p ~/compt-linux-pc
+    cmake -S deployments/component-test/linux-pc -B ~/compt-linux-pc
+    cmake --build ~/compt-linux-pc
+    ~/compt-linux-pc/component-test -v -g Fwu
 
-  OK (234 tests, 19 ran, 3452 checks, 0 ignored, 215 filtered out, 5 ms)
+Output will look like this::
+
+    TEST(FwuCopyInstallerTests, installAndCopy) - 1 ms
+    TEST(FwuRawInstallerTests, normalInstallFlow) - 1 ms
+    TEST(FwuMetadataManagerTests, checkAndRepairInaccessibleStorage) - 0 ms
+    TEST(FwuMetadataManagerTests, checkAndRepairAccessibleStorage) - 1 ms
+    TEST(FwuRollbackTests, bootloaderFallback) - 0 ms
+    TEST(FwuRollbackTests, selectPreviousAfterActivation) - 0 ms
+    TEST(FwuRollbackTests, selectPreviousPriorToActivation) - 0 ms
+    TEST(FwuPowerFailureTests, powerFailureDuringTrial) - 0 ms
+    TEST(FwuPowerFailureTests, powerFailureDuringStaging) - 0 ms
+    TEST(FwuUpdateScenarioTests, partialFirmwareUpdateFlow) - 0 ms
+    TEST(FwuUpdateScenarioTests, wholeFirmwareUpdateFlow) - 0 ms
+    TEST(FwuInvalidBehaviourTests, invalidOperationsInTrial) - 0 ms
+    TEST(FwuInvalidBehaviourTests, invalidOperationsInStaging) - 0 ms
+    TEST(FwuInvalidBehaviourTests, invalidOperationsInRegular) - 0 ms
+    TEST(FwuImageDirectoryTests, zeroFwLocations) - 0 ms
+    TEST(FwuImageDirectoryTests, multipleFwLocations) - 0 ms
+    TEST(FwuImageDirectoryTests, singleFwLocation) - 1 ms
+    TEST(FwuImageDirectoryTests, streamRecycling) - 0 ms
+    TEST(FwuImageDirectoryTests, streamedReads) - 0 ms
+
+    OK (234 tests, 19 ran, 3452 checks, 0 ignored, 215 filtered out, 5 ms)
 
 Concepts and Assumptions
 ------------------------
@@ -119,10 +119,10 @@ set in order to successfully update a device's firmware. To avoid the hazard of 
 a device using partially installed firmware, the FWU-A specification supports transactional
 updates where as set of separate image install operations are grouped together to form a
 single update transaction. The FWU-A specification defines a behavioral model where images
-are installed during the STAGING state.  Entry to the STAGING state is triggered by the
-client making the fwu_begin_staging ABI call. This is followed a set of one or more install
+are installed during the *STAGING* state.  Entry to the *STAGING* state is triggered by the
+client making the ``fwu_begin_staging`` ABI call. This is followed a set of one or more install
 operations where images are written to the Update Agent. After committing the final image
-in the set, the client marks the end of the transaction by calling fwu_end_staging.
+in the set, the client marks the end of the transaction by calling ``fwu_end_staging``.
 
 Banked Firmware Store
 '''''''''''''''''''''
@@ -151,12 +151,12 @@ Storage Volumes
 All NV storage accessed by the Update Agent is represented by a set of volume objects. A
 volume presents a unit of storage as a seekable file with support for conventional file IO
 operations. The volume provides a uniform interface for all storage operations performed by
-the Update Agent. The volume uses and extends the io_dev driver model from the TF-A project.
+the Update Agent. The volume uses and extends the *io_dev* driver model from the TF-A project.
 Concrete volume objects can access different types of storage such as:
 
   - A raw flash device
   - A disk partition
-  - Storage managed by a sub-processor
+  - Storage managed by a subsystem
 
 Installers
 ''''''''''
@@ -223,8 +223,8 @@ FWU components within the TS project are designed for reuse in alternative deplo
 project currently maintains two FWU deployments, both sharing many common components:
 
   - **fwu/config/default-sp** - the Update Agent runs within a secure partition. The client
-    invokes ABI operations via FF-A based RPC. Updates are applied to a dedicated Swd flash device.
-  - **fwu/config/fwu-app-linux-pc** - the Update Agent runs within a command-line application.
+    invokes ABI operations via FF-A based RPC. Updates are applied to a dedicated SWd flash device.
+  - **fwu-tool/linux-pc** - the Update Agent runs within a command-line application.
     Updates are applied to a disk image file residing in the host filesystem.
 
 There is clear separation between different classes of component making component-level reuse
@@ -232,7 +232,7 @@ straight-forward. The following diagram illustrates the main FWU components. The
 the arrows linking components shows the direction of a dependency between associated
 components (i.e. A→B means that A depends on B).
 
-.. image:: image/update-agent-components.svg
+.. image:: ../image/update-agent-components.svg
 
 Core Components
 ''''''''''''''''
@@ -248,7 +248,7 @@ Generic Update Agent Model
 """"""""""""""""""""""""""
 The following class diagram models the generic Update Agent:
 
-.. uml:: uml/UpdateAgentClassDiagram.puml
+.. uml:: ../uml/UpdateAgentClassDiagram.puml
 
 Classes in the model perform the following roles:
 
@@ -290,7 +290,7 @@ The update_agent interacts with the fw_store via a common interface. No details 
 are exposed to the update_agent. The following class diagram models a particular realization of the fw_store
 interface that implements the A/B bank scheme:
 
-.. uml:: uml/FwStoreClassDiagram.puml
+.. uml:: ../uml/FwStoreClassDiagram.puml
 
 Classes in the model perform the following roles:
 
@@ -403,7 +403,7 @@ the set of installers and volumes to construct, based on the contents of the GPT
 the flash layout. The following diagram illustrates a typical flash partition layout. Note that
 not all partitions contain firmware.
 
-.. image:: image/gpt-based-flash-layout.svg
+.. image:: ../image/gpt-based-flash-layout.svg
 
 A deployment of the Update Agent is built with an installer factory that has the capability to
 construct a set of installers that are suitable for a family of platforms where common image
@@ -432,33 +432,33 @@ to the partition. Different conventions are possible if an alternative configura
 
 FWU Command Line Application
 ----------------------------
-A build configuration of the fwu deployment integrates the Update Agent within a command-line
-application that can be run on a Linux PC. Instead of updating images stored in flash, the
-application operates on a GPT formatted disk image file residing in the host machine's filesystem.
-The core components of the application are identical to those used in embedded deployments.
-To build and run the fwu application, use the following commands from the root of the
-checked-out TS project::
+The *fwu-tool* deployment integrates the Update Agent within a command-line application that can be
+run on a Linux PC. Instead of updating images stored in flash, the application operates on a GPT
+formatted disk image file residing in the host machine's filesystem. (Refer to :ref:`UEFI disk image
+creation instructions` to see how a disk image can be created.) The core components of the
+application are identical to those used in embedded deployments. To build and run the fwu
+application, use the following commands from the root of the checked-out TS project:
 
-  cd deployments/fwu/config/fwu-app-linux-pc
-  cmake -B build
-  cd build
-  make
-  ./fwu -help
-  Usage: fwu disk-filename [-dir -meta] [-boot-index number -meta-ver number] [-img filename -img-type uuid]
+.. code-block:: bash
 
-    disk-filename	Disk image file to update
-    -dir		Print image directory
-    -meta		Print FWU metadata
-    -boot-index	Override default boot index [0..n]
-    -meta-ver	Specify FWU metadata to use
-    -img		File containing image update
-    -img-type	Canonical UUID of image to update
+    mkdir -p ~/fwu-tool
+    cmake -S deployments/fwu-tool/linux-pc -B ~/fwu-tool
+    cmake --build ~/fwu-tool
 
-Some sample disk image files can be found under::
+    ~/fwu-tool/fwu-tool -h
+    Usage: fwu disk-filename [-dir -meta] [-boot-index number -meta-ver number] [-img filename -img-type uuid]
 
-  components/media/disk/disk_images
+        disk-filename	Disk image file to update
+        -dir		Print image directory
+        -meta		Print FWU metadata
+        -boot-index	Override default boot index [0..n]
+        -meta-ver	Specify FWU metadata to use
+        -img		File containing image update
+        -img-type	Canonical UUID of image to update
 
-The sample disk image file multi_location_fw.img includes a GPT with entries for the firmware
+Some sample disk image files can be found under ``components/media/disk/disk_images``
+
+The sample disk image file *multi_location_fw.img* includes a GPT with entries for the firmware
 and metadata partitions illustrated in the diagram above. Note that the sample disk image
 does not contain valid FWU metadata within the primary and backup metadata partitions. This
 condition is detected by the Update Agent which writes valid metadata that reflects the contents
@@ -474,7 +474,7 @@ file containing multiple images.
 Testing the Update Agent
 ------------------------
 FWU components are tested in both native PC and embedded environments. PC based tests use the
-fwu_dut C++ class to simulate the role of the bootloader and to allow device reboot scenarios
+*fwu_dut* C++ class to simulate the role of the bootloader and to allow device reboot scenarios
 to be recreated. The simulated device-under-test maintains NV storage state through reboots
 to mimic real device behaviour. Test components that support PC based testing are summarized
 in the following table:
@@ -522,9 +522,7 @@ in the following table:
     - components/service/fwu/test/metadata_fetcher
 
 An extensive set of test suites uses the test framework components listed above to test
-various update scenarios. The following test suites live under::
-
-  components/service/fwu/test/ref_scenarios
+various update scenarios. The following test suites live under ``components/service/fwu/test/ref_scenarios``
 
 .. list-table::
   :header-rows: 1
@@ -548,17 +546,19 @@ various update scenarios. The following test suites live under::
 
 The test suites list above are included in the following TS test deployments:
 
-  - **component-test** - runs tests in a native PC environment using a direct_fwu_client.
-  - **ts-service-test** - runs tests in a native PC environment using a remote_fwu_client.
+  - **component-test** - runs tests in a native PC environment using a *direct_fwu_client*.
+  - **ts-service-test** - runs tests in a native PC environment using a *remote_fwu_client*.
 
 Reference Integration Test Environment
 --------------------------------------
 The following diagram provides an overview of the planned reference integration and test
 environment used for testing on FVP.
 
-.. image:: image/fwu-reference-integration.svg
+.. image:: ../image/fwu-reference-integration.svg
 
 --------------
+
+_`Arm FWU-A specification`: https://developer.arm.com/documentation/den0118
 
 *Copyright (c) 2023, Arm Limited and Contributors. All rights reserved.*
 

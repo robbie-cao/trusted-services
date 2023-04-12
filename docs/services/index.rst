@@ -7,7 +7,7 @@ Services
 
     attest-service-description
     crypto-service-description
-    fwu-service-description
+    fwu/index
     secure-storage-service-description
     block-storage-service-description
     uefi-smm-services
