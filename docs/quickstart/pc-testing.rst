@@ -53,6 +53,18 @@ To build and run tests for the Crypto API, enter the following (use the same flo
   make -C build-pa install
   LD_PRELOAD=build-pa/install/linux-pc/lib/libts.so build-pa/install/linux-pc/bin/psa-crypto-api-test
 
+psa-api test binaries accept the listed command-line arguments:
+
+===========  ====================================================================
+CL argument  Description
+===========  ====================================================================
+-v           verbose mode
+-h           print supported arguments
+-l           print a list of all the available tests
+-t           run only the listed tests with 'test\_' prefix and semicolon postfix
+             e.g: "-t test_201;test_205;test_260;"
+===========  ====================================================================
+
 More information
 ----------------
 For more information about deployments and building, see: :ref:`Build Instructions`
@@ -61,6 +73,6 @@ PSA functional API conformance tests git location: https://github.com/ARM-softwa
 
 --------------
 
-*Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

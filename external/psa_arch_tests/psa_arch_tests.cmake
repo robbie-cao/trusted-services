@@ -6,7 +6,7 @@
 #-------------------------------------------------------------------------------
 
 set(PSA_ARCH_TESTS_URL "https://github.com/ARM-software/psa-arch-tests.git" CACHE STRING "psa-arch-tests repository URL")
-set(PSA_ARCH_TESTS_REFSPEC "7f286dae2b080d70bf7d4ae081431d960a5ea293" CACHE STRING "psa-arch-tests refspec")
+set(PSA_ARCH_TESTS_REFSPEC "74dc6646ff594e131a726a5305aba77bac30eceb" CACHE STRING "psa-arch-tests refspec")
 set(PSA_ARCH_TESTS_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/psa_arch_tests-src" CACHE PATH "psa-arch-tests source.")
 set(PSA_ARCH_TESTS_BUILD_TYPE "Release" CACHE STRING "psa-arch-tests build type.")
 
