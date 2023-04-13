@@ -26,50 +26,6 @@ struct sp_param_region {
 	size_t size;
 };
 
-static bool load_device_regions(const struct ffa_name_value_pair *value_pair);
-static bool load_memory_regions(const struct ffa_name_value_pair *value_pair);
-static bool load_blob(const struct ffa_name_value_pair *value_pair);
-static bool load_fdt(const struct ffa_name_value_pair *value_pair);
-
-/**
- * Loads externally provided configuration data passed into the SP via
- * FFA initialisation parameters.  Data can originate from
- * the SP manifest, an external device tree or a dynamic configuration
- * mechanism such as a handover block (HOB).
- */
-bool sp_config_load(struct ffa_init_info *init_info)
-{
-	/* Load deployment specific configuration */
-	for (size_t param_index = 0; param_index < init_info->count; param_index++) {
-		const char *name = (const char *)init_info->nvp[param_index].name;
-		const size_t name_max_size = sizeof(init_info->nvp[param_index].name);
-
-		if (!strncmp(name, "DEVICE_REGIONS", name_max_size)) {
-			if (!load_device_regions(&init_info->nvp[param_index])) {
-				EMSG("Failed to load device regions");
-				return false;
-			}
-		} else if (!strncmp(name, "MEMORY_REGIONS", name_max_size)) {
-			if (!load_memory_regions(&init_info->nvp[param_index])) {
-				EMSG("Failed to load memory regions");
-				return false;
-			}
-		} else if (!memcmp(name, "TYPE_DT\0\0\0\0\0\0\0\0", name_max_size)) {
-			if (!load_fdt(&init_info->nvp[param_index])) {
-				EMSG("Failed to load SP config from DT");
-				return false;
-			}
-		} else {
-			if (!load_blob(&init_info->nvp[param_index])) {
-				EMSG("Failed to load blob");
-				return false;
-			}
-		}
-	}
-
-	return true;
-}
-
 static bool load_device_regions(const struct ffa_name_value_pair *value_pair)
 {
 	struct sp_param_region *d = (struct sp_param_region *)value_pair->value;
@@ -301,6 +257,45 @@ static bool load_fdt(const struct ffa_name_value_pair *value_pair)
 		}
 	} else {
 		DMSG("arm,hw-features node not present in SP manifest");
+	}
+
+	return true;
+}
+
+/**
+ * Loads externally provided configuration data passed into the SP via
+ * FFA initialisation parameters.  Data can originate from
+ * the SP manifest, an external device tree or a dynamic configuration
+ * mechanism such as a handover block (HOB).
+ */
+bool sp_config_load(struct ffa_init_info *init_info)
+{
+	/* Load deployment specific configuration */
+	for (size_t param_index = 0; param_index < init_info->count; param_index++) {
+		const char *name = (const char *)init_info->nvp[param_index].name;
+		const size_t name_max_size = sizeof(init_info->nvp[param_index].name);
+
+		if (!strncmp(name, "DEVICE_REGIONS", name_max_size)) {
+			if (!load_device_regions(&init_info->nvp[param_index])) {
+				EMSG("Failed to load device regions");
+				return false;
+			}
+		} else if (!strncmp(name, "MEMORY_REGIONS", name_max_size)) {
+			if (!load_memory_regions(&init_info->nvp[param_index])) {
+				EMSG("Failed to load memory regions");
+				return false;
+			}
+		} else if (!memcmp(name, "TYPE_DT\0\0\0\0\0\0\0\0", name_max_size)) {
+			if (!load_fdt(&init_info->nvp[param_index])) {
+				EMSG("Failed to load SP config from DT");
+				return false;
+			}
+		} else {
+			if (!load_blob(&init_info->nvp[param_index])) {
+				EMSG("Failed to load blob");
+				return false;
+			}
+		}
 	}
 
 	return true;
