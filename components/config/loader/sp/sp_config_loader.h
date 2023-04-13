@@ -14,6 +14,6 @@
  * Loads the secure partition specific configuration passed as
  * SP initialization parameters.
  */
-bool sp_config_load(struct ffa_init_info *init_info);
+bool sp_config_load(union ffa_boot_info *boot_info);
 
 #endif /* SP_CONFIG_LOADER_H */

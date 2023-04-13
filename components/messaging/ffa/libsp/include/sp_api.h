@@ -30,9 +30,9 @@ void sp_interrupt_handler(uint32_t interrupt_id);
  * @brief      Entry point of the SP's application code. SPs must implement this
  *             function.
  *
- * @param      init_info  The boot info
+ * @param      boot_info  The boot info
  */
-void __noreturn sp_main(struct ffa_init_info *init_info);
+void __noreturn sp_main(union ffa_boot_info *boot_info);
 
 #ifdef __cplusplus
 }

@@ -122,7 +122,7 @@ static void run_its_test(void)
 	IMSG("ITS test done");
 }
 
-void __noreturn sp_main(struct ffa_init_info *init_info) {
+void __noreturn sp_main(union ffa_boot_info *boot_info) {
 
 	sp_result result = SP_RESULT_INTERNAL_ERROR;
 	struct sp_msg req_msg = { 0 };
@@ -136,7 +136,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info) {
 	psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
 
 	/* Boot */
-	(void) init_info;
+	(void)boot_info;
 	IMSG("Test SP started");
 
 	result = sp_rxtx_buffer_map(tx_buffer, rx_buffer, sizeof(rx_buffer));

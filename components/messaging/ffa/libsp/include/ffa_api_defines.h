@@ -66,6 +66,9 @@
 /* Special value for MBZ parameters */
 #define FFA_PARAM_MBZ			UINT32_C(0x0)
 
+/* Boot information signature */
+#define FFA_BOOT_INFO_SIGNATURE_V1_0	UINT32_C(0x412D4646) /* FF-A ASCII */
+
 /* FFA_VERSION */
 #define FFA_VERSION_MAJOR		UINT32_C(1)
 #define FFA_VERSION_MAJOR_SHIFT		UINT32_C(16)

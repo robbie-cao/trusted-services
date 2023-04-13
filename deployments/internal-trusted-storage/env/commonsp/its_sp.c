@@ -17,7 +17,7 @@
 static uint8_t tx_buffer[4096] __aligned(4096);
 static uint8_t rx_buffer[4096] __aligned(4096);
 
-void sp_main(struct ffa_init_info *init_info)
+void sp_main(union ffa_boot_info *boot_info)
 {
 	sp_result result = SP_RESULT_INTERNAL_ERROR;
 	struct rpc_interface *secure_storage_iface = NULL;
@@ -29,7 +29,7 @@ void sp_main(struct ffa_init_info *init_info)
 	uint16_t own_id = 0;
 
 	/* Boot */
-	(void) init_info;
+	(void)boot_info;
 
 	result = sp_rxtx_buffer_map(tx_buffer, rx_buffer, sizeof(rx_buffer));
 	if (result != SP_RESULT_OK) {

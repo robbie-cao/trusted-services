@@ -26,5 +26,5 @@ void __noreturn _sp_entry(uintptr_t a0, uintptr_t a1,
 
 	libc_init();
 
-	sp_main((struct ffa_init_info *)a0);
+	sp_main((union ffa_boot_info *)a0);
 }

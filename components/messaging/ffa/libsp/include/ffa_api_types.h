@@ -11,25 +11,30 @@
 #include <stdint.h>
 
 /**
- * Init info
+ * Boot info
  */
 
 /**
  * @brief Boot protocol name-value pairs
  */
-struct ffa_name_value_pair {
+struct ffa_name_value_pair_v1_0 {
 	uint32_t name[4]; /**< Name of the item */
 	uintptr_t value; /**< Value of the item */
 	size_t size; /**< Size of the referenced value */
 };
 
 /**
- * @brief Structure for passing boot protocol data
+ * @brief Structure for passing boot protocol data (FF-A v1.0)
  */
-struct ffa_init_info {
+struct ffa_boot_info_v1_0 {
 	uint32_t magic; /**< FF-A */
 	uint32_t count; /**< Count of name value size pairs */
-	struct ffa_name_value_pair nvp[]; /**< Array of name value size pairs */
+	struct ffa_name_value_pair_v1_0 nvp[]; /**< Array of name value size pairs */
+};
+
+union ffa_boot_info {
+	uint32_t signature;
+	struct ffa_boot_info_v1_0 boot_info_v1_0;
 };
 
 /**

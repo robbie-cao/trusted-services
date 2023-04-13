@@ -28,7 +28,7 @@
 static bool sp_init(uint16_t *own_sp_id);
 static bool locate_crypto_service(void);
 
-void __noreturn sp_main(struct ffa_init_info *init_info)
+void __noreturn sp_main(union ffa_boot_info *boot_info)
 {
 	/* Service provider objects */
 	struct attest_provider attest_provider = { 0 };
@@ -57,7 +57,7 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 
 	config_ramstore_init();
 
-	if (!sp_config_load(init_info)) {
+	if (!sp_config_load(boot_info)) {
 		EMSG("Failed to load SP config");
 		goto fatal_error;
 	}

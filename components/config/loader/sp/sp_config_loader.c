@@ -9,16 +9,17 @@
 #include <platform/interface/device_region.h>
 #include <platform/interface/memory_region.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 #include <trace.h>
 
 #include "sp_config_loader.h"
 
 /*
- * According to the FF-A 1.0 spec: in the SP manifest the size of device and
+ * According to the FF-A spec: in the SP manifest the size of device and
  * memory regions is expressed as a count of 4K pages.
  */
-#define FFA_SP_MANIFEST_PAGE_SIZE	0x1000
+#define FFA_SP_MANIFEST_PAGE_SIZE UINT32_C(0x1000)
 
 struct sp_param_region {
 	char name[16];
@@ -26,7 +27,7 @@ struct sp_param_region {
 	size_t size;
 };
 
-static bool load_device_regions(const struct ffa_name_value_pair *value_pair)
+static bool load_device_regions(const struct ffa_name_value_pair_v1_0 *value_pair)
 {
 	struct sp_param_region *d = (struct sp_param_region *)value_pair->value;
 
@@ -55,7 +56,7 @@ static bool load_device_regions(const struct ffa_name_value_pair *value_pair)
 	return true;
 }
 
-static bool load_memory_regions(const struct ffa_name_value_pair *value_pair)
+static bool load_memory_regions(const struct ffa_name_value_pair_v1_0 *value_pair)
 {
 	struct sp_param_region *d = (struct sp_param_region *)value_pair->value;
 
@@ -82,7 +83,7 @@ static bool load_memory_regions(const struct ffa_name_value_pair *value_pair)
 	return true;
 }
 
-static bool load_blob(const struct ffa_name_value_pair *value_pair)
+static bool load_blob(const struct ffa_name_value_pair_v1_0 *value_pair)
 {
 	struct config_blob blob;
 
@@ -98,10 +99,8 @@ static bool load_blob(const struct ffa_name_value_pair *value_pair)
 	return true;
 }
 
-static bool load_fdt(const struct ffa_name_value_pair *value_pair)
+static bool load_fdt(const void *fdt, size_t fdt_size)
 {
-	const void *fdt = (const void *)value_pair->value;
-	size_t fdt_size = value_pair->size;
 	int root = -1, node = -1, subnode = -1, rc = -1;
 	static const char *ffa_manifest_compatible = "arm,ffa-manifest-1.0";
 
@@ -262,36 +261,31 @@ static bool load_fdt(const struct ffa_name_value_pair *value_pair)
 	return true;
 }
 
-/**
- * Loads externally provided configuration data passed into the SP via
- * FFA initialisation parameters.  Data can originate from
- * the SP manifest, an external device tree or a dynamic configuration
- * mechanism such as a handover block (HOB).
- */
-bool sp_config_load(struct ffa_init_info *init_info)
+static bool sp_config_load_v1_0(struct ffa_boot_info_v1_0 *boot_info)
 {
 	/* Load deployment specific configuration */
-	for (size_t param_index = 0; param_index < init_info->count; param_index++) {
-		const char *name = (const char *)init_info->nvp[param_index].name;
-		const size_t name_max_size = sizeof(init_info->nvp[param_index].name);
+	for (size_t param_index = 0; param_index < boot_info->count; param_index++) {
+		const char *name = (const char *)boot_info->nvp[param_index].name;
+		const size_t name_max_size = sizeof(boot_info->nvp[param_index].name);
 
 		if (!strncmp(name, "DEVICE_REGIONS", name_max_size)) {
-			if (!load_device_regions(&init_info->nvp[param_index])) {
+			if (!load_device_regions(&boot_info->nvp[param_index])) {
 				EMSG("Failed to load device regions");
 				return false;
 			}
 		} else if (!strncmp(name, "MEMORY_REGIONS", name_max_size)) {
-			if (!load_memory_regions(&init_info->nvp[param_index])) {
+			if (!load_memory_regions(&boot_info->nvp[param_index])) {
 				EMSG("Failed to load memory regions");
 				return false;
 			}
 		} else if (!memcmp(name, "TYPE_DT\0\0\0\0\0\0\0\0", name_max_size)) {
-			if (!load_fdt(&init_info->nvp[param_index])) {
+			if (!load_fdt((void *)boot_info->nvp[param_index].value,
+					boot_info->nvp[param_index].size)) {
 				EMSG("Failed to load SP config from DT");
 				return false;
 			}
 		} else {
-			if (!load_blob(&init_info->nvp[param_index])) {
+			if (!load_blob(&boot_info->nvp[param_index])) {
 				EMSG("Failed to load blob");
 				return false;
 			}
@@ -299,4 +293,20 @@ bool sp_config_load(struct ffa_init_info *init_info)
 	}
 
 	return true;
+}
+
+bool sp_config_load(union ffa_boot_info *boot_info)
+{
+	if (!boot_info)
+		return false;
+
+	switch (boot_info->signature) {
+	case FFA_BOOT_INFO_SIGNATURE_V1_0:
+		return sp_config_load_v1_0((struct ffa_boot_info_v1_0 *)&boot_info->boot_info_v1_0);
+	default:
+		EMSG("Invalid FF-A boot info signature");
+		return false;
+	}
+
+	return false;
 }

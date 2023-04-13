@@ -744,9 +744,11 @@ err:
 	return_error(err, msg);
 }
 
-void __noreturn sp_main(struct ffa_init_info *init_info) {
+void __noreturn sp_main(union ffa_boot_info *boot_info) {
 	struct ffa_direct_msg msg = {0};
 	uint16_t own_id = 0;
+
+	(void)boot_info;
 
 	/* Boot phase */
 	if (sp_discovery_own_id_get(&own_id) != SP_RESULT_OK) {
