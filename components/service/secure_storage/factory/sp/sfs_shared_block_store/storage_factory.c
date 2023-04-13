@@ -66,11 +66,9 @@ struct storage_backend *storage_factory_create(
 		const struct sfs_flash_info_t *flash_info = NULL;
 
 		if (security_class == storage_factory_security_class_INTERNAL_TRUSTED)
-			uuid_parse_to_octets(
-				DISK_GUID_UNIQUE_PARTITION_PSA_ITS, guid.octets, sizeof(guid.octets));
+			uuid_guid_octets_from_canonical(&guid, DISK_GUID_UNIQUE_PARTITION_PSA_ITS);
 		else
-			uuid_parse_to_octets(
-				DISK_GUID_UNIQUE_PARTITION_PSA_PS, guid.octets, sizeof(guid.octets));
+			uuid_guid_octets_from_canonical(&guid, DISK_GUID_UNIQUE_PARTITION_PSA_PS);
 
 		psa_status_t status = sfs_flash_block_store_adapter_init(
 			&storage_instance.sfs_flash_adapter,

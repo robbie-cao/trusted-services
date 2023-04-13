@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -32,5 +32,14 @@
 
 #define DISK_GUID_UNIQUE_PARTITION_PSA_PS \
 	"701456da-9b50-49b2-9722-47510f851ccd"
+
+#define DISK_GUID_UNIQUE_PARTITION_DISK_HEADER \
+	"5cb130b7-a138-4d08-b0be-c2d4eff57870"
+
+#define DISK_GUID_UNIQUE_PARTITION_BOOT_BANK_A \
+	"27365ff7-90fe-410b-9fb8-4595fdc27867"
+
+#define DISK_GUID_UNIQUE_PARTITION_BOOT_BANK_B \
+	"3a87713e-4b0b-4361-b6d4-019f0ccfe41a"
 
 #endif /* MEDIA_DISK_GUID_H */

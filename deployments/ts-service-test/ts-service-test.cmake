@@ -27,7 +27,9 @@ add_components(
 	TARGET "ts-service-test"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+		"components/common/endian"
 		"components/common/tlv"
+		"components/common/uuid"
 		"components/service/common/client"
 		"components/service/common/include"
 		"components/service/discovery/client"
@@ -62,6 +64,13 @@ add_components(
 		"components/service/secure_storage/frontend/psa/ps"
 		"components/service/secure_storage/frontend/psa/ps/test"
 		"components/service/secure_storage/backend/secure_storage_client"
+		"components/service/fwu/test/service"
+		"components/service/fwu/test/fwu_client/remote"
+		"components/service/fwu/test/fwu_dut"
+		"components/service/fwu/test/fwu_dut/proxy"
+		"components/service/fwu/test/image_directory_checker"
+		"components/service/fwu/test/metadata_checker"
+		"components/service/fwu/test/metadata_fetcher/client"
 )
 
 #-------------------------------------------------------------------------------

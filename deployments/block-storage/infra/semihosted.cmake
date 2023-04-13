@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -21,9 +21,10 @@ add_components(TARGET "block-storage"
 		"components/service/block_storage/factory/semihosting"
 		"components/service/block_storage/config/gpt"
 		"components/media/disk"
+		"components/media/volume"
 		"components/media/volume/index"
 		"components/media/volume/base_io_dev"
-		"components/media/volume/block_io_dev"
+		"components/media/volume/block_volume"
 		"components/common/crc32/native"
 )
 

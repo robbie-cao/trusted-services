@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -14,8 +14,8 @@ TEST_GROUP(RamBlockStoreTests)
 {
 	void setup()
 	{
-		uuid_parse_to_octets("6152f22b-8128-4c1f-981f-3bd279519907",
-			m_partition_guid.octets, sizeof(m_partition_guid.octets));
+		uuid_guid_octets_from_canonical(&m_partition_guid,
+			"6152f22b-8128-4c1f-981f-3bd279519907");
 
 		m_block_store = ram_block_store_init(&m_ram_block_store,
 			&m_partition_guid, NUM_BLOCKS, BLOCK_SIZE);
@@ -47,6 +47,8 @@ TEST(RamBlockStoreTests, getPartitionInfo)
 	LONGS_EQUAL(PSA_SUCCESS, status);
 	LONGS_EQUAL(NUM_BLOCKS, info.num_blocks);
 	LONGS_EQUAL(BLOCK_SIZE, info.block_size);
+	MEMCMP_EQUAL(m_partition_guid.octets,
+		info.partition_guid.octets, sizeof(info.partition_guid.octets));
 }
 
 TEST(RamBlockStoreTests, openClose)

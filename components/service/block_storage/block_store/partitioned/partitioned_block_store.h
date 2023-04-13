@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * Copyright (c) 2022-2023, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -131,6 +131,18 @@ bool partitioned_block_store_add_partition(
 	uint32_t ending_lba,
 	uint64_t attributes,
 	const char *owner);
+
+/**
+ * \brief Get information about back store
+ *
+ *  Returns information about the underlying block device that is being partitioned
+ *
+ * \param[in]  partitioned_block_store  The subject partitioned_block_store
+ *
+ * \return Pointer to storage_partition_info structure.
+ */
+const struct storage_partition_info *partitioned_block_store_get_back_store_info(
+	const struct partitioned_block_store *partitioned_block_store);
 
 #ifdef __cplusplus
 }

@@ -10,14 +10,14 @@
 
 int disk_formatter_clone(
 	uintptr_t dev_handle,
-	uintptr_t volume_spec,
+	uintptr_t io_spec,
 	const uint8_t *source_image,
 	size_t source_image_size)
 {
 	uintptr_t volume_handle;
 	int result;
 
-	result = io_open(dev_handle, volume_spec, &volume_handle);
+	result = io_open(dev_handle, io_spec, &volume_handle);
 	if (result != 0)
 		return result;
 

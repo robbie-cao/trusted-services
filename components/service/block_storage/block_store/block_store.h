@@ -33,8 +33,20 @@ typedef uint32_t storage_partition_handle_t;
  */
 struct storage_partition_info
 {
-	size_t num_blocks;        /* Number of contiguous blocks from LBA zero */
-	size_t block_size;        /* Block size in bytes */
+	/* Number of contiguous blocks from LBA zero */
+	size_t num_blocks;
+
+	/* Block size in bytes */
+	size_t block_size;
+
+	/* The unique partition GUID */
+	struct uuid_octets partition_guid;
+
+	/* GUID of the parent partition/device e.g. the disk GUID of the disk that
+	 * contains the subject storage partition. A nil UUID should be returned if
+	 * there is no parent.
+	 */
+	struct uuid_octets parent_guid;
 };
 
 /**

@@ -39,6 +39,12 @@ rpc_status_t serialize_get_partition_info_resp(struct call_param_buf *resp_buf,
 	resp_msg.num_blocks = info->num_blocks;
 	resp_msg.block_size = info->block_size;
 
+	memcpy(resp_msg.partition_guid,
+		info->partition_guid.octets, TS_BLOCK_STORAGE_GUID_OCTET_LEN);
+
+	memcpy(resp_msg.parent_guid,
+		info->parent_guid.octets, TS_BLOCK_STORAGE_GUID_OCTET_LEN);
+
 	if (fixed_len <= resp_buf->size) {
 
 		memcpy(resp_buf->data, &resp_msg, fixed_len);

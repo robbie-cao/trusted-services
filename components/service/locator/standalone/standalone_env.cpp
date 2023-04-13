@@ -11,6 +11,7 @@
 #include <service/locator/standalone/services/test-runner/test_runner_service_context.h>
 #include <service/locator/standalone/services/attestation/attestation_service_context.h>
 #include <service/locator/standalone/services/block-storage/block_storage_service_context.h>
+#include <service/locator/standalone/services/fwu/fwu_service_context.h>
 #include <service/locator/standalone/services/smm-variable/smm_variable_service_context.h>
 #include "standalone_location_strategy.h"
 #include "standalone_service_registry.h"
@@ -34,6 +35,9 @@ void service_locator_envinit(void)
 
 	static block_storage_service_context block_storage_context("sn:trustedfirmware.org:block-storage:0");
 	standalone_service_registry::instance()->regsiter_service_instance(&block_storage_context);
+
+	static fwu_service_context fwu_context("sn:trustedfirmware.org:fwu:0");
+	standalone_service_registry::instance()->regsiter_service_instance(&fwu_context);
 
 	static smm_variable_service_context smm_variable_context("sn:trustedfirmware.org:smm-variable:0");
 	standalone_service_registry::instance()->regsiter_service_instance(&smm_variable_context);
