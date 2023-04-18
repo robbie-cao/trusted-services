@@ -34,6 +34,9 @@ enum config_classifier
 	/* A classifier for a memory region that describes a region of memory */
 	CONFIG_CLASSIFIER_MEMORY_REGION,
 
+	/* A classifier to describe a hardware feature's availability */
+	CONFIG_CLASSIFIER_HW_FEATURE,
+
 	/* A classifier for an opaque configuration blob */
 	CONFIG_CLASSIFIER_BLOB
 };

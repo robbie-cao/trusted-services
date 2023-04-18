@@ -279,5 +279,29 @@ static bool load_fdt(const struct ffa_name_value_pair *value_pair)
 		}
 	}
 
+	/* Find hardware features */
+	node = fdt_node_offset_by_compatible(fdt, root, "arm,hw-features");
+	if (node >= 0) {
+		const char *prop_name = NULL;
+		uint32_t prop_value = 0;
+		int prop_offset = 0;
+
+		fdt_for_each_property_offset(prop_offset, fdt, node) {
+			if (!dt_get_u32_by_offset(fdt, prop_offset, &prop_name, &prop_value)) {
+				/* skip other properties in the node, e.g. the compatible string */
+				DMSG("skipping non-u32 property '%s' in hw-features", prop_name);
+				continue;
+			}
+
+			if (!config_store_add(CONFIG_CLASSIFIER_HW_FEATURE, prop_name, 0,
+					      &prop_value, sizeof(prop_value))) {
+				DMSG("error: failed to add HW feature to config store");
+				return false;
+			}
+		}
+	} else {
+		DMSG("arm,hw-features node not present in SP manifest");
+	}
+
 	return true;
 }
