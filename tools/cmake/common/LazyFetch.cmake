@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -91,7 +91,7 @@ function(LazyFetch_ConfigAndBuild)
 		${CMAKE_COMMAND} -E env "CROSS_COMPILE=${CROSS_COMPILE}"
 		${CMAKE_COMMAND}
 			"-C${CONFIGURED_CACHE_FILE}"
-			-DCMAKE_BUILD_TYPE=${UC_DEP_NAME}_BUILD_TYPE
+			-DCMAKE_BUILD_TYPE=${${UC_DEP_NAME}_BUILD_TYPE}
 			-S ${BUILD_SRC_DIR}
 			-B ${BUILD_BIN_DIR}
 		RESULT_VARIABLE
