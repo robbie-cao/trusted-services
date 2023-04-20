@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -19,7 +19,7 @@ set(TS_ARCH_TEST_SUITE PROTECTED_STORAGE CACHE STRING "Arch test suite")
 set(TS_ARCH_TEST_BUILD_SUBDIR storage CACHE STRING "Arch test build subdirectory")
 
 #-------------------------------------------------------------------------------
-#  Crypto specific components
+#  Protected storage specific components
 #
 #-------------------------------------------------------------------------------
 add_components(

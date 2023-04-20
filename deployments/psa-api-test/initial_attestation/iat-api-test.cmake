@@ -25,7 +25,7 @@ list(APPEND PSA_ARCH_TEST_EXTERNAL_DEFS
 set(TS_ARCH_TEST_BUILD_SUBDIR initial_attestation CACHE STRING "Arch test build subdirectory")
 
 #-------------------------------------------------------------------------------
-#  Add attestation specific components.
+#  Attestation specific components.
 #
 #-------------------------------------------------------------------------------
 add_components(
