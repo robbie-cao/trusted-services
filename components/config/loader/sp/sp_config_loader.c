@@ -89,7 +89,7 @@ static bool load_device_regions(const struct ffa_name_value_pair *value_pair)
 				      device_region.dev_class,
 				      device_region.dev_instance,
 				      &device_region, sizeof(device_region))) {
-			DMSG("error: failed to add device region to config store");
+			EMSG("failed to add device region to config store");
 			return false;
 		}
 
@@ -116,7 +116,7 @@ static bool load_memory_regions(const struct ffa_name_value_pair *value_pair)
 		if (!config_store_add(CONFIG_CLASSIFIER_MEMORY_REGION,
 				      memory_region.region_name, 0,
 				      &memory_region, sizeof(memory_region))) {
-			DMSG("error: failed to add memory region to config store");
+			EMSG("failed to add memory region to config store");
 			return false;
 		}
 
@@ -135,7 +135,7 @@ static bool load_blob(const struct ffa_name_value_pair *value_pair)
 
 	if (!config_store_add(CONFIG_CLASSIFIER_BLOB, (const char *)value_pair->name, 0,
 			      &blob, sizeof(blob))) {
-		DMSG("error: failed to add blob to config store");
+		EMSG("failed to add blob to config store");
 		return false;
 	}
 
@@ -151,27 +151,27 @@ static bool load_fdt(const struct ffa_name_value_pair *value_pair)
 
 	/* Sanity check */
 	if (!fdt) {
-		DMSG("error: fdt NULL pointer");
+		EMSG("fdt NULL pointer");
 		return false;
 	}
 
 	rc = fdt_check_full(fdt, fdt_size);
 	if (rc) {
-		DMSG("error: fdt_check_full(): %d", rc);
+		EMSG("fdt_check_full(): %d", rc);
 		return false;
 	}
 
 	/* Find root node */
 	root = fdt_path_offset(fdt, "/");
 	if (root < 0) {
-		DMSG("error: fdt_path_offset(): %d", root);
+		EMSG("fdt_path_offset(): %d", root);
 		return false;
 	}
 
 	/* Check if it's a valid SP manifest */
 	rc = fdt_node_check_compatible(fdt, root, ffa_manifest_compatible);
 	if (rc) {
-		DMSG("error: fdt_node_check_compatible(%s): %d", ffa_manifest_compatible, rc);
+		EMSG("fdt_node_check_compatible(%s): %d", ffa_manifest_compatible, rc);
 		return false;
 	}
 
@@ -185,17 +185,17 @@ static bool load_fdt(const struct ffa_name_value_pair *value_pair)
 			const char *subnode_name = fdt_get_name(fdt, subnode, NULL);
 
 			if (!subnode_name) {
-				DMSG("error: subnode name is missing");
+				EMSG("subnode name is missing");
 				return false;
 			}
 
 			if(!dt_get_u64(fdt, subnode, "base-address", &base_addr)) {
-				DMSG("error: base-address is missing");
+				EMSG("base-address is missing");
 				return false;
 			}
 
 			if(!dt_get_u32(fdt, subnode, "pages-count", &page_cnt)) {
-				DMSG("error: pages-count is missing");
+				EMSG("pages-count is missing");
 				return false;
 			}
 
@@ -207,7 +207,7 @@ static bool load_fdt(const struct ffa_name_value_pair *value_pair)
 			if (!config_store_add(CONFIG_CLASSIFIER_MEMORY_REGION,
 					      memory_region.region_name, 0,
 					      &memory_region, sizeof(memory_region))) {
-				DMSG("error: failed to add memory region to config store");
+				EMSG("failed to add memory region to config store");
 				return false;
 			}
 		}
@@ -223,17 +223,17 @@ static bool load_fdt(const struct ffa_name_value_pair *value_pair)
 			const char *subnode_name = fdt_get_name(fdt, subnode, NULL);
 
 			if (!subnode_name) {
-				DMSG("error: subnode name is missing");
+				EMSG("subnode name is missing");
 				return false;
 			}
 
 			if(!dt_get_u64(fdt, subnode, "base-address", &base_addr)) {
-				DMSG("error: base-address is missing");
+				EMSG("base-address is missing");
 				return false;
 			}
 
 			if (!dt_get_u32(fdt, subnode, "pages-count", &page_cnt)) {
-				DMSG("error: pages-count is missing");
+				EMSG("pages-count is missing");
 				return false;
 			}
 
@@ -246,7 +246,7 @@ static bool load_fdt(const struct ffa_name_value_pair *value_pair)
 			if (!config_store_add(CONFIG_CLASSIFIER_DEVICE_REGION,
 					      device_region.dev_class, device_region.dev_instance,
 					      &device_region, sizeof(device_region))) {
-				DMSG("error: failed to add device region to config store");
+				EMSG("failed to add device region to config store");
 				return false;
 			}
 		}
@@ -260,12 +260,12 @@ static bool load_fdt(const struct ffa_name_value_pair *value_pair)
 		struct config_blob blob = { 0 };
 
 		if (!dt_get_u64(fdt, node, "tpm_event_log_addr", &tpm_event_log_addr)) {
-			DMSG("error: tpm_event_log_addr is missing");
+			EMSG("tpm_event_log_addr is missing");
 			return false;
 		}
 
 		if (!dt_get_u32(fdt, node, "tpm_event_log_size", &tpm_event_log_size)) {
-			DMSG("error: tpm_event_log_size is missing");
+			EMSG("tpm_event_log_size is missing");
 			return false;
 		}
 
@@ -274,7 +274,7 @@ static bool load_fdt(const struct ffa_name_value_pair *value_pair)
 
 		if (!config_store_add(CONFIG_CLASSIFIER_BLOB, "EVENT_LOG", 0,
 				      (void *)&blob, sizeof(blob))) {
-			DMSG("error: failed to add event log to config store");
+			EMSG("failed to add event log to config store");
 			return false;
 		}
 	}
@@ -295,7 +295,7 @@ static bool load_fdt(const struct ffa_name_value_pair *value_pair)
 
 			if (!config_store_add(CONFIG_CLASSIFIER_HW_FEATURE, prop_name, 0,
 					      &prop_value, sizeof(prop_value))) {
-				DMSG("error: failed to add HW feature to config store");
+				EMSG("failed to add HW feature to config store");
 				return false;
 			}
 		}
