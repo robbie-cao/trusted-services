@@ -65,6 +65,8 @@ if(TARGET stdlib::c)
 	unset_saved_properties(LIBC)
 endif()
 
+set(_PROCESSOR_COUNT ${PROCESSOR_COUNT})
+set(PROCESSOR_COUNT 1)
 include(${TS_ROOT}/tools/cmake/common/LazyFetch.cmake REQUIRED)
 LazyFetch_MakeAvailable(DEP_NAME nanopb
 	FETCH_OPTIONS ${GIT_OPTIONS}
@@ -73,6 +75,8 @@ LazyFetch_MakeAvailable(DEP_NAME nanopb
 	CACHE_FILE "${TS_ROOT}/external/nanopb/nanopb-init-cache.cmake.in"
 	SOURCE_DIR "${NANOPB_SOURCE_DIR}"
   )
+set(PROCESSOR_COUNT ${_PROCESSOR_COUNT})
+
 unset(_cmake_fragment)
 
 if(TARGET stdlib::c)
