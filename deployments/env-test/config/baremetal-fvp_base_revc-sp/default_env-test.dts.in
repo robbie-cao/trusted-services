@@ -14,6 +14,7 @@
 	execution-state = <0>; /* AArch64 */
 	xlat-granule = <0>; /* 4KiB */
 	messaging-method = <3>; /* Direct messaging only */
+	ns-interrupts-action = <2>; /* Non-secure interrupts are signaled */
 	memory-regions {
 		compatible = "arm,ffa-manifest-memory-regions";
 		#include "@EXPORT_DTS_MEM_REGIONS@"

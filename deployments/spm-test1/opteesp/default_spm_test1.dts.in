@@ -18,6 +18,6 @@
 	execution-state = <0>; /* AARCH64 */
 	xlat-granule = <0>; /* 4KiB */
 	messaging-method = <3>; /* Direct messaging only */
+	ns-interrupts-action = <2>; /* Non-secure interrupts are signaled */
 	elf-format = <1>;
-	run-time-model = <1>; /* Run to completion */
 };
