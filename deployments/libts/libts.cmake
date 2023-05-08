@@ -49,6 +49,9 @@ target_compile_definitions(ts PRIVATE
 	EXPORT_PUBLIC_INTERFACE_SERVICE_LOCATOR
 )
 
+# Do not export symbols from static libraries linked to this library
+target_link_options(ts PRIVATE -Wl,--exclude-libs,ALL)
+
 #-------------------------------------------------------------------------------
 #  Export the library and the corresponding public interface header files
 #
