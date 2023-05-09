@@ -32,9 +32,33 @@ struct ffa_boot_info_v1_0 {
 	struct ffa_name_value_pair_v1_0 nvp[]; /**< Array of name value size pairs */
 };
 
+struct ffa_boot_info_desc_v1_1 {
+	uint8_t name[16]; /**< Name of boot information passed to the consumer */
+	uint8_t type; /**< Type of boot information passed to the consumer */
+	uint8_t reserved_mbz; /**< Reserved (MBZ) */;
+	uint16_t flags; /**< Flags to describe properties of boot information in this descriptor */
+	uint32_t size; /**< Size (in bytes) of boot info identified by Name and Type fields */
+	uint64_t contents; /**< Value or address of boot info identified by Name and Type fields. */
+} __packed;
+
+/**
+ * @brief Structure for passing boot protocol data (FF-A v1.1)
+ */
+struct ffa_boot_info_header_v1_1 {
+	uint32_t signature; /**< 0x0ffa */
+	uint32_t version; /**< FF-A version: bit[31]: MBZ, bit[30:16] major version number,
+				bit[15:0]  minor version number */
+	uint32_t size; /**< Size of boot information blob spanning contiguous memory */
+	uint32_t desc_size; /**< Size of each boot information descriptor in the array */
+	uint32_t desc_cnt; /**< Count of boot information descriptors in the array */
+	uint32_t desc_offs; /**< Offset to array of boot information descriptors */
+	uint64_t reserved_mbz; /**< Reserved (MBZ) */
+} __packed;
+
 union ffa_boot_info {
 	uint32_t signature;
 	struct ffa_boot_info_v1_0 boot_info_v1_0;
+	struct ffa_boot_info_header_v1_1 boot_info_v1_1;
 };
 
 /**

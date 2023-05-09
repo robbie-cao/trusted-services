@@ -295,6 +295,55 @@ static bool sp_config_load_v1_0(struct ffa_boot_info_v1_0 *boot_info)
 	return true;
 }
 
+static bool sp_config_load_v1_1(struct ffa_boot_info_header_v1_1 *boot_info_header)
+{
+	size_t desc_end = 0;
+	size_t total_desc_size = 0;
+	struct ffa_boot_info_desc_v1_1 *boot_info_desc = NULL;
+	uint32_t expected_version = SHIFT_U32(1, FFA_VERSION_MAJOR_SHIFT) |
+				    SHIFT_U32(1, FFA_VERSION_MINOR_SHIFT);
+
+	if (boot_info_header->version != expected_version) {
+		EMSG("Invalid FF-A boot info version");
+		return false;
+	}
+
+	if (boot_info_header->desc_size != sizeof(struct ffa_boot_info_desc_v1_1)) {
+		EMSG("Boot info descriptor size mismatch");
+		return false;
+	}
+
+	if (MUL_OVERFLOW(boot_info_header->desc_size, boot_info_header->desc_cnt,
+			 &total_desc_size)) {
+		EMSG("Boot info descriptor overflow");
+		return false;
+	}
+
+	if (ADD_OVERFLOW(boot_info_header->desc_offs, total_desc_size, &desc_end) ||
+	    boot_info_header->size < desc_end) {
+		EMSG("Boot info descriptor overflow");
+		return false;
+	}
+
+	boot_info_desc = (struct ffa_boot_info_desc_v1_1 *)((uintptr_t)boot_info_header +
+							    boot_info_header->desc_offs);
+
+	for (unsigned int i = 0; i < boot_info_header->desc_cnt; i++) {
+		uint16_t flags = FFA_BOOT_INFO_CONTENT_FMT_ADDR << FFA_BOOT_INFO_CONTENT_FMT_SHIFT;
+		uint16_t type = FFA_BOOT_INFO_TYPE_STD << FFA_BOOT_INFO_TYPE_SHIFT |
+				FFA_BOOT_INFO_ID_STD_FDT << FFA_BOOT_INFO_ID_SHIFT;
+
+		if (boot_info_desc[i].flags == flags && boot_info_desc[i].type == type) {
+			if (!load_fdt((void *)boot_info_desc->contents, boot_info_desc->size)) {
+				EMSG("Failed to load SP config FDT");
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
 bool sp_config_load(union ffa_boot_info *boot_info)
 {
 	if (!boot_info)
@@ -303,6 +352,9 @@ bool sp_config_load(union ffa_boot_info *boot_info)
 	switch (boot_info->signature) {
 	case FFA_BOOT_INFO_SIGNATURE_V1_0:
 		return sp_config_load_v1_0((struct ffa_boot_info_v1_0 *)&boot_info->boot_info_v1_0);
+	case FFA_BOOT_INFO_SIGNATURE_V1_1:
+		return sp_config_load_v1_1((struct ffa_boot_info_header_v1_1 *)
+					   &boot_info->boot_info_v1_1);
 	default:
 		EMSG("Invalid FF-A boot info signature");
 		return false;
