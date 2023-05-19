@@ -7,7 +7,7 @@
 
 set(MBEDTLS_URL "https://github.com/Mbed-TLS/mbedtls.git"
 		CACHE STRING "Mbed TLS repository URL")
-set(MBEDTLS_REFSPEC "mbedtls-3.3.0"
+set(MBEDTLS_REFSPEC "mbedtls-3.4.0"
 		CACHE STRING "Mbed TLS git refspec")
 set(MBEDTLS_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/mbedtls-src"
 		CACHE PATH "MbedTLS source directory")
@@ -51,7 +51,7 @@ include(${TS_ROOT}/tools/cmake/common/LazyFetch.cmake REQUIRED)
 LazyFetch_MakeAvailable(DEP_NAME MbedTLS
 	FETCH_OPTIONS ${GIT_OPTIONS}
 	INSTALL_DIR ${MBEDTLS_INSTALL_DIR}
-	PACKAGE_DIR ${MBEDTLS_INSTALL_DIR}/cmake
+	PACKAGE_DIR ${MBEDTLS_INSTALL_DIR}
 	CACHE_FILE "${TS_ROOT}/external/MbedTLS/mbedtls-init-cache.cmake.in"
 	SOURCE_DIR "${MBEDTLS_SOURCE_DIR}"
 )
