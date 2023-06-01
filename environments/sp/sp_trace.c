@@ -4,15 +4,20 @@
  */
 
 #include "trace.h"
-#include "ffa_internal_api.h"
+#include "ffa_api.h"
+#include <string.h>
 
 #if TRACE_LEVEL >= TRACE_LEVEL_ERROR
 
 void trace_puts(const char *str)
 {
-	struct ffa_params resp;
+	size_t length = strlen(str);
+	size_t i = 0;
 
-	ffa_svc(0xdeadbeef, (uintptr_t)str, 0, 0, 0, 0, 0, 0, &resp);
+	for (i = 0; i < length; i += FFA_CONSOLE_LOG_64_MAX_LENGTH) {
+		ffa_console_log_64(&str[i], MIN(FFA_CONSOLE_LOG_64_MAX_LENGTH,
+						length - i));
+	}
 }
 
 #endif  /* TRACE_LEVEL >= TRACE_LEVEL_ERROR */

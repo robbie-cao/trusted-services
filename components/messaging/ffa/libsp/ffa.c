@@ -6,6 +6,7 @@
 #include <assert.h>            // for assert
 #include <stddef.h>            // for size_t
 #include <stdint.h>            // for uint32_t, uint16_t, uintptr_t, U
+#include <string.h>            // for memcpy
 #include "ffa_api.h"           // for FFA_OK, ffa_interrupt_handler, ffa_fea...
 #include "ffa_api_defines.h"   // for FFA_PARAM_MBZ, FFA_OK, FFA_ERROR, FFA_...
 #include "ffa_api_types.h"     // for ffa_result, ffa_direct_msg, ffa_uuid
@@ -517,6 +518,46 @@ ffa_result ffa_mem_perm_set(const void *base_address, uint32_t page_count,
 
 	ffa_svc(FFA_MEM_PERM_SET, (uintptr_t)base_address, page_count, mem_perm,
 		FFA_PARAM_MBZ, FFA_PARAM_MBZ, FFA_PARAM_MBZ, FFA_PARAM_MBZ,
+		&result);
+
+	if (result.a0 == FFA_ERROR)
+		return ffa_get_errorcode(&result);
+
+	assert(result.a0 == FFA_SUCCESS_32);
+	return FFA_OK;
+}
+
+ffa_result ffa_console_log_32(const char *message, size_t length)
+{
+	struct ffa_params result = {0};
+	uint32_t char_lists[6] = {0};
+
+	assert(length > 0 && length <= sizeof(char_lists));
+
+	memcpy(char_lists, message, MIN(length, sizeof(char_lists)));
+
+	ffa_svc(FFA_CONSOLE_LOG_32, length, char_lists[0], char_lists[1],
+		char_lists[2], char_lists[3], char_lists[4], char_lists[5],
+		&result);
+
+	if (result.a0 == FFA_ERROR)
+		return ffa_get_errorcode(&result);
+
+	assert(result.a0 == FFA_SUCCESS_32);
+	return FFA_OK;
+}
+
+ffa_result ffa_console_log_64(const char *message, size_t length)
+{
+	struct ffa_params result = {0};
+	uint64_t char_lists[6] = {0};
+
+	assert(length > 0 && length <= sizeof(char_lists));
+
+	memcpy(char_lists, message, MIN(length, sizeof(char_lists)));
+
+	ffa_svc(FFA_CONSOLE_LOG_64, length, char_lists[0], char_lists[1],
+		char_lists[2], char_lists[3], char_lists[4], char_lists[5],
 		&result);
 
 	if (result.a0 == FFA_ERROR)

@@ -98,4 +98,10 @@ void expect_ffa_mem_perm_get(const void *base_address, const uint32_t *mem_perm,
 void expect_ffa_mem_perm_set(const void *base_address, uint32_t page_count,
 			     uint32_t mem_perm, ffa_result result);
 
+void expect_ffa_console_log_32(const char *message, size_t length,
+			       ffa_result result);
+
+void expect_ffa_console_log_64(const char *message, size_t length,
+			       ffa_result result);
+
 #endif /* FFA_LIBSP_TEST_MOCK_FFA_API_H_ */

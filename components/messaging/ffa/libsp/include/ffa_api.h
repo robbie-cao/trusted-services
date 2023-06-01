@@ -362,6 +362,26 @@ ffa_result ffa_mem_perm_set(const void *base_address, uint32_t page_count,
 			    uint32_t mem_perm);
 
 /**
+ * @brief 	Allow an entity to provide debug logging to the console. Uses
+ * 		32 bit registers to pass characters.
+ *
+ * @param message	Message characters
+ * @param length	Message length, max FFA_CONSOLE_LOG_32_MAX_LENGTH
+ * @return 		The FF-A error status code
+ */
+ffa_result ffa_console_log_32(const char *message, size_t length);
+
+/**
+ * @brief 	Allow an entity to provide debug logging to the console. Uses
+ * 		64 bit registers to pass characters.
+ *
+ * @param message	Message characters
+ * @param length	Message length, max FFA_CONSOLE_LOG_64_MAX_LENGTH
+ * @return 		The FF-A error status code
+ */
+ffa_result ffa_console_log_64(const char *message, size_t length);
+
+/**
  * @brief      Interrupt handler prototype. Must be implemented by another
  *             component.
  *

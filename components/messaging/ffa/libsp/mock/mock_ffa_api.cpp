@@ -561,3 +561,39 @@ ffa_result ffa_mem_perm_set(const void *base_address, uint32_t page_count,
 		.withUnsignedIntParameter("mem_perm", mem_perm)
 		.returnIntValue();
 }
+
+void expect_ffa_console_log_32(const char *message, size_t length,
+			       ffa_result result)
+{
+	mock().expectOneCall("ffa_console_log_32")
+		.withStringParameter("message", message)
+		.withUnsignedIntParameter("length", length)
+		.andReturnValue(result);
+}
+
+ffa_result ffa_console_log_32(const char *message, size_t length)
+{
+	return mock()
+		.actualCall("ffa_console_log_32")
+		.withStringParameter("message", message)
+		.withUnsignedIntParameter("length", length)
+		.returnIntValue();
+}
+
+void expect_ffa_console_log_64(const char *message, size_t length,
+			       ffa_result result)
+{
+	mock().expectOneCall("ffa_console_log_64")
+		.withStringParameter("message", message)
+		.withUnsignedIntParameter("length", length)
+		.andReturnValue(result);
+}
+
+ffa_result ffa_console_log_64(const char *message, size_t length)
+{
+	return mock()
+		.actualCall("ffa_console_log_64")
+		.withStringParameter("message", message)
+		.withUnsignedIntParameter("length", length)
+		.returnIntValue();
+}

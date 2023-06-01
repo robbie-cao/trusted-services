@@ -345,3 +345,21 @@ TEST(mock_ffa_api, ffa_mem_perm_set)
 	expect_ffa_mem_perm_set(base_address, page_count, mem_perm, result);
 	LONGS_EQUAL(result, ffa_mem_perm_set(base_address, page_count, mem_perm));
 }
+
+TEST(mock_ffa_api, ffa_console_log_32)
+{
+	const char *message = "log message";
+	const size_t length = 11;
+
+	expect_ffa_console_log_32(message, length, result);
+	LONGS_EQUAL(result, ffa_console_log_32(message, length));
+}
+
+TEST(mock_ffa_api, ffa_console_log_64)
+{
+	const char *message = "log message";
+	const size_t length = 11;
+
+	expect_ffa_console_log_64(message, length, result);
+	LONGS_EQUAL(result, ffa_console_log_64(message, length));
+}

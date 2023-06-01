@@ -30,8 +30,16 @@ void trace_printf(const char *func, int line, int level, const char *fmt, ...)
 
 	if (offset < sizeof(buffer)) {
 		va_start(ap, fmt);
-		vsnprintf(buffer + offset, sizeof(buffer) - offset, fmt, ap);
+		offset += vsnprintf(buffer + offset, sizeof(buffer) - offset, fmt, ap);
 		va_end(ap);
+	}
+
+	if (offset < sizeof(buffer) - 2) {
+		buffer[offset] = '\n';
+		buffer[offset + 1] = '\0';
+	} else {
+		buffer[sizeof(buffer) - 2] = '\n';
+		buffer[sizeof(buffer) - 1] = '\0';
 	}
 
 	trace_puts(buffer);

@@ -1508,3 +1508,114 @@ TEST(ffa_api, ffa_mem_perm_set_invalid_mem_perm)
 		ffa_mem_perm_set(base_addr, page_count, mem_perm);
 	}
 }
+
+TEST(ffa_api, ffa_console_log_32_zero)
+{
+	assert_environment_t assert_env;
+
+	if (SETUP_ASSERT_ENVIRONMENT(assert_env)) {
+		ffa_console_log_32("", 0);
+	}
+}
+
+TEST(ffa_api, ffa_console_log_32_too_long)
+{
+	assert_environment_t assert_env;
+
+	if (SETUP_ASSERT_ENVIRONMENT(assert_env)) {
+		ffa_console_log_32("", 25);
+	}
+}
+
+TEST(ffa_api, ffa_console_log_32_unknown_response)
+{
+	assert_environment_t assert_env;
+	const char *message = "0";
+	const size_t length = 1;
+
+	svc_result.a0 = 0x12345678;
+	expect_ffa_svc(0x8400008A, length, 0x30, 0, 0, 0, 0, 0, &svc_result);
+
+	if (SETUP_ASSERT_ENVIRONMENT(assert_env)) {
+		ffa_console_log_32(message, length);
+	}
+}
+
+TEST(ffa_api, ffa_console_log_32_error)
+{
+	const char *message = "0";
+	const size_t length = 1;
+
+	setup_error_response(-1);
+	expect_ffa_svc(0x8400008A, length, 0x30, 0, 0, 0, 0, 0, &svc_result);
+	ffa_result result = ffa_console_log_32(message, length);
+	LONGS_EQUAL(-1, result);
+}
+
+TEST(ffa_api, ffa_console_log_32)
+{
+	const char *message = "0123456789abcdefghijklmn";
+	const size_t length = 24;
+
+	svc_result.a0 = 0x84000061;
+	expect_ffa_svc(0x8400008A, length, 0x33323130, 0x37363534, 0x62613938,
+		       0x66656463, 0x6A696867, 0x6E6D6C6B, &svc_result);
+	ffa_result result = ffa_console_log_32(message, length);
+	LONGS_EQUAL(0, result);
+}
+
+TEST(ffa_api, ffa_console_log_64_zero)
+{
+	assert_environment_t assert_env;
+
+	if (SETUP_ASSERT_ENVIRONMENT(assert_env)) {
+		ffa_console_log_64("", 0);
+	}
+}
+
+TEST(ffa_api, ffa_console_log_64_too_long)
+{
+	assert_environment_t assert_env;
+
+	if (SETUP_ASSERT_ENVIRONMENT(assert_env)) {
+		ffa_console_log_64("", 49);
+	}
+}
+
+TEST(ffa_api, ffa_console_log_64_unknown_response)
+{
+	assert_environment_t assert_env;
+	const char *message = "0";
+	const size_t length = 1;
+
+	svc_result.a0 = 0x12345678;
+	expect_ffa_svc(0xC400008A, length, 0x30, 0, 0, 0, 0, 0, &svc_result);
+
+	if (SETUP_ASSERT_ENVIRONMENT(assert_env)) {
+		ffa_console_log_64(message, length);
+	}
+}
+
+TEST(ffa_api, ffa_console_log_64_error)
+{
+	const char *message = "0";
+	const size_t length = 1;
+
+	setup_error_response(-1);
+	expect_ffa_svc(0xC400008A, length, 0x30, 0, 0, 0, 0, 0, &svc_result);
+	ffa_result result = ffa_console_log_64(message, length);
+	LONGS_EQUAL(-1, result);
+}
+
+TEST(ffa_api, ffa_console_log_64)
+{
+	const char *message = "0123456789abcdefghijklmnopqrstuvwxyz0123456789ab";
+	const size_t length = 48;
+
+	svc_result.a0 = 0x84000061;
+	expect_ffa_svc(0xC400008A, length,  0x3736353433323130,
+		       0x6665646362613938, 0x6E6D6C6B6A696867,
+		       0x767574737271706F, 0x333231307A797877,
+		       0x6261393837363534, &svc_result);
+	ffa_console_log_64(message, length);
+}
