@@ -5,21 +5,14 @@
 #
 #-------------------------------------------------------------------------------
 
-if (NOT DEFINED TGT)
-	message(FATAL_ERROR "mandatory parameter TGT is not defined.")
-endif()
+# Check mandatory variables.
+foreach(_var IN ITEMS TGT TRACE_PREFIX SP_HEAP_SIZE SP_STACK_SIZE SP_UUID_CANON)
+	if (NOT DEFINED ${_var})
+		message(FATAL_ERROR "Mandatory parameter '${_var}' missing.")
+	endif()
+endforeach()
 
-if (NOT DEFINED TRACE_PREFIX)
-	message(FATAL_ERROR "mandatory parameter TRACE_PREFIX is not defined.")
-endif()
-
-if (NOT DEFINED SP_HEAP_SIZE)
-	message(FATAL_ERROR "mandatory parameter SP_HEAP_SIZE is not defined.")
-endif()
-
-if (NOT DEFINED SP_STACK_SIZE)
-	message(FATAL_ERROR "mandatory parameter SP_STACK_SIZE is not defined.")
-endif()
+ts_add_uuid_to_exe_name(TGT "${TGT}" UUID "${SP_UUID_CANON}" )
 
 target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/entry.S"

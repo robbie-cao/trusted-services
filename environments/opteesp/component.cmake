@@ -5,9 +5,14 @@
 #
 #-------------------------------------------------------------------------------
 
-if (NOT DEFINED TGT)
-	message(FATAL_ERROR "mandatory parameter TGT is not defined.")
-endif()
+# Check mandatory variables.
+foreach(_var IN ITEMS TGT)
+	if (NOT DEFINED ${_var})
+		message(FATAL_ERROR "Mandatory parameter '${_var}' missing.")
+	endif()
+endforeach()
+
+ts_add_uuid_to_exe_name(TGT "${TGT}" UUID "${SP_UUID_CANON}" )
 
 target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/optee_sp_header.c"

@@ -49,3 +49,60 @@ function(ts_verify_build_env)
         endif()
     endif()
 endFunction()
+
+#[===[.rst:
+.. cmake:command:: ts_add_uuid_to_exe_name
+
+  .. code-block:: cmake
+
+    ts_add_uuid_to_exe_name(TGT <target name> UUID "canonical string")
+
+	A function to modify the file name of the binary produced by a deployment to allow the OP-TEE symbolize.py tool to
+	find it when analyzing stack dumps. This is only useful for SP deployments targeting OP-TEE.
+	The filename will follow the template <file name>_<UUID>.elf format, where
+	   - file name is the original name already configured for the target
+	   - UUID is an argument of this function
+
+	INPUTS:
+
+	``TGT``
+	Mandatory. The name of the target to manipulate.
+
+	``UUID``
+	Mandatory. The UUID to be used to identify the SP. This has to match the UUID used by OP-TEE OS to identify the SP
+	runtime.
+
+#]===]
+function(ts_add_uuid_to_exe_name)
+	set(options)
+	set(oneValueArgs TGT UUID)
+	set(multiValueArgs)
+	cmake_parse_arguments(_MY_PARAMS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+	check_args(ts_add_uuid_to_exe_name TGT)
+
+	get_target_property(_tgt_type ${_MY_PARAMS_TGT} TYPE)
+	if ("${_tgt_type}" STREQUAL "EXECUTABLE")
+		check_args(ts_add_uuid_to_exe_name UUID)
+		get_target_property(_out_name ${_MY_PARAMS_TGT} OUTPUT_NAME)
+		if (NOT _out_name)
+			set(_out_name "${_MY_PARAMS_TGT}")
+		endif()
+		get_target_property(_suffix ${_MY_PARAMS_TGT} SUFFIX)
+		if (NOT _suffix)
+			# Note CMAKE_EXECUTABLE_SUFFIX_<lang> might be needed here. Unfortunately
+			# this is only set, when it is set manually. It overrides the EXE_SUFFIX
+			# when set.
+			set(_suffix ${CMAKE_EXECUTABLE_SUFFIX})
+		endif()
+		# If executable suffix is still not set at this point, use the full name as basename.
+		if (_suffix)
+			string(REGEX REPLACE "${_suffix}$" "" _base_name "${_out_name}")
+		else()
+			set(_base_name "${_out_name}")
+		endif()
+
+		set(_out_name "${_base_name}_${_MY_PARAMS_UUID}${_suffix}")
+		set_target_properties(${_MY_PARAMS_TGT} PROPERTIES OUTPUT_NAME "${_out_name}")
+	endif()
+endfunction()

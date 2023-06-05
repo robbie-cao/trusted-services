@@ -67,8 +67,6 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "location to install build output to." FORCE)
 endif()
 
-set_target_properties(spm-test${SP_NUMBER} PROPERTIES OUTPUT_NAME "spm-test${SP_NUMBER}-${SP_UUID_CANON}.elf" )
-
 install(TARGETS spm-test${SP_NUMBER}
 			PUBLIC_HEADER DESTINATION ${TS_ENV}/include
 			RUNTIME DESTINATION ${TS_ENV}/bin
