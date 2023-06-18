@@ -238,8 +238,7 @@ static psa_status_t unpack_image_info(void *buffer, uint32_t size)
     return PSA_SUCCESS;
 }
 
-static psa_status_t get_image_info(struct rpc_caller *caller,
-			   psa_handle_t platform_service_handle)
+static psa_status_t get_image_info(struct rpc_caller *caller)
 {
     psa_status_t status;
     psa_handle_t handle;
@@ -255,7 +254,7 @@ static psa_status_t get_image_info(struct rpc_caller *caller,
 
     memset(image_info_buffer, 0, IMAGE_INFO_BUFFER_SIZE);
 
-    psa_call(caller, platform_service_handle, PSA_IPC_CALL,
+    psa_call(caller, TFM_PLATFORM_SERVICE_HANDLE, TFM_PLATFORM_API_ID_IOCTL,
 	     in_vec, IOVEC_LEN(in_vec), out_vec, IOVEC_LEN(out_vec));
 
     status = unpack_image_info(image_info_buffer, IMAGE_INFO_BUFFER_SIZE);
@@ -288,12 +287,11 @@ static psa_status_t set_image_info(struct rpc_caller *caller)
     return PSA_SUCCESS;
 }
 
-void set_fmp_image_info(struct rpc_caller *caller,
-			psa_handle_t platform_service_handle)
+void set_fmp_image_info(struct rpc_caller *caller)
 {
     psa_status_t status;
 
-    status = get_image_info(caller, platform_service_handle);
+    status = get_image_info(caller);
     if (status != PSA_SUCCESS) {
 	return;
     }

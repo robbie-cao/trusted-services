@@ -61,7 +61,6 @@ void capsule_update_provider_deinit(struct capsule_update_provider *context)
 static rpc_status_t event_handler(uint32_t opcode, struct rpc_caller *caller)
 {
 	uint32_t ioctl_id;
-	psa_handle_t handle;
 	rpc_status_t rpc_status = TS_RPC_CALL_ACCEPTED;
 
 	struct psa_invec in_vec[] = {
@@ -79,31 +78,18 @@ static rpc_status_t event_handler(uint32_t opcode, struct rpc_caller *caller)
 		case CAPSULE_UPDATE_REQUEST:
 		/* Openamp call with IOCTL for firmware update*/
 		ioctl_id = IOCTL_CORSTONE1000_FWU_FLASH_IMAGES;
-		handle = psa_connect(caller, TFM_SP_PLATFORM_IOCTL_SID,
-				TFM_SP_PLATFORM_IOCTL_VERSION);
-		if (handle <= 0) {
-			EMSG("%s Invalid handle", __func__);
-			rpc_status = TS_RPC_ERROR_INVALID_PARAMETER;
-			return rpc_status;
-		}
-		psa_call(caller,handle, PSA_IPC_CALL,
+		psa_call(caller,TFM_PLATFORM_SERVICE_HANDLE, TFM_PLATFORM_API_ID_IOCTL,
 			in_vec,IOVEC_LEN(in_vec), NULL, 0);
-		set_fmp_image_info(caller, handle);
+		set_fmp_image_info(caller);
 		break;
 
 		case KERNEL_STARTED_EVENT:
 		ioctl_id = IOCTL_CORSTONE1000_FWU_HOST_ACK;
 		/*openamp call with IOCTL for kernel start*/
-		handle = psa_connect(caller, TFM_SP_PLATFORM_IOCTL_SID,
-				TFM_SP_PLATFORM_IOCTL_VERSION);
-		if (handle <= 0) {
-			EMSG("%s Invalid handle", __func__);
-			rpc_status = TS_RPC_ERROR_INVALID_PARAMETER;
-			return rpc_status;
-		}
-		psa_call(caller,handle, PSA_IPC_CALL,
+		
+		psa_call(caller,TFM_PLATFORM_SERVICE_HANDLE, TFM_PLATFORM_API_ID_IOCTL,
 			in_vec,IOVEC_LEN(in_vec), NULL, 0);
-		set_fmp_image_info(caller, handle);
+		set_fmp_image_info(caller);
 		break;
 		default:
 			EMSG("%s unsupported opcode", __func__);

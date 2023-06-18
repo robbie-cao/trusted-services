@@ -16,8 +16,7 @@ extern "C" {
 
 void provision_fmp_variables_metadata(struct rpc_caller *caller);
 
-void set_fmp_image_info(struct rpc_caller *caller,
-		psa_handle_t platform_service_handle);
+void set_fmp_image_info(struct rpc_caller *caller);
 
 #ifdef __cplusplus
 } /* extern "C" */
