@@ -77,6 +77,9 @@ void __noreturn sp_main(struct ffa_init_info *init_info)
 	}
 	rpc_demux_attach(&rpc_demux, SE_PROXY_INTERFACE_ID_ATTEST, rpc_iface);
 
+	rpc_iface = capsule_update_proxy_create();
+	rpc_demux_attach(&rpc_demux, SE_PROXY_INTERFACE_ID_CAPSULE_UPDATE, rpc_iface);
+
 	/* End of boot phase */
 	result = sp_msg_wait(&req_msg);
 	if (result != SP_RESULT_OK) {

@@ -14,6 +14,7 @@
 #include <service/crypto/factory/crypto_provider_factory.h>
 #include <service/secure_storage/frontend/secure_storage_provider/secure_storage_provider.h>
 #include <trace.h>
+#include <service/capsule_update/provider/capsule_update_provider.h>
 
 /* backends */
 #include <service/crypto/backend/psa_ipc/crypto_ipc_backend.h>
@@ -94,3 +95,19 @@ struct rpc_interface *its_proxy_create(void)
 
 	return secure_storage_provider_init(&its_provider, backend);
 }
+
+struct rpc_interface *capsule_update_proxy_create(void)
+{
+	static struct capsule_update_provider capsule_update_provider;
+	static struct rpc_caller *capsule_update_caller;
+
+	capsule_update_caller = psa_ipc_caller_init(&psa_ipc);
+
+	if (!capsule_update_caller)
+	return NULL;
+
+	capsule_update_provider.client.caller = capsule_update_caller;
+
+	return capsule_update_provider_init(&capsule_update_provider);
+}
+

@@ -17,6 +17,7 @@ struct rpc_interface *attest_proxy_create(void);
 struct rpc_interface *crypto_proxy_create(void);
 struct rpc_interface *ps_proxy_create(void);
 struct rpc_interface *its_proxy_create(void);
+struct rpc_interface *capsule_update_proxy_create(void);
 
 #ifdef __cplusplus
 }
