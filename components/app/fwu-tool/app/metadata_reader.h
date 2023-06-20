@@ -8,6 +8,7 @@
 #define FWU_METADATA_READER_H
 
 #include <cstdint>
+#include <cstddef>
 #include <vector>
 
 /*
