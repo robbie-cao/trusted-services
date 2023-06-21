@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -11,9 +11,13 @@ endif()
 set_property(TARGET ${TGT} APPEND PROPERTY PUBLIC_HEADER
 	"${CMAKE_CURRENT_LIST_DIR}/rpc_caller.h"
 	"${CMAKE_CURRENT_LIST_DIR}/rpc_status.h"
+	"${CMAKE_CURRENT_LIST_DIR}/rpc_uuid.h"
 	)
 
 target_include_directories(${TGT} PUBLIC
 	"$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>"
-	"$<INSTALL_INTERFACE:${TS_ENV}/include>"
+	)
+
+target_sources(${TGT} PRIVATE
+	"${CMAKE_CURRENT_LIST_DIR}/rpc_uuid.c"
 	)
