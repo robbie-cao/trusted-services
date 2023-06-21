@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 
+
 #[===[.rst:
 UnitTest CMake module
 ---------------------
@@ -92,6 +93,18 @@ set(CPICKER_CACHE_PATH ${CMAKE_CURRENT_BINARY_DIR}/cpicker_cache CACHE PATH "Dir
 
 set(UNIT_TEST_COMMON_SOURCES ${CMAKE_CURRENT_LIST_DIR}/../common/main.cpp CACHE STRING "List of common test source files")
 
+if (POSITION_INDEPENDENT_CODE)
+	string(APPEND CPPUTEST_CXX_FLAGS -fPIC " " -pie)
+	string(APPEND CPPUTEST_C_FLAGS -fPIC " " -pie)
+	SET(TEST_COMPILE_OPTIONS ${TEST_COMPILE_OPTIONS} -fPIC -pie)
+	SET(TEST_LINK_OPTIONS ${TEST_LINK_OPTIONS} -fPIC -pie)
+else()
+	string(APPEND CPPUTEST_CXX_FLAGS -no-pie)
+	string(APPEND CPPUTEST_C_FLAGS -no-pie)
+	string(APPEND TEST_COMPILE_OPTIONS -no-pie)
+	string(APPEND TEST_LINK_OPTIONS -no-pie)
+endif()
+
 # Checking git
 find_program(GIT_COMMAND "git")
 if (NOT GIT_COMMAND)
@@ -169,6 +182,8 @@ function(unit_test_init_cpputest)
 			-DLONGLONG=ON
 			-DC++11=ON
 			-DCMAKE_INSTALL_PREFIX=${CPPUTEST_INSTALL_PATH}
+			-DCPPUTEST_CXX_FLAGS=${CPPUTEST_CXX_FLAGS}
+			-DCPPUTEST_C_FLAGS=${CPPUTEST_C_FLAGS}
 			-GUnix\ Makefiles
 			${cpputest_SOURCE_DIR}
 		WORKING_DIRECTORY
@@ -315,6 +330,8 @@ function(unit_test_add_suite)
 
 	target_include_directories(${TEST_NAME} PRIVATE ${TEST_INCLUDE_DIRECTORIES})
 	target_compile_definitions(${TEST_NAME} PRIVATE ${TEST_COMPILE_DEFINITIONS})
+	target_compile_options(${TEST_NAME} PRIVATE ${TEST_COMPILE_OPTIONS})
+	target_link_options(${TEST_NAME} PRIVATE ${TEST_LINK_OPTIONS})
 	if (TEST_DEPENDS)
 		add_dependencies(${TEST_NAME} ${TEST_DEPENDS})
 	endif()
