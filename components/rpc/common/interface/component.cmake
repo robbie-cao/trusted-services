@@ -9,7 +9,6 @@ if (NOT DEFINED TGT)
 endif()
 
 set_property(TARGET ${TGT} APPEND PROPERTY PUBLIC_HEADER
-	"${CMAKE_CURRENT_LIST_DIR}/rpc_caller.h"
 	"${CMAKE_CURRENT_LIST_DIR}/rpc_status.h"
 	"${CMAKE_CURRENT_LIST_DIR}/rpc_uuid.h"
 	)
