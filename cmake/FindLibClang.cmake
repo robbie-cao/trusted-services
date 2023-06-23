@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019-2021, Arm Limited. All rights reserved.
+# Copyright (c) 2019-2023, Arm Limited. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -60,6 +60,7 @@ if (NOT LibClang_LIBRARY_DIRS)
 	message(STATUS "Setting LibClang_LIBRARY_DIRS based on common directories list")
 
 	set(LIBCLANG_COMMON_PATHS
+		/usr/lib/llvm-14/lib
 		/usr/lib/llvm-10/lib
 		/usr/lib/llvm-9/lib
 		/usr/lib/llvm-8/lib
