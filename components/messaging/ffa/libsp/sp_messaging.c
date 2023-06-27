@@ -12,21 +12,18 @@
 
 #include <string.h>
 
-#define SP_MSG_ARG_OFFSET (1)
-
 static void pack_ffa_direct_msg(const struct sp_msg *msg,
 				struct ffa_direct_msg *ffa_msg)
 {
 	ffa_msg->source_id = msg->source_id;
 	ffa_msg->destination_id = msg->destination_id;
 
-	ffa_msg->args.args64[0] = 0;
-	if (msg->is_64bit_message)
-		memcpy(&ffa_msg->args.args64[SP_MSG_ARG_OFFSET],
-		       msg->args.args64, sizeof(msg->args.args64));
-	else
-		memcpy(&ffa_msg->args.args32[SP_MSG_ARG_OFFSET],
-		       msg->args.args32, sizeof(msg->args.args32));
+	if (msg->is_64bit_message) {
+		ffa_msg->function_id = FFA_TO_64_BIT_FUNC(0);
+		memcpy(ffa_msg->args.args64, msg->args.args64, sizeof(msg->args.args64));
+	} else {
+		memcpy(ffa_msg->args.args32, msg->args.args32, sizeof(msg->args.args32));
+	}
 }
 
 static void unpack_ffa_direct_msg(const struct ffa_direct_msg *ffa_msg,
@@ -39,10 +36,9 @@ static void unpack_ffa_direct_msg(const struct ffa_direct_msg *ffa_msg,
 		 */
 		msg->source_id = ffa_msg->source_id;
 		msg->destination_id = ffa_msg->destination_id;
-		msg->is_64bit_message = FFA_IS_64_BIT_FUNC(ffa_msg->function_id);
+		msg->is_64bit_message = false;
 
-		memcpy(msg->args.args32, &ffa_msg->args.args32[SP_MSG_ARG_OFFSET],
-		       sizeof(msg->args.args32));
+		memcpy(msg->args.args32, ffa_msg->args.args32, sizeof(msg->args.args32));
 	} else if (ffa_msg->function_id == FFA_MSG_SEND_DIRECT_REQ_64 ||
 		   ffa_msg->function_id == FFA_MSG_SEND_DIRECT_RESP_64) {
 		/*
@@ -50,10 +46,9 @@ static void unpack_ffa_direct_msg(const struct ffa_direct_msg *ffa_msg,
 		 */
 		msg->source_id = ffa_msg->source_id;
 		msg->destination_id = ffa_msg->destination_id;
-		msg->is_64bit_message = FFA_IS_64_BIT_FUNC(ffa_msg->function_id);
+		msg->is_64bit_message = true;
 
-		memcpy(msg->args.args64, &ffa_msg->args.args64[SP_MSG_ARG_OFFSET],
-		       sizeof(msg->args.args64));
+		memcpy(msg->args.args64, ffa_msg->args.args64, sizeof(msg->args.args64));
 	} else {
 		/* Success has no message parameters */
 		*msg = (struct sp_msg){ 0 };
@@ -104,7 +99,11 @@ sp_result sp_msg_send_direct_req(const struct sp_msg *req, struct sp_msg *resp)
 	pack_ffa_direct_msg(req, &ffa_req);
 
 #if FFA_DIRECT_MSG_ROUTING_EXTENSION
-	ffa_direct_msg_routing_ext_req_pre_hook(&ffa_req);
+	ffa_res = ffa_direct_msg_routing_ext_req_pre_hook(&ffa_req);
+	if (ffa_res != FFA_OK) {
+		*resp = (struct sp_msg){ 0 };
+		return SP_RESULT_INVALID_PARAMETERS;
+	}
 #endif
 
 	if (req->is_64bit_message)
@@ -158,7 +157,11 @@ sp_result sp_msg_send_direct_resp(const struct sp_msg *resp, struct sp_msg *req)
 	pack_ffa_direct_msg(resp, &ffa_resp);
 
 #if FFA_DIRECT_MSG_ROUTING_EXTENSION
-	ffa_direct_msg_routing_ext_resp_pre_hook(&ffa_resp);
+	ffa_res = ffa_direct_msg_routing_ext_resp_pre_hook(&ffa_resp);
+	if (ffa_res != FFA_OK) {
+		*req = (struct sp_msg){ 0 };
+		return SP_RESULT_INVALID_PARAMETERS;
+	}
 #endif
 
 	if (resp->is_64bit_message)
@@ -212,7 +215,11 @@ sp_result sp_msg_send_rc_req(const struct sp_msg *req, struct sp_msg *resp)
 
 	pack_ffa_direct_msg(req, &ffa_req);
 
-	ffa_direct_msg_routing_ext_rc_req_pre_hook(&ffa_req);
+	ffa_res = ffa_direct_msg_routing_ext_rc_req_pre_hook(&ffa_req);
+	if (ffa_res != FFA_OK) {
+		*resp = (struct sp_msg){ 0 };
+		return SP_RESULT_INVALID_PARAMETERS;
+	}
 
 	ffa_res = ffa_msg_send_direct_resp_32(ffa_req.source_id,
 					   ffa_req.destination_id,

@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-#define SP_MSG_ARG_COUNT (4)
+#define SP_MSG_ARG_COUNT (5)
 
 /**
  * @brief      SP message type
