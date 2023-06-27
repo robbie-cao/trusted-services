@@ -6,8 +6,6 @@
 # Checkpatch configuration for Trusted Services.
 
 --showfile
-#      Please set CODESPELL_FILE in the environment.
---codespellfile="$CODESPELL_FILE"
 --codespell
 --ignore SPDX_LICENSE_TAG,PREFER_KERNEL_TYPES,USLEEP_RANGE,GERRIT_CHANGE_ID,FILE_PATH_CHANGES,UNNECESSARY_PARENTHESES,PREFER_DEFINED_ATTRIBUTE_MACRO,BIT_MACRO
 --no-tree
