@@ -7,8 +7,8 @@
 #ifndef SECURE_STORAGE_PROVIDER_H
 #define SECURE_STORAGE_PROVIDER_H
 
-#include <service/common/provider/service_provider.h>
-#include <service/secure_storage/backend/storage_backend.h>
+#include "service/common/provider/service_provider.h"
+#include "service/secure_storage/backend/storage_backend.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,8 +25,9 @@ struct secure_storage_provider {
 	struct storage_backend *backend;
 };
 
-struct rpc_interface *secure_storage_provider_init(struct secure_storage_provider *context,
-										struct storage_backend *backend);
+struct rpc_service_interface *secure_storage_provider_init(struct secure_storage_provider *context,
+							   struct storage_backend *backend,
+							   const struct rpc_uuid *service_uuid);
 
 void secure_storage_provider_deinit(struct secure_storage_provider *context);
 
