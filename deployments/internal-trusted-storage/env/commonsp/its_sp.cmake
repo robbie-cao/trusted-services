@@ -20,8 +20,10 @@ add_components(TARGET "internal-trusted-storage"
 		"components/config/ramstore"
 		"components/config/loader/sp"
 		"components/messaging/ffa/libsp"
+		"components/rpc/common/endpoint"
 		"components/rpc/common/interface"
-		"components/rpc/ffarpc/endpoint"
+		"components/rpc/ts_rpc/common"
+		"components/rpc/ts_rpc/endpoint/sp"
 )
 
 target_sources(internal-trusted-storage PRIVATE
