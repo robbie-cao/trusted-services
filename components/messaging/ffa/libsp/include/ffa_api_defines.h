@@ -246,6 +246,9 @@
 /* FFA_MEM_TRANSACTION_FLAGS_ZERO_MEMORY is available too */
 /* FFA_MEM_TRANSACTION_FLAGS_TYPE_* is available too */
 
+/* Handle */
+#define FFA_MEM_HANDLE_INVALID				GENMASK_64(63, 0)
+
 /* Table 11.25: Descriptor to relinquish a memory region */
 #define FFA_RELINQUISH_FLAGS_ZERO_MEMORY_AFTER_RELINQUISH	BIT32(0)
 #define FFA_RELINQUISH_FLAGS_OPERATION_TIME_SLICING		BIT32(1)
