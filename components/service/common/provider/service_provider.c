@@ -7,14 +7,14 @@
 #include "service_provider.h"
 #include <protocols/rpc/common/packed-c/status.h>
 #include <stddef.h>
+#include <string.h>
 
 static const struct service_handler *find_handler(const struct service_provider *sp,
-							  uint32_t opcode)
+						  uint32_t opcode)
 {
 	const struct service_handler *handler = NULL;
 
 	if ((opcode >= sp->opcode_range_lo) && (opcode <= sp->opcode_range_hi)) {
-
 		size_t index = 0;
 
 		while (index < sp->num_handlers) {
@@ -40,7 +40,6 @@ static void set_opcode_range(struct service_provider *sp)
 	 * providers are chained.
 	 */
 	for (size_t index = 0; index < sp->num_handlers; index++) {
-
 		uint32_t opcode = service_handler_get_opcode(&sp->handlers[index]);
 
 		if (opcode < lo) lo = opcode;
@@ -51,37 +50,35 @@ static void set_opcode_range(struct service_provider *sp)
 	sp->opcode_range_hi = hi;
 }
 
-static rpc_status_t receive(struct rpc_interface *rpc_iface, struct call_req *req)
+static rpc_status_t receive(void *context, struct rpc_request *req)
 {
+	struct rpc_service_interface *rpc_iface = (struct rpc_service_interface *)context;
 	rpc_status_t rpc_status;
 	struct service_provider *sp = NULL;
 	const struct service_handler *handler = NULL;
 
 	sp = (struct service_provider*)((char*)rpc_iface - offsetof(struct service_provider, iface));
-	handler = find_handler(sp, call_req_get_opcode(req));
+	handler = find_handler(sp, req->opcode);
 
 	if (handler) {
-
-		 rpc_status = service_handler_invoke(handler, rpc_iface->context, req);
-	}
-	else if (sp->successor) {
-
-		rpc_status = rpc_interface_receive(sp->successor, req);
-	}
-	else {
-
-		rpc_status = TS_RPC_ERROR_INVALID_OPCODE;
+		rpc_status = service_handler_invoke(handler, rpc_iface->context, req);
+	} else if (sp->successor) {
+		rpc_status = rpc_service_receive(sp->successor, req);
+	} else {
+		rpc_status = RPC_ERROR_INVALID_VALUE;
 	}
 
 	return rpc_status;
 }
 
 void service_provider_init(struct service_provider *sp, void *context,
-				 const struct service_handler *handlers,
-				 size_t num_handlers)
+			   const struct rpc_uuid *service_uuid,
+			   const struct service_handler *handlers,
+			   size_t num_handlers)
 {
 	sp->iface.receive = receive;
 	sp->iface.context = context;
+	memcpy(&sp->iface.uuid, service_uuid, sizeof(sp->iface.uuid));
 
 	sp->handlers = handlers;
 	sp->num_handlers = num_handlers;
@@ -92,7 +89,7 @@ void service_provider_init(struct service_provider *sp, void *context,
 }
 
 void service_provider_extend(struct service_provider *context,
-                    struct service_provider *sub_provider)
+			     struct service_provider *sub_provider)
 {
 	sub_provider->successor = context->successor;
 	context->successor = &sub_provider->iface;

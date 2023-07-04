@@ -7,7 +7,7 @@
 #ifndef SERVICE_PROVIDER_H
 #define SERVICE_PROVIDER_H
 
-#include <rpc/common/endpoint/rpc_interface.h>
+#include "rpc/common/endpoint/rpc_service_interface.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -22,11 +22,11 @@ extern "C" {
  */
 struct service_handler {
 	uint32_t opcode;
-	rpc_status_t (*invoke)(void *context, struct call_req* req);
+	rpc_status_t (*invoke)(void *context, struct rpc_request *req);
 };
 
-static inline int service_handler_invoke(const struct service_handler *handler,
-						  void *context, struct call_req* req)
+static inline int service_handler_invoke(const struct service_handler *handler, void *context,
+					 struct rpc_request *req)
 {
 	return handler->invoke(context, req);
 }
@@ -39,27 +39,27 @@ static inline uint32_t service_handler_get_opcode(const struct service_handler *
 /** \brief Service provider
  *
  * A generalised service provider that acts as an rpc call endpoint.  It receives call
- * requests and delegates them to the approprate handle provided by a concrete service
+ * requests and delegates them to the appropriate handle provided by a concrete service
  * provider.  To support service specialization and proxying, unhandled requests may
  * optionally be passed to a delegate rpc_interface to form a chain of responsibility.
  */
 struct service_provider {
-	struct rpc_interface iface;
+	struct rpc_service_interface iface;
 	const struct service_handler *handlers;
 	size_t num_handlers;
 	uint32_t opcode_range_lo;
 	uint32_t opcode_range_hi;
-	struct rpc_interface *successor;
+	struct rpc_service_interface *successor;
 };
 
-static inline struct rpc_interface *service_provider_get_rpc_interface(struct service_provider *sp)
+static inline struct rpc_service_interface *service_provider_get_rpc_interface(struct service_provider *sp)
 {
 	return &sp->iface;
 }
 
 void service_provider_init(struct service_provider *sp, void *context,
-				 	const struct service_handler *handlers,
-				 	size_t num_handlers);
+			   const struct rpc_uuid *service_uuid,
+			   const struct service_handler *handlers, size_t num_handlers);
 
 /*
  * Extend the core set of operations provided by a service provider by
@@ -69,7 +69,7 @@ void service_provider_init(struct service_provider *sp, void *context,
  * provider if needed.
  */
 void service_provider_extend(struct service_provider *context,
-                    struct service_provider *sub_provider);
+			     struct service_provider *sub_provider);
 
 /*
  * Link a successor to this service provider to extend the chain of responsibility
@@ -77,7 +77,7 @@ void service_provider_extend(struct service_provider *context,
  * modular configuration of service capabilities.
  */
 static inline void service_provider_link_successor(struct service_provider *sp,
-					struct rpc_interface *successor)
+						   struct rpc_service_interface *successor)
 {
 	sp->successor = successor;
 }
