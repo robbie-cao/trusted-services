@@ -34,7 +34,7 @@ static inline psa_status_t crypto_caller_asymmetric_decrypt(
 				    size_t *output_length)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	size_t in_len;
 	struct psa_ipc_crypto_pack_iovec iov = {

@@ -5,6 +5,8 @@
  */
 
 #include "standalone_crypto_client.h"
+#include "service/secure_storage/frontend/secure_storage_provider/secure_storage_uuid.h"
+#include "service/crypto/provider/crypto_uuid.h"
 #include <service/crypto/factory/crypto_provider_factory.h>
 #include <service/crypto/backend/mbedcrypto/mbedcrypto_backend.h>
 #include <service/secure_storage/backend/secure_flash_store/secure_flash_store.h>
@@ -17,7 +19,8 @@ standalone_crypto_client::standalone_crypto_client() :
     m_storage_client(),
     m_crypto_caller(),
     m_storage_caller(),
-    m_dummy_storage_caller()
+    m_crypto_session(),
+    m_storage_session()
 {
 
 }
@@ -32,42 +35,55 @@ bool standalone_crypto_client::init()
     bool should_do = test_crypto_client::init();
 
     if (should_do) {
-
-        struct rpc_caller *storage_caller;
+        const struct rpc_uuid storage_uuid = { .uuid = TS_PSA_INTERNAL_TRUSTED_STORAGE_UUID };
+        const struct rpc_uuid crypto_uuid = { .uuid = TS_PSA_CRYPTO_PROTOBUF_SERVICE_UUID };
+        rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 
         if (!is_fault_injected(FAILED_TO_DISCOVER_SECURE_STORAGE)) {
 
             /* Establish rpc session with storage provider */
             struct storage_backend *storage_backend = sfs_init(sfs_flash_ram_instance());
-            struct rpc_interface *storage_ep = secure_storage_provider_init(&m_storage_provider,
-                                                                storage_backend);
-            storage_caller = direct_caller_init_default(&m_storage_caller, storage_ep);
-        }
-        else {
+            struct rpc_service_interface *storage_service =
+                secure_storage_provider_init(&m_storage_provider, storage_backend, &storage_uuid);
+            rpc_status = direct_caller_init(&m_storage_caller, storage_service);
+        } else {
 
             /*
              * Missing storage service fault injected.  To allow a somewhat viable
              * crypto service to be started, use a dummy _caller that will safely
              * terminate storage calls with an appropriate error.
              */
-            storage_caller = dummy_caller_init(&m_dummy_storage_caller,
-                        TS_RPC_CALL_ACCEPTED, PSA_ERROR_STORAGE_FAILURE);
+            rpc_status = dummy_caller_init(&m_storage_caller, RPC_SUCCESS, PSA_ERROR_STORAGE_FAILURE);
         }
 
-        struct rpc_interface *crypto_iface = NULL;
+        if (rpc_status != RPC_SUCCESS)
+            return false;
+
+        rpc_status = rpc_caller_session_find_and_open(&m_storage_session, &m_storage_caller,
+                                                      &storage_uuid, 4096);
+        if (rpc_status != RPC_SUCCESS)
+            return false;
+
+        struct rpc_service_interface *crypto_iface = NULL;
         struct storage_backend *client_storage_backend =
-            secure_storage_client_init(&m_storage_client, storage_caller);
+            secure_storage_client_init(&m_storage_client, &m_storage_session);
 
         if (mbedcrypto_backend_init(client_storage_backend, 0) == PSA_SUCCESS) {
 
-            m_crypto_provider = crypto_provider_factory_create();
+            m_crypto_provider = crypto_protobuf_provider_factory_create();
             crypto_iface = service_provider_get_rpc_interface(&m_crypto_provider->base_provider);
         }
 
-        struct rpc_caller *crypto_caller = direct_caller_init_default(&m_crypto_caller, crypto_iface);
-        rpc_caller_set_encoding_scheme(crypto_caller, TS_RPC_ENCODING_PROTOBUF);
+        rpc_status = direct_caller_init(&m_crypto_caller, crypto_iface);
+        if (rpc_status != RPC_SUCCESS)
+            return false;
 
-        crypto_client::set_caller(crypto_caller);
+        rpc_status = rpc_caller_session_find_and_open(&m_crypto_session, &m_crypto_caller,
+                                                      &crypto_uuid, 4096);
+        if (rpc_status != RPC_SUCCESS)
+            return false;
+
+        crypto_client::set_caller(&m_crypto_session);
     }
 
     return should_do;
@@ -82,6 +98,9 @@ bool standalone_crypto_client::deinit()
         crypto_provider_factory_destroy(m_crypto_provider);
         secure_storage_provider_deinit(&m_storage_provider);
         secure_storage_client_deinit(&m_storage_client);
+
+        rpc_caller_session_close(&m_storage_session);
+        rpc_caller_session_close(&m_crypto_session);
 
         direct_caller_deinit(&m_storage_caller);
         direct_caller_deinit(&m_crypto_caller);

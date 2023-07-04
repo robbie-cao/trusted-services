@@ -7,6 +7,7 @@
 #ifndef PACKEDC_CRYPTO_CLIENT_H
 #define PACKEDC_CRYPTO_CLIENT_H
 
+#include "rpc_caller_session.h"
 #include <service/crypto/client/cpp/crypto_client.h>
 #include <protocols/service/crypto/packed-c/key_attributes.h>
 
@@ -17,7 +18,7 @@ class packedc_crypto_client : public crypto_client
 {
 public:
 	packedc_crypto_client();
-	packedc_crypto_client(struct rpc_caller *caller);
+	packedc_crypto_client(struct rpc_caller_session *session);
 	virtual ~packedc_crypto_client();
 
 	/* Key lifecycle methods */

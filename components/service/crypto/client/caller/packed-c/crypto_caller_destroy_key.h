@@ -19,37 +19,38 @@ extern "C" {
 #endif
 
 static inline psa_status_t crypto_caller_destroy_key(struct service_client *context,
-    psa_key_id_t id)
+	psa_key_id_t id)
 {
-    psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
-    struct ts_crypto_destroy_key_in req_msg;
-    size_t req_len = sizeof(struct ts_crypto_destroy_key_in);
+	psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
+	struct ts_crypto_destroy_key_in req_msg;
+	size_t req_len = sizeof(struct ts_crypto_destroy_key_in);
 
-    req_msg.id = id;
+	req_msg.id = id;
 
-    rpc_call_handle call_handle;
-    uint8_t *req_buf;
+	rpc_call_handle call_handle;
+	uint8_t *req_buf;
 
-    call_handle = rpc_caller_begin(context->caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(context->session, &req_buf, req_len, 0);
 
-    if (call_handle) {
+	if (call_handle) {
 
-        uint8_t *resp_buf;
-        size_t resp_len;
-        rpc_opstatus_t opstatus;
+		uint8_t *resp_buf;
+		size_t resp_len;
+		service_status_t service_status;
 
-        memcpy(req_buf, &req_msg, req_len);
+		memcpy(req_buf, &req_msg, req_len);
 
-        context->rpc_status =
-            rpc_caller_invoke(context->caller, call_handle,
-                        TS_CRYPTO_OPCODE_DESTROY_KEY, &opstatus, &resp_buf, &resp_len);
+		context->rpc_status =
+			rpc_caller_session_invoke(call_handle, TS_CRYPTO_OPCODE_DESTROY_KEY,
+						  &resp_buf, &resp_len, &service_status);
 
-        if (context->rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (context->rpc_status == RPC_SUCCESS)
+			psa_status = service_status;
 
-        rpc_caller_end(context->caller, call_handle);
-    }
+		rpc_caller_session_end(call_handle);
+	}
 
-    return psa_status;
+	return psa_status;
 }
 
 #ifdef __cplusplus

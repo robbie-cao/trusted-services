@@ -34,7 +34,7 @@ static inline psa_status_t crypto_caller_common(struct service_client *context,
 						     uint32_t function_id)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = function_id,

@@ -5,7 +5,6 @@
  */
 
 #include "crypto_client.h"
-#include <service/discovery/client/discovery_client.h>
 #include <protocols/rpc/common/packed-c/status.h>
 
 crypto_client::crypto_client() :
@@ -14,15 +13,10 @@ crypto_client::crypto_client() :
 	service_client_init(&m_client, NULL);
 }
 
-crypto_client::crypto_client(struct rpc_caller *caller) :
+crypto_client::crypto_client(struct rpc_caller_session *session) :
 	m_client()
 {
-	service_client_init(&m_client, caller);
-
-	if (caller) {
-
-		discovery_client_get_service_info(&m_client);
-	}
+	service_client_init(&m_client, session);
 }
 
 crypto_client::~crypto_client()
@@ -30,14 +24,9 @@ crypto_client::~crypto_client()
 	service_client_deinit(&m_client);
 }
 
-void crypto_client::set_caller(struct rpc_caller *caller)
+void crypto_client::set_caller(struct rpc_caller_session *session)
 {
-	m_client.caller = caller;
-
-	if (caller) {
-
-		discovery_client_get_service_info(&m_client);
-	}
+	m_client.session = session;
 }
 
 int crypto_client::err_rpc_status() const

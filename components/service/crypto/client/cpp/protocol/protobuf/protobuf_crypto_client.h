@@ -9,6 +9,7 @@
 
 #include <service/crypto/client/cpp/crypto_client.h>
 #include <service/crypto/protobuf/key_attributes.pb.h>
+#include "rpc_caller_session.h"
 
 /*
  * A concrete crypto_client that uses the protobuf based crypto access protocol
@@ -17,7 +18,7 @@ class protobuf_crypto_client : public crypto_client
 {
 public:
 	protobuf_crypto_client();
-	protobuf_crypto_client(struct rpc_caller *caller);
+	protobuf_crypto_client(struct rpc_caller_session *session);
 	virtual ~protobuf_crypto_client();
 
 	/* Key lifecycle methods */

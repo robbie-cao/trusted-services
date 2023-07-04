@@ -33,23 +33,23 @@ static inline psa_status_t crypto_caller_hash_setup(struct service_client *conte
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(context->caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(context->session, &req_buf, req_len, 0);
 
 	if (call_handle) {
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		rpc_opstatus_t opstatus;
+		service_status_t service_status;
 
 		memcpy(req_buf, &req_msg, req_len);
 
 		context->rpc_status =
-			rpc_caller_invoke(context->caller, call_handle,
-				TS_CRYPTO_OPCODE_HASH_SETUP, &opstatus, &resp_buf, &resp_len);
+			rpc_caller_session_invoke(call_handle, TS_CRYPTO_OPCODE_HASH_SETUP,
+						  &resp_buf, &resp_len, &service_status);
 
-		if (context->rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (context->rpc_status == RPC_SUCCESS) {
 
-			psa_status = opstatus;
+			psa_status = service_status;
 
 			if (psa_status == PSA_SUCCESS) {
 
@@ -66,7 +66,7 @@ static inline psa_status_t crypto_caller_hash_setup(struct service_client *conte
 			}
 		}
 
-		rpc_caller_end(context->caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	}
 
 	return psa_status;
@@ -94,13 +94,13 @@ static inline psa_status_t crypto_caller_hash_update(struct service_client *cont
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(context->caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(context->session, &req_buf, req_len, 0);
 
 	if (call_handle) {
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		rpc_opstatus_t opstatus;
+		service_status_t service_status;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
@@ -109,12 +109,13 @@ static inline psa_status_t crypto_caller_hash_update(struct service_client *cont
 		tlv_encode(&req_iter, &data_record);
 
 		context->rpc_status =
-			rpc_caller_invoke(context->caller, call_handle,
-				TS_CRYPTO_OPCODE_HASH_UPDATE, &opstatus, &resp_buf, &resp_len);
+			rpc_caller_session_invoke(call_handle, TS_CRYPTO_OPCODE_HASH_UPDATE,
+						  &resp_buf, &resp_len, &service_status);
 
-		if (context->rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (context->rpc_status == RPC_SUCCESS)
+			psa_status = service_status;
 
-		rpc_caller_end(context->caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	}
 
 	return psa_status;
@@ -137,23 +138,24 @@ static inline psa_status_t crypto_caller_hash_finish(struct service_client *cont
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(context->caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(context->session, &req_buf, req_len,
+					       tlv_required_space(hash_size));
 
 	if (call_handle) {
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		rpc_opstatus_t opstatus;
+		service_status_t service_status;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
 		context->rpc_status =
-			rpc_caller_invoke(context->caller, call_handle,
-				TS_CRYPTO_OPCODE_HASH_FINISH, &opstatus, &resp_buf, &resp_len);
+			rpc_caller_session_invoke(call_handle, TS_CRYPTO_OPCODE_HASH_FINISH,
+						  &resp_buf, &resp_len, &service_status);
 
-		if (context->rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (context->rpc_status == RPC_SUCCESS) {
 
-			psa_status = opstatus;
+			psa_status = service_status;
 
 			if (psa_status == PSA_SUCCESS) {
 
@@ -181,7 +183,7 @@ static inline psa_status_t crypto_caller_hash_finish(struct service_client *cont
 			}
 		}
 
-		rpc_caller_end(context->caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	}
 
 	return psa_status;
@@ -200,23 +202,24 @@ static inline psa_status_t crypto_caller_hash_abort(struct service_client *conte
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(context->caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(context->session, &req_buf, req_len, 0);
 
 	if (call_handle) {
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		rpc_opstatus_t opstatus;
+		service_status_t service_status;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
 		context->rpc_status =
-			rpc_caller_invoke(context->caller, call_handle,
-				TS_CRYPTO_OPCODE_HASH_ABORT, &opstatus, &resp_buf, &resp_len);
+			rpc_caller_session_invoke(call_handle, TS_CRYPTO_OPCODE_HASH_ABORT,
+						  &resp_buf, &resp_len, &service_status);
 
-		if (context->rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (context->rpc_status == RPC_SUCCESS)
+			psa_status = service_status;
 
-		rpc_caller_end(context->caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	}
 
 	return psa_status;
@@ -244,13 +247,13 @@ static inline psa_status_t crypto_caller_hash_verify(struct service_client *cont
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(context->caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(context->session, &req_buf, req_len, 0);
 
 	if (call_handle) {
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		rpc_opstatus_t opstatus;
+		service_status_t service_status;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
@@ -259,12 +262,13 @@ static inline psa_status_t crypto_caller_hash_verify(struct service_client *cont
 		tlv_encode(&req_iter, &data_record);
 
 		context->rpc_status =
-			rpc_caller_invoke(context->caller, call_handle,
-				TS_CRYPTO_OPCODE_HASH_VERIFY, &opstatus, &resp_buf, &resp_len);
+			rpc_caller_session_invoke(call_handle, TS_CRYPTO_OPCODE_HASH_VERIFY,
+						  &resp_buf, &resp_len, &service_status);
 
-		if (context->rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (context->rpc_status == RPC_SUCCESS)
+			psa_status = service_status;
 
-		rpc_caller_end(context->caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	}
 
 	return psa_status;
@@ -284,23 +288,23 @@ static inline psa_status_t crypto_caller_hash_clone(struct service_client *conte
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(context->caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(context->session, &req_buf, req_len, 0);
 
 	if (call_handle) {
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		rpc_opstatus_t opstatus;
+		service_status_t service_status;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
 		context->rpc_status =
-			rpc_caller_invoke(context->caller, call_handle,
-				TS_CRYPTO_OPCODE_HASH_CLONE, &opstatus, &resp_buf, &resp_len);
+			rpc_caller_session_invoke(call_handle, TS_CRYPTO_OPCODE_HASH_CLONE,
+						  &resp_buf, &resp_len, &service_status);
 
-		if (context->rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (context->rpc_status == RPC_SUCCESS) {
 
-			psa_status = opstatus;
+			psa_status = service_status;
 
 			if (psa_status == PSA_SUCCESS) {
 
@@ -317,7 +321,7 @@ static inline psa_status_t crypto_caller_hash_clone(struct service_client *conte
 			}
 		}
 
-		rpc_caller_end(context->caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	}
 
 	return psa_status;

@@ -39,7 +39,7 @@ extern struct psa_crypto_client psa_crypto_client_instance;
  *
  * @return     A status indicating the success/failure of the operation
  */
-psa_status_t psa_crypto_client_init(struct rpc_caller *caller);
+psa_status_t psa_crypto_client_init(struct rpc_caller_session *session);
 
 /**
  * @brief      De-initialises the single psa crypto client
