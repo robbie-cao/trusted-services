@@ -9,7 +9,7 @@
 
 #include <stddef.h>
 #include <psa/error.h>
-#include <rpc_caller.h>
+#include "components/rpc/common/caller/rpc_caller_session.h"
 #include <service/common/client/service_info.h>
 
 #ifdef __cplusplus
@@ -23,11 +23,11 @@ extern "C" {
  * Includes common information about the service that will have been discovered
  * in some way.  The TS discovery protocol provides a way to do this.  If
  * service info is not available, the service_info structure stays in its
- * initialied state.
+ * initialised state.
  */
 struct service_client
 {
-	struct rpc_caller *caller;
+	struct rpc_caller_session *session;
 	int rpc_status;
 	struct service_info service_info;
 };
@@ -45,7 +45,7 @@ struct service_client
  */
 psa_status_t service_client_init(
 	struct service_client *context,
-	struct rpc_caller *caller);
+	struct rpc_caller_session *session);
 
 /**
  * @brief      De-initialises the service client
