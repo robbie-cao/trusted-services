@@ -7,7 +7,7 @@
 #ifndef PACKEDC_ATTEST_PROVIDER_SERIALIZER_H
 #define PACKEDC_ATTEST_PROVIDER_SERIALIZER_H
 
-#include <service/attestation/provider/serializer/attest_provider_serializer.h>
+#include "components/service/attestation/provider/serializer/attest_provider_serializer.h"
 
 #ifdef __cplusplus
 extern "C" {
