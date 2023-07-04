@@ -3,7 +3,8 @@
  * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  */
 
-#include "rpc/ffarpc/endpoint/ffarpc_call_ep.h"
+#include "components/rpc/common/endpoint/rpc_service_interface.h"
+#include "components/rpc/ts_rpc/endpoint/sp/ts_rpc_endpoint_sp.h"
 #include "service/secure_storage/factory/storage_factory.h"
 #include "service/crypto/factory/crypto_provider_factory.h"
 #include "service/crypto/backend/mbedcrypto/mbedcrypto_backend.h"
@@ -21,14 +22,17 @@ static bool sp_init(uint16_t *own_sp_id);
 void __noreturn sp_main(union ffa_boot_info *boot_info)
 {
 	struct crypto_provider *crypto_provider = NULL;
-	struct ffa_call_ep ffarpc_call_ep = { 0 };
-	struct rpc_interface *crypto_iface = NULL;
+	struct crypto_provider *crypto_protobuf_provider = NULL;
+	struct ts_rpc_endpoint_sp rpc_endpoint = { 0 };
+	struct rpc_service_interface *crypto_iface = NULL;
+	struct rpc_service_interface *crypto_iface_protobuf = NULL;
 	struct sp_msg req_msg = { 0 };
 	struct sp_msg resp_msg = { 0 };
 	struct storage_backend *storage_backend = NULL;
 	uint16_t own_id = 0;
 	psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
 	sp_result result = SP_RESULT_INTERNAL_ERROR;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 
 	/* Boot phase */
 	if (!sp_init(&own_id)) {
@@ -63,13 +67,42 @@ void __noreturn sp_main(union ffa_boot_info *boot_info)
 		goto fatal_error;
 	}
 
+	crypto_protobuf_provider = crypto_protobuf_provider_factory_create();
+	if (!crypto_protobuf_provider) {
+		EMSG("Failed to create crypto protobuf provider factory");
+		goto fatal_error;
+	}
+
 	crypto_iface = service_provider_get_rpc_interface(&crypto_provider->base_provider);
 	if (!crypto_iface) {
 		EMSG("Failed to create service provider RPC interface");
 		goto fatal_error;
 	}
 
-	ffa_call_ep_init(&ffarpc_call_ep, crypto_iface, own_id);
+	crypto_iface_protobuf = service_provider_get_rpc_interface(
+		&crypto_protobuf_provider->base_provider);
+	if (!crypto_iface_protobuf) {
+		EMSG("Failed to create service provider RPC interface");
+		goto fatal_error;
+	}
+
+	rpc_status = ts_rpc_endpoint_sp_init(&rpc_endpoint, 2, 16);
+	if (rpc_status != RPC_SUCCESS) {
+		EMSG("Failed to initialize RPC endpoint: %d", rpc_status);
+		goto fatal_error;
+	}
+
+	rpc_status = ts_rpc_endpoint_sp_add_service(&rpc_endpoint, crypto_iface);
+	if (rpc_status != RPC_SUCCESS) {
+		EMSG("Failed to add service to RPC endpoint: %d", rpc_status);
+		goto fatal_error;
+	}
+
+	rpc_status = ts_rpc_endpoint_sp_add_service(&rpc_endpoint, crypto_iface_protobuf);
+	if (rpc_status != RPC_SUCCESS) {
+		EMSG("Failed to add service to RPC endpoint: %d", rpc_status);
+		goto fatal_error;
+	}
 
 	/* End of boot phase */
 	result = sp_msg_wait(&req_msg);
@@ -79,7 +112,7 @@ void __noreturn sp_main(union ffa_boot_info *boot_info)
 	}
 
 	while (1) {
-		ffa_call_ep_receive(&ffarpc_call_ep, &req_msg, &resp_msg);
+		ts_rpc_endpoint_sp_receive(&rpc_endpoint, &req_msg, &resp_msg);
 
 		result = sp_msg_send_direct_resp(&resp_msg, &req_msg);
 		if (result != SP_RESULT_OK) {

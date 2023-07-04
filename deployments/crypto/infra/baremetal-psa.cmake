@@ -14,7 +14,7 @@
 add_components(TARGET "crypto"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
-		"components/rpc/ffarpc/caller/sp"
+		"components/rpc/ts_rpc/caller/sp"
 		"components/rpc/common/caller"
 		"components/service/common/client"
 		"components/service/crypto/backend/mbedcrypto/trng_adapter/platform"
