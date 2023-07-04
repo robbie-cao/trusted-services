@@ -37,7 +37,7 @@ struct block_storage_client {
  */
 struct block_store *block_storage_client_init(
 	struct block_storage_client *block_storage_client,
-	struct rpc_caller *caller);
+	struct rpc_caller_session *session);
 
 /**
  * \brief De-initialize a block_storage_client

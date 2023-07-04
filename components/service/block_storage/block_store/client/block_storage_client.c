@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include "rpc_caller.h"
+#include "rpc_caller_session.h"
 #include "block_storage_client.h"
 #include "protocols/rpc/common/packed-c/status.h"
 #include "protocols/service/block_storage/packed-c/messages.h"
@@ -27,29 +27,28 @@ static psa_status_t block_storage_client_get_partition_info(void *context,
 	memcpy(req_msg.partition_guid, partition_guid->octets, sizeof(req_msg.partition_guid));
 
 	rpc_call_handle call_handle =
-		rpc_caller_begin(this_context->client.caller, &req_buf, req_len);
+		rpc_caller_session_begin(this_context->client.session, &req_buf, req_len,
+					 sizeof(struct ts_block_storage_get_partition_info_out));
 
 	if (call_handle) {
-
-		uint8_t *resp_buf;
-		size_t resp_len;
-		rpc_opstatus_t op_status;
+		uint8_t *resp_buf = NULL;
+		size_t resp_len = 0;
+		service_status_t service_status = 0;
 
 		memcpy(req_buf, &req_msg, req_len);
 
-		this_context->client.rpc_status = rpc_caller_invoke(
-			this_context->client.caller, call_handle,
-			TS_BLOCK_STORAGE_OPCODE_GET_PARTITION_INFO,
-			&op_status, &resp_buf, &resp_len);
+		this_context->client.rpc_status = rpc_caller_session_invoke(
+			call_handle, TS_BLOCK_STORAGE_OPCODE_GET_PARTITION_INFO, &resp_buf,
+			&resp_len, &service_status);
 
-		if (this_context->client.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (this_context->client.rpc_status == RPC_SUCCESS) {
 
-			psa_status = op_status;
+			psa_status = service_status;
 
 			if (psa_status == PSA_SUCCESS) {
 
 				if (resp_len >=
-						sizeof(struct ts_block_storage_get_partition_info_out)) {
+				    sizeof(struct ts_block_storage_get_partition_info_out)) {
 
 					struct ts_block_storage_get_partition_info_out resp_msg;
 
@@ -73,10 +72,10 @@ static psa_status_t block_storage_client_get_partition_info(void *context,
 			}
 		}
 
-		rpc_caller_end(this_context->client.caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	} else {
 
-		this_context->client.rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
+		this_context->client.rpc_status = RPC_ERROR_INTERNAL;
 	}
 
 	return psa_status;
@@ -98,24 +97,24 @@ static psa_status_t block_storage_client_open(void *context,
 	memcpy(req_msg.partition_guid, partition_guid->octets, sizeof(req_msg.partition_guid));
 
 	rpc_call_handle call_handle =
-		rpc_caller_begin(this_context->client.caller, &req_buf, req_len);
+		rpc_caller_session_begin(this_context->client.session, &req_buf, req_len,
+					 sizeof(struct ts_block_storage_open_out));
 
 	if (call_handle) {
 
-		uint8_t *resp_buf;
-		size_t resp_len;
-		rpc_opstatus_t op_status;
+		uint8_t *resp_buf = NULL;
+		size_t resp_len = 0;
+		service_status_t service_status = 0;
 
 		memcpy(req_buf, &req_msg, req_len);
 
-		this_context->client.rpc_status = rpc_caller_invoke(
-			this_context->client.caller, call_handle,
-			TS_BLOCK_STORAGE_OPCODE_OPEN,
-			&op_status, &resp_buf, &resp_len);
+		this_context->client.rpc_status = rpc_caller_session_invoke(
+			call_handle, TS_BLOCK_STORAGE_OPCODE_OPEN, &resp_buf, &resp_len,
+			&service_status);
 
-		if (this_context->client.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (this_context->client.rpc_status == RPC_SUCCESS) {
 
-			psa_status = op_status;
+			psa_status = service_status;
 
 			if (psa_status == PSA_SUCCESS) {
 
@@ -132,10 +131,10 @@ static psa_status_t block_storage_client_open(void *context,
 			}
 		}
 
-		rpc_caller_end(this_context->client.caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	} else {
 
-		this_context->client.rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
+		this_context->client.rpc_status = RPC_ERROR_INTERNAL;
 	}
 
 	return psa_status;
@@ -156,28 +155,27 @@ static psa_status_t block_storage_client_close(void *context,
 	req_msg.handle = handle;
 
 	rpc_call_handle call_handle =
-		rpc_caller_begin(this_context->client.caller, &req_buf, req_len);
+		rpc_caller_session_begin(this_context->client.session, &req_buf, req_len, 0);
 
 	if (call_handle) {
 
-		uint8_t *resp_buf;
-		size_t resp_len;
-		rpc_opstatus_t op_status;
+		uint8_t *resp_buf = NULL;
+		size_t resp_len = 0;
+		service_status_t service_status = 0;
 
 		memcpy(req_buf, &req_msg, req_len);
 
-		this_context->client.rpc_status = rpc_caller_invoke(
-			this_context->client.caller, call_handle,
-			TS_BLOCK_STORAGE_OPCODE_CLOSE,
-			&op_status, &resp_buf, &resp_len);
+		this_context->client.rpc_status = rpc_caller_session_invoke(
+			call_handle, TS_BLOCK_STORAGE_OPCODE_CLOSE,
+			&resp_buf, &resp_len, &service_status);
 
-		if (this_context->client.rpc_status == TS_RPC_CALL_ACCEPTED)
-			psa_status = op_status;
+		if (this_context->client.rpc_status == RPC_SUCCESS)
+			psa_status = service_status;
 
-		rpc_caller_end(this_context->client.caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	} else {
 
-		this_context->client.rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
+		this_context->client.rpc_status = RPC_ERROR_INTERNAL;
 	}
 
 	return psa_status;
@@ -208,24 +206,24 @@ static psa_status_t block_storage_client_read(void *context,
 	req_msg.len = buffer_size;
 
 	rpc_call_handle call_handle =
-		rpc_caller_begin(this_context->client.caller, &req_buf, req_len);
+		rpc_caller_session_begin(this_context->client.session, &req_buf, req_len,
+					 buffer_size);
 
 	if (call_handle) {
 
-		uint8_t *resp_buf;
-		size_t resp_len;
-		rpc_opstatus_t op_status;
+		uint8_t *resp_buf = NULL;
+		size_t resp_len = 0;
+		service_status_t service_status = 0;
 
 		memcpy(req_buf, &req_msg, req_len);
 
-		this_context->client.rpc_status = rpc_caller_invoke(
-			this_context->client.caller, call_handle,
-			TS_BLOCK_STORAGE_OPCODE_READ,
-			&op_status, &resp_buf, &resp_len);
+		this_context->client.rpc_status = rpc_caller_session_invoke(
+			call_handle, TS_BLOCK_STORAGE_OPCODE_READ, &resp_buf, &resp_len,
+			&service_status);
 
-		if (this_context->client.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (this_context->client.rpc_status == RPC_SUCCESS) {
 
-			psa_status = op_status;
+			psa_status = service_status;
 
 			if (psa_status == PSA_SUCCESS) {
 
@@ -240,10 +238,10 @@ static psa_status_t block_storage_client_read(void *context,
 			}
 		}
 
-		rpc_caller_end(this_context->client.caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	} else {
 
-		this_context->client.rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
+		this_context->client.rpc_status = RPC_ERROR_INTERNAL;
 	}
 
 	return psa_status;
@@ -271,13 +269,13 @@ static psa_status_t block_storage_client_write(void *context,
 	req_msg.offset = offset;
 
 	rpc_call_handle call_handle =
-		rpc_caller_begin(this_context->client.caller, &req_buf, req_len);
+		rpc_caller_session_begin(this_context->client.session, &req_buf, req_len,
+					 sizeof(struct ts_block_storage_write_out));
 
 	if (call_handle) {
-
-		uint8_t *resp_buf;
-		size_t resp_len;
-		rpc_opstatus_t op_status;
+		uint8_t *resp_buf = NULL;
+		size_t resp_len = 0;
+		service_status_t service_status = 0;
 
 		/* Copy fixed size message */
 		memcpy(req_buf, &req_msg, sizeof(req_msg));
@@ -285,14 +283,13 @@ static psa_status_t block_storage_client_write(void *context,
 		/* Copy variable length data */
 		memcpy(&req_buf[sizeof(req_msg)], data, data_len);
 
-		this_context->client.rpc_status = rpc_caller_invoke(
-			this_context->client.caller, call_handle,
-			TS_BLOCK_STORAGE_OPCODE_WRITE,
-			&op_status, &resp_buf, &resp_len);
+		this_context->client.rpc_status = rpc_caller_session_invoke(
+			call_handle, TS_BLOCK_STORAGE_OPCODE_WRITE,
+			&resp_buf, &resp_len, &service_status);
 
-		if (this_context->client.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (this_context->client.rpc_status == RPC_SUCCESS) {
 
-			psa_status = op_status;
+			psa_status = service_status;
 
 			if (psa_status == PSA_SUCCESS) {
 
@@ -309,10 +306,10 @@ static psa_status_t block_storage_client_write(void *context,
 			}
 		}
 
-		rpc_caller_end(this_context->client.caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	} else {
 
-		this_context->client.rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
+		this_context->client.rpc_status = RPC_ERROR_INTERNAL;
 	}
 
 	return psa_status;
@@ -337,29 +334,28 @@ static psa_status_t block_storage_client_erase(void *context,
 	req_msg.num_blocks = num_blocks;
 
 	rpc_call_handle call_handle =
-		rpc_caller_begin(this_context->client.caller, &req_buf, req_len);
+		rpc_caller_session_begin(this_context->client.session, &req_buf, req_len, 0);
 
 	if (call_handle) {
 
-		uint8_t *resp_buf;
-		size_t resp_len;
-		rpc_opstatus_t op_status;
+		uint8_t *resp_buf = NULL;
+		size_t resp_len = 0;
+		service_status_t service_status = 0;
 
 		/* Copy fixed size message */
 		memcpy(req_buf, &req_msg, sizeof(req_msg));
 
-		this_context->client.rpc_status = rpc_caller_invoke(
-			this_context->client.caller, call_handle,
-			TS_BLOCK_STORAGE_OPCODE_ERASE,
-			&op_status, &resp_buf, &resp_len);
+		this_context->client.rpc_status = rpc_caller_session_invoke(
+			call_handle, TS_BLOCK_STORAGE_OPCODE_ERASE,
+			&resp_buf, &resp_len, &service_status);
 
-		if (this_context->client.rpc_status == TS_RPC_CALL_ACCEPTED)
-			psa_status = op_status;
+		if (this_context->client.rpc_status == RPC_SUCCESS)
+			psa_status = service_status;
 
-		rpc_caller_end(this_context->client.caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	} else {
 
-		this_context->client.rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
+		this_context->client.rpc_status = RPC_ERROR_INTERNAL;
 	}
 
 	return psa_status;
@@ -367,9 +363,9 @@ static psa_status_t block_storage_client_erase(void *context,
 
 struct block_store *block_storage_client_init(
 	struct block_storage_client *block_storage_client,
-	struct rpc_caller *caller)
+	struct rpc_caller_session *session)
 {
-	service_client_init(&block_storage_client->client, caller);
+	service_client_init(&block_storage_client->client, session);
 
 	/* Define concrete block store interface */
 	static const struct block_store_interface interface = {

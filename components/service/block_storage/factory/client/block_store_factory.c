@@ -13,7 +13,7 @@
 
 struct block_store_assembly {
 	struct block_storage_client client;
-	rpc_session_handle rpc_session_handle;
+	struct rpc_caller_session *rpc_session;
 	struct service_context *service_context;
 };
 
@@ -25,26 +25,19 @@ struct block_store *client_block_store_factory_create(const char *sn)
 
 	if (assembly) {
 
-		int status;
-
-		assembly->rpc_session_handle = NULL;
+		assembly->rpc_session = NULL;
 		assembly->service_context = NULL;
 
 		service_locator_init();
 
-		assembly->service_context = service_locator_query(sn, &status);
+		assembly->service_context = service_locator_query(sn);
 
 		if (assembly->service_context) {
 
-			struct rpc_caller *caller;
+			assembly->rpc_session = service_context_open(assembly->service_context);
 
-			assembly->rpc_session_handle = service_context_open(
-				assembly->service_context,
-				TS_RPC_ENCODING_PACKED_C,
-				&caller);
-
-			if (assembly->rpc_session_handle)
-				product = block_storage_client_init(&assembly->client, caller);
+			if (assembly->rpc_session)
+				product = block_storage_client_init(&assembly->client, assembly->rpc_session);
 		}
 
 		if (!product) {
@@ -72,10 +65,10 @@ void client_block_store_factory_destroy(struct block_store *block_store)
 
 		if (assembly->service_context) {
 
-			if (assembly->rpc_session_handle) {
+			if (assembly->rpc_session) {
 				service_context_close(
-					assembly->service_context, assembly->rpc_session_handle);
-				assembly->rpc_session_handle = NULL;
+					assembly->service_context, assembly->rpc_session);
+				assembly->rpc_session = NULL;
 			}
 
 			service_context_relinquish(assembly->service_context);
