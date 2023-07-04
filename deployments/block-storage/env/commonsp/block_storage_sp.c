@@ -4,7 +4,7 @@
  */
 
 #include "common/crc32/crc32.h"
-#include "rpc/ffarpc/endpoint/ffarpc_call_ep.h"
+#include "rpc/ts_rpc/endpoint/sp/ts_rpc_endpoint_sp.h"
 #include "protocols/rpc/common/packed-c/status.h"
 #include "config/ramstore/config_ramstore.h"
 #include "config/loader/sp/sp_config_loader.h"
@@ -22,14 +22,15 @@ static bool sp_init(uint16_t *own_sp_id);
 
 void __noreturn sp_main(union ffa_boot_info *boot_info)
 {
-	struct ffa_call_ep ffarpc_call_ep = { 0 };
+	struct ts_rpc_endpoint_sp rpc_endpoint = { 0 };
 	struct block_storage_provider service_provider = { 0 };
 	struct block_store *backend = NULL;
-	struct rpc_interface *service_iface = NULL;
+	struct rpc_service_interface *service_iface = NULL;
 	struct sp_msg req_msg = { 0 };
 	struct sp_msg resp_msg = { 0 };
 	uint16_t own_id = 0;
 	sp_result result = SP_RESULT_INTERNAL_ERROR;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 
 	/* Boot phase */
 	if (!sp_init(&own_id)) {
@@ -61,13 +62,21 @@ void __noreturn sp_main(union ffa_boot_info *boot_info)
 		goto fatal_error;
 	}
 
-	block_storage_provider_register_serializer(
-		&service_provider,
-		TS_RPC_ENCODING_PACKED_C,
-		packedc_block_storage_serializer_instance());
+	block_storage_provider_register_serializer(&service_provider,
+						   packedc_block_storage_serializer_instance());
 
 	/* Associate service interface with FFA call endpoint */
-	ffa_call_ep_init(&ffarpc_call_ep, service_iface, own_id);
+	rpc_status = ts_rpc_endpoint_sp_init(&rpc_endpoint, 1, 16);
+	if (rpc_status != RPC_SUCCESS) {
+		EMSG("Failed to initialize RPC endpoint: %d", rpc_status);
+		goto fatal_error;
+	}
+
+	rpc_status = ts_rpc_endpoint_sp_add_service(&rpc_endpoint, service_iface);
+	if (rpc_status != RPC_SUCCESS) {
+		EMSG("Failed to add service to RPC endpoint: %d", rpc_status);
+		goto fatal_error;
+	}
 
 	/* End of boot phase */
 	result = sp_msg_wait(&req_msg);
@@ -77,7 +86,7 @@ void __noreturn sp_main(union ffa_boot_info *boot_info)
 	}
 
 	while (1) {
-		ffa_call_ep_receive(&ffarpc_call_ep, &req_msg, &resp_msg);
+		ts_rpc_endpoint_sp_receive(&rpc_endpoint, &req_msg, &resp_msg);
 
 		result = sp_msg_send_direct_resp(&resp_msg, &req_msg);
 		if (result != SP_RESULT_OK) {
