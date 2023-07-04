@@ -8,7 +8,7 @@
 #define ATTEST_PROVISION_CLIENT_H
 
 #include <psa/error.h>
-#include <rpc_caller.h>
+#include "rpc_caller_session.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,7 +23,7 @@ extern "C" {
  *
  * @return     A status indicating the success/failure of the operation
  */
-psa_status_t attest_provision_client_init(struct rpc_caller *caller);
+psa_status_t attest_provision_client_init(struct rpc_caller_session *session);
 
 /**
  * @brief      De-initialises the singleton attestion provisioning client

@@ -22,9 +22,9 @@
 static struct service_client instance;
 
 
-psa_status_t psa_iat_client_init(struct rpc_caller *caller)
+psa_status_t psa_iat_client_init(struct rpc_caller_session *session)
 {
-	return service_client_init(&instance, caller);
+	return service_client_init(&instance, session);
 }
 
 void psa_iat_client_deinit(void)
@@ -44,7 +44,7 @@ psa_status_t psa_initial_attest_get_token(const uint8_t *auth_challenge,
 					  size_t *token_size)
 {
 	psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
-	struct rpc_caller *caller = instance.caller;
+	struct rpc_caller_interface *caller = instance.session->caller;
 	struct psa_invec in_vec[] = {
 		{ .base = psa_ptr_const_to_u32(auth_challenge), .len = challenge_size},
 	};
@@ -68,7 +68,7 @@ psa_status_t psa_initial_attest_get_token(const uint8_t *auth_challenge,
 psa_status_t psa_initial_attest_get_token_size(size_t challenge_size,
 						size_t *token_size)
 {
-	struct rpc_caller *caller = instance.caller;
+	struct rpc_caller_interface *caller = instance.session->caller;
 	psa_status_t status;
 	struct psa_invec in_vec[] = {
 		{ .base = psa_ptr_to_u32(&challenge_size), .len = sizeof(uint32_t)}
