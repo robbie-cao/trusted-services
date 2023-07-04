@@ -16,7 +16,7 @@ add_components(TARGET "attestation"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/common/uuid"
-		"components/rpc/ffarpc/caller/sp"
+		"components/rpc/ts_rpc/caller/sp"
 		"components/rpc/common/caller"
 		"components/service/common/client"
 		"components/service/locator"

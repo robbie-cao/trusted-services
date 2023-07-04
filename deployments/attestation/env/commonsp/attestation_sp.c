@@ -4,7 +4,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "rpc/ffarpc/endpoint/ffarpc_call_ep.h"
+#include "components/rpc/ts_rpc/endpoint/sp/ts_rpc_endpoint_sp.h"
+#include "components/rpc/ts_rpc/caller/sp/ts_rpc_caller_sp.h"
+#include "components/rpc/common/caller/rpc_caller_session.h"
 #include "protocols/rpc/common/packed-c/status.h"
 #include "config/ramstore/config_ramstore.h"
 #include "config/loader/sp/sp_config_loader.h"
@@ -32,12 +34,13 @@ void __noreturn sp_main(union ffa_boot_info *boot_info)
 {
 	/* Service provider objects */
 	struct attest_provider attest_provider = { 0 };
-	struct rpc_interface *attest_iface = NULL;
-	struct ffa_call_ep ffarpc_call_ep = { 0 };
+	struct rpc_service_interface *attest_iface = NULL;
+	struct ts_rpc_endpoint_sp rpc_endpoint = { 0 };
 	struct sp_msg req_msg = { 0 };
 	struct sp_msg resp_msg = { 0 };
 	uint16_t own_id = 0;
 	sp_result result = SP_RESULT_INTERNAL_ERROR;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 
 	/* Claim source objects */
 	struct claim_source *claim_source = NULL;
@@ -127,9 +130,19 @@ void __noreturn sp_main(union ffa_boot_info *boot_info)
 	}
 
 	attest_provider_register_serializer(&attest_provider,
-		TS_RPC_ENCODING_PACKED_C, packedc_attest_provider_serializer_instance());
+					    packedc_attest_provider_serializer_instance());
 
-	ffa_call_ep_init(&ffarpc_call_ep, attest_iface, own_id);
+	rpc_status = ts_rpc_endpoint_sp_init(&rpc_endpoint, 1, 16);
+	if (rpc_status != RPC_SUCCESS) {
+		EMSG("Failed to initialize RPC endpoint: %d", rpc_status);
+		goto fatal_error;
+	}
+
+	rpc_status = ts_rpc_endpoint_sp_add_service(&rpc_endpoint, attest_iface);
+	if (rpc_status != RPC_SUCCESS) {
+		EMSG("Failed to add service to RPC endpoint: %d", rpc_status);
+		goto fatal_error;
+	}
 
 	/*********************************************************
 	 * End of boot phase
@@ -141,7 +154,7 @@ void __noreturn sp_main(union ffa_boot_info *boot_info)
 	}
 
 	while (1) {
-		ffa_call_ep_receive(&ffarpc_call_ep, &req_msg, &resp_msg);
+		ts_rpc_endpoint_sp_receive(&rpc_endpoint, &req_msg, &resp_msg);
 
 		result = sp_msg_send_direct_resp(&resp_msg, &req_msg);
 		if (result != SP_RESULT_OK) {
@@ -188,27 +201,27 @@ static bool sp_init(uint16_t *own_id)
 
 bool locate_crypto_service(void)
 {
-	int status = 0;
-	struct rpc_caller *caller = NULL;
+	struct rpc_caller_session *session = NULL;
 	psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
 
 	service_locator_init();
 
 	/* todo - add option to use configurable crypto service location */
 	struct service_context *crypto_service_context =
-		service_locator_query("sn:ffa:d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0:0", &status);
+		service_locator_query("sn:ffa:d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0:0");
 
 	if (!crypto_service_context) {
-		EMSG("Service locator query failed: %d", status);
+		EMSG("Service locator query failed");
 		return false;
 	}
 
-	if (!service_context_open(crypto_service_context, TS_RPC_ENCODING_PACKED_C, &caller)) {
+	session = service_context_open(crypto_service_context);
+	if (!session) {
 		EMSG("Failed to open crypto service context");
 		return false;
 	}
 
-	psa_status = psa_crypto_client_init(caller);
+	psa_status = psa_crypto_client_init(session);
 	if (psa_status != PSA_SUCCESS) {
 		EMSG("Failed to init PSA crypto client: %d", psa_status);
 		return false;
