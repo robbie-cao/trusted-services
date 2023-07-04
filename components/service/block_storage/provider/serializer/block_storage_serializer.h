@@ -10,7 +10,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "common/uuid/uuid.h"
-#include "rpc/common/endpoint/rpc_interface.h"
+#include "components/rpc/common/endpoint/rpc_service_interface.h"
 #include "service/block_storage/block_store/block_store.h"
 
 /* Provides a common interface for parameter serialization operations
@@ -22,43 +22,43 @@
 struct block_storage_serializer {
 
 	/* Operation: get_partition_info */
-	rpc_status_t (*deserialize_get_partition_info_req)(const struct call_param_buf *req_buf,
+	rpc_status_t (*deserialize_get_partition_info_req)(const struct rpc_buffer *req_buf,
 		struct uuid_octets *partition_guid);
 
-	rpc_status_t (*serialize_get_partition_info_resp)(struct call_param_buf *resp_buf,
+	rpc_status_t (*serialize_get_partition_info_resp)(struct rpc_buffer *resp_buf,
 		struct storage_partition_info *info);
 
 	/* Operation: open */
-	rpc_status_t (*deserialize_open_req)(const struct call_param_buf *req_buf,
+	rpc_status_t (*deserialize_open_req)(const struct rpc_buffer *req_buf,
 		struct uuid_octets *partition_guid);
 
-	rpc_status_t (*serialize_open_resp)(struct call_param_buf *resp_buf,
+	rpc_status_t (*serialize_open_resp)(struct rpc_buffer *resp_buf,
 		storage_partition_handle_t handle);
 
 	/* Operation: close */
-	rpc_status_t (*deserialize_close_req)(const struct call_param_buf *req_buf,
+	rpc_status_t (*deserialize_close_req)(const struct rpc_buffer *req_buf,
 		storage_partition_handle_t *handle);
 
 	/* Operation: read */
-	rpc_status_t (*deserialize_read_req)(const struct call_param_buf *req_buf,
+	rpc_status_t (*deserialize_read_req)(const struct rpc_buffer *req_buf,
 		storage_partition_handle_t *handle,
 		uint64_t *lba,
 		size_t *offset,
 		size_t *len);
 
 	/* Operation: write */
-	rpc_status_t (*deserialize_write_req)(const struct call_param_buf *req_buf,
+	rpc_status_t (*deserialize_write_req)(const struct rpc_buffer *req_buf,
 		storage_partition_handle_t *handle,
 		uint64_t *lba,
 		size_t *offset,
 		const uint8_t **data,
 		size_t *data_len);
 
-	rpc_status_t (*serialize_write_resp)(struct call_param_buf *resp_buf,
+	rpc_status_t (*serialize_write_resp)(struct rpc_buffer *resp_buf,
 		size_t num_written);
 
 	/* Operation: erase */
-	rpc_status_t (*deserialize_erase_req)(const struct call_param_buf *req_buf,
+	rpc_status_t (*deserialize_erase_req)(const struct rpc_buffer *req_buf,
 		storage_partition_handle_t *handle,
 		uint64_t *begin_lba,
 		size_t *num_blocks);

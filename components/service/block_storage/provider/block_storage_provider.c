@@ -7,15 +7,15 @@
 #include "protocols/service/block_storage/packed-c/opcodes.h"
 #include "protocols/rpc/common/packed-c/status.h"
 #include "block_storage_provider.h"
-
+#include "block_storage_uuid.h"
 
 /* Service request handlers */
-static rpc_status_t get_partition_info_handler(void *context, struct call_req* req);
-static rpc_status_t open_handler(void *context, struct call_req* req);
-static rpc_status_t close_handler(void *context, struct call_req* req);
-static rpc_status_t read_handler(void *context, struct call_req* req);
-static rpc_status_t write_handler(void *context, struct call_req* req);
-static rpc_status_t erase_handler(void *context, struct call_req* req);
+static rpc_status_t get_partition_info_handler(void *context, struct rpc_request *req);
+static rpc_status_t open_handler(void *context, struct rpc_request *req);
+static rpc_status_t close_handler(void *context, struct rpc_request *req);
+static rpc_status_t read_handler(void *context, struct rpc_request *req);
+static rpc_status_t write_handler(void *context, struct rpc_request *req);
+static rpc_status_t erase_handler(void *context, struct rpc_request *req);
 
 /* Handler mapping table for service */
 static const struct service_handler handler_table[] = {
@@ -27,20 +27,21 @@ static const struct service_handler handler_table[] = {
 	{TS_BLOCK_STORAGE_OPCODE_ERASE,              erase_handler}
 };
 
-struct rpc_interface *block_storage_provider_init(
+struct rpc_service_interface *block_storage_provider_init(
 	struct block_storage_provider *context,
 	struct block_store *block_store)
 {
-	struct rpc_interface *rpc_interface = NULL;
+	struct rpc_service_interface *rpc_interface = NULL;
+	const struct rpc_uuid block_storage_service_uuid = {
+		.uuid = TS_BLOCK_STORAGE_SERVICE_UUID
+	};
 
 	if (context) {
-
-		for (size_t encoding = 0; encoding < TS_RPC_ENCODING_LIMIT; ++encoding)
-			context->serializers[encoding] = NULL;
+		context->serializer = NULL;
 
 		context->block_store = block_store;
 
-		service_provider_init(&context->base_provider, context,
+		service_provider_init(&context->base_provider, context, &block_storage_service_uuid,
 			handler_table, sizeof(handler_table)/sizeof(struct service_handler));
 
 		rpc_interface = service_provider_get_rpc_interface(&context->base_provider);
@@ -57,40 +58,34 @@ void block_storage_provider_deinit(
 
 void block_storage_provider_register_serializer(
 	struct block_storage_provider *context,
-	unsigned int encoding,
 	const struct block_storage_serializer *serializer)
 {
-	if (encoding < TS_RPC_ENCODING_LIMIT)
-		context->serializers[encoding] = serializer;
+	context->serializer = serializer;
 }
 
 static const struct block_storage_serializer* get_block_storage_serializer(
 	struct block_storage_provider *context,
-	const struct call_req *req)
+	const struct rpc_request *req)
 {
-	const struct block_storage_serializer* serializer = NULL;
-	unsigned int encoding = call_req_get_encoding(req);
 
-	if (encoding < TS_RPC_ENCODING_LIMIT) serializer = context->serializers[encoding];
-
-	return serializer;
+	return context->serializer;
 }
 
-static rpc_status_t get_partition_info_handler(void *context, struct call_req *req)
+static rpc_status_t get_partition_info_handler(void *context, struct rpc_request *req)
 {
 	struct block_storage_provider *this_instance = (struct block_storage_provider*)context;
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
 	const struct block_storage_serializer *serializer =
 		get_block_storage_serializer(this_instance, req);
 
 	struct uuid_octets partition_guid = {0};
 
 	if (serializer)
-		rpc_status = serializer->deserialize_get_partition_info_req(req_buf, &partition_guid);
+		rpc_status = serializer->deserialize_get_partition_info_req(&req->request,
+									    &partition_guid);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		struct storage_partition_info partition_info;
 
@@ -99,62 +94,55 @@ static rpc_status_t get_partition_info_handler(void *context, struct call_req *r
 			&partition_guid,
 			&partition_info);
 
-		call_req_set_opstatus(req, op_status);
+		req->service_status = op_status;
 
-		if (op_status == PSA_SUCCESS) {
-
-			struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+		if (op_status == PSA_SUCCESS)
 			rpc_status = serializer->serialize_get_partition_info_resp(
-				resp_buf,
-				&partition_info);
-		}
+				&req->response, &partition_info);
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t open_handler(void *context, struct call_req *req)
+static rpc_status_t open_handler(void *context, struct rpc_request *req)
 {
 	struct block_storage_provider *this_instance = (struct block_storage_provider*)context;
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
 	const struct block_storage_serializer *serializer =
 		get_block_storage_serializer(this_instance, req);
 
 	struct uuid_octets partition_guid = {0};
 
 	if (serializer)
-		rpc_status = serializer->deserialize_open_req(req_buf, &partition_guid);
+		rpc_status = serializer->deserialize_open_req(&req->request, &partition_guid);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		storage_partition_handle_t handle = 0;
 
 		psa_status_t op_status = block_store_open(
 			this_instance->block_store,
-			req->caller_id,
+			req->source_id,
 			&partition_guid,
 			&handle);
 
-		call_req_set_opstatus(req, op_status);
+		req->service_status = op_status;
 
 		if (op_status == PSA_SUCCESS) {
-
-			struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
-			rpc_status = serializer->serialize_open_resp(resp_buf, handle);
+			rpc_status = serializer->serialize_open_resp(&req->response, handle);
 		}
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t close_handler(void *context, struct call_req *req)
+static rpc_status_t close_handler(void *context, struct rpc_request *req)
 {
 	struct block_storage_provider *this_instance = (struct block_storage_provider*)context;
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	struct rpc_buffer *req_buf = &req->request;
 	const struct block_storage_serializer *serializer =
 		get_block_storage_serializer(this_instance, req);
 
@@ -163,25 +151,25 @@ static rpc_status_t close_handler(void *context, struct call_req *req)
 	if (serializer)
 		rpc_status = serializer->deserialize_close_req(req_buf, &handle);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		psa_status_t op_status = block_store_close(
 			this_instance->block_store,
-			req->caller_id,
+			req->source_id,
 			handle);
 
-		call_req_set_opstatus(req, op_status);
+		req->service_status = op_status;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t read_handler(void *context, struct call_req *req)
+static rpc_status_t read_handler(void *context, struct rpc_request *req)
 {
 	struct block_storage_provider *this_instance = (struct block_storage_provider*)context;
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	struct rpc_buffer *req_buf = &req->request;
 	const struct block_storage_serializer *serializer =
 		get_block_storage_serializer(this_instance, req);
 
@@ -193,36 +181,33 @@ static rpc_status_t read_handler(void *context, struct call_req *req)
 	if (serializer)
 		rpc_status = serializer->deserialize_read_req(req_buf, &handle, &lba, &offset, &len);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
-
-		struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
-
+	if (rpc_status == RPC_SUCCESS) {
 		/* Defend against oversize read length */
-		if (len > resp_buf->size)
-			len = resp_buf->size;
+		if (len > req->response.size)
+			len = req->response.size;
 
 		psa_status_t op_status = block_store_read(
 			this_instance->block_store,
-			req->caller_id,
+			req->source_id,
 			handle,
 			lba,
 			offset,
 			len,
-			(uint8_t*)resp_buf->data,
-			&resp_buf->data_len);
+			(uint8_t *)req->response.data,
+			&req->response.data_length);
 
-		call_req_set_opstatus(req, op_status);
+		req->service_status = op_status;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t write_handler(void *context, struct call_req *req)
+static rpc_status_t write_handler(void *context, struct rpc_request *req)
 {
 	struct block_storage_provider *this_instance = (struct block_storage_provider*)context;
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	struct rpc_buffer *req_buf = &req->request;
 	const struct block_storage_serializer *serializer =
 		get_block_storage_serializer(this_instance, req);
 
@@ -236,13 +221,13 @@ static rpc_status_t write_handler(void *context, struct call_req *req)
 		rpc_status = serializer->deserialize_write_req(req_buf, &handle, &lba,
 			&offset, &data, &data_len);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		size_t num_written = 0;
 
 		psa_status_t op_status = block_store_write(
 			this_instance->block_store,
-			req->caller_id,
+			req->source_id,
 			handle,
 			lba,
 			offset,
@@ -250,11 +235,11 @@ static rpc_status_t write_handler(void *context, struct call_req *req)
 			data_len,
 			&num_written);
 
-		call_req_set_opstatus(req, op_status);
+		req->service_status = op_status;
 
 		if (op_status == PSA_SUCCESS) {
 
-			struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+			struct rpc_buffer *resp_buf = &req->response;
 			rpc_status = serializer->serialize_write_resp(resp_buf, num_written);
 		}
 	}
@@ -262,12 +247,12 @@ static rpc_status_t write_handler(void *context, struct call_req *req)
 	return rpc_status;
 }
 
-static rpc_status_t erase_handler(void *context, struct call_req *req)
+static rpc_status_t erase_handler(void *context, struct rpc_request *req)
 {
 	struct block_storage_provider *this_instance = (struct block_storage_provider*)context;
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	struct rpc_buffer *req_buf = &req->request;
 	const struct block_storage_serializer *serializer =
 		get_block_storage_serializer(this_instance, req);
 
@@ -279,16 +264,16 @@ static rpc_status_t erase_handler(void *context, struct call_req *req)
 		rpc_status = serializer->deserialize_erase_req(req_buf, &handle,
 			&begin_lba, &num_blocks);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		psa_status_t op_status = block_store_erase(
 			this_instance->block_store,
-			req->caller_id,
+			req->source_id,
 			handle,
 			begin_lba,
 			num_blocks);
 
-		call_req_set_opstatus(req, op_status);
+		req->service_status = op_status;
 	}
 
 	return rpc_status;
