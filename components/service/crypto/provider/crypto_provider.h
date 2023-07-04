@@ -7,10 +7,9 @@
 #ifndef CRYPTO_PROVIDER_H
 #define CRYPTO_PROVIDER_H
 
-#include <rpc/common/endpoint/rpc_interface.h>
+#include "components/rpc/common/endpoint/rpc_service_interface.h"
 #include <service/common/provider/service_provider.h>
 #include <service/crypto/provider/serializer/crypto_provider_serializer.h>
-#include <service/discovery/provider/discovery_provider.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
 
 #ifdef __cplusplus
@@ -20,8 +19,7 @@ extern "C" {
 struct crypto_provider
 {
 	struct service_provider base_provider;
-	const struct crypto_provider_serializer *serializers[TS_RPC_ENCODING_LIMIT];
-	struct discovery_provider discovery_provider;
+	const struct crypto_provider_serializer *serializer;
 };
 
 /*
@@ -29,7 +27,8 @@ struct crypto_provider
  * backend that realizes the PSA Crypto API should have been initialized
  * prior to initializing the crypto provider.
  */
-struct rpc_interface *crypto_provider_init(struct crypto_provider *context);
+struct rpc_service_interface *crypto_provider_init(struct crypto_provider *context,
+	unsigned int encoding, const struct crypto_provider_serializer *serializer);
 
 /*
  * When operation of the provider is no longer required, this function
@@ -44,7 +43,6 @@ void crypto_provider_deinit(struct crypto_provider *context);
  * for compatibility with different types of client.
  */
 void crypto_provider_register_serializer(struct crypto_provider *context,
-	unsigned int encoding,
 	const struct crypto_provider_serializer *serializer);
 
 /*

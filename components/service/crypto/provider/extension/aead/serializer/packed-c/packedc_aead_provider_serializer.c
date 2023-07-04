@@ -11,29 +11,29 @@
 #include "packedc_aead_provider_serializer.h"
 
 /* Operation: aead_setup */
-static rpc_status_t deserialize_aead_setup_req(const struct call_param_buf *req_buf,
+static rpc_status_t deserialize_aead_setup_req(const struct rpc_buffer *req_buf,
 	psa_key_id_t *id,
 	psa_algorithm_t *alg)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
+	rpc_status_t rpc_status = RPC_ERROR_INVALID_REQUEST_BODY;
 	struct ts_crypto_aead_setup_in recv_msg;
 	size_t expected_fixed_len = sizeof(struct ts_crypto_aead_setup_in);
 
-	if (expected_fixed_len <= req_buf->data_len) {
+	if (expected_fixed_len <= req_buf->data_length) {
 
 		memcpy(&recv_msg, req_buf->data, expected_fixed_len);
 		*id = recv_msg.key_id;
 		*alg = recv_msg.alg;
-		rpc_status = TS_RPC_CALL_ACCEPTED;
+		rpc_status = RPC_SUCCESS;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t serialize_aead_setup_resp(struct call_param_buf *resp_buf,
+static rpc_status_t serialize_aead_setup_resp(struct rpc_buffer *resp_buf,
 	uint32_t op_handle)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 	struct ts_crypto_aead_setup_out resp_msg;
 	size_t fixed_len = sizeof(struct ts_crypto_aead_setup_out);
 
@@ -42,35 +42,35 @@ static rpc_status_t serialize_aead_setup_resp(struct call_param_buf *resp_buf,
 	if (fixed_len <= resp_buf->size) {
 
 		memcpy(resp_buf->data, &resp_msg, fixed_len);
-		resp_buf->data_len = fixed_len;
-		rpc_status = TS_RPC_CALL_ACCEPTED;
+		resp_buf->data_length = fixed_len;
+		rpc_status = RPC_SUCCESS;
 	}
 
 	return rpc_status;
 }
 
 /* Operation: aead_generate_nonce */
-static rpc_status_t deserialize_aead_generate_nonce_req(const struct call_param_buf *req_buf,
+static rpc_status_t deserialize_aead_generate_nonce_req(const struct rpc_buffer *req_buf,
 	uint32_t *op_handle)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
+	rpc_status_t rpc_status = RPC_ERROR_INVALID_REQUEST_BODY;
 	struct ts_crypto_aead_generate_nonce_in recv_msg;
 	size_t expected_fixed_len = sizeof(struct ts_crypto_aead_generate_nonce_in);
 
-	if (expected_fixed_len <= req_buf->data_len) {
+	if (expected_fixed_len <= req_buf->data_length) {
 
 		memcpy(&recv_msg, req_buf->data, expected_fixed_len);
 		*op_handle = recv_msg.op_handle;
-		rpc_status = TS_RPC_CALL_ACCEPTED;
+		rpc_status = RPC_SUCCESS;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t serialize_aead_generate_nonce_resp(struct call_param_buf *resp_buf,
+static rpc_status_t serialize_aead_generate_nonce_resp(struct rpc_buffer *resp_buf,
 	const uint8_t *nonce, size_t nonce_len)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 	struct tlv_iterator resp_iter;
 
 	struct tlv_record out_record;
@@ -82,28 +82,28 @@ static rpc_status_t serialize_aead_generate_nonce_resp(struct call_param_buf *re
 
 	if (tlv_encode(&resp_iter, &out_record)) {
 
-		resp_buf->data_len = tlv_required_space(out_record.length);
-		rpc_status = TS_RPC_CALL_ACCEPTED;
+		resp_buf->data_length = tlv_required_space(out_record.length);
+		rpc_status = RPC_SUCCESS;
 	}
 
 	return rpc_status;
 }
 
 /* Operation: aead_set_nonce */
-static rpc_status_t deserialize_aead_set_nonce_req(const struct call_param_buf *req_buf,
+static rpc_status_t deserialize_aead_set_nonce_req(const struct rpc_buffer *req_buf,
 	uint32_t *op_handle,
 	const uint8_t **nonce, size_t *nonce_len)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
+	rpc_status_t rpc_status = RPC_ERROR_INVALID_REQUEST_BODY;
 	struct ts_crypto_aead_set_nonce_in recv_msg;
 	size_t expected_fixed_len = sizeof(struct ts_crypto_aead_set_nonce_in);
 
-	if (expected_fixed_len <= req_buf->data_len) {
+	if (expected_fixed_len <= req_buf->data_length) {
 
 		struct tlv_const_iterator req_iter;
 		struct tlv_record decoded_record;
 
-		rpc_status = TS_RPC_CALL_ACCEPTED;
+		rpc_status = RPC_SUCCESS;
 
 		memcpy(&recv_msg, req_buf->data, expected_fixed_len);
 
@@ -111,7 +111,7 @@ static rpc_status_t deserialize_aead_set_nonce_req(const struct call_param_buf *
 
 		tlv_const_iterator_begin(&req_iter,
 			(uint8_t*)req_buf->data + expected_fixed_len,
-			req_buf->data_len - expected_fixed_len);
+			req_buf->data_length - expected_fixed_len);
 
 		if (tlv_find_decode(&req_iter, TS_CRYPTO_AEAD_SET_NONCE_IN_TAG_NONCE, &decoded_record)) {
 
@@ -128,18 +128,18 @@ static rpc_status_t deserialize_aead_set_nonce_req(const struct call_param_buf *
 }
 
 /* Operation: aead_set_lengths */
-static rpc_status_t deserialize_aead_set_lengths_req(const struct call_param_buf *req_buf,
+static rpc_status_t deserialize_aead_set_lengths_req(const struct rpc_buffer *req_buf,
 	uint32_t *op_handle,
 	size_t *ad_length,
 	size_t *plaintext_length)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
+	rpc_status_t rpc_status = RPC_ERROR_INVALID_REQUEST_BODY;
 	struct ts_crypto_aead_set_lengths_in recv_msg;
 	size_t expected_fixed_len = sizeof(struct ts_crypto_aead_set_lengths_in);
 
-	if (expected_fixed_len <= req_buf->data_len) {
+	if (expected_fixed_len <= req_buf->data_length) {
 
-		rpc_status = TS_RPC_CALL_ACCEPTED;
+		rpc_status = RPC_SUCCESS;
 
 		memcpy(&recv_msg, req_buf->data, expected_fixed_len);
 
@@ -152,20 +152,20 @@ static rpc_status_t deserialize_aead_set_lengths_req(const struct call_param_buf
 }
 
 /* Operation: aead_update_ad */
-static rpc_status_t deserialize_aead_update_ad_req(const struct call_param_buf *req_buf,
+static rpc_status_t deserialize_aead_update_ad_req(const struct rpc_buffer *req_buf,
 	uint32_t *op_handle,
 	const uint8_t **input, size_t *input_len)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
+	rpc_status_t rpc_status = RPC_ERROR_INVALID_REQUEST_BODY;
 	struct ts_crypto_aead_update_ad_in recv_msg;
 	size_t expected_fixed_len = sizeof(struct ts_crypto_aead_update_ad_in);
 
-	if (expected_fixed_len <= req_buf->data_len) {
+	if (expected_fixed_len <= req_buf->data_length) {
 
 		struct tlv_const_iterator req_iter;
 		struct tlv_record decoded_record;
 
-		rpc_status = TS_RPC_CALL_ACCEPTED;
+		rpc_status = RPC_SUCCESS;
 
 		memcpy(&recv_msg, req_buf->data, expected_fixed_len);
 
@@ -173,7 +173,7 @@ static rpc_status_t deserialize_aead_update_ad_req(const struct call_param_buf *
 
 		tlv_const_iterator_begin(&req_iter,
 			(uint8_t*)req_buf->data + expected_fixed_len,
-			req_buf->data_len - expected_fixed_len);
+			req_buf->data_length - expected_fixed_len);
 
 		if (tlv_find_decode(&req_iter, TS_CRYPTO_AEAD_UPDATE_AD_IN_TAG_DATA, &decoded_record)) {
 
@@ -190,20 +190,20 @@ static rpc_status_t deserialize_aead_update_ad_req(const struct call_param_buf *
 }
 
 /* Operation: aead_update */
-static rpc_status_t deserialize_aead_update_req(const struct call_param_buf *req_buf,
+static rpc_status_t deserialize_aead_update_req(const struct rpc_buffer *req_buf,
 	uint32_t *op_handle,
 	const uint8_t **input, size_t *input_len)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
+	rpc_status_t rpc_status = RPC_ERROR_INVALID_REQUEST_BODY;
 	struct ts_crypto_aead_update_in recv_msg;
 	size_t expected_fixed_len = sizeof(struct ts_crypto_aead_update_in);
 
-	if (expected_fixed_len <= req_buf->data_len) {
+	if (expected_fixed_len <= req_buf->data_length) {
 
 		struct tlv_const_iterator req_iter;
 		struct tlv_record decoded_record;
 
-		rpc_status = TS_RPC_CALL_ACCEPTED;
+		rpc_status = RPC_SUCCESS;
 
 		memcpy(&recv_msg, req_buf->data, expected_fixed_len);
 
@@ -211,7 +211,7 @@ static rpc_status_t deserialize_aead_update_req(const struct call_param_buf *req
 
 		tlv_const_iterator_begin(&req_iter,
 			(uint8_t*)req_buf->data + expected_fixed_len,
-			req_buf->data_len - expected_fixed_len);
+			req_buf->data_length - expected_fixed_len);
 
 		if (tlv_find_decode(&req_iter, TS_CRYPTO_AEAD_UPDATE_IN_TAG_DATA, &decoded_record)) {
 
@@ -227,10 +227,10 @@ static rpc_status_t deserialize_aead_update_req(const struct call_param_buf *req
 	return rpc_status;
 }
 
-static rpc_status_t serialize_aead_update_resp(struct call_param_buf *resp_buf,
+static rpc_status_t serialize_aead_update_resp(struct rpc_buffer *resp_buf,
 	const uint8_t *output, size_t output_len)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 	struct tlv_iterator resp_iter;
 
 	struct tlv_record out_record;
@@ -242,40 +242,40 @@ static rpc_status_t serialize_aead_update_resp(struct call_param_buf *resp_buf,
 
 	if (tlv_encode(&resp_iter, &out_record)) {
 
-		resp_buf->data_len = tlv_required_space(out_record.length);
-		rpc_status = TS_RPC_CALL_ACCEPTED;
+		resp_buf->data_length = tlv_required_space(out_record.length);
+		rpc_status = RPC_SUCCESS;
 	}
 
 	return rpc_status;
 }
 
 /* Operation: aead_finish */
-static rpc_status_t deserialize_aead_finish_req(const struct call_param_buf *req_buf,
+static rpc_status_t deserialize_aead_finish_req(const struct rpc_buffer *req_buf,
 	uint32_t *op_handle)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
+	rpc_status_t rpc_status = RPC_ERROR_INVALID_REQUEST_BODY;
 	struct ts_crypto_aead_finish_in recv_msg;
 	size_t expected_fixed_len = sizeof(struct ts_crypto_aead_finish_in);
 
-	if (expected_fixed_len <= req_buf->data_len) {
+	if (expected_fixed_len <= req_buf->data_length) {
 
 		memcpy(&recv_msg, req_buf->data, expected_fixed_len);
 		*op_handle = recv_msg.op_handle;
-		rpc_status = TS_RPC_CALL_ACCEPTED;
+		rpc_status = RPC_SUCCESS;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t serialize_aead_finish_resp(struct call_param_buf *resp_buf,
+static rpc_status_t serialize_aead_finish_resp(struct rpc_buffer *resp_buf,
 	const uint8_t *aeadtext, size_t aeadtext_len,
 	const uint8_t *tag, size_t tag_len)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 	struct tlv_iterator resp_iter;
 	int encoded_tlv_count = 0;
 
-	resp_buf->data_len = 0;
+	resp_buf->data_length = 0;
 
 	tlv_iterator_begin(&resp_iter, resp_buf->data, resp_buf->size);
 
@@ -286,7 +286,7 @@ static rpc_status_t serialize_aead_finish_resp(struct call_param_buf *resp_buf,
 
 	if (tlv_encode(&resp_iter, &out_record)) {
 
-		resp_buf->data_len += tlv_required_space(out_record.length);
+		resp_buf->data_length += tlv_required_space(out_record.length);
 		++encoded_tlv_count;
 	}
 
@@ -296,31 +296,32 @@ static rpc_status_t serialize_aead_finish_resp(struct call_param_buf *resp_buf,
 
 	if (tlv_encode(&resp_iter, &out_record)) {
 
-		resp_buf->data_len += tlv_required_space(out_record.length);
+		resp_buf->data_length += tlv_required_space(out_record.length);
 		++encoded_tlv_count;
 	}
 
 	/* Check that expected TLV records have been encoded */
-	if (encoded_tlv_count == 2) rpc_status = TS_RPC_CALL_ACCEPTED;
+	if (encoded_tlv_count == 2)
+		rpc_status = RPC_SUCCESS;
 
 	return rpc_status;
 }
 
 /* Operation: aead_verify */
-static rpc_status_t deserialize_aead_verify_req(const struct call_param_buf *req_buf,
+static rpc_status_t deserialize_aead_verify_req(const struct rpc_buffer *req_buf,
 	uint32_t *op_handle,
 	const uint8_t **tag, size_t *tag_len)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
+	rpc_status_t rpc_status = RPC_ERROR_INVALID_REQUEST_BODY;
 	struct ts_crypto_aead_verify_in recv_msg;
 	size_t expected_fixed_len = sizeof(struct ts_crypto_aead_verify_in);
 
-	if (expected_fixed_len <= req_buf->data_len) {
+	if (expected_fixed_len <= req_buf->data_length) {
 
 		struct tlv_const_iterator req_iter;
 		struct tlv_record decoded_record;
 
-		rpc_status = TS_RPC_CALL_ACCEPTED;
+		rpc_status = RPC_SUCCESS;
 
 		memcpy(&recv_msg, req_buf->data, expected_fixed_len);
 
@@ -328,7 +329,7 @@ static rpc_status_t deserialize_aead_verify_req(const struct call_param_buf *req
 
 		tlv_const_iterator_begin(&req_iter,
 			(uint8_t*)req_buf->data + expected_fixed_len,
-			req_buf->data_len - expected_fixed_len);
+			req_buf->data_length - expected_fixed_len);
 
 		if (tlv_find_decode(&req_iter, TS_CRYPTO_AEAD_VERIFY_IN_TAG_TAG, &decoded_record)) {
 
@@ -344,10 +345,10 @@ static rpc_status_t deserialize_aead_verify_req(const struct call_param_buf *req
 	return rpc_status;
 }
 
-static rpc_status_t serialize_aead_verify_resp(struct call_param_buf *resp_buf,
+static rpc_status_t serialize_aead_verify_resp(struct rpc_buffer *resp_buf,
 	const uint8_t *plaintext, size_t plaintext_len)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 	struct tlv_iterator resp_iter;
 
 	struct tlv_record out_record;
@@ -359,26 +360,26 @@ static rpc_status_t serialize_aead_verify_resp(struct call_param_buf *resp_buf,
 
 	if (tlv_encode(&resp_iter, &out_record)) {
 
-		resp_buf->data_len = tlv_required_space(out_record.length);
-		rpc_status = TS_RPC_CALL_ACCEPTED;
+		resp_buf->data_length = tlv_required_space(out_record.length);
+		rpc_status = RPC_SUCCESS;
 	}
 
 	return rpc_status;
 }
 
 /* Operation: aead_abort */
-static rpc_status_t deserialize_aead_abort_req(const struct call_param_buf *req_buf,
+static rpc_status_t deserialize_aead_abort_req(const struct rpc_buffer *req_buf,
 	uint32_t *op_handle)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_INVALID_REQ_BODY;
+	rpc_status_t rpc_status = RPC_ERROR_INVALID_REQUEST_BODY;
 	struct ts_crypto_aead_abort_in recv_msg;
 	size_t expected_fixed_len = sizeof(struct ts_crypto_aead_abort_in);
 
-	if (expected_fixed_len <= req_buf->data_len) {
+	if (expected_fixed_len <= req_buf->data_length) {
 
 		memcpy(&recv_msg, req_buf->data, expected_fixed_len);
 		*op_handle = recv_msg.op_handle;
-		rpc_status = TS_RPC_CALL_ACCEPTED;
+		rpc_status = RPC_SUCCESS;
 	}
 
 	return rpc_status;

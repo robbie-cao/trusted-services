@@ -19,8 +19,6 @@
 #include <service/crypto/provider/extension/mac/serializer/packed-c/packedc_mac_provider_serializer.h>
 #include <service/crypto/provider/extension/aead/aead_provider.h>
 #include <service/crypto/provider/extension/aead/serializer/packed-c/packedc_aead_provider_serializer.h>
-#include <service/discovery/provider/discovery_provider.h>
-#include <service/discovery/provider/serializer/packed-c/packedc_discovery_provider_serializer.h>
 
 /**
  * A crypto provider factory that constucts a crypto provider
@@ -32,12 +30,12 @@
 static struct full_crypto_provider
 {
 	struct crypto_provider crypto_provider;
+	struct crypto_provider crypto_provider_protobuf;
 	struct hash_provider hash_provider;
 	struct cipher_provider cipher_provider;
 	struct key_derivation_provider key_derivation_provider;
 	struct mac_provider mac_provider;
 	struct aead_provider aead_provider;
-
 } instance;
 
 struct crypto_provider *crypto_provider_factory_create(void)
@@ -45,17 +43,8 @@ struct crypto_provider *crypto_provider_factory_create(void)
 	/**
 	 * Initialize the core crypto provider
 	 */
-	crypto_provider_init(&instance.crypto_provider);
-
-	/* Register serializers for the core crypto provider */
-	crypto_provider_register_serializer(&instance.crypto_provider,
-		TS_RPC_ENCODING_PROTOBUF, pb_crypto_provider_serializer_instance());
-	crypto_provider_register_serializer(&instance.crypto_provider,
-		TS_RPC_ENCODING_PACKED_C, packedc_crypto_provider_serializer_instance());
-
-	/* Register serializer for the associated discovery provider */
-	discovery_provider_register_serializer(&instance.crypto_provider.discovery_provider,
-		TS_RPC_ENCODING_PACKED_C, packedc_discovery_provider_serializer_instance());
+	crypto_provider_init(&instance.crypto_provider, TS_RPC_ENCODING_PACKED_C,
+			     packedc_crypto_provider_serializer_instance());
 
 	/**
 	 * Extend with hash operations
@@ -85,7 +74,8 @@ struct crypto_provider *crypto_provider_factory_create(void)
 	key_derivation_provider_init(&instance.key_derivation_provider);
 
 	key_derivation_provider_register_serializer(&instance.key_derivation_provider,
-		TS_RPC_ENCODING_PACKED_C, packedc_key_derivation_provider_serializer_instance());
+		TS_RPC_ENCODING_PACKED_C,
+		packedc_key_derivation_provider_serializer_instance());
 
 	crypto_provider_extend(&instance.crypto_provider,
 		&instance.key_derivation_provider.base_provider);
@@ -113,6 +103,14 @@ struct crypto_provider *crypto_provider_factory_create(void)
 		&instance.aead_provider.base_provider);
 
 	return &instance.crypto_provider;
+}
+
+struct crypto_provider *crypto_protobuf_provider_factory_create(void)
+{
+	crypto_provider_init(&instance.crypto_provider_protobuf, TS_RPC_ENCODING_PROTOBUF,
+			     pb_crypto_provider_serializer_instance());
+
+	return &instance.crypto_provider_protobuf;
 }
 
 /**

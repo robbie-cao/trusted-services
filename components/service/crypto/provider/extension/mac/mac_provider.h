@@ -7,7 +7,7 @@
 #ifndef MAC_PROVIDER_H
 #define MAC_PROVIDER_H
 
-#include <rpc/common/endpoint/rpc_interface.h>
+#include "components/rpc/common/endpoint/rpc_service_interface.h"
 #include <service/common/provider/service_provider.h>
 #include <service/crypto/provider/extension/mac/serializer/mac_provider_serializer.h>
 #include <service/crypto/provider/crypto_context_pool.h>

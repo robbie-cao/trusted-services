@@ -57,7 +57,7 @@ struct psa_ipc_crypto_pack_iovec {
  *
  * \return PSA_SUCCESS if backend initialized successfully
  */
-psa_status_t crypto_ipc_backend_init(struct rpc_caller *caller);
+psa_status_t crypto_ipc_backend_init(struct rpc_caller_session *session);
 
 /**
  * \brief Clean-up to free any resource used by the crypto backend

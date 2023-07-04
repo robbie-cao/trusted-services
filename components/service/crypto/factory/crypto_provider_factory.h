@@ -28,6 +28,8 @@ extern "C" {
  */
 struct crypto_provider *crypto_provider_factory_create(void);
 
+struct crypto_provider *crypto_protobuf_provider_factory_create(void);
+
 /**
  * \brief Destroys a created crypto provider
  *
