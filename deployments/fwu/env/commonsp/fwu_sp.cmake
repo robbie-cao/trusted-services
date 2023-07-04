@@ -22,12 +22,12 @@ add_components(TARGET "fwu"
 		"components/config/loader/sp"
 		"components/messaging/ffa/libsp"
 		"components/rpc/common/interface"
-		"components/rpc/ffarpc/endpoint"
+		"components/rpc/common/endpoint"
+		"components/rpc/ts_rpc/common"
+		"components/rpc/ts_rpc/endpoint/sp"
 		"components/service/common/provider"
 		"components/service/fwu/provider"
 		"components/service/fwu/provider/serializer/packed-c"
-		"components/service/discovery/provider"
-		"components/service/discovery/provider/serializer/packed-c"
 )
 
 target_sources(fwu PRIVATE
