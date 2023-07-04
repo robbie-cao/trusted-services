@@ -7,40 +7,23 @@
 #ifndef DIRECT_CALLER_H
 #define DIRECT_CALLER_H
 
-#include <rpc_caller.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include "rpc_caller.h"
+
+struct rpc_service_interface;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct rpc_interface;
-
 /** An rpc_caller that calls methods associated with a specific endpoint
  *  directly.  Used when the caller and endpoint are running in the same
  *  execution context.
  **/
-struct direct_caller
-{
-    struct rpc_caller rpc_caller;
-    struct rpc_interface *rpc_interface;
-    uint32_t caller_id;
-    bool is_call_transaction_in_progess;
-    size_t req_len;
-    size_t req_buf_size;
-    size_t resp_buf_size;
-    uint8_t *req_buf;
-    uint8_t *resp_buf;
-};
 
-struct rpc_caller *direct_caller_init(struct direct_caller *s, struct rpc_interface *iface,
-                        size_t req_buf_size, size_t resp_buf_size);
+rpc_status_t direct_caller_init(struct rpc_caller_interface *caller,
+				struct rpc_service_interface *service);
 
-struct rpc_caller *direct_caller_init_default(struct direct_caller *s, struct rpc_interface *iface);
-
-void direct_caller_deinit(struct direct_caller *s);
+rpc_status_t direct_caller_deinit(struct rpc_caller_interface *caller);
 
 #ifdef __cplusplus
 }
