@@ -20,7 +20,8 @@ add_components(TARGET "se-proxy"
 		"components/config/ramstore"
 		"components/config/loader/sp"
 		"components/messaging/ffa/libsp"
-		"components/rpc/ffarpc/endpoint"
+		"components/rpc/ts_rpc/common"
+		"components/rpc/ts_rpc/endpoint/sp"
 )
 
 target_sources(se-proxy PRIVATE
