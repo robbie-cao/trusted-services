@@ -22,22 +22,19 @@ TEST_GROUP(TestRunnerServiceTests)
 {
     void setup()
     {
-        struct rpc_caller *caller;
-        int status;
-
-        m_rpc_session_handle = NULL;
+        m_rpc_session = NULL;
         m_test_runner_service_context = NULL;
         m_test_runner_client = NULL;
 
         service_locator_init();
 
-        m_test_runner_service_context = service_locator_query("sn:trustedfirmware.org:test-runner:0", &status);
+        m_test_runner_service_context = service_locator_query("sn:trustedfirmware.org:test-runner:0");
         CHECK(m_test_runner_service_context);
 
-        m_rpc_session_handle = service_context_open(m_test_runner_service_context, TS_RPC_ENCODING_PACKED_C, &caller);
-        CHECK(m_rpc_session_handle);
+        m_rpc_session = service_context_open(m_test_runner_service_context);
+        CHECK(m_rpc_session);
 
-        m_test_runner_client = new test_runner_client(caller);
+        m_test_runner_client = new test_runner_client(m_rpc_session);
     }
 
     void teardown()
@@ -46,9 +43,9 @@ TEST_GROUP(TestRunnerServiceTests)
         m_test_runner_client = NULL;
 
 	if (m_test_runner_service_context) {
-	        if (m_rpc_session_handle) {
-                        service_context_close(m_test_runner_service_context, m_rpc_session_handle);
-                        m_rpc_session_handle = NULL;
+	        if (m_rpc_session) {
+                        service_context_close(m_test_runner_service_context, m_rpc_session);
+                        m_rpc_session = NULL;
 	        }
 
                 service_context_relinquish(m_test_runner_service_context);
@@ -56,7 +53,7 @@ TEST_GROUP(TestRunnerServiceTests)
 	}
     }
 
-    rpc_session_handle m_rpc_session_handle;
+    struct rpc_caller_session *m_rpc_session;
     struct service_context *m_test_runner_service_context;
     test_runner_client *m_test_runner_client;
 };
