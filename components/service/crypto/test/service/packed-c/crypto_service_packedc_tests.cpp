@@ -17,22 +17,19 @@ TEST_GROUP(CryptoServicePackedcTests)
 {
 	void setup()
 	{
-		struct rpc_caller *caller;
-		int status;
-
-		m_rpc_session_handle = NULL;
+		m_rpc_session = NULL;
 		m_crypto_service_context = NULL;
 		m_scenarios = NULL;
 
 		service_locator_init();
 
-		m_crypto_service_context = service_locator_query("sn:trustedfirmware.org:crypto:0", &status);
+		m_crypto_service_context = service_locator_query("sn:trustedfirmware.org:crypto:0");
 		CHECK_TRUE(m_crypto_service_context);
 
-		m_rpc_session_handle = service_context_open(m_crypto_service_context, TS_RPC_ENCODING_PACKED_C, &caller);
-		CHECK_TRUE(m_rpc_session_handle);
+		m_rpc_session = service_context_open(m_crypto_service_context);
+		CHECK_TRUE(m_rpc_session);
 
-		m_scenarios = new crypto_service_scenarios(new packedc_crypto_client(caller));
+		m_scenarios = new crypto_service_scenarios(new packedc_crypto_client(m_rpc_session));
 	}
 
 	void teardown()
@@ -41,9 +38,9 @@ TEST_GROUP(CryptoServicePackedcTests)
 		m_scenarios = NULL;
 
 		if (m_crypto_service_context) {
-			if (m_rpc_session_handle) {
-				service_context_close(m_crypto_service_context, m_rpc_session_handle);
-				m_rpc_session_handle = NULL;
+			if (m_rpc_session) {
+				service_context_close(m_crypto_service_context, m_rpc_session);
+				m_rpc_session = NULL;
 			}
 
 			service_context_relinquish(m_crypto_service_context);
@@ -51,7 +48,7 @@ TEST_GROUP(CryptoServicePackedcTests)
 		}
 	}
 
-	rpc_session_handle m_rpc_session_handle;
+	struct rpc_caller_session *m_rpc_session;
 	struct service_context *m_crypto_service_context;
 	crypto_service_scenarios *m_scenarios;
 };
