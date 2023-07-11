@@ -13,42 +13,31 @@
 #include "../service_under_test.h"
 
 /* RPC context */
-static rpc_session_handle session_handle = NULL;
-static struct service_context *crypto_service_context = NULL;
+static struct rpc_caller_session *session = NULL;
+static struct service_context *attestation_service_context = NULL;
 
-int locate_service_under_test(struct logging_caller *call_logger)
+int locate_service_under_test(void)
 {
 	int status = -1;
 
 	/* Attestation tests depend on PSA crypto so ensure library is initialised */
 	psa_status_t psa_status = psa_crypto_init();
 
-	if ((psa_status == PSA_SUCCESS) && !session_handle && !crypto_service_context) {
+	if ((psa_status == PSA_SUCCESS) && !session && !attestation_service_context) {
 
-		struct rpc_caller *caller;
+		service_locator_init();
 
-		crypto_service_context =
-			service_locator_query("sn:trustedfirmware.org:attestation:0", &status);
+		attestation_service_context =
+			service_locator_query("sn:trustedfirmware.org:attestation:0");
 
-		if (crypto_service_context) {
+		if (attestation_service_context) {
 
-			session_handle =
-				service_context_open(crypto_service_context, TS_RPC_ENCODING_PACKED_C, &caller);
+			session = service_context_open(attestation_service_context);
 
-			if (session_handle) {
+			if (session) {
 
-				if (call_logger) {
-
-					struct rpc_caller *stacked_caller = logging_caller_attach(call_logger, caller);
-
-					psa_iat_client_init(stacked_caller);
-					attest_provision_client_init(stacked_caller);
-				}
-				else {
-
-					psa_iat_client_init(caller);
-					attest_provision_client_init(caller);
-				}
+				psa_iat_client_init(session);
+				attest_provision_client_init(session);
 
 				status = 0;
 			}
@@ -63,20 +52,22 @@ int locate_service_under_test(struct logging_caller *call_logger)
 	return status;
 }
 
-void relinquish_service_under_test(void)
+int relinquish_service_under_test(void)
 {
 	psa_iat_client_deinit();
 	attest_provision_client_deinit();
 
-	if (crypto_service_context && session_handle) {
+	if (attestation_service_context && session) {
 
-		service_context_close(crypto_service_context, session_handle);
-		session_handle = NULL;
+		service_context_close(attestation_service_context, session);
+		session = NULL;
 	}
 
-	if (crypto_service_context) {
+	if (attestation_service_context) {
 
-		service_context_relinquish(crypto_service_context);
-		crypto_service_context = NULL;
+		service_context_relinquish(attestation_service_context);
+		attestation_service_context = NULL;
 	}
+
+	return 0;
 }
