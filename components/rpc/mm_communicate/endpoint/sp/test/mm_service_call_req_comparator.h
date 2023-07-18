@@ -8,7 +8,7 @@
 
 #include <CppUTestExt/MockSupport.h>
 #include <string.h>
-#include "components/rpc/common/test/call_param_buf_comparator.h"
+#include "components/rpc/common/test/rpc_buffer_comparator.h"
 #include "../mm_communicate_call_ep.h"
 
 class mm_service_call_req_comparator : public MockNamedValueComparator
@@ -18,9 +18,9 @@ public:
 	{
 		struct mm_service_call_req *req1 = (struct mm_service_call_req *)object1;
 		struct mm_service_call_req *req2 = (struct mm_service_call_req *)object2;
-		call_param_buf_comparator buf_comparator_normal;
-		call_param_buf_comparator buf_comparator_ignore_data_len(
-			call_param_buf_comparator::mode_ignore_data_len);
+		rpc_buffer_comparator buf_comparator_normal;
+		rpc_buffer_comparator buf_comparator_ignore_data_len(
+			rpc_buffer_comparator::mode_ignore_data_len);
 
 		return memcmp(req1->guid, req2->guid, sizeof(*req1->guid))  == 0 &&
 			buf_comparator_normal.isEqual(&req1->req_buf, &req2->req_buf) &&
@@ -31,9 +31,9 @@ public:
 	virtual SimpleString valueToString(const void *object)
 	{
 		struct mm_service_call_req *req = (struct mm_service_call_req *)object;
-		call_param_buf_comparator buf_comparator_normal;
-		call_param_buf_comparator buf_comparator_ignore_data_len(
-			call_param_buf_comparator::mode_ignore_data_len);
+		rpc_buffer_comparator buf_comparator_normal;
+		rpc_buffer_comparator buf_comparator_ignore_data_len(
+			rpc_buffer_comparator::mode_ignore_data_len);
 		SimpleString req_buf_str = buf_comparator_normal.valueToString(&req->req_buf);
 		SimpleString resp_buf_str =
 			buf_comparator_ignore_data_len.valueToString(&req->resp_buf);
