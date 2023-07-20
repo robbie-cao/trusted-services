@@ -60,8 +60,6 @@ target_sources(spm-test${SP_NUMBER} PRIVATE
 	${TS_ROOT}/components/service/spm_test/sp.c
 )
 
-compiler_generate_stripped_elf(TARGET spm-test${SP_NUMBER} NAME "${SP_UUID_CANON}.stripped.elf" RES STRIPPED_ELF)
-
 ######################################## install
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "location to install build output to." FORCE)
@@ -71,8 +69,6 @@ install(TARGETS spm-test${SP_NUMBER}
 			PUBLIC_HEADER DESTINATION ${TS_ENV}/include
 			RUNTIME DESTINATION ${TS_ENV}/bin
 		)
-install(FILES ${STRIPPED_ELF} DESTINATION ${TS_ENV}/bin)
-
 
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
 export_sp(

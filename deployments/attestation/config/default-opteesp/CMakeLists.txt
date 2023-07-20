@@ -73,8 +73,6 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 
 endif()
 
-compiler_generate_stripped_elf(TARGET attestation NAME "${SP_UUID_CANON}.stripped.elf" RES STRIPPED_ELF)
-
 #-------------------------------------------------------------------------------
 #  Deployment specific install options
 #-------------------------------------------------------------------------------
@@ -87,7 +85,6 @@ install(TARGETS attestation
 			PUBLIC_HEADER DESTINATION ${TS_ENV}/include
 			RUNTIME DESTINATION ${TS_ENV}/bin
 		)
-install(FILES ${STRIPPED_ELF} DESTINATION ${TS_ENV}/bin)
 
 get_property(_PROTO_FILES TARGET attestation PROPERTY PROTOBUF_FILES)
 install(FILES ${_PROTO_FILES} DESTINATION ${TS_ENV}/lib/protobuf)

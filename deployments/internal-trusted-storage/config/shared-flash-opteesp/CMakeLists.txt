@@ -60,8 +60,6 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 
 endif()
 
-compiler_generate_stripped_elf(TARGET internal-trusted-storage NAME "${SP_UUID_CANON}.stripped.elf" RES STRIPPED_ELF)
-
 #-------------------------------------------------------------------------------
 #  Deployment specific install options
 #
@@ -73,7 +71,6 @@ install(TARGETS internal-trusted-storage
 			PUBLIC_HEADER DESTINATION ${TS_ENV}/include
 			RUNTIME DESTINATION ${TS_ENV}/bin
 		)
-install(FILES ${STRIPPED_ELF} DESTINATION ${TS_ENV}/bin)
 
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
 export_sp(

@@ -48,8 +48,6 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 
 endif()
 
-compiler_generate_stripped_elf(TARGET sfs-demo NAME "${SP_UUID_CANON}.stripped.elf" RES STRIPPED_ELF)
-
 ######################################## install
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "location to install build output to." FORCE)
@@ -58,7 +56,6 @@ install(TARGETS sfs-demo
 			PUBLIC_HEADER DESTINATION ${TS_ENV}/include
 			RUNTIME DESTINATION ${TS_ENV}/bin
 		)
-install(FILES ${STRIPPED_ELF} DESTINATION ${TS_ENV}/bin)
 
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
 export_sp(

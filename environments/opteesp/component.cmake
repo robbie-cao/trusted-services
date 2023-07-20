@@ -19,6 +19,12 @@ if (NOT SP_BIN_UUID_CANON)
 endif()
 ts_add_uuid_to_exe_name(TGT "${TGT}" UUID "${SP_BIN_UUID_CANON}" )
 
+get_target_property(_tgt_type ${TGT} TYPE)
+if ("${_tgt_type}" STREQUAL "EXECUTABLE")
+	compiler_generate_stripped_elf(TARGET ${TGT} NAME "${SP_BIN_UUID_CANON}.stripped.elf" RES STRIPPED_ELF)
+	install(FILES ${STRIPPED_ELF} DESTINATION ${TS_ENV}/bin)
+endif()
+
 target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/optee_sp_header.c"
 	"${CMAKE_CURRENT_LIST_DIR}/sp_assert.c"
