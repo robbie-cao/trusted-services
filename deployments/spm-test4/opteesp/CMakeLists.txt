@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -10,11 +10,11 @@ include(../../deployment.cmake REQUIRED)
 include(${TS_ROOT}/environments/opteesp/env.cmake)
 
 project(trusted-services LANGUAGES C ASM)
-add_executable(spm-test2)
+add_executable(spm-test4)
 
-set(SP_BIN_UUID_CANON "7817164c-c40c-4d1a-867a-9bb2278cf41a")
-set(SP_UUID_CANON "7817164c-c40c-4d1a-867a-9bb2278cf41a")
-set(SP_NUMBER 2)
+set(SP_BIN_UUID_CANON "423762ed-7772-406f-99d8-0c27da0abbf8")
+set(SP_UUID_CANON "23eb0100-e32a-4497-9052-2f11e584afa6")
+set(SP_NUMBER 4)
 include(${TS_ROOT}/components/service/spm_test/spm_test.cmake)
 #-------------------------------------------------------------------------------
 #  Components that are spm-test specific to deployment in the opteesp

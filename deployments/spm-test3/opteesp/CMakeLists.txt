@@ -12,6 +12,7 @@ include(${TS_ROOT}/environments/opteesp/env.cmake)
 project(trusted-services LANGUAGES C ASM)
 add_executable(spm-test3)
 
+set(SP_BIN_UUID_CANON "23eb0100-e32a-4497-9052-2f11e584afa6")
 set(SP_UUID_CANON "23eb0100-e32a-4497-9052-2f11e584afa6")
 set(SP_NUMBER 3)
 include(${TS_ROOT}/components/service/spm_test/spm_test.cmake)

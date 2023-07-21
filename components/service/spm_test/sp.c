@@ -159,51 +159,73 @@ static bool test_ffa_rxtx_map(void)
 	return false;
 }
 
+static bool ffa_partition_info_get_process(sp_result result, uint32_t count,
+					struct sp_partition_info *partitions)
+{
+	uint32_t i = 0;
+
+	if (result != SP_RESULT_OK) {
+		if (result == FFA_NOT_SUPPORTED) {
+			IMSG("ffa_partition_info_get(): not supported\n");
+			return false;
+		}
+		EMSG("ffa_partition_info_get(): unknown error %"PRId32"\n", result);
+		return false;
+	}
+	IMSG("ffa_partition_info_get(): count=%"PRIu32"\n", count);
+
+	for (i = 0; i < count; i++) {
+		IMSG("partition #%u: ID=%u, execution_count=%u  \
+		      direct request = %c, send direcy request = %c, \
+		      indirect request = %c\n",
+		      i, partitions[i].partition_id,
+		      partitions[i].execution_context_count,
+		      partitions[i].supports_direct_requests ? '1' : '0',
+		      partitions[i].can_send_direct_requests ? '1' : '0',
+		      partitions[i].supports_indirect_requests ? '1' : '0'
+		      );
+	}
+
+	IMSG("Testing ffa_rx_release()\n");
+
+	result = ffa_rx_release();
+	if (result == FFA_OK) {
+		IMSG("ffa_rx_release(): success\n");
+		return true;
+	} else if (result == FFA_NOT_SUPPORTED) {
+		IMSG("ffa_rx_release(): not supported\n");
+		return false;
+	}
+
+	EMSG("ffa_rx_release(): unknown error %"PRId32"\n", result);
+	return false;
+}
+
 static bool test_ffa_partition_info_get(void)
 {
-	sp_result result  = SP_RESULT_OK;
+	sp_result result = SP_RESULT_OK;
 	struct sp_partition_info partitions[10] = {0};
-	uint32_t i = 0;
 	uint32_t count = 10;
+	struct sp_uuid uuid = {.uuid = {0x23, 0xeb, 0x01, 0x00, 0xe3, 0x2a,
+					0x44, 0x97, 0x90, 0x52, 0x2f, 0x11,
+					0xe5, 0x84, 0xaf, 0xa6}};
 
 	IMSG("Testing ffa_partition_info_get(nil)\n");
 
 	result = sp_discovery_partition_info_get_all(partitions, &count);
-	if (result == SP_RESULT_OK) {
-
-		IMSG("ffa_partition_info_get(): count=%"PRIu32"\n", count);
-
-		for (i = 0; i < count; i++) {
-			IMSG("partition #%u: ID=%u, execution_count=%u  \
-			      direct request = %c, send direcy request = %c, \
-			      indirect request = %c\n",
-			      i, partitions[i].partition_id,
-			      partitions[i].execution_context_count,
-			      partitions[i].supports_direct_requests ? '1': '0',
-			      partitions[i].can_send_direct_requests ? '1': '0',
-			      partitions[i].supports_indirect_requests ? '1':
-			      '0'
-			      );
-		}
-
-		IMSG("Testing ffa_rx_release()\n");
-
-		result = ffa_rx_release();
-		if (result == FFA_OK) {
-			IMSG("ffa_rx_release(): success\n");
-			return true;
-		} else if (result == FFA_NOT_SUPPORTED) {
-			IMSG("ffa_rx_release(): not supported\n");
-			return false;
-		}
-		EMSG("ffa_rx_release(): unknown error %"PRId32"\n", result);
+	if (!ffa_partition_info_get_process(result, count, partitions))
 		return false;
-	} else if (result == FFA_NOT_SUPPORTED) {
-		IMSG("ffa_partition_info_get(): not supported\n");
+	result = sp_discovery_partition_info_get(&uuid,
+		   partitions,
+		   &count);
+
+	if (!ffa_partition_info_get_process(result, count, partitions))
+		return false;
+	if (count < 2) {
+		EMSG("ffa_partition_info_get(): Returned not enough SPs count=%"PRIu32"\n", count);
 		return false;
 	}
-	EMSG("ffa_partition_info_get(): unknown error %"PRId32"\n", result);
-	return false;
+	return true;
 }
 
 static bool test_ffa_rxtx_unmap()
@@ -757,6 +779,7 @@ void __noreturn sp_main(union ffa_boot_info *boot_info) {
 
 	test_ffa_rxtx_map();
 	/* End of boot phase */
+	test_ffa_partition_info_get();
 	ffa_msg_wait(&msg);
 
 	while (1) {

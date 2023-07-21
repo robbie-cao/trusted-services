@@ -12,7 +12,12 @@ foreach(_var IN ITEMS TGT TRACE_PREFIX SP_HEAP_SIZE SP_STACK_SIZE SP_UUID_CANON)
 	endif()
 endforeach()
 
-ts_add_uuid_to_exe_name(TGT "${TGT}" UUID "${SP_UUID_CANON}" )
+# Ensure elf output naming is symbolize.py compatible.
+# If binary UUID is not defined, fall back to using the SP UUID value.
+if (NOT SP_BIN_UUID_CANON)
+	set(SP_BIN_UUID_CANON "${SP_UUID_CANON}")
+endif()
+ts_add_uuid_to_exe_name(TGT "${TGT}" UUID "${SP_BIN_UUID_CANON}" )
 
 target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/entry.S"

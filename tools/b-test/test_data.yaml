@@ -211,6 +211,10 @@ data:
       src: "$TS_ROOT/deployments/spm-test3/opteesp"
       params:
             - "-GUnix Makefiles"
+    - name: "spm-test4-opteesp"
+      src: "$TS_ROOT/deployments/spm-test4/opteesp"
+      params:
+            - "-GUnix Makefiles"
     - name: "ts-demo-arm-linux"
       src: "$TS_ROOT/deployments/ts-demo/arm-linux"
       os_id : "GNU/Linux"
