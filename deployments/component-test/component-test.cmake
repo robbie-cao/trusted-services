@@ -42,6 +42,7 @@ add_components(
 		"components/config/ramstore/test"
 		"components/messaging/ffa/libsp/mock"
 		"components/rpc/common/caller"
+		"components/rpc/common/endpoint"
 		"components/rpc/common/interface"
 		"components/rpc/common/demux"
 		"components/rpc/common/test"
