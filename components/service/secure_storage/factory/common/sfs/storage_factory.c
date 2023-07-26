@@ -5,7 +5,6 @@
  *
  */
 
-#include <rpc/ffarpc/caller/sp/ffarpc_caller.h>
 #include <protocols/rpc/common/packed-c/status.h>
 #include <service/secure_storage/backend/secure_flash_store/secure_flash_store.h>
 #include <service/secure_storage/backend/secure_flash_store/flash/ram/sfs_flash_ram.h>

@@ -36,7 +36,7 @@ struct secure_storage_client
  * @return     Pointer to inialized storage backend or NULL on failure
  */
 struct storage_backend *secure_storage_client_init(struct secure_storage_client *context,
-                                struct rpc_caller *caller);
+						   struct rpc_caller_session *session);
 
 /**
  * @brief      Deinitialize a secure storage client

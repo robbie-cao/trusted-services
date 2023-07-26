@@ -18,7 +18,7 @@ static psa_status_t secure_storage_ipc_set(void *context, uint32_t client_id,
 			 const void *p_data, psa_storage_create_flags_t create_flags)
 {
 	struct secure_storage_ipc *ipc = context;
-	struct rpc_caller *caller = ipc->client.caller;
+	struct rpc_caller_interface *caller = ipc->client.session->caller;
 	psa_status_t psa_status;
 	struct psa_invec in_vec[] = {
 		{ .base = psa_ptr_to_u32(&uid), .len = sizeof(uid) },
@@ -46,7 +46,7 @@ static psa_status_t secure_storage_ipc_get(void *context,
 					   size_t *p_data_length)
 {
 	struct secure_storage_ipc *ipc = context;
-	struct rpc_caller *caller = ipc->client.caller;
+	struct rpc_caller_interface *caller = ipc->client.session->caller;
 	psa_status_t psa_status;
 	uint32_t offset = (uint32_t)data_offset;
 	struct psa_invec in_vec[] = {
@@ -78,7 +78,7 @@ static psa_status_t secure_storage_ipc_get_info(void *context,
 						struct psa_storage_info_t *p_info)
 {
 	struct secure_storage_ipc *ipc = context;
-	struct rpc_caller *caller = ipc->client.caller;
+	struct rpc_caller_interface *caller = ipc->client.session->caller;
 	psa_status_t psa_status;
 	struct psa_invec in_vec[] = {
 		{ .base = psa_ptr_to_u32(&uid), .len = sizeof(uid) },
@@ -102,7 +102,7 @@ static psa_status_t secure_storage_ipc_remove(void *context,
 						psa_storage_uid_t uid)
 {
 	struct secure_storage_ipc *ipc = context;
-	struct rpc_caller *caller = ipc->client.caller;
+	struct rpc_caller_interface *caller = ipc->client.session->caller;
 	psa_status_t psa_status;
 	struct psa_invec in_vec[] = {
 		{ .base = psa_ptr_to_u32(&uid), .len = sizeof(uid) },
@@ -152,7 +152,7 @@ static psa_status_t secure_storage_set_extended(void *context,
 static uint32_t secure_storage_get_support(void *context, uint32_t client_id)
 {
 	struct secure_storage_ipc *ipc = context;
-	struct rpc_caller *caller = ipc->client.caller;
+	struct rpc_caller_interface *caller = ipc->client.session->caller;
 	psa_status_t psa_status;
 	uint32_t support_flags;
 	struct psa_outvec out_vec[] = {
@@ -169,9 +169,9 @@ static uint32_t secure_storage_get_support(void *context, uint32_t client_id)
 }
 
 struct storage_backend *secure_storage_ipc_init(struct secure_storage_ipc *context,
-						struct rpc_caller *caller)
+						struct rpc_caller_session *session)
 {
-	service_client_init(&context->client, caller);
+	service_client_init(&context->client, session);
 
 	static const struct storage_backend_interface interface =
 	{
