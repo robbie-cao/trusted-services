@@ -23,11 +23,6 @@ target_include_directories(smm-gateway PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID_CANON "ed32d533-99e6-4209-9cc0-2d72cdd998a7")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "SMMGW" CACHE STRING "Trace prefix")
-include(${TS_ROOT}/tools/cmake/common/TargetCompileDefinitions.cmake)
-set_target_uuids(
-	SP_UUID ${SP_UUID_CANON}
-	SP_NAME "smm-gateway"
-)
 
 # Setting the MM communication buffer parameters
 set(MM_COMM_BUFFER_ADDRESS "0x00000008 0x81000000" CACHE STRING "Address of MM communicte buffer in 64 bit DTS format")

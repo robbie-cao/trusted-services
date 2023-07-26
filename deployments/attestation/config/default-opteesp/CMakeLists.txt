@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -23,11 +23,6 @@ target_include_directories(attestation PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID_CANON "a1baf155-8876-4695-8f7c-54955e8db974")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "ATT" CACHE STRING "Trace prefix")
-include(${TS_ROOT}/tools/cmake/common/TargetCompileDefinitions.cmake)
-set_target_uuids(
-	SP_UUID ${SP_UUID_CANON}
-	SP_NAME "attestation"
-)
 
 target_include_directories(attestation PRIVATE
 	${CMAKE_CURRENT_LIST_DIR}

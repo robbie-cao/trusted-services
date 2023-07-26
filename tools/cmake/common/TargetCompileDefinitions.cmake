@@ -74,6 +74,11 @@ The UUID of the SP as a string.
 ``SP_NAME``
 The name of the SP.
 
+OUTPUTS:
+
+``SP_UUID_LE``
+SP_UUID converted to little-endian binary format.
+
 #]===]
 
 function (set_target_uuids)

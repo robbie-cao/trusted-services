@@ -13,14 +13,6 @@
 #-------------------------------------------------------------------------------
 target_include_directories(spm-test${SP_NUMBER} PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 
-include(${TS_ROOT}/tools/cmake/common/TargetCompileDefinitions.cmake)
-set_target_uuids(
-	SP_UUID ${SP_UUID_CANON}
-	SP_NAME "spm-test${SP_NUMBER}"
-)
-set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
-set(TRACE_PREFIX "SPM-TEST${SP_NUMBER}" CACHE STRING "Trace prefix")
-
 #-------------------------------------------------------------------------------
 #  Extend with components that are common across all deployments of
 #  spm-test

@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -19,11 +19,6 @@ add_executable(sfs-demo)
 set(SP_UUID_CANON "01109cf8-e5ca-446f-9b55-f3cdc65110c8")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "SFSDEMO" CACHE STRING "Trace prefix")
-include(${TS_ROOT}/tools/cmake/common/TargetCompileDefinitions.cmake)
-set_target_uuids(
-	SP_UUID ${SP_UUID_CANON}
-	SP_NAME "sfs-demo"
-)
 
 add_components(TARGET "sfs-demo"
 	BASE_DIR ${TS_ROOT}

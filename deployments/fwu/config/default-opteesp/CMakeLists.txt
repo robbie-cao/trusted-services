@@ -22,11 +22,6 @@ add_executable(fwu)
 target_include_directories(fwu PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID_CANON "6823a838-1b06-470e-9774-0cce8bfb53fd")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
-include(${TS_ROOT}/tools/cmake/common/TargetCompileDefinitions.cmake)
-set_target_uuids(
-	SP_UUID ${SP_UUID_CANON}
-	SP_NAME "fwu"
-)
 
 target_include_directories(fwu PRIVATE
 	${CMAKE_CURRENT_LIST_DIR}

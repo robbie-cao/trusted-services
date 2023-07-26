@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -32,11 +32,6 @@ target_include_directories(block-storage PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_UUID_CANON "63646e80-eb52-462f-ac4f-8cdf3987519c")
 set(SP_HEAP_SIZE "120 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "BLOCK" CACHE STRING "Trace prefix")
-include(${TS_ROOT}/tools/cmake/common/TargetCompileDefinitions.cmake)
-set_target_uuids(
-	SP_UUID ${SP_UUID_CANON}
-	SP_NAME "block-storage"
-)
 
 target_include_directories(block-storage PRIVATE
 	${CMAKE_CURRENT_LIST_DIR}

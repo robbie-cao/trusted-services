@@ -15,7 +15,9 @@ add_executable(spm-test3)
 set(SP_BIN_UUID_CANON "23eb0100-e32a-4497-9052-2f11e584afa6")
 set(SP_UUID_CANON "23eb0100-e32a-4497-9052-2f11e584afa6")
 set(SP_NUMBER 3)
-include(${TS_ROOT}/components/service/spm_test/spm_test.cmake)
+set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
+set(TRACE_PREFIX "SPM-TEST${SP_NUMBER}" CACHE STRING "Trace prefix")
+
 #-------------------------------------------------------------------------------
 #  Components that are spm-test specific to deployment in the opteesp
 #  environment.
@@ -30,3 +32,5 @@ add_components(TARGET "spm-test${SP_NUMBER}"
 		"components/messaging/ffa/libsp"
 		"environments/opteesp"
 )
+
+include(${TS_ROOT}/components/service/spm_test/spm_test.cmake)

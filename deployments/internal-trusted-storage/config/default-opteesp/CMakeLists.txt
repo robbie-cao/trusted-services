@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -20,11 +20,6 @@ target_include_directories(internal-trusted-storage PRIVATE "${TOP_LEVEL_INCLUDE
 set(SP_UUID_CANON "dc1eef48-b17a-4ccf-ac8b-dfcff7711b14")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "ITS" CACHE STRING "Trace prefix")
-include(${TS_ROOT}/tools/cmake/common/TargetCompileDefinitions.cmake)
-set_target_uuids(
-	SP_UUID ${SP_UUID_CANON}
-	SP_NAME "internal-trusted-storage"
-)
 
 target_include_directories(internal-trusted-storage PRIVATE
 	${CMAKE_CURRENT_LIST_DIR}

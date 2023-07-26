@@ -23,6 +23,17 @@ get_target_property(_tgt_type ${TGT} TYPE)
 if ("${_tgt_type}" STREQUAL "EXECUTABLE")
 	compiler_generate_stripped_elf(TARGET ${TGT} NAME "${SP_BIN_UUID_CANON}.stripped.elf" RES STRIPPED_ELF)
 	install(FILES ${STRIPPED_ELF} DESTINATION ${TS_ENV}/bin)
+
+	# Get the name of the SP.
+	get_target_property(_tgt_name ${TGT} NAME )
+	set(SP_NAME "${_tgt_name}" CACHE STRING "Name of the SP.")
+
+	include(${TS_ROOT}/tools/cmake/common/TargetCompileDefinitions.cmake)
+	set_target_uuids(
+		SP_UUID ${SP_UUID_CANON}
+		SP_NAME ${SP_NAME}
+	)
+	set(SP_UUID_LE ${SP_UUID_LE} CACHE STRING "SP_FFA_UUID_CANON in litte endian binary format")
 endif()
 
 target_sources(${TGT} PRIVATE
