@@ -24,7 +24,6 @@ add_executable(fwu)
 target_include_directories(fwu PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_NAME "fwu")
 set(SP_UUID_CANON "6823a838-1b06-470e-9774-0cce8bfb53fd")
-set(SP_UUID_LE "0x38a82368 0x0e47061b 0xce0c7497 0xfd53fb8b")
 set(SP_STACK_SIZE "64 * 1024" CACHE STRING "Stack size")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "Heap size")
 
@@ -89,7 +88,6 @@ install(TARGETS fwu
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
 export_sp(
 	SP_UUID_CANON ${SP_UUID_CANON}
-	SP_UUID_LE ${SP_UUID_LE}
 	SP_NAME ${SP_NAME}
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_${SP_NAME}.dts.in
 	DTS_MEM_REGIONS ${SP_UUID_CANON}_memory_regions.dtsi

@@ -4,57 +4,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 #-------------------------------------------------------------------------------
-macro(generate_uuid_formats uuid)
-	#Create a list of byte
-	string(REGEX MATCHALL "([A-Za-z0-9][A-Za-z0-9])" SEPARATED_HEX "${uuid}")
-	list(JOIN SEPARATED_HEX ", 0x" UUID_BYTES )
-	#Generate the uuid_byte string
-	#{ 0x01, 0x10, 0x9c, 0xf8, 0xe5, 0xca, 0x44, 0x6f,
-	# 0x9b, 0x55, 0xf3, 0xcd, 0xc6, 0x51, 0x10, 0xc8, }
 
-	string(PREPEND UUID_BYTES "{0x")
-	string(APPEND UUID_BYTES "}")
-
-	#Split the list of bytes in to the struct fields
-	list(SUBLIST SEPARATED_HEX 0 4 uuid_timeLow)
-	list(SUBLIST SEPARATED_HEX 4 2 uuid_timeMid)
-	list(SUBLIST SEPARATED_HEX 6 2 uuid_timeHiAndVersion)
-	list(SUBLIST SEPARATED_HEX 8 8 uuid_clockSeqAndNode)
-
-	#Combine the bytes in the fields
-	list(JOIN uuid_timeLow "" uuid_timeLow )
-	string(PREPEND uuid_timeLow "0x")
-
-	list(JOIN uuid_timeMid "" uuid_timeMid )
-	string(PREPEND uuid_timeMid " 0x")
-
-	list(JOIN uuid_timeHiAndVersion "" uuid_timeHiAndVersion )
-	string(PREPEND uuid_timeHiAndVersion " 0x")
-
-	list(JOIN uuid_clockSeqAndNode ", 0x" uuid_clockSeqAndNode )
-	string(PREPEND uuid_clockSeqAndNode " 0x")
-
-	#Combine the different fields into one uuid_struct string
-	#{ 0x01109cf8, 0xe5ca, 0x446f, \
-	#{ 0x9b, 0x55, 0xf3, 0xcd, 0xc6, 0x51, 0x10, 0xc8 } }
-
-	string(CONCAT UUID_STRUCT "{" ${uuid_timeLow} "," ${uuid_timeMid}
-		"," ${uuid_timeHiAndVersion} ", {" ${uuid_clockSeqAndNode} "}}")
-
-	# Swith endianess
-	list(SUBLIST SEPARATED_HEX 0 4 hex1)
-	list(SUBLIST SEPARATED_HEX 4 4 hex2)
-	list(SUBLIST SEPARATED_HEX 8 4 hex3)
-	list(SUBLIST SEPARATED_HEX 12 4 hex4)
-
-	list(REVERSE hex1)
-	list(REVERSE hex2)
-	list(REVERSE hex3)
-	list(REVERSE hex4)
-	string(CONCAT UUID_LE " 0x" ${hex1} " 0x" ${hex2} " 0x" ${hex3}
-		" 0x" ${hex4})
-
-endmacro()
+include(${CMAKE_CURRENT_LIST_DIR}/Uuid.cmake)
 
 #[===[.rst:
 .. cmake:command:: set_target_uuids
@@ -74,31 +25,41 @@ The UUID of the SP as a string.
 ``SP_NAME``
 The name of the SP.
 
-OUTPUTS:
-
-``SP_UUID_LE``
-SP_UUID converted to little-endian binary format.
-
 #]===]
 
 function (set_target_uuids)
 	set(options)
-	set(oneValueArgs SP_UUID SP_NAME)
+	set(oneValueArgs TGT SP_UUID)
 	set(multiValueArgs)
-	cmake_parse_arguments(TARGET "${options}" "${oneValueArgs}"
+	cmake_parse_arguments(_MY_PARAMS "${options}" "${oneValueArgs}"
 		"${multiValueArgs}" ${ARGN} )
 
-	if(NOT DEFINED TARGET_SP_UUID)
-		message(FATAL_ERROR "set_target_uuids: mandatory parameter SP_UUID not defined!")
-	endif()
-	if(NOT DEFINED TARGET_SP_NAME)
-		message(FATAL_ERROR "set_target_uuids: mandatory parameter SP_NAME not defined!")
-	endif()
+	check_args(SP_UUID TGT)
 
-	generate_uuid_formats(${TARGET_SP_UUID})
-	target_compile_definitions(${TARGET_SP_NAME}
-		PRIVATE OPTEE_SP_UUID=${UUID_STRUCT}
+	# Convert the UUID to a C char array initializer e.g.
+	#  { 0x01, 0x10, 0x9c, 0xf8, 0xe5, 0xca, 0x44, 0x6f,
+	#   0x9b, 0x55, 0xf3, 0xcd, 0xc6, 0x51, 0x10, 0xc8, }
+	# and "pass it" to C files.
+	uuid_canon_to_octets(UUID ${_MY_PARAMS_SP_UUID} RES UUID_OCTETS)
+	list(JOIN UUID_OCTETS ", 0x" UUID_BYTES )
+	set(UUID_BYTES "{ 0x${UUID_BYTES} }")
+	target_compile_definitions(${_MY_PARAMS_TGT}
 		PRIVATE OPTEE_SP_UUID_BYTES=${UUID_BYTES}
 	)
-	set(SP_UUID_LE ${UUID_LE} PARENT_SCOPE)
+
+	# Create a UUID structure with the UUID fileds
+	# { 0x01109cf8, 0xe5ca, 0x446f, \
+	# { 0x9b, 0x55, 0xf3, 0xcd, 0xc6, 0x51, 0x10, 0xc8 } }
+	# and "pass it" to C files
+	uuid_canon_to_fields(UUID ${_MY_PARAMS_SP_UUID}
+			TIME_LOW "_uuid_timeLow"
+			TIME_MID "_uuid_timeMid"
+			TIME_HI_AND_VER "_uuid_timeHiAndVersion"
+			CLOCK_AND_SEQ "_uuid_clockSeqAndNode")
+	string(REGEX MATCHALL ".." _uuid_clockSeqAndNode "${_uuid_clockSeqAndNode}")
+	list(JOIN _uuid_clockSeqAndNode ", 0x" _uuid_clockSeqAndNode)
+	set(UUID_STRUCT "{ 0x${_uuid_timeLow}, 0x${_uuid_timeMid}, 0x${_uuid_timeHiAndVersion}, { 0x${_uuid_clockSeqAndNode} }}")
+	target_compile_definitions(${_MY_PARAMS_TGT}
+		PRIVATE OPTEE_SP_UUID=${UUID_STRUCT}
+	)
 endfunction()

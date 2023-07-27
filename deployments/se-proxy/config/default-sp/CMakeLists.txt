@@ -25,7 +25,6 @@ add_executable(se-proxy)
 target_include_directories(se-proxy PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_NAME "se-proxy")
 set(SP_UUID_CANON "46bb39d1-b4d9-45b5-88ff-040027dab249")
-set(SP_UUID_LE "0xd139bb46 0xb545d9b4 0x0004ff88 0x49b2da27")
 set(TRACE_PREFIX "SEPROXY" CACHE STRING "Trace prefix")
 set(SP_STACK_SIZE "64 * 1024" CACHE STRING "Stack size")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "Heap size")
@@ -84,7 +83,6 @@ install(TARGETS se-proxy
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake REQUIRED)
 export_sp(
 	SP_UUID_CANON ${SP_UUID_CANON}
-	SP_UUID_LE ${SP_UUID_LE}
 	SP_NAME ${SP_NAME}
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_${SP_NAME}.dts.in
 	DTS_MEM_REGIONS ${SP_UUID_CANON}_memory_regions.dtsi

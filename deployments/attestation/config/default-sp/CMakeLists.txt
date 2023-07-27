@@ -89,7 +89,6 @@ install(TARGETS attestation
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
 export_sp(
 	SP_UUID_CANON ${SP_UUID_CANON}
-	SP_UUID_LE ${SP_UUID_LE}
 	SP_NAME ${SP_NAME}
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_${SP_NAME}.dts.in
 	DTS_MEM_REGIONS ${SP_UUID_CANON}_memory_regions.dtsi

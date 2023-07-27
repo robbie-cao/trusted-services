@@ -5,6 +5,8 @@
 #
 #-------------------------------------------------------------------------------
 
+include(${CMAKE_CURRENT_LIST_DIR}/Uuid.cmake)
+
 #[===[.rst:
 .. cmake:command:: export_sp
 
@@ -12,7 +14,6 @@
 
 		export_sp(
 			SP_UUID_CANON <uuid_str_canon>
-			SP_UUID_LE <uuid_le_bytes>
 			SP_NAME <name> MK_IN <.mk path>
 			DTS_IN <DTS path>
 			DTS_MEM_REGIONS <Memory region manifest path>
@@ -27,9 +28,6 @@
 	``SP_BIN_UUID_CANON``
 	The UUID of the SP binary a canonical string. When not set use the
 	SP_UUID_CANON as the SP_BIN_UUID_CANON.
-
-	``SP_UUID_LE``
-	The UUID of the SP as four 32 bit little-endian unsigned integers.
 
 	``SP_NAME``
 	The name of the SP.
@@ -61,9 +59,6 @@ function (export_sp)
 		# We use the same UUID for the binary and FF-A if the UUID of the SP binary is not set
 		set(EXPORT_SP_BIN_UUID_CANON ${EXPORT_SP_UUID_CANON})
 	endif()
-	if(NOT DEFINED EXPORT_SP_UUID_LE)
-		message(FATAL_ERROR "export_sp: mandatory parameter SP_UUID_LE not defined!")
-	endif()
 	if(NOT DEFINED EXPORT_SP_NAME)
 		message(FATAL_ERROR "export_sp: mandatory parameter SP_NAME not defined!")
 	endif()
@@ -77,7 +72,11 @@ function (export_sp)
 	endif()
 
 	# In the SP manifest DT the UUID format is four uint32 numbers (little-endian)
-	set(EXPORT_SP_UUID_DT "${EXPORT_SP_UUID_LE}")
+	# Create a litte endian 4 digit octests representation.
+	uuid_canon_to_le_words(UUID ${EXPORT_SP_UUID_CANON} RES _le_words)
+	list(JOIN _le_words " 0x" _uuid_le)
+	set(SP_UUID_LE " 0x${_uuid_le}" PARENT_SCOPE)
+	set(EXPORT_SP_UUID_DT " 0x${_uuid_le}")
 
 	# As the .dtsi is meant to be included in .dts file, it shouldn't contain a separate
 	# /dts-v1/ tag and its node should be unique, i.e. the SP name.

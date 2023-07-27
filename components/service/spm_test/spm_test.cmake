@@ -66,7 +66,6 @@ include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
 export_sp(
 	SP_UUID_CANON ${SP_UUID_CANON}
 	SP_BIN_UUID_CANON ${SP_BIN_UUID_CANON}
-	SP_UUID_LE ${SP_UUID_LE}
 	SP_NAME "spm-test${SP_NUMBER}"
 	MK_IN ${TS_ROOT}/environments/opteesp/sp.mk.in
 	DTS_IN ${TS_ROOT}/deployments/spm-test${SP_NUMBER}/opteesp/default_spm_test${SP_NUMBER}.dts.in

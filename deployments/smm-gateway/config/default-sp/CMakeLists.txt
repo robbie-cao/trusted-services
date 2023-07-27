@@ -24,7 +24,6 @@ add_executable(smm-gateway)
 target_include_directories(smm-gateway PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_NAME "smm-gateway")
 set(SP_UUID_CANON "ed32d533-99e6-4209-9cc0-2d72cdd998a7")
-set(SP_UUID_LE "0x33d532ed 0x0942e699 0x722dc09c 0xa798d9cd")
 set(TRACE_PREFIX "SMMGW" CACHE STRING "Trace prefix")
 set(SP_STACK_SIZE "64 * 1024" CACHE STRING "Stack size")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "Heap size")
@@ -87,7 +86,6 @@ install(TARGETS smm-gateway
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake REQUIRED)
 export_sp(
 	SP_UUID_CANON ${SP_UUID_CANON}
-	SP_UUID_LE ${SP_UUID_LE}
 	SP_NAME ${SP_NAME}
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_${SP_NAME}.dts.in
 	DTS_MEM_REGIONS ${SP_UUID_CANON}_memory_regions.dtsi

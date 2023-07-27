@@ -70,7 +70,6 @@ install(TARGETS block-storage
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
 export_sp(
 	SP_UUID_CANON ${SP_UUID_CANON}
-	SP_UUID_LE ${SP_UUID_LE}
 	SP_NAME "block-storage"
 	MK_IN ${TS_ROOT}/environments/opteesp/sp.mk.in
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_block-storage.dts.in

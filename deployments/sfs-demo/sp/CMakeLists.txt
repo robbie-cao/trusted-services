@@ -21,7 +21,6 @@ add_executable(sfs-demo)
 target_include_directories(sfs-demo PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_NAME "sfs-demo")
 set(SP_UUID_CANON "01109cf8-e5ca-446f-9b55-f3cdc65110c8")
-set(SP_UUID_LE "0xf89c1001 0x6f44cae5 0xcdf3559b 0xc81051c6")
 set(TRACE_PREFIX "SFSDEMO" CACHE STRING "Trace prefix")
 set(SP_STACK_SIZE "64 * 1024" CACHE STRING "Stack size")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "Heap size")
@@ -63,7 +62,6 @@ install(TARGETS sfs-demo
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake REQUIRED)
 export_sp(
 	SP_UUID_CANON ${SP_UUID_CANON}
-	SP_UUID_LE ${SP_UUID_LE}
 	SP_NAME ${SP_NAME}
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_${SP_NAME}.dts.in
 	DTS_MEM_REGIONS ${SP_UUID_CANON}_memory_regions.dtsi

@@ -31,9 +31,8 @@ if ("${_tgt_type}" STREQUAL "EXECUTABLE")
 	include(${TS_ROOT}/tools/cmake/common/TargetCompileDefinitions.cmake)
 	set_target_uuids(
 		SP_UUID ${SP_UUID_CANON}
-		SP_NAME ${SP_NAME}
+		TGT ${SP_NAME}
 	)
-	set(SP_UUID_LE ${SP_UUID_LE} CACHE STRING "SP_FFA_UUID_CANON in litte endian binary format")
 endif()
 
 target_sources(${TGT} PRIVATE
