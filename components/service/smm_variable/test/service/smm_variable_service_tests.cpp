@@ -17,23 +17,20 @@ TEST_GROUP(SmmVariableServiceTests)
 {
 	void setup()
 	{
-		struct rpc_caller *caller;
-		int status;
-
-		m_rpc_session_handle = NULL;
+		m_rpc_session = NULL;
 		m_service_context = NULL;
 
 		service_locator_init();
 
 		m_service_context =
-			service_locator_query("sn:trustedfirmware.org:smm-variable:0", &status);
+			service_locator_query("sn:trustedfirmware.org:smm-variable:0");
 		CHECK_TRUE(m_service_context);
 
-		m_rpc_session_handle =
-			service_context_open(m_service_context, TS_RPC_ENCODING_PACKED_C, &caller);
-		CHECK_TRUE(m_rpc_session_handle);
+		m_rpc_session =
+			service_context_open(m_service_context);
+		CHECK_TRUE(m_rpc_session);
 
-		m_client = new smm_variable_client(caller);
+		m_client = new smm_variable_client(m_rpc_session);
 
 		setup_common_guid();
 	}
@@ -44,9 +41,9 @@ TEST_GROUP(SmmVariableServiceTests)
 		m_client = NULL;
 
 		if (m_service_context) {
-			if (m_rpc_session_handle) {
-				service_context_close(m_service_context, m_rpc_session_handle);
-				m_rpc_session_handle = NULL;
+			if (m_rpc_session) {
+				service_context_close(m_service_context, m_rpc_session);
+				m_rpc_session = NULL;
 			}
 
 			service_context_relinquish(m_service_context);
@@ -225,7 +222,7 @@ TEST_GROUP(SmmVariableServiceTests)
 	}
 
 	smm_variable_client *m_client;
-	rpc_session_handle m_rpc_session_handle;
+	struct rpc_caller_session *m_rpc_session;
 	struct service_context *m_service_context;
 	EFI_GUID m_common_guid;
 };
