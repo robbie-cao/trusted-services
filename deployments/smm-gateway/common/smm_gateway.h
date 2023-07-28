@@ -7,7 +7,7 @@
 #ifndef SMM_GATEWAY_H
 #define SMM_GATEWAY_H
 
-#include <rpc/common/endpoint/rpc_interface.h>
+#include "rpc/common/endpoint/rpc_service_interface.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,8 +25,7 @@ extern "C" {
  *
  * \return An rpc_interface or NULL on failure
  */
-struct rpc_interface *smm_gateway_create(
- 	uint32_t owner_id);
+struct rpc_service_interface *smm_gateway_create(uint32_t owner_id);
 
 #ifdef __cplusplus
 } /* extern "C" */

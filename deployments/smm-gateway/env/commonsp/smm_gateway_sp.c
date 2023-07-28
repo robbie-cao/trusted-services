@@ -3,7 +3,6 @@
  * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
  */
 
-#include "rpc/ffarpc/endpoint/ffarpc_call_ep.h"
 #include "deployments/smm-gateway/common/smm_gateway.h"
 #include "config/ramstore/config_ramstore.h"
 #include "config/interface/config_store.h"
@@ -26,7 +25,7 @@ static bool sp_init(uint16_t *own_sp_id);
 void __noreturn sp_main(union ffa_boot_info *boot_info)
 {
 	struct memory_region mm_comm_buffer_region = { 0 };
-	struct rpc_interface *gateway_iface = NULL;
+	struct rpc_service_interface *gateway_iface = NULL;
 	struct smm_variable_mm_service smm_var_service = { 0 };
 	struct mm_service_interface *smm_var_service_interface = NULL;
 	struct mm_communicate_ep mm_communicate_call_ep = { 0 };

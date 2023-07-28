@@ -30,47 +30,43 @@ static struct smm_gateway
 	struct secure_storage_client nv_store_client;
 	struct mock_store volatile_store;
 	struct service_context *nv_storage_service_context;
-	rpc_session_handle nv_storage_session_handle;
+	struct rpc_caller_session *nv_storage_session;
 
 } smm_gateway_instance;
 
 
-static struct rpc_caller *locate_nv_store(void)
+struct rpc_service_interface *smm_gateway_create(uint32_t owner_id)
 {
-	int status = 0;
-	struct rpc_caller *caller = NULL;
+	service_locator_envinit();
 
 	/* todo - add option to use configurable service location */
 	smm_gateway_instance.nv_storage_service_context =
-		service_locator_query(SMM_GATEWAY_NV_STORE_SN, &status);
+		service_locator_query(SMM_GATEWAY_NV_STORE_SN);
 
-	if (smm_gateway_instance.nv_storage_service_context) {
+	if (!smm_gateway_instance.nv_storage_service_context)
+		return NULL;
 
-		smm_gateway_instance.nv_storage_session_handle = service_context_open(
-			smm_gateway_instance.nv_storage_service_context,
-			TS_RPC_ENCODING_PACKED_C,
-			&caller);
-	}
+	smm_gateway_instance.nv_storage_session = service_context_open(
+		smm_gateway_instance.nv_storage_service_context);
 
-	return caller;
-}
-
-struct rpc_interface *smm_gateway_create(uint32_t owner_id)
-{
-	service_locator_init();
+	if (!smm_gateway_instance.nv_storage_session)
+		return NULL;
 
 	/* Initialize a storage client to access the remote NV store */
-	struct rpc_caller *nv_store_caller = locate_nv_store();
 	struct storage_backend *persistent_backend = secure_storage_client_init(
 		&smm_gateway_instance.nv_store_client,
-		nv_store_caller);
+		smm_gateway_instance.nv_storage_session);
+	if (!persistent_backend)
+		return NULL;
 
 	/* Initialize the volatile storage backend */
 	struct storage_backend *volatile_backend  = mock_store_init(
 		&smm_gateway_instance.volatile_store);
+	if (!volatile_backend)
+		return NULL;
 
 	/* Initialize the smm_variable service provider */
-	struct rpc_interface *service_iface = smm_variable_provider_init(
+	struct rpc_service_interface *service_iface = smm_variable_provider_init(
 		&smm_gateway_instance.smm_variable_provider,
  		owner_id,
 		SMM_GATEWAY_MAX_UEFI_VARIABLES,
