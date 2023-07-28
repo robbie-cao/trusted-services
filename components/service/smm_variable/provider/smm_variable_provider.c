@@ -11,14 +11,14 @@
 #include "smm_variable_provider.h"
 
 /* Service request handlers */
-static rpc_status_t get_variable_handler(void *context, struct call_req *req);
-static rpc_status_t get_next_variable_name_handler(void *context, struct call_req *req);
-static rpc_status_t set_variable_handler(void *context, struct call_req *req);
-static rpc_status_t query_variable_info_handler(void *context, struct call_req *req);
-static rpc_status_t exit_boot_service_handler(void *context, struct call_req *req);
-static rpc_status_t set_var_check_property_handler(void *context, struct call_req *req);
-static rpc_status_t get_var_check_property_handler(void *context, struct call_req *req);
-static rpc_status_t get_payload_size_handler(void *context, struct call_req *req);
+static rpc_status_t get_variable_handler(void *context, struct rpc_request *req);
+static rpc_status_t get_next_variable_name_handler(void *context, struct rpc_request *req);
+static rpc_status_t set_variable_handler(void *context, struct rpc_request *req);
+static rpc_status_t query_variable_info_handler(void *context, struct rpc_request *req);
+static rpc_status_t exit_boot_service_handler(void *context, struct rpc_request *req);
+static rpc_status_t set_var_check_property_handler(void *context, struct rpc_request *req);
+static rpc_status_t get_var_check_property_handler(void *context, struct rpc_request *req);
+static rpc_status_t get_payload_size_handler(void *context, struct rpc_request *req);
 
 /* Handler mapping table for service */
 static const struct service_handler handler_table[] = {
@@ -32,19 +32,20 @@ static const struct service_handler handler_table[] = {
 	{SMM_VARIABLE_FUNCTION_GET_PAYLOAD_SIZE,					get_payload_size_handler}
 };
 
-struct rpc_interface *smm_variable_provider_init(
+struct rpc_service_interface *smm_variable_provider_init(
 	struct smm_variable_provider *context,
  	uint32_t owner_id,
 	size_t max_variables,
 	struct storage_backend *persistent_store,
 	struct storage_backend *volatile_store)
 {
-	struct rpc_interface *rpc_interface = NULL;
+	struct rpc_service_interface *rpc_interface = NULL;
+	const struct rpc_uuid dummy_uuid = { .uuid = { 0 }};
 
 	if (context) {
 
-		service_provider_init(&context->base_provider, context,
-					handler_table, sizeof(handler_table)/sizeof(struct service_handler));
+		service_provider_init(&context->base_provider, context, &dummy_uuid,
+				      handler_table, sizeof(handler_table)/sizeof(struct service_handler));
 
 		if (uefi_variable_store_init(
 				&context->variable_store,
@@ -65,18 +66,18 @@ void smm_variable_provider_deinit(struct smm_variable_provider *context)
 	uefi_variable_store_deinit(&context->variable_store);
 }
 
-static efi_status_t sanitize_access_variable_param(struct call_req *req, size_t *param_len)
+static efi_status_t sanitize_access_variable_param(struct rpc_request *req, size_t *param_len)
 {
 	efi_status_t efi_status = EFI_INVALID_PARAMETER;
 	*param_len = 0;
-	const struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	const struct rpc_buffer *req_buf = &req->request;
 
-	if (req_buf->data_len >= SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET) {
+	if (req_buf->data_length >= SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET) {
 
 		const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *param =
 			(const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE*)req_buf->data;
 
-		size_t max_space_for_name = req_buf->data_len -
+		size_t max_space_for_name = req_buf->data_length -
 			SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET;
 
 		if (param->NameSize <= max_space_for_name) {
@@ -89,18 +90,18 @@ static efi_status_t sanitize_access_variable_param(struct call_req *req, size_t 
 	return efi_status;
 }
 
-static efi_status_t sanitize_get_next_var_name_param(struct call_req *req, size_t *param_len)
+static efi_status_t sanitize_get_next_var_name_param(struct rpc_request *req, size_t *param_len)
 {
 	efi_status_t efi_status = EFI_INVALID_PARAMETER;
 	*param_len = 0;
-	const struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	const struct rpc_buffer *req_buf = &req->request;
 
-	if (req_buf->data_len >= SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_NAME_OFFSET) {
+	if (req_buf->data_length >= SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_NAME_OFFSET) {
 
 		const SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *param =
 			(const SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME*)req_buf->data;
 
-		size_t max_space_for_name = req_buf->data_len -
+		size_t max_space_for_name = req_buf->data_length -
 			SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_NAME_OFFSET;
 
 		if (param->NameSize <= max_space_for_name) {
@@ -113,18 +114,18 @@ static efi_status_t sanitize_get_next_var_name_param(struct call_req *req, size_
 	return efi_status;
 }
 
-static efi_status_t sanitize_var_check_property_param(struct call_req *req, size_t *param_len)
+static efi_status_t sanitize_var_check_property_param(struct rpc_request *req, size_t *param_len)
 {
 	efi_status_t efi_status = EFI_INVALID_PARAMETER;
 	*param_len = 0;
-	const struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	const struct rpc_buffer *req_buf = &req->request;
 
-	if (req_buf->data_len >= SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_NAME_OFFSET) {
+	if (req_buf->data_length >= SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_NAME_OFFSET) {
 
 		const SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *param =
 			(const SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY*)req_buf->data;
 
-		size_t max_space_for_name = req_buf->data_len -
+		size_t max_space_for_name = req_buf->data_length -
 			SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_NAME_OFFSET;
 
 		if (param->NameSize <= max_space_for_name) {
@@ -137,7 +138,7 @@ static efi_status_t sanitize_var_check_property_param(struct call_req *req, size
 	return efi_status;
 }
 
-static rpc_status_t get_variable_handler(void *context, struct call_req *req)
+static rpc_status_t get_variable_handler(void *context, struct rpc_request *req)
 {
 	struct smm_variable_provider *this_instance = (struct smm_variable_provider*)context;
 
@@ -147,11 +148,11 @@ static rpc_status_t get_variable_handler(void *context, struct call_req *req)
 	if (efi_status == EFI_SUCCESS) {
 
 		/* Valid access variable header parameter */
-		struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+		struct rpc_buffer *resp_buf = &req->response;
 
 		if (resp_buf->size >= param_len) {
 
-			struct call_param_buf *req_buf = call_req_get_req_buf(req);
+			struct rpc_buffer *req_buf = &req->request;
 			size_t max_data_len = resp_buf->size - param_len;
 
 			memmove(resp_buf->data, req_buf->data, param_len);
@@ -160,7 +161,7 @@ static rpc_status_t get_variable_handler(void *context, struct call_req *req)
 				&this_instance->variable_store,
 				(SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE*)resp_buf->data,
 				max_data_len,
-				&resp_buf->data_len);
+				&resp_buf->data_length);
 		}
 		else {
 
@@ -169,12 +170,12 @@ static rpc_status_t get_variable_handler(void *context, struct call_req *req)
 		}
 	}
 
-	call_req_set_opstatus(req, efi_status);
+	req->service_status = efi_status;
 
-	return TS_RPC_CALL_ACCEPTED;
+	return RPC_SUCCESS;
 }
 
-static rpc_status_t get_next_variable_name_handler(void *context, struct call_req* req)
+static rpc_status_t get_next_variable_name_handler(void *context, struct rpc_request* req)
 {
 	struct smm_variable_provider *this_instance = (struct smm_variable_provider*)context;
 
@@ -184,11 +185,11 @@ static rpc_status_t get_next_variable_name_handler(void *context, struct call_re
 	if (efi_status == EFI_SUCCESS) {
 
 		/* Valid get next variable name header */
-		struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+		struct rpc_buffer *resp_buf = &req->response;
 
 		if (resp_buf->size >= param_len) {
 
-			struct call_param_buf *req_buf = call_req_get_req_buf(req);
+			struct rpc_buffer *req_buf = &req->request;
 			size_t max_name_len = resp_buf->size -
 				SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_NAME_OFFSET;
 
@@ -198,7 +199,7 @@ static rpc_status_t get_next_variable_name_handler(void *context, struct call_re
 				&this_instance->variable_store,
 				(SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME*)resp_buf->data,
 				max_name_len,
-				&resp_buf->data_len);
+				&resp_buf->data_length);
 		}
 		else {
 
@@ -207,12 +208,12 @@ static rpc_status_t get_next_variable_name_handler(void *context, struct call_re
 		}
 	}
 
-	call_req_set_opstatus(req, efi_status);
+	req->service_status = efi_status;
 
-	return TS_RPC_CALL_ACCEPTED;
+	return RPC_SUCCESS;
 }
 
-static rpc_status_t set_variable_handler(void *context, struct call_req* req)
+static rpc_status_t set_variable_handler(void *context, struct rpc_request* req)
 {
 	struct smm_variable_provider *this_instance = (struct smm_variable_provider*)context;
 
@@ -224,12 +225,12 @@ static rpc_status_t set_variable_handler(void *context, struct call_req* req)
 		/* Access variable header is whole.  Check that buffer length can
 		 * accommodate the data.
 		 */
-		struct call_param_buf *req_buf = call_req_get_req_buf(req);
+		struct rpc_buffer *req_buf = &req->request;
 
 		const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *access_var =
 			(const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE*)req_buf->data;
 
-		size_t space_for_data = req_buf->data_len -
+		size_t space_for_data = req_buf->data_length -
 			SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(access_var);
 
 		if (access_var->DataSize <= space_for_data) {
@@ -245,25 +246,25 @@ static rpc_status_t set_variable_handler(void *context, struct call_req* req)
 		}
 	}
 
-	call_req_set_opstatus(req, efi_status);
+	req->service_status = efi_status;
 
-	return TS_RPC_CALL_ACCEPTED;
+	return RPC_SUCCESS;
 }
 
-static rpc_status_t query_variable_info_handler(void *context, struct call_req* req)
+static rpc_status_t query_variable_info_handler(void *context, struct rpc_request* req)
 {
 	efi_status_t efi_status = EFI_INVALID_PARAMETER;
 	struct smm_variable_provider *this_instance = (struct smm_variable_provider*)context;
 
-	const struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	const struct rpc_buffer *req_buf = &req->request;
 
-	if (req_buf->data_len >= sizeof(SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO)) {
+	if (req_buf->data_length >= sizeof(SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO)) {
 
-		struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+		struct rpc_buffer *resp_buf = &req->response;
 
-		if (resp_buf->size >= req_buf->data_len) {
+		if (resp_buf->size >= req_buf->data_length) {
 
-			memmove(resp_buf->data, req_buf->data, req_buf->data_len);
+			memmove(resp_buf->data, req_buf->data, req_buf->data_length);
 
 			efi_status = uefi_variable_store_query_variable_info(
 				&this_instance->variable_store,
@@ -271,7 +272,7 @@ static rpc_status_t query_variable_info_handler(void *context, struct call_req* 
 
 			if (efi_status == EFI_SUCCESS) {
 
-				resp_buf->data_len = sizeof(SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO);
+				resp_buf->data_length = sizeof(SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO);
 			}
 		}
 		else {
@@ -281,22 +282,22 @@ static rpc_status_t query_variable_info_handler(void *context, struct call_req* 
 		}
 	}
 
-	call_req_set_opstatus(req, efi_status);
+	req->service_status = efi_status;
 
-	return TS_RPC_CALL_ACCEPTED;
+	return RPC_SUCCESS;
 }
 
-static rpc_status_t exit_boot_service_handler(void *context, struct call_req* req)
+static rpc_status_t exit_boot_service_handler(void *context, struct rpc_request* req)
 {
 	struct smm_variable_provider *this_instance = (struct smm_variable_provider*)context;
 
 	efi_status_t efi_status = uefi_variable_store_exit_boot_service(&this_instance->variable_store);
-	call_req_set_opstatus(req, efi_status);
+	req->service_status = efi_status;
 
-	return TS_RPC_CALL_ACCEPTED;
+	return RPC_SUCCESS;
 }
 
-static rpc_status_t set_var_check_property_handler(void *context, struct call_req *req)
+static rpc_status_t set_var_check_property_handler(void *context, struct rpc_request *req)
 {
 	struct smm_variable_provider *this_instance = (struct smm_variable_provider*)context;
 
@@ -306,7 +307,7 @@ static rpc_status_t set_var_check_property_handler(void *context, struct call_re
 	if (efi_status == EFI_SUCCESS) {
 
 		/* Request parameter structue looks whole */
-		struct call_param_buf *req_buf = call_req_get_req_buf(req);
+		struct rpc_buffer *req_buf = &req->request;
 
 		const SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *check_property =
 			(const SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY*)req_buf->data;
@@ -316,12 +317,12 @@ static rpc_status_t set_var_check_property_handler(void *context, struct call_re
 			check_property);
 	}
 
-	call_req_set_opstatus(req, efi_status);
+	req->service_status = efi_status;
 
-	return TS_RPC_CALL_ACCEPTED;
+	return RPC_SUCCESS;
 }
 
-static rpc_status_t get_var_check_property_handler(void *context, struct call_req *req)
+static rpc_status_t get_var_check_property_handler(void *context, struct rpc_request *req)
 {
 	struct smm_variable_provider *this_instance = (struct smm_variable_provider*)context;
 
@@ -331,13 +332,13 @@ static rpc_status_t get_var_check_property_handler(void *context, struct call_re
 	if (efi_status == EFI_SUCCESS) {
 
 		/* Request parameter structue looks whole */
-		struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+		struct rpc_buffer *resp_buf = &req->response;
 
 		if (resp_buf->size >= param_len) {
 
-			struct call_param_buf *req_buf = call_req_get_req_buf(req);
+			struct rpc_buffer *req_buf = &req->request;
 			memmove(resp_buf->data, req_buf->data, param_len);
-			resp_buf->data_len = param_len;
+			resp_buf->data_length = param_len;
 
 			efi_status = uefi_variable_store_get_var_check_property(
 				&this_instance->variable_store,
@@ -350,12 +351,12 @@ static rpc_status_t get_var_check_property_handler(void *context, struct call_re
 		}
 	}
 
-	call_req_set_opstatus(req, efi_status);
+	req->service_status = efi_status;
 
-	return TS_RPC_CALL_ACCEPTED;
+	return RPC_SUCCESS;
 }
 
-static rpc_status_t get_payload_size_handler(void *context, struct call_req *req)
+static rpc_status_t get_payload_size_handler(void *context, struct rpc_request *req)
 {
 	(void)context;
 
@@ -363,10 +364,10 @@ static rpc_status_t get_payload_size_handler(void *context, struct call_req *req
 	 * name is also carried in the buffer, the maximum payload size depends on the name size.  This
 	 * function therefore treats the payload as name + data.
 	 */
-	size_t payload_size = req->req_buf.size - SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET;
+	size_t payload_size = req->request.size - SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET;
 
 	efi_status_t efi_status = EFI_SUCCESS;
-	struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+	struct rpc_buffer *resp_buf = &req->response;
 
 	if (resp_buf->size >= sizeof(SMM_VARIABLE_COMMUNICATE_GET_PAYLOAD_SIZE)) {
 
@@ -374,7 +375,7 @@ static rpc_status_t get_payload_size_handler(void *context, struct call_req *req
 			(SMM_VARIABLE_COMMUNICATE_GET_PAYLOAD_SIZE*)resp_buf->data;
 
 		resp_msg->VariablePayloadSize = payload_size;
-		resp_buf->data_len = sizeof(SMM_VARIABLE_COMMUNICATE_GET_PAYLOAD_SIZE);
+		resp_buf->data_length = sizeof(SMM_VARIABLE_COMMUNICATE_GET_PAYLOAD_SIZE);
 	}
 	else {
 
@@ -382,7 +383,7 @@ static rpc_status_t get_payload_size_handler(void *context, struct call_req *req
 		efi_status = EFI_BAD_BUFFER_SIZE;
 	}
 
-	call_req_set_opstatus(req, efi_status);
+	req->service_status = efi_status;
 
-	return TS_RPC_CALL_ACCEPTED;
+	return RPC_SUCCESS;
 }

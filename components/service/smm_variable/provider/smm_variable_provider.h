@@ -7,9 +7,9 @@
 #ifndef SMM_VARIABLE_PROVIDER_H
 #define SMM_VARIABLE_PROVIDER_H
 
-#include <rpc/common/endpoint/rpc_interface.h>
-#include <service/common/provider/service_provider.h>
-#include <service/smm_variable/backend/uefi_variable_store.h>
+#include "rpc/common/endpoint/rpc_service_interface.h"
+#include "service/common/provider/service_provider.h"
+#include "service/smm_variable/backend/uefi_variable_store.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,7 +41,7 @@ struct smm_variable_provider
  *
  * \return An rpc_interface or NULL on failure
  */
-struct rpc_interface *smm_variable_provider_init(
+struct rpc_service_interface *smm_variable_provider_init(
 	struct smm_variable_provider *context,
  	uint32_t owner_id,
 	size_t max_variables,

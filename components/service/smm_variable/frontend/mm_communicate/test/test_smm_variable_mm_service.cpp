@@ -33,8 +33,8 @@ TEST_GROUP(smm_variable_mm_service)
 	}
 
 	struct smm_variable_mm_service service = { 0 };
-	struct rpc_interface rpc_iface = { 0 };
-	struct call_req rpc_req = { 0 };
+	struct rpc_service_interface rpc_iface = { 0 };
+	struct rpc_request rpc_req = { 0 };
 	struct mm_service_call_req mm_req = { 0 };
 };
 
@@ -75,7 +75,7 @@ TEST(smm_variable_mm_service, receive_too_small)
 
 	mm_service = smm_variable_mm_service_init(&service, &rpc_iface);
 
-	mm_req.req_buf.data_len = SMM_VARIABLE_COMMUNICATE_HEADER_SIZE - 1;
+	mm_req.req_buf.data_length = SMM_VARIABLE_COMMUNICATE_HEADER_SIZE - 1;
 	result = mm_service->receive(mm_service, &mm_req);
 	LONGS_EQUAL(MM_RETURN_CODE_DENIED, result);
 }
@@ -88,36 +88,36 @@ TEST(smm_variable_mm_service, receive_zero_data)
 	int32_t result = 0;
 
 	mm_req.req_buf.size = sizeof(buffer);
-	mm_req.req_buf.data_len = SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	mm_req.req_buf.data_length = SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
 	mm_req.req_buf.data = buffer;
 
 	mm_req.resp_buf.size = sizeof(buffer);
-	mm_req.resp_buf.data_len = 0;
+	mm_req.resp_buf.data_length = 0;
 	mm_req.resp_buf.data = buffer;
 
 	header->Function = 0x0123456789abcdefULL;
 	header->ReturnStatus = 0;
 
 	rpc_req.opcode = header->Function;
-	rpc_req.opstatus = 0xfedcba9876543210ULL;
-	rpc_req.req_buf.size = sizeof(buffer) - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
-	rpc_req.req_buf.data_len = 0;
-	rpc_req.req_buf.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
-	rpc_req.resp_buf.size = sizeof(buffer) - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
-	rpc_req.resp_buf.data_len = 16;
-	rpc_req.resp_buf.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.service_status = 0xfedcba9876543210ULL;
+	rpc_req.request.size = sizeof(buffer) - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.request.data_length = 0;
+	rpc_req.request.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.response.size = sizeof(buffer) - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.response.data_length = 16;
+	rpc_req.response.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
 
 	rpc_iface.receive = mock_rpc_interface_receive;
 
 	mm_service = smm_variable_mm_service_init(&service, &rpc_iface);
 
-	expect_mock_rpc_interface_receive(&rpc_iface, &rpc_req, TS_RPC_CALL_ACCEPTED);
+	expect_mock_rpc_interface_receive(&rpc_iface, &rpc_req, RPC_SUCCESS);
 	result = mm_service->receive(mm_service, &mm_req);
 
 	LONGS_EQUAL(MM_RETURN_CODE_SUCCESS, result);
-	UNSIGNED_LONGLONGS_EQUAL(rpc_req.opstatus, header->ReturnStatus);
-	UNSIGNED_LONGLONGS_EQUAL(rpc_req.resp_buf.data_len + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
-				 mm_req.resp_buf.data_len);
+	UNSIGNED_LONGLONGS_EQUAL(rpc_req.service_status, header->ReturnStatus);
+	UNSIGNED_LONGLONGS_EQUAL(rpc_req.response.data_length + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
+				 mm_req.resp_buf.data_length);
 }
 
 TEST(smm_variable_mm_service, receive_data)
@@ -128,36 +128,36 @@ TEST(smm_variable_mm_service, receive_data)
 	int32_t result = 0;
 
 	mm_req.req_buf.size = sizeof(buffer);
-	mm_req.req_buf.data_len = SMM_VARIABLE_COMMUNICATE_HEADER_SIZE + 32;
+	mm_req.req_buf.data_length = SMM_VARIABLE_COMMUNICATE_HEADER_SIZE + 32;
 	mm_req.req_buf.data = buffer;
 
 	mm_req.resp_buf.size = sizeof(buffer);
-	mm_req.resp_buf.data_len = 0;
+	mm_req.resp_buf.data_length = 0;
 	mm_req.resp_buf.data = buffer;
 
 	header->Function = 0x0123456789abcdefULL;
 	header->ReturnStatus = 0;
 
 	rpc_req.opcode = header->Function;
-	rpc_req.opstatus = 0xfedcba9876543210ULL;
-	rpc_req.req_buf.size = sizeof(buffer) - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
-	rpc_req.req_buf.data_len = 32;
-	rpc_req.req_buf.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
-	rpc_req.resp_buf.size = sizeof(buffer) - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
-	rpc_req.resp_buf.data_len = 16;
-	rpc_req.resp_buf.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.service_status = 0xfedcba9876543210ULL;
+	rpc_req.request.size = sizeof(buffer) - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.request.data_length = 32;
+	rpc_req.request.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.response.size = sizeof(buffer) - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.response.data_length = 16;
+	rpc_req.response.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
 
 	rpc_iface.receive = mock_rpc_interface_receive;
 
 	mm_service = smm_variable_mm_service_init(&service, &rpc_iface);
 
-	expect_mock_rpc_interface_receive(&rpc_iface, &rpc_req, TS_RPC_CALL_ACCEPTED);
+	expect_mock_rpc_interface_receive(&rpc_iface, &rpc_req, RPC_SUCCESS);
 	result = mm_service->receive(mm_service, &mm_req);
 
 	LONGS_EQUAL(MM_RETURN_CODE_SUCCESS, result);
-	UNSIGNED_LONGLONGS_EQUAL(rpc_req.opstatus, header->ReturnStatus);
-	UNSIGNED_LONGLONGS_EQUAL(rpc_req.resp_buf.data_len + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
-				 mm_req.resp_buf.data_len);
+	UNSIGNED_LONGLONGS_EQUAL(rpc_req.service_status, header->ReturnStatus);
+	UNSIGNED_LONGLONGS_EQUAL(rpc_req.response.data_length + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
+				 mm_req.resp_buf.data_length);
 }
 
 TEST(smm_variable_mm_service, receive_long_response)
@@ -168,36 +168,36 @@ TEST(smm_variable_mm_service, receive_long_response)
 	int32_t result = 0;
 
 	mm_req.req_buf.size = sizeof(buffer);
-	mm_req.req_buf.data_len = SMM_VARIABLE_COMMUNICATE_HEADER_SIZE + 32;
+	mm_req.req_buf.data_length = SMM_VARIABLE_COMMUNICATE_HEADER_SIZE + 32;
 	mm_req.req_buf.data = buffer;
 
 	mm_req.resp_buf.size = sizeof(buffer);
-	mm_req.resp_buf.data_len = 0;
+	mm_req.resp_buf.data_length = 0;
 	mm_req.resp_buf.data = buffer;
 
 	header->Function = 0x0123456789abcdefULL;
 	header->ReturnStatus = 0;
 
 	rpc_req.opcode = header->Function;
-	rpc_req.opstatus = 0xfedcba9876543210ULL;
-	rpc_req.req_buf.size = sizeof(buffer) - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
-	rpc_req.req_buf.data_len = 32;
-	rpc_req.req_buf.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
-	rpc_req.resp_buf.size = sizeof(buffer) - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
-	rpc_req.resp_buf.data_len = std::numeric_limits<size_t>::max() - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE + 1;
-	rpc_req.resp_buf.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.service_status = 0xfedcba9876543210ULL;
+	rpc_req.request.size = sizeof(buffer) - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.request.data_length = 32;
+	rpc_req.request.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.response.size = sizeof(buffer) - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.response.data_length = std::numeric_limits<size_t>::max() - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE + 1;
+	rpc_req.response.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
 
 	rpc_iface.receive = mock_rpc_interface_receive;
 
 	mm_service = smm_variable_mm_service_init(&service, &rpc_iface);
 
-	expect_mock_rpc_interface_receive(&rpc_iface, &rpc_req, TS_RPC_CALL_ACCEPTED);
+	expect_mock_rpc_interface_receive(&rpc_iface, &rpc_req, RPC_SUCCESS);
 	result = mm_service->receive(mm_service, &mm_req);
 
 	LONGS_EQUAL(MM_RETURN_CODE_NO_MEMORY, result);
-	UNSIGNED_LONGLONGS_EQUAL(rpc_req.opstatus, header->ReturnStatus);
-	UNSIGNED_LONGLONGS_EQUAL(rpc_req.resp_buf.data_len + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
-				 mm_req.resp_buf.data_len);
+	UNSIGNED_LONGLONGS_EQUAL(rpc_req.service_status, header->ReturnStatus);
+	UNSIGNED_LONGLONGS_EQUAL(rpc_req.response.data_length + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
+				 mm_req.resp_buf.data_length);
 }
 
 TEST(smm_variable_mm_service, receive_response_larger_than_size)
@@ -208,36 +208,36 @@ TEST(smm_variable_mm_service, receive_response_larger_than_size)
 	int32_t result = 0;
 
 	mm_req.req_buf.size = sizeof(buffer);
-	mm_req.req_buf.data_len = SMM_VARIABLE_COMMUNICATE_HEADER_SIZE + 32;
+	mm_req.req_buf.data_length = SMM_VARIABLE_COMMUNICATE_HEADER_SIZE + 32;
 	mm_req.req_buf.data = buffer;
 
 	mm_req.resp_buf.size = 15 + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
-	mm_req.resp_buf.data_len = 0;
+	mm_req.resp_buf.data_length = 0;
 	mm_req.resp_buf.data = buffer;
 
 	header->Function = 0x0123456789abcdefULL;
 	header->ReturnStatus = 0;
 
 	rpc_req.opcode = header->Function;
-	rpc_req.opstatus = 0xfedcba9876543210ULL;
-	rpc_req.req_buf.size = sizeof(buffer) - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
-	rpc_req.req_buf.data_len = 32;
-	rpc_req.req_buf.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
-	rpc_req.resp_buf.size = 15;
-	rpc_req.resp_buf.data_len = 16;
-	rpc_req.resp_buf.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.service_status = 0xfedcba9876543210ULL;
+	rpc_req.request.size = sizeof(buffer) - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.request.data_length = 32;
+	rpc_req.request.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.response.size = 15;
+	rpc_req.response.data_length = 16;
+	rpc_req.response.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
 
 	rpc_iface.receive = mock_rpc_interface_receive;
 
 	mm_service = smm_variable_mm_service_init(&service, &rpc_iface);
 
-	expect_mock_rpc_interface_receive(&rpc_iface, &rpc_req, TS_RPC_CALL_ACCEPTED);
+	expect_mock_rpc_interface_receive(&rpc_iface, &rpc_req, RPC_SUCCESS);
 	result = mm_service->receive(mm_service, &mm_req);
 
 	LONGS_EQUAL(MM_RETURN_CODE_NO_MEMORY, result);
-	UNSIGNED_LONGLONGS_EQUAL(rpc_req.opstatus, header->ReturnStatus);
-	UNSIGNED_LONGLONGS_EQUAL(rpc_req.resp_buf.data_len + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
-				 mm_req.resp_buf.data_len);
+	UNSIGNED_LONGLONGS_EQUAL(rpc_req.service_status, header->ReturnStatus);
+	UNSIGNED_LONGLONGS_EQUAL(rpc_req.response.data_length + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
+				 mm_req.resp_buf.data_length);
 }
 
 TEST(smm_variable_mm_service, receive_data_error_codes)
@@ -251,41 +251,37 @@ TEST(smm_variable_mm_service, receive_data_error_codes)
 		rpc_status_t rpc_status;
 		int32_t mm_result;
 	} status_mapping[] = {
-		{TS_RPC_CALL_ACCEPTED, MM_RETURN_CODE_SUCCESS},
-		{TS_RPC_ERROR_EP_DOES_NOT_EXIT, MM_RETURN_CODE_NOT_SUPPORTED},
-		{TS_RPC_ERROR_INVALID_OPCODE, MM_RETURN_CODE_INVALID_PARAMETER},
-		{TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED, MM_RETURN_CODE_INVALID_PARAMETER},
-		{TS_RPC_ERROR_INVALID_REQ_BODY, MM_RETURN_CODE_INVALID_PARAMETER},
-		{TS_RPC_ERROR_INVALID_RESP_BODY, MM_RETURN_CODE_INVALID_PARAMETER},
-		{TS_RPC_ERROR_RESOURCE_FAILURE, MM_RETURN_CODE_NOT_SUPPORTED},
-		{TS_RPC_ERROR_NOT_READY, MM_RETURN_CODE_NOT_SUPPORTED},
-		{TS_RPC_ERROR_INVALID_TRANSACTION, MM_RETURN_CODE_INVALID_PARAMETER},
-		{TS_RPC_ERROR_INTERNAL, MM_RETURN_CODE_NOT_SUPPORTED},
-		{TS_RPC_ERROR_INVALID_PARAMETER, MM_RETURN_CODE_INVALID_PARAMETER},
-		{TS_RPC_ERROR_INTERFACE_DOES_NOT_EXIST, MM_RETURN_CODE_NOT_SUPPORTED},
+		{RPC_SUCCESS, MM_RETURN_CODE_SUCCESS},
+		{RPC_ERROR_INTERNAL, MM_RETURN_CODE_INVALID_PARAMETER},
+		{RPC_ERROR_INVALID_VALUE, MM_RETURN_CODE_INVALID_PARAMETER},
+		{RPC_ERROR_NOT_FOUND, MM_RETURN_CODE_NOT_SUPPORTED},
+		{RPC_ERROR_INVALID_STATE, MM_RETURN_CODE_INVALID_PARAMETER},
+		{RPC_ERROR_TRANSPORT_LAYER, MM_RETURN_CODE_INVALID_PARAMETER},
+		{RPC_ERROR_INVALID_REQUEST_BODY, MM_RETURN_CODE_INVALID_PARAMETER},
+		{RPC_ERROR_INVALID_RESPONSE_BODY, MM_RETURN_CODE_INVALID_PARAMETER},
 		{1, MM_RETURN_CODE_NOT_SUPPORTED}
 
 	};
 
 	mm_req.req_buf.size = sizeof(buffer);
-	mm_req.req_buf.data_len = SMM_VARIABLE_COMMUNICATE_HEADER_SIZE + 32;
+	mm_req.req_buf.data_length = SMM_VARIABLE_COMMUNICATE_HEADER_SIZE + 32;
 	mm_req.req_buf.data = buffer;
 
 	mm_req.resp_buf.size = sizeof(buffer);
-	mm_req.resp_buf.data_len = 0;
+	mm_req.resp_buf.data_length = 0;
 	mm_req.resp_buf.data = buffer;
 
 	header->Function = 0x0123456789abcdefULL;
 	header->ReturnStatus = 0;
 
 	rpc_req.opcode = header->Function;
-	rpc_req.opstatus = 0xfedcba9876543210ULL;
-	rpc_req.req_buf.size = sizeof(buffer) - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
-	rpc_req.req_buf.data_len = 32;
-	rpc_req.req_buf.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
-	rpc_req.resp_buf.size = sizeof(buffer) - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
-	rpc_req.resp_buf.data_len = 16;
-	rpc_req.resp_buf.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.service_status = 0xfedcba9876543210ULL;
+	rpc_req.request.size = sizeof(buffer) - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.request.data_length = 32;
+	rpc_req.request.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.response.size = sizeof(buffer) - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.response.data_length = 16;
+	rpc_req.response.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
 
 	rpc_iface.receive = mock_rpc_interface_receive;
 
@@ -296,8 +292,8 @@ TEST(smm_variable_mm_service, receive_data_error_codes)
 		result = mm_service->receive(mm_service, &mm_req);
 
 		LONGS_EQUAL(status_mapping[i].mm_result, result);
-		UNSIGNED_LONGLONGS_EQUAL(rpc_req.opstatus, header->ReturnStatus);
-		UNSIGNED_LONGLONGS_EQUAL(rpc_req.resp_buf.data_len + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
-					mm_req.resp_buf.data_len);
+		UNSIGNED_LONGLONGS_EQUAL(rpc_req.service_status, header->ReturnStatus);
+		UNSIGNED_LONGLONGS_EQUAL(rpc_req.response.data_length + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
+					mm_req.resp_buf.data_length);
 	}
 }
