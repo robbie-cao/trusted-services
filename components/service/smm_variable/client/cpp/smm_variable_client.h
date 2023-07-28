@@ -12,8 +12,8 @@
 #include <vector>
 #include <protocols/common/efi/efi_status.h>
 #include <protocols/service/smm_variable/smm_variable_proto.h>
+#include "components/rpc/common/caller/rpc_caller_session.h"
 
-struct rpc_caller;
 
 /*
  * Provides a C++ client interface for accessing an instance of the smm-variable service.
@@ -25,10 +25,10 @@ class smm_variable_client
 public:
 
 	smm_variable_client();
-	smm_variable_client(struct rpc_caller *caller);
+	smm_variable_client(struct rpc_caller_session *session);
 	~smm_variable_client();
 
-	void set_caller(struct rpc_caller *caller);
+	void set_caller_session(struct rpc_caller_session *session);
 	int err_rpc_status() const;
 
 	/* Set a string type variable */
@@ -123,7 +123,7 @@ private:
 	static std::vector<int16_t> to_variable_name(const std::wstring &string);
 	static const std::wstring from_variable_name(const int16_t *name, size_t name_size);
 
-	struct rpc_caller *m_caller;
+	struct rpc_caller_session *session;
 	int m_err_rpc_status;
 };
 
