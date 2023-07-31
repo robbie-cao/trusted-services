@@ -6,6 +6,7 @@
 
 #include "mock_store.h"
 #include <protocols/service/psa/packed-c/status.h>
+#include "util.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -29,17 +30,24 @@ static psa_status_t mock_store_set(void *context,
     /* Check length limit */
     if (data_length > MOCK_STORE_ITEM_SIZE_LIMIT) return psa_status;
 
+    if (!uid)
+        return PSA_ERROR_INVALID_ARGUMENT;
+
     /* Replace existing or add new item */
     struct mock_store_slot *slot = find_slot(this_context, uid);
-    if (slot) free_slot(slot);
-    else slot = find_empty_slot(this_context);
+    if (slot) {
+        if (slot->flags & PSA_STORAGE_FLAG_WRITE_ONCE)
+            return PSA_ERROR_NOT_PERMITTED;
+
+        free_slot(slot);
+    } else {
+        slot = find_empty_slot(this_context);
+    }
 
     if (slot) {
-
         slot->item = malloc(data_length);
 
         if (slot->item) {
-
             slot->uid = uid;
             slot->flags = create_flags;
             slot->len = slot->capacity = data_length;
@@ -60,22 +68,26 @@ static psa_status_t mock_store_get(void *context,
                             void *p_data,
                             size_t *p_data_length)
 {
-    (void)client_id;
-    (void)data_offset;
-
-    psa_status_t psa_status = PSA_ERROR_DOES_NOT_EXIST;
     struct mock_store *this_context = (struct mock_store*)context;
+
+    (void)client_id;
+
+    if (!uid)
+        return PSA_ERROR_INVALID_ARGUMENT;
 
     /* Find the item */
     struct mock_store_slot *slot = find_slot(this_context, uid);
 
-    if (slot && (slot->len <= data_size)) {
-        memcpy(p_data, slot->item, slot->len);
-        *p_data_length = slot->len;
-        psa_status = PSA_SUCCESS;
-    }
+    if (!slot)
+        return PSA_ERROR_DOES_NOT_EXIST;
 
-    return psa_status;
+    if (slot->len < data_offset)
+        return PSA_ERROR_INVALID_ARGUMENT;
+
+    *p_data_length = MIN(slot->len - data_offset, data_size);
+    memcpy(p_data, slot->item + data_offset, *p_data_length);
+
+    return PSA_SUCCESS;
 }
 
 static psa_status_t mock_store_get_info(void *context,
@@ -87,6 +99,9 @@ static psa_status_t mock_store_get_info(void *context,
 
     psa_status_t psa_status = PSA_ERROR_DOES_NOT_EXIST;
     struct mock_store *this_context = (struct mock_store*)context;
+
+    if (!uid)
+        return PSA_ERROR_INVALID_ARGUMENT;
 
     /* Find item to get info about */
     struct mock_store_slot *slot = find_slot(this_context, uid);
@@ -115,12 +130,19 @@ static psa_status_t mock_store_remove(void *context,
     psa_status_t psa_status = PSA_ERROR_DOES_NOT_EXIST;
     struct mock_store *this_context = (struct mock_store*)context;
 
+    if (!uid)
+        return PSA_ERROR_INVALID_ARGUMENT;
+
     /* Find and remove the item */
     struct mock_store_slot *slot = find_slot(this_context, uid);
 
     if (slot) {
-        free_slot(slot);
-        psa_status = PSA_SUCCESS;
+        if (!(slot->flags & PSA_STORAGE_FLAG_WRITE_ONCE)) {
+            free_slot(slot);
+            psa_status = PSA_SUCCESS;
+        } else {
+            psa_status = PSA_ERROR_NOT_PERMITTED;
+        }
     }
 
     return psa_status;
