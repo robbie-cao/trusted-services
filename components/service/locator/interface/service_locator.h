@@ -7,7 +7,7 @@
 #ifndef SERVICE_LOCATOR_H
 #define SERVICE_LOCATOR_H
 
-#include <rpc_caller.h>
+#include "components/rpc/common/caller/rpc_caller_session.h"
 
 /*
  * The service_locator puplic interface may be exported as a public interface to
@@ -32,7 +32,6 @@ extern "C" {
  * client code may be reused accross different service deployment scenarios.
  */
 struct service_location_strategy;
-typedef void* rpc_session_handle;
 
 /*
  * Initialises the singleton service locator.  Must be called once
@@ -64,7 +63,7 @@ void service_locator_register_strategy(const struct service_location_strategy *s
  * the client should call the relinquish method.  Returns NULL
  * if no service is located that corresponds to the service name.
  */
-SERVICE_LOCATOR_EXPORTED struct service_context *service_locator_query(const char *sn, int *status);
+SERVICE_LOCATOR_EXPORTED struct service_context *service_locator_query(const char *sn);
 
 /*
  * The service_context struct represents a service instance to a client
@@ -74,11 +73,11 @@ SERVICE_LOCATOR_EXPORTED struct service_context *service_locator_query(const cha
  */
 struct service_context
 {
-    void *context;
+	void *context;
 
-    rpc_session_handle (*open)(void *context, struct rpc_caller **caller);
-    void (*close)(void *context, rpc_session_handle session_handle);
-    void (*relinquish)(void *context);
+	struct rpc_caller_session *(*open)(void *context);
+	void (*close)(void *context, struct rpc_caller_session *session);
+	void (*relinquish)(void *context);
 };
 
 /*
@@ -88,7 +87,7 @@ struct service_context
  */
 struct service_location_strategy
 {
-    struct service_context *(*query)(const char *sn, int *status);
+	struct service_context *(*query)(const char *sn);
 };
 
 /*
@@ -96,12 +95,12 @@ struct service_location_strategy
  * service_context.  The parameter encoding scheme that the client
  * intends to use for serializing RPC parameters must be specified.
  */
-SERVICE_LOCATOR_EXPORTED rpc_session_handle service_context_open(struct service_context *s, uint32_t encoding, struct rpc_caller **caller);
+SERVICE_LOCATOR_EXPORTED struct rpc_caller_session *service_context_open(struct service_context *s);
 
 /*
  * Close an RPC session.
  */
-SERVICE_LOCATOR_EXPORTED void service_context_close(struct service_context *s, rpc_session_handle session_handle);
+SERVICE_LOCATOR_EXPORTED void service_context_close(struct service_context *s, struct rpc_caller_session *session_handle);
 
 /*
  * Called by a client when it has finished using a service context.
