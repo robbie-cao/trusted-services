@@ -7,7 +7,7 @@
 #ifndef LINUXFFA_SERVICE_CONTEXT_H
 #define LINUXFFA_SERVICE_CONTEXT_H
 
-#include <service_locator.h>
+#include "service_locator.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,20 +18,13 @@ extern "C" {
  * a partition, accessed via FFA.  This service_context is suitable
  * for use by client applications running in Linux userspace.
  */
-struct linuxffa_service_context
-{
-    struct service_context service_context;
-    char *ffa_dev_path;
-    uint16_t partition_id;
-    uint16_t iface_id;
-};
+struct linux_ts_service_context;
 
 /*
- * Factory method to create a service context associated with theh specified
- * partition id and RPC interface instance.
+ * Factory method to create a service context associated with the specified
+ * service UUID.
  */
-struct linuxffa_service_context *linuxffa_service_context_create(const char *dev_path,
-    uint16_t partition_id, uint16_t iface_id);
+struct linux_ts_service_context *linux_ts_service_context_create(const struct rpc_uuid *service_uuid);
 
 #ifdef __cplusplus
 }

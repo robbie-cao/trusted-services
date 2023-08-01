@@ -6,204 +6,74 @@
 
 #include "linuxffa_location_strategy.h"
 #include "linuxffa_service_context.h"
-#include <common/uuid/uuid.h>
-#include <service/locator/service_name.h>
-#include <rpc/ffarpc/caller/linux/ffarpc_caller.h>
-#include <deployments/se-proxy/se_proxy_interfaces.h>
+#include "common/uuid/uuid.h"
+#include "service/locator/service_name.h"
+#include "components/service/attestation/provider/attestation_uuid.h"
+#include "components/service/block_storage/provider/block_storage_uuid.h"
+#include "components/service/crypto/provider/crypto_uuid.h"
+#include "components/service/fwu/provider/fwu_uuid.h"
+#include "components/service/secure_storage/frontend/secure_storage_provider/secure_storage_uuid.h"
+#include "components/service/test_runner/provider/test_runner_uuid.h"
 #include <stddef.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-/*
- * There is the potential for there to be alternative deployment possibilities
- * for a service instance.  This will depend on deployment decisions such as
- * running one service instance per SP, or multiple services per SP.  The FFA
- * location strategy accommodates this by allowing for more than one suggestion
- * for a service to partition mapping.
- */
-#define MAX_PARTITION_SUGGESTIONS           (4)
 
-/*
- * The maximum number of partition instances, identified by a particular UUID,
- * that may be discovered.
- */
-#define MAX_PARTITION_INSTANCES             (4)
+static struct service_context *query(const char *sn);
+static const struct rpc_uuid *suggest_ts_service_uuids(const char *sn);
 
-/*
- * Structure to specify the location of a service endpoint reachable via FFA.
- */
-struct ffa_service_location
-{
-	struct uuid_canonical uuid;
-	uint16_t iface_id;
-};
-
-
-static struct service_context *query(const char *sn,
-	int *status);
-static size_t suggest_tf_org_partition_uuids(const char *sn,
-	struct ffa_service_location *candidates, size_t candidate_limit);
-static size_t use_ffa_partition_uuid(const char *sn,
-	struct ffa_service_location *candidates, size_t candidate_limit);
-static bool discover_partition(const char *sn,
-	struct uuid_canonical *uuid, const char *dev_path, uint16_t *partition_id);
-
-const struct service_location_strategy *linuxffa_location_strategy(void)
+const struct service_location_strategy *linux_ts_location_strategy(void)
 {
 	static const struct service_location_strategy strategy = { query };
 	return &strategy;
 }
 
-static struct service_context *query(const char *sn, int *status)
+static struct service_context *query(const char *sn)
 {
-	struct service_context *result = NULL;
-	struct ffa_service_location candidate_locations[MAX_PARTITION_SUGGESTIONS];
-	size_t num_suggestons = 0;
-	size_t suggeston_index;
-	char dev_path[16] = {0};
-
-	if (!ffarpc_caller_check_version())
-		return NULL;
-
-	if (ffarpc_caller_find_dev_path(dev_path, sizeof(dev_path)))
-		return NULL;
+	const struct rpc_uuid *service_uuid = NULL;
 
 	/* Determine one or more candidate partition UUIDs from the specified service name. */
-	if (sn_check_authority(sn, "trustedfirmware.org")) {
-		num_suggestons =
-			suggest_tf_org_partition_uuids(sn, candidate_locations, MAX_PARTITION_SUGGESTIONS);
-	}
-	else if (sn_check_authority(sn, "ffa")) {
-		num_suggestons =
-			use_ffa_partition_uuid(sn, candidate_locations, MAX_PARTITION_SUGGESTIONS);
-	}
+	if (!sn_check_authority(sn, "trustedfirmware.org"))
+		return NULL;
 
-	/* Attempt to discover suitable partitions */
-	for (suggeston_index = 0; suggeston_index < num_suggestons; ++suggeston_index) {
+	service_uuid = suggest_ts_service_uuids(sn);
+	if (!service_uuid)
+		return NULL;
 
-		uint16_t partition_id;
-
-		if (discover_partition(sn, &candidate_locations[suggeston_index].uuid,
-			dev_path, &partition_id)) {
-
-			struct linuxffa_service_context *new_context =
-				linuxffa_service_context_create(dev_path,
-					partition_id, candidate_locations[suggeston_index].iface_id);
-
-			if (new_context) result = &new_context->service_context;
-			break;
-		}
-	}
-
-	return result;
+	return (struct service_context *)linux_ts_service_context_create(service_uuid);
 }
 
 /*
- * Returns a list of partition UUIDs and interface IDs to identify partitions that
- * could potentially host the requested service.  This mapping is based trustedfirmware.org
- * ffa partition UUIDs. There may be multiple UUIDs because of different deployment decisions
- * such as dedicated SP, SP hosting multiple services.
+ * Returns a list of service UUIDs to identify partitions that could potentially host the requested
+ * service.  This mapping is based trustedfirmware.org service UUIDs. There may be multiple UUIDs
+ * because of different deployment decisions such as dedicated SP, SP hosting multiple services.
  */
-static size_t suggest_tf_org_partition_uuids(const char *sn,
-	struct ffa_service_location *candidates, size_t candidate_limit)
+static const struct rpc_uuid *suggest_ts_service_uuids(const char *sn)
 {
-	const struct service_to_uuid
+	static const struct service_to_uuid
 	{
 		const char *service;
-		const char *uuid;
-		uint16_t iface_id;
+		struct rpc_uuid uuid;
 	}
 	partition_lookup[] =
 	{
-		/* Services in dedicated SPs */
-		{"crypto",                      "d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0", 0},
-		{"internal-trusted-storage",    "dc1eef48-b17a-4ccf-ac8b-dfcff7711b14", 0},
-		{"protected-storage",           "751bf801-3dde-4768-a514-0f10aeed1790", 0},
-		{"test-runner",                 "33c75baf-ac6a-4fe4-8ac7-e9909bee2d17", 0},
-		{"attestation",                 "a1baf155-8876-4695-8f7c-54955e8db974", 0},
-		{"block-storage",               "63646e80-eb52-462f-ac4f-8cdf3987519c", 0},
-		{"fwu",                         "6823a838-1b06-470e-9774-0cce8bfb53fd", 0},
-
-		/* Secure Enclave proxy accessed services */
-		{"crypto",                      "46bb39d1-b4d9-45b5-88ff-040027dab249", SE_PROXY_INTERFACE_ID_CRYPTO},
-		{"internal-trusted-storage",    "46bb39d1-b4d9-45b5-88ff-040027dab249", SE_PROXY_INTERFACE_ID_ITS},
-		{"protected-storage",           "46bb39d1-b4d9-45b5-88ff-040027dab249", SE_PROXY_INTERFACE_ID_PS},
-		{"attestation",                 "46bb39d1-b4d9-45b5-88ff-040027dab249", SE_PROXY_INTERFACE_ID_ATTEST},
-		{NULL,                          NULL,                                   0}
+		{"crypto-protobuf",             {.uuid = TS_PSA_CRYPTO_PROTOBUF_SERVICE_UUID}},
+		{"crypto",                      {.uuid = TS_PSA_CRYPTO_SERVICE_UUID}},
+		{"internal-trusted-storage",    {.uuid = TS_PSA_INTERNAL_TRUSTED_STORAGE_UUID}},
+		{"protected-storage",           {.uuid = TS_PSA_PROTECTED_STORAGE_UUID}},
+		{"test-runner",                 {.uuid = TS_TEST_RUNNER_SERVICE_UUID}},
+		{"attestation",                 {.uuid = TS_PSA_ATTESTATION_SERVICE_UUID}},
+		{"block-storage",               {.uuid = TS_BLOCK_STORAGE_SERVICE_UUID}},
+		{"fwu",                         {.uuid = TS_FWU_SERVICE_UUID}},
+		{NULL,                          {.uuid = {0}}}
 	};
 
-	const struct service_to_uuid *entry = &partition_lookup[0];
-	size_t num_suggestions = 0;
+	const struct service_to_uuid *entry = NULL;
 
-	while (entry->service && (num_suggestions < candidate_limit)) {
+	for (entry = &partition_lookup[0]; entry->service != NULL; entry++)
+		if (sn_check_service(sn, entry->service))
+			return &entry->uuid;
 
-		if (sn_check_service(sn, entry->service)) {
-
-			memcpy(candidates[num_suggestions].uuid.characters, entry->uuid,
-				UUID_CANONICAL_FORM_LEN + 1);
-
-			candidates[num_suggestions].iface_id = entry->iface_id;
-
-			++num_suggestions;
-		}
-
-		++entry;
-	}
-
-	return num_suggestions;
-}
-
-/*
- * When an ffa service name where the service field is an explicit UUID is used, the UUID
- * is used directly for partition discovery.
- */
-static size_t use_ffa_partition_uuid(const char *sn,
-	struct ffa_service_location *candidates, size_t candidate_limit)
-{
-	size_t num_suggestions = 0;
-
-	if ((num_suggestions < candidate_limit) &&
-		(sn_read_service(sn, candidates[num_suggestions].uuid.characters,
-			UUID_CANONICAL_FORM_LEN + 1) == UUID_CANONICAL_FORM_LEN)) {
-
-		candidates[num_suggestions].iface_id = 0;
-
-		++num_suggestions;
-	}
-
-	return num_suggestions;
-}
-
-/*
- * Attempt to discover the partition that hosts the requested service instance.
- */
-static bool discover_partition(const char *sn,
-	struct uuid_canonical *uuid, const char *dev_path, uint16_t *partition_id)
-{
-	bool discovered = false;
-
-	if (uuid_is_valid(uuid->characters) == UUID_CANONICAL_FORM_LEN) {
-
-		struct ffarpc_caller ffarpc_caller;
-		unsigned int required_instance = sn_get_service_instance(sn);
-
-		ffarpc_caller_init(&ffarpc_caller, dev_path);
-
-		uint16_t discovered_partitions[MAX_PARTITION_INSTANCES];
-		size_t discovered_count;
-
-		discovered_count = ffarpc_caller_discover(&ffarpc_caller, uuid,
-										discovered_partitions, MAX_PARTITION_INSTANCES);
-
-		if ((discovered_count > 0) && (required_instance < discovered_count)) {
-
-			*partition_id = discovered_partitions[required_instance];
-			discovered = true;
-		}
-
-		ffarpc_caller_deinit(&ffarpc_caller);
-	}
-
-	return discovered;
+	return NULL;
 }
