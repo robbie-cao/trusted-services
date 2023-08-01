@@ -30,15 +30,13 @@ void block_storage_service_context::do_init()
 	assert(m_block_store);
 
 	/* Initialise the block storage service provider */
-	struct rpc_interface *rpc_iface = block_storage_provider_init(
+	struct rpc_service_interface *rpc_iface = block_storage_provider_init(
 		&m_block_storage_provider,
 		m_block_store);
 	assert(rpc_iface);
 
-	block_storage_provider_register_serializer(
-		&m_block_storage_provider,
-		TS_RPC_ENCODING_PACKED_C,
-		packedc_block_storage_serializer_instance());
+	block_storage_provider_register_serializer(&m_block_storage_provider,
+						   packedc_block_storage_serializer_instance());
 
 	standalone_service_context::set_rpc_interface(rpc_iface);
 }

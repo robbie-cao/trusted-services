@@ -51,11 +51,10 @@ standalone_service_context *standalone_service_registry::deregsiter_service_inst
     return context;
 }
 
-standalone_service_context *standalone_service_registry::query(const char *sn, int *status)
+standalone_service_context *standalone_service_registry::query(const char *sn)
 {
     size_t index;
     standalone_service_context *context = NULL;
-    (void)status;
 
     if (find_context_index(sn, &index)) {
 

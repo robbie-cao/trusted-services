@@ -8,8 +8,8 @@
 #include <cassert>
 
 /* Concrete C service_context methods */
-static rpc_session_handle standalone_service_context_open(void *context, struct rpc_caller **caller);
-static void standalone_service_context_close(void *context, rpc_session_handle session_handle);
+static struct rpc_caller_session *standalone_service_context_open(void *context);
+static void standalone_service_context_close(void *context, rpc_caller_session *session_handle);
 static void standalone_service_context_relinquish(void *context);
 
 
@@ -62,17 +62,46 @@ void standalone_service_context::deinit()
 	if (!m_ref_count) do_deinit();
 }
 
-rpc_session_handle standalone_service_context::open(struct rpc_caller **caller)
+struct rpc_caller_session *standalone_service_context::open()
 {
-	struct rpc_session *session = new rpc_session(m_rpc_interface, m_rpc_buffer_size_override);
-	*caller = session->m_rpc_caller;
-	return static_cast<rpc_session_handle>(session);
+	rpc_status_t status = RPC_ERROR_INTERNAL;
+	struct rpc_caller_interface *caller = NULL;
+	struct rpc_caller_session *session = NULL;
+
+	caller = (struct rpc_caller_interface *)calloc(1, sizeof(struct rpc_caller_interface));
+	if (!caller)
+		return NULL;
+
+	session = (struct rpc_caller_session *)calloc(1, sizeof(struct rpc_caller_session));
+	if (!session) {
+		free(caller);
+		return NULL;
+	}
+
+	status = direct_caller_init(caller, m_rpc_interface);
+	if (status != RPC_SUCCESS) {
+		free(caller);
+		free(session);
+		return NULL;
+	}
+
+	status = rpc_caller_session_open(session, caller, &m_rpc_interface->uuid, 0, 0x8000);
+	if (status != RPC_SUCCESS) {
+		direct_caller_deinit(caller);
+		free(caller);
+		free(session);
+		return NULL;
+	}
+
+	return session;
 }
 
-void standalone_service_context::close(rpc_session_handle session_handle)
+void standalone_service_context::close(rpc_caller_session *session)
 {
-	struct rpc_session *session = reinterpret_cast<struct rpc_session*>(session_handle);
-	delete session;
+	rpc_caller_session_close(session);
+	direct_caller_deinit(session->caller);
+	free(session->caller);
+	free(session);
 }
 
 const std::string &standalone_service_context::get_service_name() const
@@ -85,41 +114,22 @@ struct service_context *standalone_service_context::get_service_context()
 	return &m_service_context;
 }
 
-void standalone_service_context::set_rpc_interface(rpc_interface *iface)
+void standalone_service_context::set_rpc_interface(rpc_service_interface *iface)
 {
 	m_rpc_interface = iface;
 }
 
-standalone_service_context::rpc_session::rpc_session(
-	struct rpc_interface *rpc_interface,
-	size_t rpc_buffer_size_override) :
-	m_direct_caller(),
-	m_rpc_caller()
+static struct rpc_caller_session *standalone_service_context_open(void *context)
 {
-	m_rpc_caller = (rpc_buffer_size_override) ?
-		direct_caller_init(&m_direct_caller, rpc_interface,
-			rpc_buffer_size_override, rpc_buffer_size_override) :
-		direct_caller_init_default(&m_direct_caller, rpc_interface);
-}
-
-standalone_service_context::rpc_session::~rpc_session()
-{
-	direct_caller_deinit(&m_direct_caller);
-}
-
-static rpc_session_handle standalone_service_context_open(void *context, struct rpc_caller **caller)
-{
-	rpc_session_handle handle = NULL;
 	standalone_service_context *this_context = reinterpret_cast<standalone_service_context*>(context);
 
-	if (this_context) {
-		handle = this_context->open(caller);
-	}
+	if (!this_context)
+		return NULL;
 
-	return handle;
+	return this_context->open();
 }
 
-static void standalone_service_context_close(void *context, rpc_session_handle session_handle)
+static void standalone_service_context_close(void *context, struct rpc_caller_session *session_handle)
 {
 	standalone_service_context *this_context = reinterpret_cast<standalone_service_context*>(context);
 
