@@ -10,13 +10,12 @@
 #include "sp_discovery.h"
 #include <common/uuid/uuid.h>
 #include <service/locator/service_name.h>
-#include <rpc/ffarpc/caller/sp/ffarpc_caller.h>
+#include "components/rpc/ts_rpc/caller/sp/ts_rpc_caller_sp.h"
 #include <trace.h>
 
-static struct service_context *query(const char *sn, int *status);
-static bool discover_partition(const struct uuid_octets *uuid, uint16_t *partition_id);
+static struct service_context *query(const char *sn);
 
-const struct service_location_strategy *spffa_location_strategy(void)
+const struct service_location_strategy *sp_ts_location_strategy(void)
 {
 	static const struct service_location_strategy strategy = { query };
 	return &strategy;
@@ -27,78 +26,35 @@ const struct service_location_strategy *spffa_location_strategy(void)
  * endpoints reachable via FFA from within a client secure partition where
  * associated service endpoints are explicitly defined by configuration data.
  * The service to locate is specified by a service name that consists of a
- * UUID and an optional instance number.  If pesent, the instance number
+ * UUID and an optional instance number.  If present, the instance number
  * is treated as the destination RPC interface id.  If not specified,
  * an interface id of zero is assumed.
  */
-static struct service_context *query(const char *sn, int *status)
+static struct service_context *query(const char *sn)
 {
-	struct service_context *result = NULL;
+	struct uuid_canonical uuid = { 0 };
+	struct rpc_uuid service_uuid = { 0 };
+	struct sp_ts_service_context *new_context = NULL;
 
 	/* This strategy only locates endpoints reachable via FFA */
-	if (sn_check_authority(sn, "ffa")) {
-
-		struct uuid_canonical uuid;
-
-		if (sn_read_service(sn, uuid.characters, UUID_CANONICAL_FORM_LEN + 1) &&
-			uuid_is_valid(uuid.characters)) {
-
-			uint16_t partition_id;
-			struct uuid_octets uuid_octets;
-
-			uuid_parse_to_octets(uuid.characters, uuid_octets.octets, UUID_OCTETS_LEN);
-
-			if (discover_partition(&uuid_octets, &partition_id)) {
-
-				unsigned int iface_id =
-					sn_get_service_instance(sn);
-
-				struct spffa_service_context *new_context =
-					spffa_service_context_create(partition_id, iface_id);
-
-				if (new_context) {
-
-					result = &new_context->service_context;
-				}
-				else {
-
-					EMSG("locate query: context create failed");
-				}
-			}
-			else {
-
-				EMSG("locate query: partition not discovered");
-			}
-		}
-		else {
-
-			EMSG("locate query: invalid uuid");
-		}
+	if (!sn_check_authority(sn, "ffa")) {
+		EMSG("failed to check authority");
+		return NULL;
 	}
 
-	return result;
-}
-
-static bool discover_partition(const struct uuid_octets *uuid, uint16_t *partition_id)
-{
-	bool discovered = false;
-	struct ffarpc_caller ffarpc_caller;
-	uint16_t discovered_partitions[1];
-	uint16_t own_id = 0;
-
-	if (sp_discovery_own_id_get(&own_id) != SP_RESULT_OK)
-		return false;
-
-	ffarpc_caller_init(&ffarpc_caller, own_id);
-
-	if (ffarpc_caller_discover(uuid->octets, discovered_partitions,
-				   sizeof(discovered_partitions)/sizeof(uint16_t))) {
-
-		*partition_id = discovered_partitions[0];
-		discovered = true;
+	if (!sn_read_service(sn, uuid.characters, sizeof(uuid.characters)) ||
+	    !uuid_is_valid(uuid.characters)) {
+		EMSG("invalid uuid");
+		return NULL;
 	}
 
-	ffarpc_caller_deinit(&ffarpc_caller);
+	uuid_parse_to_octets(uuid.characters, service_uuid.uuid, sizeof(service_uuid.uuid));
 
-	return discovered;
+	new_context = spffa_service_context_create(&service_uuid);
+	if (!new_context) {
+		EMSG("context create failed");
+		return NULL;
+	}
+
+	return &new_context->service_context;
 }

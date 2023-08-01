@@ -5,86 +5,71 @@
  */
 
 #include "spffa_service_context.h"
-#include <rpc/ffarpc/caller/sp/ffarpc_caller.h>
+#include "rpc/ts_rpc/caller/sp/ts_rpc_caller_sp.h"
 #include "sp_discovery.h"
 #include <stdlib.h>
+#include <string.h>
 
 /* Concrete service_context methods */
-static rpc_session_handle spffa_service_context_open(void *context, struct rpc_caller **caller);
-static void spffa_service_context_close(void *context, rpc_session_handle session_handle);
-static void spffa_service_context_relinquish(void *context);
+static struct rpc_caller_session *sp_ts_service_context_open(void *context);
+static void sp_ts_service_context_close(void *context, struct rpc_caller_session *session);
+static void sp_ts_service_context_relinquish(void *context);
 
 
-struct spffa_service_context *spffa_service_context_create(
-	uint16_t partition_id, uint16_t iface_id)
+struct sp_ts_service_context *spffa_service_context_create(const struct rpc_uuid *service_uuid)
 {
-	struct spffa_service_context *new_context =
-		(struct spffa_service_context*)malloc(sizeof(struct spffa_service_context));
+	struct sp_ts_service_context *new_context =
+		(struct sp_ts_service_context*)malloc(sizeof(struct sp_ts_service_context));
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 
-	if (new_context) {
-		new_context->partition_id = partition_id;
-		new_context->iface_id = iface_id;
+	if (!new_context)
+		return NULL;
 
-		new_context->service_context.context = new_context;
-		new_context->service_context.open = spffa_service_context_open;
-		new_context->service_context.close = spffa_service_context_close;
-		new_context->service_context.relinquish = spffa_service_context_relinquish;
+	rpc_status = ts_rpc_caller_sp_init(&new_context->caller);
+	if (rpc_status != RPC_SUCCESS) {
+		free(new_context);
+		return NULL;
 	}
+
+	memcpy(&new_context->service_uuid, service_uuid, sizeof(new_context->service_uuid));
+
+	new_context->service_context.context = new_context;
+	new_context->service_context.open = sp_ts_service_context_open;
+	new_context->service_context.close = sp_ts_service_context_close;
+	new_context->service_context.relinquish = sp_ts_service_context_relinquish;
 
 	return new_context;
 }
 
-static rpc_session_handle spffa_service_context_open(void *context, struct rpc_caller **caller)
+static struct rpc_caller_session *sp_ts_service_context_open(void *context)
 {
-	struct spffa_service_context *this_context = (struct spffa_service_context*)context;
-	rpc_session_handle session_handle = NULL;
-	struct ffarpc_caller *ffarpc_caller =
-		(struct ffarpc_caller*)malloc(sizeof(struct ffarpc_caller));
+	struct sp_ts_service_context *this_context = (struct sp_ts_service_context *)context;
+	struct rpc_caller_session *session =
+		(struct rpc_caller_session *)calloc(1, sizeof(struct rpc_caller_session));
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 
-	if (ffarpc_caller) {
-		uint16_t own_id = 0;
+	if (!session)
+		return NULL;
 
-		if (sp_discovery_own_id_get(&own_id) != SP_RESULT_OK)
-			return NULL;
-
-		*caller = ffarpc_caller_init(ffarpc_caller, own_id);
-		if (!*caller)
-			return NULL;
-
-		int status = ffarpc_caller_open(ffarpc_caller,
-			this_context->partition_id, this_context->iface_id);
-
-		if (status == 0) {
-			/* Successfully opened session */
-			session_handle = ffarpc_caller;
-		}
-		else {
-			/* Failed to open session */
-			ffarpc_caller_close(ffarpc_caller);
-			ffarpc_caller_deinit(ffarpc_caller);
-			free(ffarpc_caller);
-		}
+	rpc_status = rpc_caller_session_find_and_open(session, &this_context->caller,
+						      &this_context->service_uuid, 4096);
+	if (rpc_status != RPC_SUCCESS) {
+		free(session);
+		return NULL;
 	}
 
-	return session_handle;
+	return session;
 }
 
-static void spffa_service_context_close(void *context, rpc_session_handle session_handle)
+static void sp_ts_service_context_close(void *context, struct rpc_caller_session *session)
 {
-	struct ffarpc_caller *ffarpc_caller = (struct ffarpc_caller*)session_handle;
-
 	(void)context;
 
-	if (ffarpc_caller) {
-
-		ffarpc_caller_close(ffarpc_caller);
-		ffarpc_caller_deinit(ffarpc_caller);
-		free(ffarpc_caller);
-	}
+	rpc_caller_session_close(session);
+	free(session);
 }
 
-static void spffa_service_context_relinquish(void *context)
+static void sp_ts_service_context_relinquish(void *context)
 {
-	struct spffa_service_context *this_context = (struct spffa_service_context*)context;
-	free(this_context);
+	free(context);
 }

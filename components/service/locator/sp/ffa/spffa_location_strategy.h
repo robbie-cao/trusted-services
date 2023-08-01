@@ -18,7 +18,7 @@ extern "C" {
  * hosted in a secure partition, accessed using FFA from another secure
  * partition.
  */
-const struct service_location_strategy *spffa_location_strategy(void);
+const struct service_location_strategy *sp_ts_location_strategy(void);
 
 #ifdef __cplusplus
 }
