@@ -19,18 +19,17 @@ int main(int argc, char *argv[]) {
 
 	service_locator_init();
 
-	test_runner_service_context = service_locator_query("sn:trustedfirmware.org:test-runner:0", &status);
+	test_runner_service_context = service_locator_query("sn:trustedfirmware.org:test-runner:0");
 
 	if (test_runner_service_context) {
 
-		struct rpc_caller *caller;
-		rpc_session_handle rpc_session_handle;
+		struct rpc_caller_session *session = NULL;
 
-		rpc_session_handle = service_context_open(test_runner_service_context, TS_RPC_ENCODING_PACKED_C, &caller);
+		session = service_context_open(test_runner_service_context);
 
-		if (rpc_session_handle) {
+		if (session) {
 
-			test_runner_client test_runner_client(caller);
+			test_runner_client test_runner_client(session);
 			remote_test_runner commandline_runner(&test_runner_client);
 
 			status = commandline_runner.execute(argc, argv);
@@ -39,7 +38,7 @@ int main(int argc, char *argv[]) {
 				printf("Command failed with test status: %d rpc status: %d\n", status, test_runner_client.err_rpc_status());
 			}
 
-			service_context_close(test_runner_service_context, rpc_session_handle);
+			service_context_close(test_runner_service_context, session);
 		}
 		else {
 			printf("Failed to open rpc session\n");
