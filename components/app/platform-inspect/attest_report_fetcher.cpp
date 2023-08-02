@@ -25,23 +25,20 @@ static bool verify_token(std::vector<uint8_t> &report, const uint8_t *token, siz
 bool fetch_attest_report(std::vector<uint8_t> &report, std::string &error_msg)
 {
     bool success = false;
-    rpc_session_handle rpc_session_handle = NULL;
+    struct rpc_caller_session *rpc_session = NULL;
     struct service_context *attest_service_context = NULL;
-    int status;
 
     attest_service_context =
-        service_locator_query("sn:trustedfirmware.org:attestation:0", &status);
+        service_locator_query("sn:trustedfirmware.org:attestation:0");
 
     if (attest_service_context) {
 
-        struct rpc_caller *caller = NULL;
-        rpc_session_handle =
-            service_context_open(attest_service_context, TS_RPC_ENCODING_PACKED_C, &caller);
+        rpc_session = service_context_open(attest_service_context);
 
-        if (rpc_session_handle) {
+        if (rpc_session) {
 
-            psa_iat_client_init(caller);
-            attest_provision_client_init(caller);
+            psa_iat_client_init(rpc_session);
+            attest_provision_client_init(rpc_session);
 
             success = fetch_and_verify(report, error_msg);
         }
@@ -58,7 +55,7 @@ bool fetch_attest_report(std::vector<uint8_t> &report, std::string &error_msg)
     /* Clean-up context */
     psa_iat_client_deinit();
     attest_provision_client_deinit();
-    service_context_close(attest_service_context, rpc_session_handle);
+    service_context_close(attest_service_context, rpc_session);
     service_context_relinquish(attest_service_context);
 
     return success;
