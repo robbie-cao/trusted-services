@@ -34,7 +34,6 @@ add_components(
 		"components/service/locator"
 		"components/service/locator/interface"
 		"components/service/locator/remote/restapi"
-		"components/service/discovery/client"
 		"components/service/fwu/test/fwu_client/remote"
 		"components/service/fwu/test/fwu_dut"
 		"components/service/fwu/test/fwu_dut/proxy"

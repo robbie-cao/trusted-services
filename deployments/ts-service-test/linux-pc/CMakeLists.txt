@@ -98,8 +98,6 @@ add_components(
 		"components/service/block_storage/factory/client"
 		"components/service/block_storage/test/service"
 		"components/service/common/provider"
-		"components/service/discovery/provider"
-		"components/service/discovery/provider/serializer/packed-c"
 		"components/service/fwu/agent"
 		"components/service/fwu/fw_store/banked"
 		"components/service/fwu/fw_store/banked/metadata_serializer/v1"
