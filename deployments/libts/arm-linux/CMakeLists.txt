@@ -32,7 +32,7 @@ add_components(
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/common/utils"
-		"components/rpc/ffarpc/caller/linux"
+		"components/rpc/ts_rpc/caller/linux"
 		"components/rpc/mm_communicate/caller/linux"
 		"components/service/locator/linux"
 		"components/service/locator/linux/ffa"

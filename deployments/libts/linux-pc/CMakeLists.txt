@@ -48,7 +48,7 @@ add_components(
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/rpc/direct"
-		"components/rpc/common/demux"
+		"components/rpc/common/endpoint"
 		"components/common/tlv"
 		"components/common/uuid"
 		"components/common/endian"
@@ -191,6 +191,9 @@ add_components(
 	COMPONENTS
 		"components/app/test-runner"
 		"components/common/tlv"
+		"components/rpc/common/caller"
+		"components/rpc/common/interface"
+		"components/rpc/common/endpoint"
 		"components/service/common/include"
 		"components/service/discovery/client"
 		"components/service/secure_storage/include"
