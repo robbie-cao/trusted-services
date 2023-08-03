@@ -38,6 +38,11 @@ public:
 					       const unsigned char* data, size_t data_length,
 					       uint32_t attributes);
 
+	/* Set character array variable */
+	efi_status_t set_variable(const EFI_GUID &guid, const std::u16string &name,
+				  const unsigned char *data, size_t data_length,
+				  uint32_t attributes);
+
 	/* Set a string type variable */
 	efi_status_t set_variable(const EFI_GUID &guid, const std::u16string &name,
 				  const std::string &data, uint32_t attributes);

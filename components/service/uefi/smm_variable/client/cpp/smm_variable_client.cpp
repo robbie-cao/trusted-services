@@ -58,6 +58,15 @@ efi_status_t smm_variable_client::set_variable(const EFI_GUID &guid, const char1
 }
 
 efi_status_t smm_variable_client::set_variable(const EFI_GUID &guid, const std::u16string &name,
+					       const unsigned char *data, size_t data_length,
+					       uint32_t attributes)
+{
+	std::string data_string(reinterpret_cast<char const *>(data), data_length);
+
+	return set_variable(guid, name, data_string, attributes, 0, 0);
+}
+
+efi_status_t smm_variable_client::set_variable(const EFI_GUID &guid, const std::u16string &name,
 					       const std::string &data, uint32_t attributes)
 {
 	return set_variable(guid, name, data, attributes, 0, 0);

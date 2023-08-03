@@ -30,8 +30,6 @@ TEST_GROUP(UefiVariableStoreTests)
 
 		uefi_variable_store_set_storage_limits(&m_uefi_variable_store, 0, STORE_CAPACITY,
 						       MAX_VARIABLE_SIZE);
-
-		setup_common_guid();
 	}
 
 	void teardown()
@@ -73,19 +71,21 @@ TEST_GROUP(UefiVariableStoreTests)
 		return is_equal;
 	}
 
-	efi_status_t set_variable(const std::u16string &name, const std::string &data,
-				  uint32_t attributes)
+	efi_status_t set_variable(const std::u16string &name, const uint8_t *data, size_t data_size,
+				  uint32_t attributes, EFI_GUID *guid = NULL)
 	{
 		std::u16string var_name = to_variable_name(name);
 		size_t name_size = var_name.size() * sizeof(int16_t);
-		size_t data_size = data.size();
+
 		uint8_t msg_buffer[SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_SIZE(name_size,
 										 data_size)];
 
 		SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *access_variable =
 			(SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *)msg_buffer;
 
-		access_variable->Guid = m_common_guid;
+		if (!guid)
+			guid = &m_common_guid;
+		access_variable->Guid = *guid;
 		access_variable->Attributes = attributes;
 
 		access_variable->NameSize = name_size;
@@ -94,12 +94,19 @@ TEST_GROUP(UefiVariableStoreTests)
 		access_variable->DataSize = data_size;
 		memcpy(&msg_buffer[SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(
 			       access_variable)],
-		       data.c_str(), data_size);
+		       data, data_size);
 
 		efi_status_t status =
 			uefi_variable_store_set_variable(&m_uefi_variable_store, access_variable);
 
 		return status;
+	}
+
+	efi_status_t set_variable(const std::u16string &name, const std::string &data,
+				  uint32_t attributes, EFI_GUID *guid = NULL)
+	{
+		return set_variable(name, static_cast<uint8_t *>(data.data()), data.size(),
+					attributes, guid);
 	}
 
 	efi_status_t get_variable(const std::u16string &name, std::string &data,
@@ -249,8 +256,8 @@ TEST_GROUP(UefiVariableStoreTests)
 	}
 
 	static const size_t MAX_VARIABLES = 10;
-	static const size_t MAX_VARIABLE_SIZE = 100;
-	static const size_t STORE_CAPACITY = 1000;
+	static const size_t MAX_VARIABLE_SIZE = 3000;
+	static const size_t STORE_CAPACITY = 10000;
 
 	static const uint32_t OWNER_ID = 100;
 	static const size_t VARIABLE_BUFFER_SIZE = 1024;
@@ -260,7 +267,11 @@ TEST_GROUP(UefiVariableStoreTests)
 	struct mock_store m_volatile_store;
 	struct storage_backend *m_persistent_backend;
 	struct storage_backend *m_volatile_backend;
-	EFI_GUID m_common_guid;
+
+	EFI_GUID m_common_guid = { 0x01234567,
+				   0x89ab,
+				   0xCDEF,
+				   { 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef } };
 };
 
 TEST(UefiVariableStoreTests, setGetRoundtrip)
@@ -270,7 +281,7 @@ TEST(UefiVariableStoreTests, setGetRoundtrip)
 	std::string input_data = "quick brown fox";
 	std::string output_data;
 
-	status = set_variable(var_name, input_data, 0);
+	status = set_variable(var_name, input_data, EFI_VARIABLE_BOOTSERVICE_ACCESS);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	status = get_variable(var_name, output_data);
@@ -283,7 +294,8 @@ TEST(UefiVariableStoreTests, setGetRoundtrip)
 	/* Extend the variable using an append write */
 	std::string input_data2 = " jumps over the lazy dog";
 
-	status = set_variable(var_name, input_data2, EFI_VARIABLE_APPEND_WRITE);
+	status = set_variable(var_name, input_data2,
+			      EFI_VARIABLE_APPEND_WRITE | EFI_VARIABLE_BOOTSERVICE_ACCESS);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	status = get_variable(var_name, output_data);
@@ -317,7 +329,8 @@ TEST(UefiVariableStoreTests, persistentSetGet)
 	std::string input_data = "quick brown fox";
 	std::string output_data;
 
-	status = set_variable(var_name, input_data, EFI_VARIABLE_NON_VOLATILE);
+	status = set_variable(var_name, input_data,
+			      EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	status = get_variable(var_name, output_data);
@@ -331,7 +344,8 @@ TEST(UefiVariableStoreTests, persistentSetGet)
 	std::string input_data2 = " jumps over the lazy dog";
 
 	status = set_variable(var_name, input_data2,
-			      EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_APPEND_WRITE);
+			      EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_APPEND_WRITE |
+				      EFI_VARIABLE_BOOTSERVICE_ACCESS);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	status = get_variable(var_name, output_data);
@@ -476,7 +490,7 @@ TEST(UefiVariableStoreTests, bootServiceAccess)
 
 	/* Expect access to be blocked */
 	status = get_variable(var_name, output_data);
-	UNSIGNED_LONGLONGS_EQUAL(EFI_ACCESS_DENIED, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 }
 
 TEST(UefiVariableStoreTests, runtimeAccess)

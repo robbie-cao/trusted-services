@@ -88,8 +88,6 @@ add_components(
 		"components/common/crc32"
 		"components/service/test_runner/client/cpp"
 		"components/service/test_runner/test/service"
-		"components/service/uefi/smm_variable/client/cpp"
-		"components/service/uefi/smm_variable/test/service"
 		"components/service/block_storage/block_store"
 		"components/service/block_storage/block_store/client"
 		"components/service/block_storage/block_store/partitioned"

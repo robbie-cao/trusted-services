@@ -117,7 +117,8 @@ TEST(UefiVariableIndexTests, addWithOversizedName)
 	struct variable_info *info = NULL;
 	std::u16string name;
 
-	name = to_variable_name(u"a long variable name that exceeds the length limit");
+	name = to_variable_name(
+		u"a long variable name that exceeds the length limit with a few chars");
 
 	info = variable_index_add_entry(&m_variable_index, &guid_1, name.size() * sizeof(int16_t),
 					(int16_t *) name.data());

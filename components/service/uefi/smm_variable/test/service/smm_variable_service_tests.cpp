@@ -6,9 +6,22 @@
 
 #include <CppUTest/TestHarness.h>
 #include <cstring>
-#include <protocols/rpc/common/packed-c/encoding.h>
-#include <service/uefi/smm_variable/client/cpp/smm_variable_client.h>
-#include <service_locator.h>
+
+#if defined(UEFI_AUTH_VAR)
+#include "auth_vectors/KEK.h"
+#include "auth_vectors/KEK_delete.h"
+#include "auth_vectors/PK1.h"
+#include "auth_vectors/PK1_delete.h"
+#include "auth_vectors/PK2.h"
+#include "auth_vectors/PK2_delete.h"
+#include "auth_vectors/PK3.h"
+#include "auth_vectors/db1.h"
+#include "auth_vectors/db2.h"
+#include "auth_vectors/var.h"
+#endif
+#include "protocols/rpc/common/packed-c/encoding.h"
+#include "service/uefi/smm_variable/client/cpp/smm_variable_client.h"
+#include "service_locator.h"
 
 /*
  * Service-level tests for the smm-variable service.
@@ -30,7 +43,7 @@ TEST_GROUP(SmmVariableServiceTests)
 
 		m_client = new smm_variable_client(m_rpc_session);
 
-		setup_common_guid();
+		cleanupPersistentStore();
 	}
 
 	void teardown()
@@ -47,21 +60,6 @@ TEST_GROUP(SmmVariableServiceTests)
 			service_context_relinquish(m_service_context);
 			m_service_context = NULL;
 		}
-	}
-
-	void setup_common_guid()
-	{
-		m_common_guid.Data1 = 0x12341234;
-		m_common_guid.Data2 = 0x1234;
-		m_common_guid.Data3 = 0x1234;
-		m_common_guid.Data4[0] = 0x00;
-		m_common_guid.Data4[1] = 0x01;
-		m_common_guid.Data4[2] = 0x02;
-		m_common_guid.Data4[3] = 0x03;
-		m_common_guid.Data4[4] = 0x04;
-		m_common_guid.Data4[5] = 0x05;
-		m_common_guid.Data4[6] = 0x06;
-		m_common_guid.Data4[7] = 0x07;
 	}
 
 	/* This test makes the irreversible transition from boot to runtime
@@ -84,7 +82,7 @@ TEST_GROUP(SmmVariableServiceTests)
 		 * test, indicating a subsequent test run, just return.
 		 */
 		efi_status = m_client->get_variable(m_common_guid, boot_var_name, get_data);
-		if (efi_status == EFI_ACCESS_DENIED)
+		if (efi_status != EFI_NOT_FOUND)
 			return;
 
 		/* Add variables with runtime state access control */
@@ -114,7 +112,7 @@ TEST_GROUP(SmmVariableServiceTests)
 
 		/* Access to the boot variable should now be forbidden */
 		efi_status = m_client->get_variable(m_common_guid, boot_var_name, get_data);
-		UNSIGNED_LONGLONGS_EQUAL(EFI_ACCESS_DENIED, efi_status);
+		UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, efi_status);
 
 		/* Expect access to the runtime variable should still be permitted */
 		efi_status = m_client->get_variable(m_common_guid, runtime_var_name, get_data);
@@ -124,7 +122,7 @@ TEST_GROUP(SmmVariableServiceTests)
 
 		/* Expect removing boot variable to be forbidden */
 		efi_status = m_client->remove_variable(m_common_guid, boot_var_name);
-		UNSIGNED_LONGLONGS_EQUAL(EFI_ACCESS_DENIED, efi_status);
+		UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, efi_status);
 
 		/* Expect removing runtime variable to be permitted */
 		efi_status = m_client->remove_variable(m_common_guid, runtime_var_name);
@@ -196,10 +194,87 @@ TEST_GROUP(SmmVariableServiceTests)
 
 		return var_name;
 	}
+
+	/* Clear all the removable variables from the persistent store. */
+	efi_status_t cleanupPersistentStore()
+	{
+		std::u16string var_name = to_variable_name(u"");
+		EFI_GUID guid;
+		efi_status_t status;
+
+		memset(&guid, 0, sizeof(guid));
+
+#if defined(UEFI_AUTH_VAR)
+		/*
+		 * PK must be cleared to disable authentication so other
+		 * variables can be deleted easily. Return value is not
+		 * checked, because if there is no PK in the store it
+		 * will not be found.
+		 */
+		status = m_client->set_variable(m_global_guid, u"PK", PK1_delete_auth,
+					     sizeof(PK1_delete_auth),
+					     m_authentication_common_attributes);
+
+		if (status)
+			printf("\n\tCannot remove PK");
+
+		/*
+		 * Note:
+		 * If a test fills PK with data not removable by PK1_delete_auth request
+		 * the proper request has to be added here or at the end of the specific test!
+		 */
+#endif
+
+		do {
+			status = m_client->get_next_variable_name(guid, var_name);
+
+			/* There are no more variables in the persistent store */
+			if (status != EFI_SUCCESS)
+				break;
+
+			status = m_client->remove_variable(guid, var_name);
+
+			/*
+			 * If the variable was successfully removed the fields are cleared so
+			 * the iteration will start again from the first available variable.
+			 * If the remove is unsuccessful (for example the variable is not
+			 * accessible from runtime or read only) the fields are kept so the
+			 * iteration searches for the next one. This case there could be a
+			 * combination when this function tries to remove non-removable
+			 * variables multiple times.
+			 * */
+			if (status == EFI_SUCCESS) {
+				var_name = to_variable_name(u"");
+				memset(&guid, 0, sizeof(guid));
+			}
+
+		} while (1);
+
+		return status;
+	}
+
 	smm_variable_client *m_client;
 	struct rpc_caller_session *m_rpc_session;
 	struct service_context *m_service_context;
-	EFI_GUID m_common_guid;
+	EFI_GUID m_common_guid = { 0x01234567,
+				   0x89ab,
+				   0xCDEF,
+				   { 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef } };
+
+#if defined(UEFI_AUTH_VAR)
+	EFI_GUID m_global_guid = { 0x8BE4DF61,
+				   0x93CA,
+				   0x11d2,
+				   { 0xAA, 0x0D, 0x00, 0xE0, 0x98, 0x03, 0x2B, 0x8C } };
+	EFI_GUID m_security_database_guid = { 0xd719b2cb,
+					      0x3d3a,
+					      0x4596,
+					      { 0xa3, 0xbc, 0xda, 0xd0, 0xe, 0x67, 0x65, 0x6f } };
+	uint32_t m_authentication_common_attributes =
+		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS |
+		EFI_VARIABLE_BOOTSERVICE_ACCESS |
+		EFI_VARIABLE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS;
+#endif
 };
 
 TEST(SmmVariableServiceTests, setAndGet)
@@ -515,3 +590,198 @@ TEST(SmmVariableServiceTests, checkMaxVariablePayload)
 	CHECK_TRUE(max_payload_size >= 1024);
 	CHECK_TRUE(max_payload_size <= 64 * 1024);
 }
+
+#if defined(UEFI_AUTH_VAR)
+TEST(SmmVariableServiceTests, authenticationDisabled)
+{
+	efi_status_t status;
+
+	/* Without PK the authentication is disabled so each variable are writable, even in wrong order */
+	status = m_client->set_variable(m_common_guid, u"var", VAR_auth, sizeof(VAR_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	status = m_client->set_variable(m_security_database_guid, u"db", (uint8_t *)DB1_auth,
+					sizeof(DB1_auth), m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	status = m_client->set_variable(m_global_guid, u"KEK", (uint8_t *)KEK_auth,
+					sizeof(KEK_auth), m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+}
+
+TEST(SmmVariableServiceTests, authenticationSetAllKeys)
+{
+	efi_status_t status;
+
+	/* Enable authentication via setting PK */
+	status = m_client->set_variable(m_global_guid, u"PK", PK1_auth, sizeof(PK1_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Try setting db1 and custom variable without KEK */
+	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth, sizeof(DB1_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
+
+	status = m_client->set_variable(m_common_guid, u"var", VAR_auth, sizeof(VAR_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
+
+	/* Set db2 that was signed by OK */
+	status = m_client->set_variable(m_security_database_guid, u"db", DB2_auth, sizeof(DB2_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Set KEK */
+	status = m_client->set_variable(m_global_guid, u"KEK", KEK_auth, sizeof(KEK_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Try setting custom variable with wrong db */
+	status = m_client->set_variable(m_common_guid, u"var", VAR_auth, sizeof(VAR_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SECURITY_VIOLATION, status);
+
+	/* Set db and var and then overwrite var */
+	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth, sizeof(DB1_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	status = m_client->set_variable(m_common_guid, u"var", VAR_auth, sizeof(VAR_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	status = m_client->set_variable(m_common_guid, u"var", VAR_auth, sizeof(VAR_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+}
+
+TEST(SmmVariableServiceTests, authenticationDelete)
+{
+	efi_status_t status;
+
+	/* Enable authentication via setting PK */
+	status = m_client->set_variable(m_global_guid, u"PK", PK1_auth, sizeof(PK1_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Set KEK and db */
+	status = m_client->set_variable(m_global_guid, u"KEK", KEK_auth, sizeof(KEK_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth, sizeof(DB1_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Remove KEK and try overwriting db with a valid request which should fail without KEK */
+	status = m_client->set_variable(m_global_guid, u"KEK", KEK_delete_auth,
+					sizeof(KEK_delete_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth, sizeof(DB1_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SECURITY_VIOLATION, status);
+
+	/* Although db was not overwritten the original value is still available to verify the custom variable */
+	status = m_client->set_variable(m_common_guid, u"var", VAR_auth, sizeof(VAR_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Try removing PK with an incorrect, non-authenticated delete request */
+	status = m_client->remove_variable(m_global_guid, u"PK");
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SECURITY_VIOLATION, status);
+
+	/* Remove PK so now db can be overwritten, because authentication is disabled */
+	status = m_client->set_variable(m_global_guid, u"PK", PK1_delete_auth,
+					sizeof(PK1_delete_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth, sizeof(DB1_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+}
+
+TEST(SmmVariableServiceTests, authenticationChangePK)
+{
+	efi_status_t status;
+
+	/* Enable authentication via setting the platform key */
+	status = m_client->set_variable(m_global_guid, u"PK", PK1_auth, sizeof(PK1_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* PK3 can not be set, because it is not signed by the current platform key */
+	status = m_client->set_variable(m_global_guid, u"PK", PK3_auth, sizeof(PK3_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SECURITY_VIOLATION, status);
+
+	/* PK2 can be set, because it is signed by the current platform key */
+	status = m_client->set_variable(m_global_guid, u"PK", PK2_auth, sizeof(PK2_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Clear PK2 */
+	status = m_client->set_variable(m_global_guid, u"PK", PK2_delete_auth,
+					sizeof(PK2_delete_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+}
+
+TEST(SmmVariableServiceTests, authenticationSignatureVerifyFailure)
+{
+	efi_status_t status;
+
+	uint32_t dwLength = KEK_auth[16] | KEK_auth[17] << 8 | KEK_auth[18] << 16 |
+			    KEK_auth[19] << 24;
+
+	/* Find error injection points in signature, public key and timestamp fields */
+	uint8_t *signature = &KEK_auth[dwLength + 16 - 1];
+	uint8_t *public_key = &KEK_auth[sizeof(KEK_auth) - 1];
+	uint8_t *timestamp = &KEK_auth[0];
+
+	/* Enable authentication via setting PK */
+	status = m_client->set_variable(m_global_guid, u"PK", PK1_auth, sizeof(PK1_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Try setting KEK with wrong signature */
+	*signature = ~(*signature);
+	status = m_client->set_variable(m_global_guid, u"KEK", KEK_auth, sizeof(KEK_auth),
+					m_authentication_common_attributes);
+	*signature = ~(*signature);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SECURITY_VIOLATION, status);
+
+	/* Try setting KEK with wrong public key */
+	*public_key = ~(*public_key);
+	status = m_client->set_variable(m_global_guid, u"KEK", KEK_auth, sizeof(KEK_auth),
+					m_authentication_common_attributes);
+	*public_key = ~(*public_key);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SECURITY_VIOLATION, status);
+
+	/* Try setting KEK with wrong timestamp that results in wrong hash */
+	*timestamp = ~(*timestamp);
+	status = m_client->set_variable(m_global_guid, u"KEK", KEK_auth, sizeof(KEK_auth),
+					m_authentication_common_attributes);
+	*timestamp = ~(*timestamp);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SECURITY_VIOLATION, status);
+
+	/* db can not be set, because KEK was not added to the store */
+	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth, sizeof(DB1_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
+
+	/* Set correct KEK */
+	status = m_client->set_variable(m_global_guid, u"KEK", KEK_auth, sizeof(KEK_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Set db */
+	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth, sizeof(DB1_auth),
+					m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+}
+#endif

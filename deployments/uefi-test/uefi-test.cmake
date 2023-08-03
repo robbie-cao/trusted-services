@@ -21,6 +21,16 @@ include(${TS_ROOT}/deployments/libts/libts-import.cmake)
 target_link_libraries(uefi-test PRIVATE libts::ts)
 
 #-------------------------------------------------------------------------------
+# Options and variables
+#-------------------------------------------------------------------------------
+option(UEFI_AUTH_VAR "Enable variable authentication" ON)
+if (UEFI_AUTH_VAR)
+	target_compile_definitions(uefi-test PRIVATE
+		-DUEFI_AUTH_VAR
+	)
+endif()
+
+#-------------------------------------------------------------------------------
 #  Components that are common accross all deployments
 #
 #-------------------------------------------------------------------------------
