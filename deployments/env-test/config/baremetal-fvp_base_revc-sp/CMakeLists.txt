@@ -38,6 +38,13 @@ add_components(TARGET "env-test"
 		environments/sp
 )
 
+#-------------------------------------------------------------------------------
+#  Component configuration specific and common components
+#
+#-------------------------------------------------------------------------------
+include(${TS_ROOT}/external/tf_a/tf-a.cmake)
+add_tfa_dependency(TARGET "env-test")
+
 include(../../env/commonsp/env_test_sp.cmake REQUIRED)
 include(../../env-test.cmake REQUIRED)
 include(../../suites/baremetal-tests.cmake REQUIRED)
