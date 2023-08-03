@@ -44,7 +44,6 @@ add_components(
 		"components/rpc/common/caller"
 		"components/rpc/common/endpoint"
 		"components/rpc/common/interface"
-		"components/rpc/common/demux"
 		"components/rpc/common/test"
 		"components/rpc/common/test/protocol"
 		"components/rpc/direct"
