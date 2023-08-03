@@ -114,8 +114,9 @@ size_t variable_index_max_dump_size(struct variable_index *context)
 	return sizeof(struct variable_metadata) * context->max_variables;
 }
 
-struct variable_info *variable_index_find(struct variable_index *context, const EFI_GUID *guid,
-					  size_t name_size, const int16_t *name)
+struct variable_info *variable_index_find(const struct variable_index *context,
+					  const EFI_GUID *guid, size_t name_size,
+					  const int16_t *name)
 {
 	struct variable_info *result = NULL;
 	int pos = find_variable(context, guid, name_size, name);
@@ -199,7 +200,7 @@ static void set_variable_name(struct variable_info *info, size_t name_size, cons
 	info->metadata.name_size = trimmed_size * sizeof(int16_t);
 }
 
-static struct variable_entry *add_entry(struct variable_index *context, const EFI_GUID *guid,
+static struct variable_entry *add_entry(const struct variable_index *context, const EFI_GUID *guid,
 					size_t name_size, const int16_t *name)
 {
 	struct variable_entry *entry = NULL;
@@ -228,8 +229,9 @@ static struct variable_entry *add_entry(struct variable_index *context, const EF
 	return entry;
 }
 
-struct variable_info *variable_index_add_entry(struct variable_index *context, const EFI_GUID *guid,
-					       size_t name_size, const int16_t *name)
+struct variable_info *variable_index_add_entry(const struct variable_index *context,
+					       const EFI_GUID *guid, size_t name_size,
+					       const int16_t *name)
 {
 	struct variable_info *info = NULL;
 	struct variable_entry *entry = add_entry(context, guid, name_size, name);
@@ -241,7 +243,8 @@ struct variable_info *variable_index_add_entry(struct variable_index *context, c
 	return info;
 }
 
-void variable_index_remove_unused_entry(struct variable_index *context, struct variable_info *info)
+void variable_index_remove_unused_entry(const struct variable_index *context,
+					struct variable_info *info)
 {
 	(void)context;
 
@@ -263,7 +266,7 @@ void variable_index_set_variable(struct variable_info *info, uint32_t attributes
 	mark_dirty(entry);
 }
 
-void variable_index_clear_variable(struct variable_index *context, struct variable_info *info)
+void variable_index_clear_variable(const struct variable_index *context, struct variable_info *info)
 {
 	(void)context;
 
@@ -285,7 +288,7 @@ void variable_index_set_constraints(struct variable_info *info,
 	}
 }
 
-bool variable_index_dump(struct variable_index *context, size_t buffer_size, uint8_t *buffer,
+bool variable_index_dump(const struct variable_index *context, size_t buffer_size, uint8_t *buffer,
 			 size_t *data_len)
 {
 	bool any_dirty = false;

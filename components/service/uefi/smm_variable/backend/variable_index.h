@@ -112,8 +112,9 @@ size_t variable_index_max_dump_size(struct variable_index *context);
  *
  * @return     Pointer to variable_info or NULL
  */
-struct variable_info *variable_index_find(struct variable_index *context, const EFI_GUID *guid,
-					  size_t name_size, const int16_t *name);
+struct variable_info *variable_index_find(const struct variable_index *context,
+					  const EFI_GUID *guid, size_t name_size,
+					  const int16_t *name);
 
 /**
  * @brief      Find the next variable in the index
@@ -144,8 +145,9 @@ struct variable_info *variable_index_find_next(const struct variable_index *cont
  *
  * @return     Pointer to variable_info or NULL
  */
-struct variable_info *variable_index_add_entry(struct variable_index *context, const EFI_GUID *guid,
-					       size_t name_size, const int16_t *name);
+struct variable_info *variable_index_add_entry(const struct variable_index *context,
+					       const EFI_GUID *guid, size_t name_size,
+					       const int16_t *name);
 
 /**
  * @brief      Remove an unused entry from the index
@@ -155,7 +157,8 @@ struct variable_info *variable_index_add_entry(struct variable_index *context, c
  * @param[in]  context variable_index
  * @param[in]  info The variable info corresponding to the entry to remove
  */
-void variable_index_remove_unused_entry(struct variable_index *context, struct variable_info *info);
+void variable_index_remove_unused_entry(const struct variable_index *context,
+					struct variable_info *info);
 
 /**
  * @brief      Set a variable to the index
@@ -175,7 +178,8 @@ void variable_index_set_variable(struct variable_info *info, uint32_t attributes
  * @param[in]  context variable_index
  * @param[in]  info The variable info corresponding to the variable to clear
  */
-void variable_index_clear_variable(struct variable_index *context, struct variable_info *info);
+void variable_index_clear_variable(const struct variable_index *context,
+				   struct variable_info *info);
 
 /**
  * @brief      Set a check constraints object associated with a variavle
@@ -196,7 +200,7 @@ void variable_index_set_constraints(struct variable_info *info,
  *
  * @return     True if there is unsaved data
  */
-bool variable_index_dump(struct variable_index *context, size_t buffer_size, uint8_t *buffer,
+bool variable_index_dump(const struct variable_index *context, size_t buffer_size, uint8_t *buffer,
 			 size_t *data_len);
 
 /**

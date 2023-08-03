@@ -104,7 +104,7 @@ void uefi_variable_store_set_storage_limits(struct uefi_variable_store *context,
  *
  * @return     EFI_SUCCESS if successful
  */
-efi_status_t uefi_variable_store_set_variable(struct uefi_variable_store *context,
+efi_status_t uefi_variable_store_set_variable(const struct uefi_variable_store *context,
 					      const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var);
 
 /**
@@ -119,7 +119,7 @@ efi_status_t uefi_variable_store_set_variable(struct uefi_variable_store *contex
  *
  * @return     EFI_SUCCESS if successful
  */
-efi_status_t uefi_variable_store_get_variable(struct uefi_variable_store *context,
+efi_status_t uefi_variable_store_get_variable(const struct uefi_variable_store *context,
 					      SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var,
 					      size_t max_data_len, size_t *total_length);
 
@@ -136,7 +136,7 @@ efi_status_t uefi_variable_store_get_variable(struct uefi_variable_store *contex
  * @return     EFI_SUCCESS if successful
  */
 efi_status_t
-uefi_variable_store_get_next_variable_name(struct uefi_variable_store *context,
+uefi_variable_store_get_next_variable_name(const struct uefi_variable_store *context,
 					   SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *cur,
 					   size_t max_name_len, size_t *total_length);
 
@@ -149,7 +149,7 @@ uefi_variable_store_get_next_variable_name(struct uefi_variable_store *context,
  * @return     EFI_SUCCESS if successful
  */
 efi_status_t
-uefi_variable_store_query_variable_info(struct uefi_variable_store *context,
+uefi_variable_store_query_variable_info(const struct uefi_variable_store *context,
 					SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO *var_info);
 
 /**

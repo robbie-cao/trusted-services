@@ -17,7 +17,7 @@
 /* Private functions */
 static void load_variable_index(struct uefi_variable_store *context);
 
-static efi_status_t sync_variable_index(struct uefi_variable_store *context);
+static efi_status_t sync_variable_index(const struct uefi_variable_store *context);
 
 static efi_status_t check_capabilities(const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var);
 
@@ -29,14 +29,14 @@ check_access_permitted_on_set(const struct uefi_variable_store *context,
 			      const struct variable_info *info,
 			      const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var);
 
-static efi_status_t store_variable_data(struct uefi_variable_store *context,
+static efi_status_t store_variable_data(const struct uefi_variable_store *context,
 					const struct variable_info *info,
 					const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var);
 
-static efi_status_t remove_variable_data(struct uefi_variable_store *context,
+static efi_status_t remove_variable_data(const struct uefi_variable_store *context,
 					 const struct variable_info *info);
 
-static efi_status_t load_variable_data(struct uefi_variable_store *context,
+static efi_status_t load_variable_data(const struct uefi_variable_store *context,
 				       const struct variable_info *info,
 				       SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var,
 				       size_t max_data_len);
@@ -49,12 +49,12 @@ static psa_status_t store_append_write(struct delegate_variable_store *delegate_
 				       uint32_t client_id, uint64_t uid, size_t data_length,
 				       const void *data);
 
-static void purge_orphan_index_entries(struct uefi_variable_store *context);
+static void purge_orphan_index_entries(const struct uefi_variable_store *context);
 
-static struct delegate_variable_store *select_delegate_store(struct uefi_variable_store *context,
-							     uint32_t attributes);
+static struct delegate_variable_store *
+select_delegate_store(const struct uefi_variable_store *context, uint32_t attributes);
 
-static size_t space_used(struct uefi_variable_store *context, uint32_t attributes,
+static size_t space_used(const struct uefi_variable_store *context, uint32_t attributes,
 			 struct storage_backend *storage_backend);
 
 static efi_status_t psa_to_efi_storage_status(psa_status_t psa_status);
@@ -134,7 +134,7 @@ void uefi_variable_store_set_storage_limits(struct uefi_variable_store *context,
 	delegate_store->max_variable_size = max_variable_size;
 }
 
-efi_status_t uefi_variable_store_set_variable(struct uefi_variable_store *context,
+efi_status_t uefi_variable_store_set_variable(const struct uefi_variable_store *context,
 					      const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var)
 {
 	bool should_sync_index = false;
@@ -230,7 +230,7 @@ efi_status_t uefi_variable_store_set_variable(struct uefi_variable_store *contex
 	return status;
 }
 
-efi_status_t uefi_variable_store_get_variable(struct uefi_variable_store *context,
+efi_status_t uefi_variable_store_get_variable(const struct uefi_variable_store *context,
 					      SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var,
 					      size_t max_data_len, size_t *total_length)
 {
@@ -265,7 +265,7 @@ efi_status_t uefi_variable_store_get_variable(struct uefi_variable_store *contex
 }
 
 efi_status_t
-uefi_variable_store_get_next_variable_name(struct uefi_variable_store *context,
+uefi_variable_store_get_next_variable_name(const struct uefi_variable_store *context,
 					   SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *cur,
 					   size_t max_name_len, size_t *total_length)
 {
@@ -295,7 +295,7 @@ uefi_variable_store_get_next_variable_name(struct uefi_variable_store *context,
 }
 
 efi_status_t
-uefi_variable_store_query_variable_info(struct uefi_variable_store *context,
+uefi_variable_store_query_variable_info(const struct uefi_variable_store *context,
 					SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO *var_info)
 {
 	struct delegate_variable_store *delegate_store =
@@ -400,7 +400,7 @@ static void load_variable_index(struct uefi_variable_store *context)
 	}
 }
 
-static efi_status_t sync_variable_index(struct uefi_variable_store *context)
+static efi_status_t sync_variable_index(const struct uefi_variable_store *context)
 {
 	efi_status_t status = EFI_SUCCESS;
 
@@ -488,7 +488,7 @@ check_access_permitted_on_set(const struct uefi_variable_store *context,
 	return status;
 }
 
-static efi_status_t store_variable_data(struct uefi_variable_store *context,
+static efi_status_t store_variable_data(const struct uefi_variable_store *context,
 					const struct variable_info *info,
 					const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var)
 {
@@ -522,7 +522,7 @@ static efi_status_t store_variable_data(struct uefi_variable_store *context,
 	return psa_to_efi_storage_status(psa_status);
 }
 
-static efi_status_t remove_variable_data(struct uefi_variable_store *context,
+static efi_status_t remove_variable_data(const struct uefi_variable_store *context,
 					 const struct variable_info *info)
 {
 	psa_status_t psa_status = PSA_SUCCESS;
@@ -541,7 +541,7 @@ static efi_status_t remove_variable_data(struct uefi_variable_store *context,
 	return psa_to_efi_storage_status(psa_status);
 }
 
-static efi_status_t load_variable_data(struct uefi_variable_store *context,
+static efi_status_t load_variable_data(const struct uefi_variable_store *context,
 				       const struct variable_info *info,
 				       SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var,
 				       size_t max_data_len)
@@ -655,7 +655,7 @@ static psa_status_t store_append_write(struct delegate_variable_store *delegate_
 	return psa_status;
 }
 
-static void purge_orphan_index_entries(struct uefi_variable_store *context)
+static void purge_orphan_index_entries(const struct uefi_variable_store *context)
 {
 	bool any_orphans = false;
 	struct variable_index_iterator iter;
@@ -693,15 +693,16 @@ static void purge_orphan_index_entries(struct uefi_variable_store *context)
 		sync_variable_index(context);
 }
 
-static struct delegate_variable_store *select_delegate_store(struct uefi_variable_store *context,
-							     uint32_t attributes)
+static struct delegate_variable_store *
+select_delegate_store(const struct uefi_variable_store *context, uint32_t attributes)
 {
 	bool is_nv = (attributes & EFI_VARIABLE_NON_VOLATILE);
 
-	return (is_nv) ? &context->persistent_store : &context->volatile_store;
+	return (is_nv) ? (struct delegate_variable_store *)&context->persistent_store :
+			 (struct delegate_variable_store *)&context->volatile_store;
 }
 
-static size_t space_used(struct uefi_variable_store *context, uint32_t attributes,
+static size_t space_used(const struct uefi_variable_store *context, uint32_t attributes,
 			 struct storage_backend *storage_backend)
 {
 	if (!storage_backend)
