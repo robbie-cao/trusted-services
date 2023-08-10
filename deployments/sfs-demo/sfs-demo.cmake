@@ -13,7 +13,8 @@ add_components(TARGET "sfs-demo"
 		components/messaging/ffa/libsp
 		components/rpc/common/interface
 		components/rpc/common/caller
-		components/rpc/ffarpc/caller/sp
+		components/rpc/ts_rpc/common
+		components/rpc/ts_rpc/caller/sp
 		components/service/common/include
 		components/service/common/client
 		components/service/secure_storage/include
