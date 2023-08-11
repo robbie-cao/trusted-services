@@ -155,12 +155,17 @@ static uint32_t secure_storage_get_support(void *context, uint32_t client_id)
 	struct rpc_caller *caller = ipc->client.caller;
 	psa_status_t psa_status;
 	uint32_t support_flags;
+	uint32_t dummy_vec = 0;
+	/* Use dummy in vector to guarantee parameter checking */
+	struct psa_invec in_vec[] = {
+		{ .base = &dummy_vec, .len = sizeof(dummy_vec) },
+	};
 	struct psa_outvec out_vec[] = {
 		{ .base = psa_ptr_to_u32(&support_flags), .len =  sizeof(support_flags) },
 	};
 
 	psa_status = psa_call_client_id(caller, ipc->service_handle, client_id,
-					TFM_PS_ITS_GET_SUPPORT, NULL, 0,
+					TFM_PS_ITS_GET_SUPPORT, in_vec, IOVEC_LEN(in_vec),
 					out_vec, IOVEC_LEN(out_vec));
 	if (psa_status != PSA_SUCCESS)
 		EMSG("ipc_get_support: failed to psa_call: %d", psa_status);

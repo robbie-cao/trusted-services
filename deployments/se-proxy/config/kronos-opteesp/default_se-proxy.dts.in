@@ -20,5 +20,23 @@
 
 	device-regions {
 		compatible = "arm,ffa-manifest-device-regions";
+		mhu-sender {
+			/* Armv8 A Foundation Platform values */
+			base-address = <0x00000000 0x2AB20000>; /* AP2RSS Secure MHU Sender */
+			pages-count = <16>;
+			attributes = <0x3>; /* read-write */
+		};
+		mhu-receiver {
+			/* Armv8 A Foundation Platform values */
+			base-address = <0x00000000 0x2AB30000>; /* AP2RSS Secure MHU Receiver */
+			pages-count = <16>;
+			attributes = <0x3>; /* read-write */
+		};
+		rss_comms-virtio {
+			/* Armv8 A Foundation Platform values */
+			base-address = <0x00000000 0xA03F0000>; /* shared memory for the communication between TS and RSS */
+			pages-count = <16>;
+			attributes = <0x3>; /* read-write */
+		};
 	};
 };

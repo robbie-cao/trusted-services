@@ -97,6 +97,7 @@ enum mhu_error_t mhu_send_data(void *mhu_sender_dev,
  *       multiple of 4.
  */
 enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
+                                  void *mhu_outband_base,
                                   uint8_t *receive_buffer,
                                   size_t *size);
 

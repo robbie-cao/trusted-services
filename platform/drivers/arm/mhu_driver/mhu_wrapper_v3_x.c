@@ -15,6 +15,7 @@
  */
 
 #include "mhu_v3_x.h"
+#include "mhu.h"
 #include <string.h>
 
 static enum mhu_error_t error_mapping_to_mhu_error_t(enum mhu_v3_x_error_t err)
@@ -236,12 +237,13 @@ enum mhu_error_t mhu_send_data(void *mhu_sender_dev, void *mhu_outband_base,
      * First 4 bytes represents the header which currently stores the size
      * of msg. Rest of buffer holds the actual message.
      */
-    /* (void)memcpy((void *)MHU3_OUTBAND_BUF_BASE, (void *)&msg_len,
-            MHU3_OUTBAND_BUF_HEADER_SIZE); */
+    (void)memcpy((void *)mhu_outband_base, (void *)&msg_len, MHU3_OUTBAND_BUF_HEADER_SIZE);
 
     /* Copy the message */
-    /* (void)memcpy((void *)(MHU3_OUTBAND_BUF_BASE + MHU3_OUTBAND_BUF_HEADER_SIZE),
-            (void *)send_buffer, msg_len); */
+    for (int i = 0; i < msg_len; i ++) {
+        (void)memcpy((void *)(mhu_outband_base + MHU3_OUTBAND_BUF_HEADER_SIZE + i),
+                     (uint8_t *)(send_buffer + i), 1);
+    }
 
     /*
      * Use only one channel 0 to ring the doorbell on receiver for
@@ -262,7 +264,7 @@ fail:
     return error_mapping_to_mhu_error_t(err);
 }
 
-enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
+enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev, void *mhu_outband_base,
         uint8_t *receive_buffer, size_t *size)
 {
     struct mhu_v3_x_dev_t *dev = mhu_receiver_dev;
@@ -288,17 +290,18 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
      * First 4 bytes represents the header which currently stores the size
      * of msg. Rest of buffer holds the actual message.
      */
-    /* (void)memcpy((void *)&msg_len, (void *)MHU3_OUTBAND_BUF_BASE,
-            MHU3_OUTBAND_BUF_HEADER_SIZE);
+    (void)memcpy((void *)&msg_len, (void *)mhu_outband_base, MHU3_OUTBAND_BUF_HEADER_SIZE);
     if (*size < msg_len) {
         return MHU_V_3_X_ERR_UNSUPPORTED;
-    } */
+    }
 
     *size = msg_len;
 
     /* Copy the message */
-    /* (void)memcpy((void *)receive_buffer, (void *)(MHU3_OUTBAND_BUF_BASE +
-                MHU3_OUTBAND_BUF_HEADER_SIZE), msg_len); */
+    for (int i = 0; i < msg_len; i ++) {
+        (void)memcpy((void *)(receive_buffer + i),
+                     (void *)(mhu_outband_base + MHU3_OUTBAND_BUF_HEADER_SIZE + i), 1);
+    }
 
     return MHU_V_3_X_ERR_NONE;
 

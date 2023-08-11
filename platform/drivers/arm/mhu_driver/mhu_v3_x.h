@@ -25,7 +25,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "mhu.h"
-//#include "host_base_address.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -250,7 +249,6 @@ enum mhu_v3_x_error_t mhu_v3_x_channel_interrupt_disable(
 enum mhu_v3_x_error_t mhu_v3_x_channel_interrupt_clear(
      const struct mhu_v3_x_dev_t *dev, uint32_t channel,
      enum mhu_v3_x_channel_type_t ch_type);
-
 
 #ifdef __cplusplus
 }

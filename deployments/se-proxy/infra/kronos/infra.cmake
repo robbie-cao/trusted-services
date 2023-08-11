@@ -14,7 +14,16 @@
 add_components(TARGET "se-proxy"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+	"components/rpc/dummy"
 	"components/rpc/common/caller"
+	"components/rpc/rss_comms"
+	"components/messaging/rss_comms/sp"
+	"components/service/secure_storage/backend/secure_storage_ipc"
+	"components/service/attestation/reporter/stub"
+	"components/service/attestation/key_mngr/stub"
+	"components/service/crypto/backend/stub"
+	"components/service/crypto/client/psa"
+	"components/service/secure_storage/backend/mock_store"
 )
 
 target_sources(se-proxy PRIVATE
