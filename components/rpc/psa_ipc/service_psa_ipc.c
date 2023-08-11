@@ -51,7 +51,7 @@ static size_t psa_call_header_len(const struct psa_invec *in_vec, size_t in_len,
 static size_t psa_call_in_vec_len(const struct psa_invec *in_vec, size_t in_len)
 {
 	size_t req_len = 0;
-	int i;
+	int i = 0;
 
 	if (!in_vec || !in_len)
 		return 0;
@@ -62,25 +62,23 @@ static size_t psa_call_in_vec_len(const struct psa_invec *in_vec, size_t in_len)
 	return req_len;
 }
 
-static uint32_t psa_virt_to_phys_u32(struct rpc_caller *caller, void *va)
+static uint32_t psa_virt_to_phys_u32(struct rpc_caller_interface *caller, void *va)
 {
 	return (uintptr_t)psa_ipc_virt_to_phys(caller->context, va);
 }
 
-psa_handle_t psa_connect(struct rpc_caller *caller, uint32_t sid,
+psa_handle_t psa_connect(struct rpc_caller_interface *caller, uint32_t sid,
 			 uint32_t version)
 {
-	rpc_opstatus_t opstatus = PSA_SUCCESS;
-	struct s_openamp_msg *resp_msg = NULL;
+	struct s_openamp_msg *resp_msg;
 	struct ns_openamp_msg *req_msg;
-	rpc_call_handle rpc_handle;
+	psa_ipc_call_handle rpc_handle;
 	size_t resp_len;
 	uint8_t *resp;
 	uint8_t *req;
 	int ret;
 
-	rpc_handle = rpc_caller_begin(caller, &req,
-				      sizeof(struct ns_openamp_msg));
+	rpc_handle = psa_ipc_caller_begin(caller, &req, sizeof(struct ns_openamp_msg));
 	if (!rpc_handle) {
 		EMSG("psa_connect: could not get rpc handle");
 		return PSA_ERROR_GENERIC_ERROR;
@@ -92,32 +90,29 @@ psa_handle_t psa_connect(struct rpc_caller *caller, uint32_t sid,
 	req_msg->params.psa_connect_params.sid = sid;
 	req_msg->params.psa_connect_params.version = version;
 
-	ret = rpc_caller_invoke(caller, rpc_handle, 0, &opstatus, &resp,
-				&resp_len);
-	if (ret != TS_RPC_CALL_ACCEPTED) {
-		EMSG("psa_connect: invoke failed: %d", ret);
-		return PSA_ERROR_GENERIC_ERROR;
+	ret = psa_ipc_caller_invoke(rpc_handle, 0, &resp, &resp_len);
+	if (ret != RPC_SUCCESS) {
+		EMSG("invoke failed: %d", ret);
+		return PSA_NULL_HANDLE;
 	}
 
-	if (opstatus == PSA_SUCCESS)
-		resp_msg = (struct s_openamp_msg *)resp;
+	resp_msg = (struct s_openamp_msg *)resp;
 
-	rpc_caller_end(caller, rpc_handle);
+	psa_ipc_caller_end(rpc_handle);
 
 	return resp_msg ? (psa_handle_t)resp_msg->reply : PSA_NULL_HANDLE;
 }
 
-static psa_status_t __psa_call(struct rpc_caller *caller, psa_handle_t psa_handle,
+static psa_status_t __psa_call(struct rpc_caller_interface *caller, psa_handle_t psa_handle,
 			       int32_t client_id, int32_t type,
 			       const struct psa_invec *in_vec, size_t in_len,
 			       struct psa_outvec *out_vec, size_t out_len)
 {
-	rpc_opstatus_t opstatus = PSA_SUCCESS;
 	struct s_openamp_msg *resp_msg = NULL;
 	struct psa_outvec *out_vec_param;
 	struct psa_invec *in_vec_param;
 	struct ns_openamp_msg *req_msg;
-	rpc_call_handle rpc_handle;
+	psa_ipc_call_handle rpc_handle;
 	size_t in_vec_len;
 	size_t header_len;
 	uint8_t *payload;
@@ -133,7 +128,7 @@ static psa_status_t __psa_call(struct rpc_caller *caller, psa_handle_t psa_handl
 	header_len = psa_call_header_len(in_vec, in_len, out_vec, out_len);
 	in_vec_len = psa_call_in_vec_len(in_vec, in_len);
 
-	rpc_handle = rpc_caller_begin(caller, &req, header_len + in_vec_len);
+	rpc_handle = psa_ipc_caller_begin(caller, &req, header_len + in_vec_len);
 	if (!rpc_handle) {
 		EMSG("psa_call: could not get handle");
 		return PSA_ERROR_GENERIC_ERROR;
@@ -170,15 +165,9 @@ static psa_status_t __psa_call(struct rpc_caller *caller, psa_handle_t psa_handl
 		out_vec_param[i].len = out_vec[i].len;
 	}
 
-	ret = rpc_caller_invoke(caller, rpc_handle, 0, &opstatus, &resp,
-				&resp_len);
-	if (ret != TS_RPC_CALL_ACCEPTED) {
+	ret = psa_ipc_caller_invoke(rpc_handle, 0, &resp, &resp_len);
+	if (ret != RPC_SUCCESS) {
 		EMSG("psa_call: invoke failed: %d", ret);
-		return PSA_ERROR_GENERIC_ERROR;
-	}
-
-	if (opstatus != PSA_SUCCESS) {
-		EMSG("psa_call: psa_status invoke failed: %ld", opstatus);
 		return PSA_ERROR_GENERIC_ERROR;
 	}
 
@@ -199,12 +188,12 @@ static psa_status_t __psa_call(struct rpc_caller *caller, psa_handle_t psa_handl
 	}
 
 caller_end:
-	rpc_caller_end(caller, rpc_handle);
+	psa_ipc_caller_end(rpc_handle);
 
 	return resp_msg ? resp_msg->reply : PSA_ERROR_COMMUNICATION_FAILURE;
 }
 
-psa_status_t psa_call_client_id(struct rpc_caller *caller,
+psa_status_t psa_call_client_id(struct rpc_caller_interface *caller,
 				psa_handle_t psa_handle, int32_t client_id,
 				int32_t type, const struct psa_invec *in_vec,
 				size_t in_len, struct psa_outvec *out_vec,
@@ -214,7 +203,7 @@ psa_status_t psa_call_client_id(struct rpc_caller *caller,
 			  out_vec, out_len);
 }
 
-psa_status_t psa_call(struct rpc_caller *caller, psa_handle_t psa_handle,
+psa_status_t psa_call(struct rpc_caller_interface *caller, psa_handle_t psa_handle,
 		      int32_t type, const struct psa_invec *in_vec,
 		      size_t in_len, struct psa_outvec *out_vec, size_t out_len)
 {
@@ -222,11 +211,10 @@ psa_status_t psa_call(struct rpc_caller *caller, psa_handle_t psa_handle,
 			  out_len);
 }
 
-void psa_close(struct rpc_caller *caller, psa_handle_t psa_handle)
+void psa_close(struct rpc_caller_interface *caller, psa_handle_t psa_handle)
 {
-	rpc_opstatus_t opstatus = PSA_SUCCESS;
 	struct ns_openamp_msg *req_msg;
-	rpc_call_handle rpc_handle;
+	psa_ipc_call_handle rpc_handle;
 	size_t resp_len;
 	uint8_t *resp;
 	uint8_t *req;
@@ -235,8 +223,7 @@ void psa_close(struct rpc_caller *caller, psa_handle_t psa_handle)
 	if ((psa_handle == PSA_NULL_HANDLE) || !caller)
 		return;
 
-	rpc_handle = rpc_caller_begin(caller, &req,
-				      sizeof(struct ns_openamp_msg));
+	rpc_handle = psa_ipc_caller_begin(caller, &req, sizeof(struct ns_openamp_msg));
 	if (!rpc_handle) {
 		EMSG("psa_close: could not get handle");
 		return;
@@ -247,12 +234,11 @@ void psa_close(struct rpc_caller *caller, psa_handle_t psa_handle)
 	req_msg->call_type = OPENAMP_PSA_CLOSE;
 	req_msg->params.psa_close_params.handle = psa_handle;
 
-	ret = rpc_caller_invoke(caller, rpc_handle, 0, &opstatus, &resp,
-				&resp_len);
+	ret = psa_ipc_caller_invoke(rpc_handle, 0, &resp, &resp_len);
 	if (ret != TS_RPC_CALL_ACCEPTED) {
 		EMSG("psa_close: invoke failed: %d", ret);
 		return;
 	}
 
-	rpc_caller_end(caller, rpc_handle);
+	psa_ipc_caller_end(rpc_handle);
 }

@@ -5,16 +5,23 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <rpc_caller.h>
+#include "rpc_caller_session.h"
 #include <openamp_messenger_api.h>
 
-struct psa_ipc_caller {
-	struct rpc_caller rpc_caller;
-	struct openamp_messenger openamp;
-};
+typedef void *psa_ipc_call_handle;
 
 void *psa_ipc_phys_to_virt(void *context, void *pa);
 void *psa_ipc_virt_to_phys(void *context, void *va);
 
-struct rpc_caller *psa_ipc_caller_init(struct psa_ipc_caller *psaipc);
-struct rpc_caller *psa_ipc_caller_deinit(struct psa_ipc_caller *psaipc);
+rpc_status_t psa_ipc_caller_init(struct rpc_caller_interface *rpc_caller);
+rpc_status_t psa_ipc_caller_deinit(struct rpc_caller_interface *rpc_caller);
+
+psa_ipc_call_handle psa_ipc_caller_begin(struct rpc_caller_interface *caller,
+					 uint8_t **request_buffer,
+					 size_t request_length);
+
+rpc_status_t psa_ipc_caller_invoke(psa_ipc_call_handle handle, uint32_t opcode,
+				       uint8_t **response_buffer,
+				       size_t *response_length);
+
+rpc_status_t psa_ipc_caller_end(psa_ipc_call_handle handle);

@@ -109,7 +109,7 @@ inline static uint32_t psa_ptr_const_to_u32(const void *ptr)
  * \arg                           version[15:8] -- major version number.
  * \arg                           version[7:0]  -- minor version number.
  */
-uint32_t psa_framework_version(struct rpc_caller *caller);
+uint32_t psa_framework_version(struct rpc_caller_interface *caller);
 
 /**
  * \brief Retrieve the version of an RoT Service or indicate that it is not
@@ -122,7 +122,7 @@ uint32_t psa_framework_version(struct rpc_caller *caller);
  *                              caller is not permitted to access the service.
  * \retval > 0                  The version of the implemented RoT Service.
  */
-uint32_t psa_version(struct rpc_caller *caller, uint32_t sid);
+uint32_t psa_version(struct rpc_caller_interface *caller, uint32_t sid);
 
 /**
  * \brief Connect to an RoT Service by its SID.
@@ -143,7 +143,7 @@ uint32_t psa_version(struct rpc_caller *caller, uint32_t sid);
  * \arg                           The caller is not allowed to access the RoT
  *                                service.
  */
-psa_handle_t psa_connect(struct rpc_caller *caller, uint32_t sid,
+psa_handle_t psa_connect(struct rpc_caller_interface *caller, uint32_t sid,
 			 uint32_t version);
 
 /**
@@ -179,7 +179,7 @@ psa_handle_t psa_connect(struct rpc_caller *caller, uint32_t sid,
  * \arg                           The message is unrecognized by the RoT
  *                                Service or incorrectly formatted.
  */
-psa_status_t psa_call(struct rpc_caller *caller, psa_handle_t handle,
+psa_status_t psa_call(struct rpc_caller_interface *caller, psa_handle_t handle,
 		      int32_t type, const struct psa_invec *in_vec,
 		      size_t in_len, struct psa_outvec *out_vec, size_t out_len);
 
@@ -217,7 +217,7 @@ psa_status_t psa_call(struct rpc_caller *caller, psa_handle_t handle,
  * \arg                           The message is unrecognized by the RoT
  *                                Service or incorrectly formatted.
  */
-psa_status_t psa_call_client_id(struct rpc_caller *caller, psa_handle_t handle,
+psa_status_t psa_call_client_id(struct rpc_caller_interface *caller, psa_handle_t handle,
 				int32_t client_id, int32_t type,
 				const struct psa_invec *in_vec, size_t in_len,
 				struct psa_outvec *out_vec, size_t out_len);
@@ -237,7 +237,7 @@ psa_status_t psa_call_client_id(struct rpc_caller *caller, psa_handle_t handle,
  * \arg                           The connection is currently handling a
  *                                request.
  */
-void psa_close(struct rpc_caller *caller, psa_handle_t handle);
+void psa_close(struct rpc_caller_interface *caller, psa_handle_t handle);
 
 #ifdef __cplusplus
 }

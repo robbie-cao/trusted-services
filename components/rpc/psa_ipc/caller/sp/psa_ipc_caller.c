@@ -5,108 +5,158 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include "psa_ipc_caller.h"
+#include "rpc_caller.h"
+#include "rpc_status.h"
 #include <openamp_messenger_api.h>
-#include <protocols/rpc/common/packed-c/status.h>
-#include <rpc_caller.h>
-#include <rpc_status.h>
 #include <trace.h>
 #include <errno.h>
+#include <stdlib.h>
 #include <stdint.h>
 
-static rpc_call_handle psa_ipc_call_begin(void *context, uint8_t **req_buf,
-					  size_t req_len)
+struct psa_ipc_caller_context {
+	struct openamp_messenger openamp;
+};
+
+rpc_status_t open_session(void *context, const struct rpc_uuid *service_uuid, uint16_t endpoint_id)
 {
-	struct psa_ipc_caller *psa_ipc = context;
-	struct openamp_messenger *openamp = &psa_ipc->openamp;
-	rpc_call_handle handle;
-	int ret;
-
-	ret = openamp_messenger_call_begin(openamp, req_buf, req_len);
-	if (ret < 0)
-		return NULL;
-
-	handle = psa_ipc;
-
-	return handle;
+	return RPC_SUCCESS;
 }
 
-static rpc_status_t psa_ipc_call_invoke(void *context, rpc_call_handle handle,
-					uint32_t opcode, long int *opstatus,
-					uint8_t **resp_buf, size_t *resp_len)
+rpc_status_t find_and_open_session(void *context, const struct rpc_uuid *service_uuid)
 {
-	struct psa_ipc_caller *psa_ipc = context;
-	struct openamp_messenger *openamp = &psa_ipc->openamp;
-	int ret;
-
-	(void)opcode;
-
-	ret = openamp_messenger_call_invoke(openamp, resp_buf, resp_len);
-	if (ret == -EINVAL)
-		return TS_RPC_ERROR_INVALID_PARAMETER;
-	if (ret == -ENOTCONN)
-		return TS_RPC_ERROR_NOT_READY;
-	if (ret < 0)
-		return TS_RPC_ERROR_INTERNAL;
-
-	*opstatus = 0;
-
-	return TS_RPC_CALL_ACCEPTED;
+	return RPC_SUCCESS;
 }
 
-static void psa_ipc_call_end(void *context, rpc_call_handle handle)
+rpc_status_t close_session(void *context)
 {
-	struct psa_ipc_caller *psa_ipc = context;
-
-	if (!psa_ipc || psa_ipc != handle) {
-		EMSG("psa_ipc: call_end: invalid arguments");
-		return;
-	}
-
-	openamp_messenger_call_end(&psa_ipc->openamp);
+	return RPC_SUCCESS;
 }
 
+rpc_status_t create_shared_memory(void *context, size_t size,
+				  struct rpc_caller_shared_memory *shared_memory)
+{
+	return RPC_ERROR_INVALID_VALUE;
+}
+
+rpc_status_t release_shared_memory(void *context, struct rpc_caller_shared_memory *shared_memory)
+{
+	return RPC_ERROR_INVALID_VALUE;
+}
+
+rpc_status_t call(void *context, uint16_t opcode, struct rpc_caller_shared_memory *shared_memory,
+		  size_t request_length, size_t *response_length, service_status_t *service_status)
+{
+	return RPC_ERROR_INTERNAL;
+}
 
 void *psa_ipc_phys_to_virt(void *context, void *pa)
 {
-	struct psa_ipc_caller *psa_ipc = context;
-	struct openamp_messenger *openamp = &psa_ipc->openamp;
+	struct psa_ipc_caller_context *caller = (struct psa_ipc_caller_context *)context;
+	struct openamp_messenger *openamp = &caller->openamp;
 
 	return openamp_messenger_phys_to_virt(openamp, pa);
 }
 
 void *psa_ipc_virt_to_phys(void *context, void *va)
 {
-	struct psa_ipc_caller *psa_ipc = context;
-	struct openamp_messenger *openamp = &psa_ipc->openamp;
+	struct psa_ipc_caller_context *caller = (struct psa_ipc_caller_context *)context;
+	struct openamp_messenger *openamp = &caller->openamp;
 
 	return openamp_messenger_virt_to_phys(openamp, va);
 }
 
-struct rpc_caller *psa_ipc_caller_init(struct psa_ipc_caller *psa_ipc)
+rpc_status_t psa_ipc_caller_init(struct rpc_caller_interface *rpc_caller)
 {
-	struct rpc_caller *rpc = &psa_ipc->rpc_caller;
-	int ret;
+	struct psa_ipc_caller_context *context = NULL;
+	int ret = 0;
 
-	ret = openamp_messenger_init(&psa_ipc->openamp);
+	if (!rpc_caller || rpc_caller->context)
+		return RPC_ERROR_INVALID_VALUE;
+
+	context = (struct psa_ipc_caller_context *)calloc(1, sizeof(struct psa_ipc_caller_context));
+	if (!context)
+		return RPC_ERROR_INTERNAL;
+
+	ret = openamp_messenger_init(&context->openamp);
+	if (ret < 0) {
+		free(context);
+		return RPC_ERROR_TRANSPORT_LAYER;
+	}
+
+	rpc_caller->context = context;
+	rpc_caller->open_session = open_session;
+	rpc_caller->find_and_open_session = find_and_open_session;
+	rpc_caller->close_session = close_session;
+	rpc_caller->create_shared_memory = create_shared_memory;
+	rpc_caller->release_shared_memory = release_shared_memory;
+	rpc_caller->call = call;
+
+	return RPC_SUCCESS;
+}
+
+rpc_status_t psa_ipc_caller_deinit(struct rpc_caller_interface *rpc_caller)
+{
+	struct psa_ipc_caller_context *context = NULL;
+
+	context = (struct psa_ipc_caller_context *)rpc_caller->context;
+
+	openamp_messenger_deinit(&context->openamp);
+
+	free(context);
+
+	return RPC_SUCCESS;
+}
+
+psa_ipc_call_handle psa_ipc_caller_begin(struct rpc_caller_interface *caller,
+					 uint8_t **request_buffer,
+					 size_t request_length)
+{
+	struct psa_ipc_caller_context *context = NULL;
+	int ret = 0;
+
+	if (!caller || !caller->context)
+		return NULL;
+
+	context = (struct psa_ipc_caller_context *)caller->context;
+
+	ret = openamp_messenger_call_begin(&context->openamp, request_buffer, request_length);
 	if (ret < 0)
 		return NULL;
 
-	rpc_caller_init(rpc, &psa_ipc->rpc_caller);
-	rpc->call_begin = psa_ipc_call_begin;
-	rpc->call_invoke = psa_ipc_call_invoke;
-	rpc->call_end = psa_ipc_call_end;
+	return caller;
 
-	return rpc;
 }
 
-struct rpc_caller *psa_ipc_caller_deinit(struct psa_ipc_caller *psa_ipc)
+rpc_status_t psa_ipc_caller_invoke(psa_ipc_call_handle handle, uint32_t opcode,
+				   uint8_t **response_buffer, size_t *response_length)
 {
-	struct rpc_caller *rpc = &psa_ipc->rpc_caller;
+	struct rpc_caller_interface *caller = (struct rpc_caller_interface *)handle;
+	struct psa_ipc_caller_context *context = NULL;
+	int ret = 0;
 
-	rpc->context = NULL;
-	rpc->call_begin = NULL;
-	rpc->call_invoke = NULL;
-	rpc->call_end = NULL;
+	if (!handle || !caller->context)
+		return RPC_ERROR_INVALID_VALUE;
 
-	return rpc;
+	context = (struct psa_ipc_caller_context *)caller->context;
+
+	ret = openamp_messenger_call_invoke(&context->openamp, response_buffer, response_length);
+	if (ret < 0)
+		return RPC_ERROR_TRANSPORT_LAYER;
+
+	return RPC_SUCCESS;
+}
+
+rpc_status_t psa_ipc_caller_end(psa_ipc_call_handle handle)
+{
+	struct rpc_caller_interface *caller = (struct rpc_caller_interface *)handle;
+	struct psa_ipc_caller_context *context = NULL;
+
+	if (!handle || !caller->context)
+		return RPC_ERROR_INVALID_VALUE;
+
+	context = (struct psa_ipc_caller_context *)caller->context;
+
+	openamp_messenger_call_end(&context->openamp);
+
+	return RPC_SUCCESS;
 }
