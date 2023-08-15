@@ -153,7 +153,6 @@ size_t mhu_get_max_message_size(void)
 static int validate_buffer_params(uintptr_t buf_addr, size_t buf_size)
 {
     if ((buf_addr == 0) || (!IS_ALIGNED(buf_addr, 4)) ||
-            (!IS_ALIGNED(buf_size, 4)) ||
             buf_size > mhu_get_max_message_size()) {
         return MHU_V_3_X_ERR_INVALID_PARAM;
     }

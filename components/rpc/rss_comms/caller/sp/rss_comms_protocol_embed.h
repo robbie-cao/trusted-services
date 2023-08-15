@@ -11,7 +11,7 @@
 #include <sys/cdefs.h>
 #include <psa/client.h>
 
-#define PLAT_RSS_COMMS_PAYLOAD_MAX_SIZE 0x500
+#define PLAT_RSS_COMMS_PAYLOAD_MAX_SIZE (0x40 + 0x1000)
 
 typedef struct psa_invec psa_invec;
 typedef struct psa_outvec psa_outvec;
