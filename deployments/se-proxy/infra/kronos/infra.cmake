@@ -21,7 +21,7 @@ add_components(TARGET "se-proxy"
 	"components/service/secure_storage/backend/secure_storage_ipc"
 	"components/service/attestation/reporter/stub"
 	"components/service/attestation/key_mngr/stub"
-	"components/service/crypto/backend/stub"
+	"components/service/crypto/backend/psa_ipc"
 	"components/service/crypto/client/psa"
 	"components/service/secure_storage/backend/mock_store"
 )

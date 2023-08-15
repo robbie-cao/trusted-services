@@ -43,12 +43,21 @@ struct rpc_interface *crypto_proxy_create(void)
 {
 	struct rpc_interface *crypto_iface = NULL;
 	struct crypto_provider *crypto_provider;
+	struct rpc_caller *crypto_caller;
 
-	if (stub_crypto_backend_init() == PSA_SUCCESS) {
-
-		crypto_provider = crypto_provider_factory_create();
-		crypto_iface = service_provider_get_rpc_interface(&crypto_provider->base_provider);
+	crypto_caller = rss_comms_caller_init(&rss_comms);
+	if (!crypto_caller) {
+		EMSG("crypto caller is null\n");
+		return NULL;
 	}
+
+	if (crypto_ipc_backend_init(&rss_comms.rpc_caller) != PSA_SUCCESS) {
+		EMSG("crypto ipc backend init failed\n");
+		return NULL;
+	}
+
+	crypto_provider = crypto_provider_factory_create();
+	crypto_iface = service_provider_get_rpc_interface(&crypto_provider->base_provider);
 
 	return crypto_iface;
 }
