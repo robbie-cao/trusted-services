@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -12,12 +12,5 @@ target_include_directories(${TGT} PRIVATE
 	"${MBEDTLS_INSTALL_DIR}/include"
 )
 target_sources(${TGT} PRIVATE
-	"${CMAKE_CURRENT_LIST_DIR}/mbedcrypto_backend.c"
+	"${CMAKE_CURRENT_LIST_DIR}/mbedtls_fake_x509.c"
 	)
-
-# Use secure storage client to realize PSA ITS C API used by libmbedcrypto for
-# persistent key storage.
-set(MBEDTLS_EXTRA_INCLUDES
-	"${TS_ROOT}/components/service/common/include"
-	"${TS_ROOT}/components/service/secure_storage/include"
-	CACHE STRING "PSA ITS for MbedTLS" FORCE)

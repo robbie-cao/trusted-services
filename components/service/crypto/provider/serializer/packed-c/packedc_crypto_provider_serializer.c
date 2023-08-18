@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -21,6 +21,7 @@
 #include <protocols/service/crypto/packed-c/purge_key.h>
 #include <protocols/service/crypto/packed-c/sign_hash.h>
 #include <protocols/service/crypto/packed-c/verify_hash.h>
+#include <protocols/service/crypto/packed-c/verify_pkcs7_signature.h>
 #include <psa/crypto.h>
 #include <stdlib.h>
 #include <string.h>
@@ -620,22 +621,89 @@ static rpc_status_t serialize_generate_random_resp(struct rpc_buffer *resp_buf,
 	return rpc_status;
 }
 
+/* Operation: mbedtls_verify_pkcs7_signature */
+static rpc_status_t deserialize_verify_pkcs7_signature_req(
+	struct rpc_buffer *req_buf, uint8_t *signature_cert, uint64_t *signature_cert_len,
+	uint8_t *hash, uint64_t *hash_len, uint8_t *public_key_cert, uint64_t *public_key_cert_len)
+{
+	rpc_status_t rpc_status = RPC_ERROR_INVALID_REQUEST_BODY;
+
+	if (req_buf->data_length) {
+		struct tlv_const_iterator req_iter;
+		struct tlv_record decoded_record;
+
+		rpc_status = RPC_SUCCESS;
+
+		tlv_const_iterator_begin(&req_iter, (uint8_t *)req_buf->data, req_buf->data_length);
+
+		if (tlv_find_decode(&req_iter, TS_CRYPTO_VERIFY_PKCS7_SIGNATURE_IN_TAG_SIGNATURE,
+				    &decoded_record)) {
+			*signature_cert_len = decoded_record.length;
+
+			if (signature_cert)
+				memcpy(signature_cert, decoded_record.value, decoded_record.length);
+		} else {
+			/* Default to a zero length */
+			*signature_cert_len = 0;
+		}
+
+		if (tlv_find_decode(&req_iter, TS_CRYPTO_VERIFY_PKCS7_SIGNATURE_IN_TAG_HASH,
+				    &decoded_record)) {
+			*hash_len = decoded_record.length;
+
+			if (hash)
+				memcpy(hash, decoded_record.value, decoded_record.length);
+		} else {
+			/* Default to a zero length */
+			*hash_len = 0;
+		}
+
+		if (tlv_find_decode(&req_iter,
+				    TS_CRYPTO_VERIFY_PKCS7_SIGNATURE_IN_TAG_PUBLIC_KEY_CERT,
+				    &decoded_record)) {
+			*public_key_cert_len = decoded_record.length;
+
+			if (public_key_cert)
+				memcpy(public_key_cert, decoded_record.value,
+				       decoded_record.length);
+		} else {
+			/* Default to a zero length */
+			*public_key_cert_len = 0;
+		}
+	}
+
+	return rpc_status;
+}
+
 /* Singleton method to provide access to the serializer instance */
 const struct crypto_provider_serializer *packedc_crypto_provider_serializer_instance(void)
 {
 	static const struct crypto_provider_serializer instance = {
-		max_deserialised_parameter_size,    deserialize_generate_key_req,
-		serialize_generate_key_resp,	    deserialize_destroy_key_req,
-		deserialize_export_key_req,	    serialize_export_key_resp,
-		deserialize_export_public_key_req,  serialize_export_public_key_resp,
-		deserialize_import_key_req,	    serialize_import_key_resp,
-		deserialize_copy_key_req,	    serialize_copy_key_resp,
-		deserialize_purge_key_req,	    deserialize_get_key_attributes_req,
-		serialize_get_key_attributes_resp,  deserialize_asymmetric_sign_req,
-		serialize_asymmetric_sign_resp,	    deserialize_asymmetric_verify_req,
-		deserialize_asymmetric_decrypt_req, serialize_asymmetric_decrypt_resp,
-		deserialize_asymmetric_encrypt_req, serialize_asymmetric_encrypt_resp,
-		deserialize_generate_random_req,    serialize_generate_random_resp
+		max_deserialised_parameter_size,
+		deserialize_generate_key_req,
+		serialize_generate_key_resp,
+		deserialize_destroy_key_req,
+		deserialize_export_key_req,
+		serialize_export_key_resp,
+		deserialize_export_public_key_req,
+		serialize_export_public_key_resp,
+		deserialize_import_key_req,
+		serialize_import_key_resp,
+		deserialize_copy_key_req,
+		serialize_copy_key_resp,
+		deserialize_purge_key_req,
+		deserialize_get_key_attributes_req,
+		serialize_get_key_attributes_resp,
+		deserialize_asymmetric_sign_req,
+		serialize_asymmetric_sign_resp,
+		deserialize_asymmetric_verify_req,
+		deserialize_asymmetric_decrypt_req,
+		serialize_asymmetric_decrypt_resp,
+		deserialize_asymmetric_encrypt_req,
+		serialize_asymmetric_encrypt_resp,
+		deserialize_generate_random_req,
+		serialize_generate_random_resp,
+		deserialize_verify_pkcs7_signature_req,
 	};
 
 	return &instance;

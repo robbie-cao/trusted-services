@@ -170,6 +170,11 @@ include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(ts PRIVATE MbedTLS::mbedcrypto)
 target_link_libraries(ts PRIVATE MbedTLS::mbedx509)
 
+# Pass the location of the mbedtls config file to C preprocessor.
+target_compile_definitions(ts PRIVATE
+		MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}"
+)
+
 # Qcbor
 include(${TS_ROOT}/external/qcbor/qcbor.cmake)
 target_link_libraries(ts PRIVATE qcbor)

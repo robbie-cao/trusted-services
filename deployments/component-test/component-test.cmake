@@ -145,6 +145,7 @@ add_components(
 		"components/service/crypto/provider/extension/aead/serializer/packed-c"
 		"components/service/crypto/provider/test"
 		"components/service/crypto/backend/mbedcrypto"
+        "components/service/crypto/backend/mbedcrypto/mbedtls_fake_x509"
 		"components/service/crypto/factory/full"
 		"components/service/crypto/test/unit"
 		"components/service/crypto/test/service"
@@ -224,6 +225,11 @@ set(MBEDTLS_USER_CONFIG_FILE "${TS_ROOT}/external/MbedTLS/config/libmbedx509.h"
 include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(component-test PRIVATE MbedTLS::mbedcrypto)
 target_link_libraries(component-test PRIVATE MbedTLS::mbedx509)
+
+# Pass the location of the mbedtls config file to C preprocessor.
+target_compile_definitions(component-test PRIVATE
+		MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}"
+)
 
 # Qcbor
 include(${TS_ROOT}/external/qcbor/qcbor.cmake)

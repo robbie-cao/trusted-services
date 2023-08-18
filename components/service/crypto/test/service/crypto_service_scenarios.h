@@ -32,6 +32,7 @@ public:
 	void generateVolatileKeys();
 	void copyKey();
 	void purgeKey();
+	void verifypkcs7signature(void);
 
 private:
 	crypto_client *m_crypto_client;

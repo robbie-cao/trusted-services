@@ -31,4 +31,5 @@ target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/psa_aead.c"
 	"${CMAKE_CURRENT_LIST_DIR}/psa_sign_message.c"
 	"${CMAKE_CURRENT_LIST_DIR}/psa_verify_message.c"
+	"${CMAKE_CURRENT_LIST_DIR}/verify_pkcs7_signature.c"
 	)
