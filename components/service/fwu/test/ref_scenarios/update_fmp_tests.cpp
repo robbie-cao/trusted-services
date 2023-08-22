@@ -44,11 +44,18 @@ struct fmp {
 	explicit fmp(fwu_client *m_fwu_client)
 		: client(m_fwu_client)
 		, is_staging(false)
+		, payload_max_size(0)
 		, img_info(NULL)
 		, num_images(0)
-		, payload_max_size(0)
+
 	{
 		parse_img_directory();
+	}
+
+	~fmp()
+	{
+		if (img_info)
+			delete[] img_info;
 	}
 
 	int get_image_info(uint64_t *ImageInfoSize, EFI_FIRMWARE_IMAGE_DESCRIPTOR *ImageInfo,
