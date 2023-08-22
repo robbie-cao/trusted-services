@@ -54,7 +54,8 @@ enum sp_tests {
 	EP_SP_MEM_SHARING_MULTI,
 	EP_SP_MEM_SHARING_EXC,
 	EP_SP_MEM_INCORRECT_ACCESS,
-	EP_SP_NOP
+	EP_SP_NOP,
+	EP_TEST_SP_COMMUNICATION_RESPONSE,
 };
 
 const char* sp_test_str[]= {
@@ -281,34 +282,144 @@ static void test_increase(struct ffa_direct_msg *msg)
 static void test_communication(struct ffa_direct_msg *msg)
 {
 	struct ffa_direct_msg sp_msg = {0};
+	uint16_t caller = msg->source_id;
+	uint16_t src = msg->destination_id;
 	uint16_t dst = (uint16_t)msg->args.args64[1];
 	ffa_result res = FFA_OK;
+	struct ffa_params raw_params = { 0 };
 
 	sp_msg.args.args64[1] =  0x55;
 	sp_msg.args.args64[2] =  0xAA;
 	sp_msg.args.args64[3] =  0xBB;
 	sp_msg.args.args64[4] =  0xCC;
 
-	res = ffa_msg_send_direct_req_64(msg->destination_id, dst,
+	res = ffa_msg_send_direct_req_64(src, dst,
 				      EP_TEST_SP_INCREASE,0x55, 0xAA, 0xBB,
 				      0xCC, &sp_msg);
-
 	if (res != FFA_OK) {
 		EMSG("error % in %s:%d"PRId32, res, __FILE__, __LINE__);
-		return_error((uint32_t)ERR_SP_SHARE, msg);
-		return;
+		goto err;
 	}
 
-	if (sp_msg.args.args64[1] == 0x56 && sp_msg.args.args64[2] == 0xAB &&
-	    sp_msg.args.args64[3] == 0xBC &&sp_msg.args.args64[4] == 0xCD) {
-		return_ok(msg);
-	} else {
+	if (sp_msg.args.args64[1] != 0x56 || sp_msg.args.args64[2] != 0xAB ||
+	    sp_msg.args.args64[3] != 0xBC || sp_msg.args.args64[4] != 0xCD) {
 		DMSG("Failed SP communication %lx %lx %lx %lx",
 		     sp_msg.args.args64[1], sp_msg.args.args64[2],
 		     sp_msg.args.args64[3], sp_msg.args.args64[4]);
-
-		return_error(ERR_SP_COMMUNICATION, msg);
+		goto err;
 	}
+
+	/* Non-null flags (W2) register */
+	ffa_svc(FFA_MSG_SEND_DIRECT_REQ_64, (uint32_t)(src << 16 | 0x1000), 1, 0, 0, 0, 0, 0,
+		&raw_params);
+	if (raw_params.a0 != FFA_ERROR || (uint32_t)raw_params.a2 != FFA_INVALID_PARAMETERS) {
+		EMSG("Unexpected error code: %d != %ld", FFA_INVALID_PARAMETERS, raw_params.a2);
+		goto err;
+	}
+
+	/* Testing non-matching source ID */
+	res = ffa_msg_send_direct_req_64(src + 1, dst, 0, 0, 0, 0, 0, &sp_msg);
+	if (res != FFA_INVALID_PARAMETERS) {
+		EMSG("Unexpected error code: %d != %d", FFA_INVALID_PARAMETERS, res);
+		goto err;
+	}
+
+	/* Sending message to own ID */
+	res = ffa_msg_send_direct_req_64(src, src, 0, 0, 0, 0, 0, &sp_msg);
+	if (res != FFA_INVALID_PARAMETERS) {
+		EMSG("Unexpected error code: %d != %d", FFA_INVALID_PARAMETERS, res);
+		goto err;
+	}
+
+	/* Sending message to normal world */
+	res = ffa_msg_send_direct_req_64(src, 0, 0, 0, 0, 0, 0, &sp_msg);
+	if (res != FFA_NOT_SUPPORTED) {
+		EMSG("Unexpected error code: %d != %d", FFA_NOT_SUPPORTED, res);
+		goto err;
+	}
+
+	/* Sending message for starting direct message response test */
+	if (!caller) {
+		res = ffa_msg_send_direct_req_64(src, dst, EP_TEST_SP_COMMUNICATION_RESPONSE, 0, 0,
+						 0, 0, &sp_msg);
+		if (res != FFA_OK) {
+			EMSG("Unexpected error code: %d != %d", FFA_OK, res);
+			goto err;
+		}
+
+		if (sp_msg.args.args64[0] != SP_TEST_OK) {
+			EMSG("Unexpected test result: %d != %ld", SP_TEST_OK, sp_msg.args.args64[0]);
+			goto err;
+		}
+	}
+
+	return_ok(msg);
+	return;
+
+err:
+	return_error(ERR_SP_COMMUNICATION, msg);
+}
+
+static void test_communication_response(struct ffa_direct_msg *msg)
+{
+	struct ffa_direct_msg sp_msg = {0};
+	uint16_t caller = msg->source_id;
+	uint16_t src = msg->destination_id;
+	ffa_result res = FFA_OK;
+	struct ffa_params raw_params = { 0 };
+
+	/* Non-null flags (W2) register */
+	ffa_svc(FFA_MSG_SEND_DIRECT_RESP_64, (uint32_t)(src << 16 | 0x1000), 1, 0, 0, 0, 0, 1,
+		&raw_params);
+	if (raw_params.a0 != FFA_ERROR || (uint32_t)raw_params.a2 != FFA_INVALID_PARAMETERS) {
+		EMSG("Unexpected error code: %d != %ld", FFA_INVALID_PARAMETERS, raw_params.a2);
+		goto err;
+	}
+
+	/* Testing non-matching source ID */
+	res = ffa_msg_send_direct_resp_64(src + 1, caller, 0, 0, 0, 0, 2, &sp_msg);
+	if (res != FFA_INVALID_PARAMETERS) {
+		EMSG("Unexpected error code: %d != %d", FFA_INVALID_PARAMETERS, res);
+		goto err;
+	}
+
+	/* Sending message to own ID */
+	res = ffa_msg_send_direct_resp_64(src, src, 0, 0, 0, 0, 3, &sp_msg);
+	if (res != FFA_INVALID_PARAMETERS) {
+		EMSG("Unexpected error code: %d != %d", FFA_INVALID_PARAMETERS, res);
+		goto err;
+	}
+
+	/* Sending message request to caller SP which is busy */
+	if (caller) {
+		/* Sending message to normal world */
+		res = ffa_msg_send_direct_resp_64(src, 0, 0, 0, 0, 0, 4, &sp_msg);
+		if (res != FFA_INVALID_PARAMETERS) {
+			EMSG("Unexpected error code: %d != %d", FFA_INVALID_PARAMETERS, res);
+			goto err;
+		}
+
+		/* Sending message to invalid SP */
+		res = ffa_msg_send_direct_resp_64(src, 0x1000, 0, 0, 0, 0, 5, &sp_msg);
+		if (res != FFA_INVALID_PARAMETERS) {
+			EMSG("Unexpected error code: %d != %d", FFA_INVALID_PARAMETERS, res);
+			goto err;
+		}
+
+		/* Sending message request to caller SP which is busy */
+		res = ffa_msg_send_direct_req_64(src, caller, 0, 0, 0, 0, 6, &sp_msg);
+		if (res != FFA_BUSY) {
+			EMSG("Unexpected error code: %d != %d", FFA_BUSY, res);
+			goto err;
+		}
+	}
+
+	ffa_msg_send_direct_resp_64(src, caller, SP_TEST_OK, 0, 0, 0, 0, msg);
+	return;
+
+err:
+	ffa_msg_send_direct_resp_64(src, caller, ERR_SP_COMMUNICATION, 0, 0, 0, 0, msg);
+
 }
 
 static void test_internal_sp(struct ffa_direct_msg *msg)
@@ -792,6 +903,9 @@ void __noreturn sp_main(union ffa_boot_info *boot_info) {
 			break;
 		case EP_TEST_SP_COMMUNICATION:
 			test_communication(&msg);
+			break;
+		case EP_TEST_SP_COMMUNICATION_RESPONSE:
+			test_communication_response(&msg);
 			break;
 		case EP_TEST_SP_INCREASE:
 			test_increase(&msg);
