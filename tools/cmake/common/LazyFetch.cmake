@@ -16,6 +16,18 @@ endif()
 #[===[.rst:
 Common fetch interface for external dependencies.
 -------------------------------------------------
+
+The following variables can be set in cmake or in the environment to make the build of a specific
+dependency verbose. Note: <DEP_NAME> is the name of the dependency as set int the cmake script
+with all characters converted to uppercase.
+
+``<DEP_NAME>_VERBOSE_CONFIG``
+	Global variable or environment variable.
+	Pass `--trace-expand` to cmake if set.
+``<DEP_NAME>_VERBOSE_BUILD``
+	Global variable or environment variable.
+	Turn the build step to verbose mode if set.
+
 #]===]
 
 #[===[.rst:
@@ -68,6 +80,12 @@ endfunction()
 	can be used to pass variables to the external project.
 	``INSTALL_DIR``
 	Install path. If not set, the install step will be skipped.
+	``<DEP_NAME>_VERBOSE_CONFIG``
+	Global variable or environment variable.
+	Pass `--trace-expand` to cmake if set.
+	``<DEP_NAME>_VERBOSE_BUILD``
+	Global variable or environment variable.
+	Turn the build step to verbose mode if set.
 	#]===]
 
 function(LazyFetch_ConfigAndBuild)
@@ -87,6 +105,10 @@ function(LazyFetch_ConfigAndBuild)
 							"component specific. Pleas refer to the upstream documentation for more information.")
 	endif()
 
+	if (DEFINED ${UC_DEP_NAME}_VERBOSE_CONFIG OR DEFINED ENV{${UC_DEP_NAME}_VERBOSE_CONFIG})
+		set(_CMAKE_VERBOSE_CFG_FLAG "--trace-expand")
+	endif()
+
 	execute_process(COMMAND
 		${CMAKE_COMMAND} -E env "CROSS_COMPILE=${CROSS_COMPILE}"
 		${CMAKE_COMMAND}
@@ -94,11 +116,16 @@ function(LazyFetch_ConfigAndBuild)
 			-DCMAKE_BUILD_TYPE=${${UC_DEP_NAME}_BUILD_TYPE}
 			-S ${BUILD_SRC_DIR}
 			-B ${BUILD_BIN_DIR}
+			${_CMAKE_VERBOSE_CFG_FLAG}
 		RESULT_VARIABLE
 			_exec_error
 		)
 	if (NOT _exec_error EQUAL 0)
 		message(FATAL_ERROR "Configuring ${BUILD_DEP_NAME} build failed. `${_exec_error}`")
+	endif()
+
+	if (DEFINED ${UC_DEP_NAME}_VERBOSE_BUILD OR DEFINED ENV{${UC_DEP_NAME}_VERBOSE_BUILD})
+		set(_CMAKE_VERBOSE_CFG_FLAG "--verbose")
 	endif()
 
 	if (BUILD_INSTALL_DIR)
@@ -108,6 +135,7 @@ function(LazyFetch_ConfigAndBuild)
 				--build ${BUILD_BIN_DIR}
 				--parallel ${PROCESSOR_COUNT}
 				--target install
+				${_CMAKE_VERBOSE_BLD_FLAG}
 			RESULT_VARIABLE
 				_exec_error
 			)
@@ -117,6 +145,7 @@ function(LazyFetch_ConfigAndBuild)
 			${CMAKE_COMMAND}
 				--build ${BUILD_BIN_DIR}
 				--parallel ${PROCESSOR_COUNT}
+				${_CMAKE_VERBOSE_BLD_FLAG}
 			RESULT_VARIABLE
 				_exec_error
 			)
@@ -153,6 +182,12 @@ endfunction()
 	``SOURCE_SUBDIR``
 	A subdirectory relative to the top level directory of the fetched component, where the CMakeLists.txt file
 	can be found.
+	``<DEP_NAME>_VERBOSE_CONFIG``
+	Global variable or environment variable.
+	Pass `--trace-expand` to cmake if set.
+	``<DEP_NAME>_VERBOSE_BUILD``
+	Global variable or environment variable.
+	Turn the build step to verbose mode if set.
 	#]===]
 
 macro(LazyFetch_MakeAvailable)
@@ -167,6 +202,8 @@ macro(LazyFetch_MakeAvailable)
 
 	# FetchContent* functions use this form
 	string(TOLOWER ${MY_DEP_NAME} MY_LC_DEP_NAME)
+	# We also need the upper case version
+	string(TOUPPER ${MY_DEP_NAME} MY_UC_DEP_NAME)
 
 	# Look for name collision. We can collide with project() commands, other external components defined with
 	# LazyFetch, FetchCOntent or ExternalProject.
@@ -221,12 +258,17 @@ macro(LazyFetch_MakeAvailable)
 					)
 			endif()
 		elseif(DEFINED MY_INSTALL_DIR)
+			if(DEFINED ${MY_UC_DEP_NAME}_VERBOSE_BUILD OR DEFINED ENV{${MY_UC_DEP_NAME}_VERBOSE_BUILD})
+				set(_CMAKE_VERBOSE_BLD_FLAG "--verbose")
+			endif()
+
 			execute_process(COMMAND
 				${CMAKE_COMMAND} -E env "CROSS_COMPILE=${CROSS_COMPILE}"
 				${CMAKE_COMMAND}
 					--build ${${MY_LC_DEP_NAME}_BINARY_DIR}
 					--parallel ${PROCESSOR_COUNT}
 					--target install
+					${_CMAKE_VERBOSE_BLD_FLAG}
 				RESULT_VARIABLE
 					_exec_error
 				)
