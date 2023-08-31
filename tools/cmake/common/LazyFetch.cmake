@@ -87,11 +87,20 @@ function(LazyFetch_ConfigAndBuild)
 							"component specific. Pleas refer to the upstream documentation for more information.")
 	endif()
 
+	if(NOT DEFINED ${UC_DEP_NAME}_GENERATOR)
+		if(DEFINED ENV{${UC_DEP_NAME}_GENERATOR})
+			set(${UC_DEP_NAME}_GENERATOR ENV{${UC_DEP_NAME}_GENERATOR} CACHE STRING "CMake generator used for ${UC_DEP_NAME}.")
+		else()
+			set(${UC_DEP_NAME}_GENERATOR ${CMAKE_GENERATOR} CACHE STRING "CMake generator used for ${UC_DEP_NAME}.")
+		endif()
+	endif()
+
 	execute_process(COMMAND
 		${CMAKE_COMMAND} -E env "CROSS_COMPILE=${CROSS_COMPILE}"
 		${CMAKE_COMMAND}
 			"-C${CONFIGURED_CACHE_FILE}"
 			-DCMAKE_BUILD_TYPE=${${UC_DEP_NAME}_BUILD_TYPE}
+			-G${${UC_DEP_NAME}_GENERATOR}
 			-S ${BUILD_SRC_DIR}
 			-B ${BUILD_BIN_DIR}
 		RESULT_VARIABLE
