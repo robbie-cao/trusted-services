@@ -17,17 +17,23 @@ endif()
 Common fetch interface for external dependencies.
 -------------------------------------------------
 
-The following variables can be set in cmake or in the environment to make the build of a specific
-dependency verbose. Note: <DEP_NAME> is the name of the dependency as set int the cmake script
-with all characters converted to uppercase.
+The following variables can be set in cmake or in the environment to configure various aspect of
+building and external component.
+Note: <DEP_NAME> is the name of the dependency as set int the cmake files with all characters
+converted to uppercase.
 
 ``<DEP_NAME>_VERBOSE_CONFIG``
 	Global variable or environment variable.
 	Pass `--trace-expand` to cmake if set.
+
 ``<DEP_NAME>_VERBOSE_BUILD``
 	Global variable or environment variable.
 	Turn the build step to verbose mode if set.
 
+``<DEP_NAME>_GENERATOR``
+	Global variable or environment variable.
+	Set the cmake generator to a specific value. If not set, the value of CMAKE_GENERATOR
+	will be used.
 #]===]
 
 #[===[.rst:
@@ -109,11 +115,20 @@ function(LazyFetch_ConfigAndBuild)
 		set(_CMAKE_VERBOSE_CFG_FLAG "--trace-expand")
 	endif()
 
+	if(NOT DEFINED ${UC_DEP_NAME}_GENERATOR)
+		if(DEFINED ENV{${UC_DEP_NAME}_GENERATOR})
+			set(${UC_DEP_NAME}_GENERATOR ENV{${UC_DEP_NAME}_GENERATOR} CACHE STRING "CMake generator used for ${UC_DEP_NAME}.")
+		else()
+			set(${UC_DEP_NAME}_GENERATOR ${CMAKE_GENERATOR} CACHE STRING "CMake generator used for ${UC_DEP_NAME}.")
+		endif()
+	endif()
+
 	execute_process(COMMAND
 		${CMAKE_COMMAND} -E env "CROSS_COMPILE=${CROSS_COMPILE}"
 		${CMAKE_COMMAND}
 			"-C${CONFIGURED_CACHE_FILE}"
 			-DCMAKE_BUILD_TYPE=${${UC_DEP_NAME}_BUILD_TYPE}
+			-G${${UC_DEP_NAME}_GENERATOR}
 			-S ${BUILD_SRC_DIR}
 			-B ${BUILD_BIN_DIR}
 			${_CMAKE_VERBOSE_CFG_FLAG}
