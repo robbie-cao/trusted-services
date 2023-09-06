@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -22,12 +22,28 @@ set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type")
 project(trusted-services LANGUAGES C ASM)
 add_executable(smm-gateway)
 target_include_directories(smm-gateway PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
+
+#-------------------------------------------------------------------------------
+# Options and variables
+#-------------------------------------------------------------------------------
+option(UEFI_AUTH_VAR "Enable variable authentication" ON)
+if (UEFI_AUTH_VAR)
+	target_compile_definitions(smm-gateway PRIVATE
+		-DUEFI_AUTH_VAR
+	)
+endif()
+
 set(SP_NAME "smm-gateway")
 set(SP_BIN_UUID_CANON "ed32d533-99e6-4209-9cc0-2d72cdd998a7")
 set(SP_FFA_UUID_CANON "${SP_BIN_UUID_CANON}")
 set(TRACE_PREFIX "SMMGW" CACHE STRING "Trace prefix")
 set(SP_STACK_SIZE "64 * 1024" CACHE STRING "Stack size")
+
+if (UEFI_AUTH_VAR)
+set(SP_HEAP_SIZE "64 * 1024" CACHE STRING "Heap size")
+else()
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "Heap size")
+endif()
 
 # Setting the MM communication buffer parameters
 set(MM_COMM_BUFFER_ADDRESS "0x00000008 0x81000000" CACHE STRING "Address of MM communicte buffer in 64 bit DTS format")

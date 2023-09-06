@@ -20,10 +20,26 @@ include(${TS_ROOT}/environments/opteesp/env.cmake)
 project(trusted-services LANGUAGES C ASM)
 add_executable(smm-gateway)
 target_include_directories(smm-gateway PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
+
+#-------------------------------------------------------------------------------
+# Options and variables
+#-------------------------------------------------------------------------------
+option(UEFI_AUTH_VAR "Enable variable authentication" ON)
+if (UEFI_AUTH_VAR)
+	target_compile_definitions(smm-gateway PRIVATE
+		-DUEFI_AUTH_VAR
+	)
+endif()
+
 set(SP_BIN_UUID_CANON "ed32d533-99e6-4209-9cc0-2d72cdd998a7")
 set(SP_FFA_UUID_CANON "${SP_BIN_UUID_CANON}")
 
+if (UEFI_AUTH_VAR)
+set(SP_HEAP_SIZE "64 * 1024" CACHE STRING "SP heap size in bytes")
+else()
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
+endif()
+
 set(TRACE_PREFIX "SMMGW" CACHE STRING "Trace prefix")
 
 # Setting the MM communication buffer parameters

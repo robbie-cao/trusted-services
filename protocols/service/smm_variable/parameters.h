@@ -7,6 +7,8 @@
 #ifndef TS_SMM_VARIABLE_PARAMETERS_H
 #define TS_SMM_VARIABLE_PARAMETERS_H
 
+#include <stddef.h>
+
 #include "protocols/common/efi/efi_status.h"
 #include "protocols/common/efi/efi_types.h"
 
