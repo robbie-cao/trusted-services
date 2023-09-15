@@ -1,10 +1,11 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
 #-------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
+set(TS_PLATFORM "arm/fvp/fvp_base_revc-2xaemv8a" CACHE STRING "Target platform location.")
 include(../../../deployment.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
@@ -25,6 +26,12 @@ set(SP_FFA_UUID_CANON "${TS_RPC_UUID_CANON}")
 set(TRACE_PREFIX "PS" CACHE STRING "Trace prefix")
 set(SP_STACK_SIZE "64 * 1024" CACHE STRING "Stack size")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "Heap size")
+
+#-------------------------------------------------------------------------------
+#  Set target platform to provide drivers needed by the deployment
+#
+#-------------------------------------------------------------------------------
+add_platform(TARGET "protected-storage")
 
 #-------------------------------------------------------------------------------
 #  Add components - this deployment uses an infrastructure that provides

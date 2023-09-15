@@ -5,6 +5,7 @@
 #
 #-------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
+set(TS_PLATFORM "arm/fvp/fvp_base_revc-2xaemv8a" CACHE STRING "Target platform location.")
 include(../../../deployment.cmake REQUIRED)
 
 #-------------------------------------------------------------------------------
@@ -26,6 +27,12 @@ set(TRACE_PREFIX "PS" CACHE STRING "Trace prefix")
 target_include_directories(protected-storage PRIVATE
 	${CMAKE_CURRENT_LIST_DIR}
 )
+
+#-------------------------------------------------------------------------------
+#  Set target platform to provide drivers needed by the deployment
+#
+#-------------------------------------------------------------------------------
+add_platform(TARGET "protected-storage")
 
 #-------------------------------------------------------------------------------
 #  Add components - this deployment uses an infrastructure that provides
