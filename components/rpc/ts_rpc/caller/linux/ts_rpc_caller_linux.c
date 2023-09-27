@@ -6,6 +6,7 @@
 
 #include "ts_rpc_caller_linux.h"
 
+#include <arm_tstee.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/tee.h>
@@ -23,7 +24,6 @@
 
 #define INVALID_SESS_ID		  0
 #define MAX_TEE_DEV_NUM		  16
-#define TEE_IMPL_ID_TS_TEE	  3
 #define TS_TEE_DRV_REQ_VER_MAJOR  2
 #define TS_TEE_DRV_REQ_VER_MINOR  0
 #define TS_TEE_DRV_REQ_VER_PATCH  0
@@ -299,7 +299,7 @@ static void ts_tee_drv_discover(struct ts_tee_dev *ts_tee_devs, size_t count)
 		rc = ioctl(fd, TEE_IOC_VERSION, &vers);
 		close(fd);
 
-		if (!rc && vers.impl_id == TEE_IMPL_ID_TS_TEE) {
+		if (!rc && vers.impl_id == TEE_IMPL_ID_TSTEE) {
 			ts_tee_devs[ts_tee_dev_index].endpoint_id = vers.impl_caps;
 			memcpy(ts_tee_devs[ts_tee_dev_index].path, path, sizeof(path));
 			ts_tee_dev_index++;

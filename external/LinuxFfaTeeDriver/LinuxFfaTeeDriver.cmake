@@ -7,7 +7,7 @@
 
 # If the driver is already installed, try to find that
 find_path(LINUX_FFA_TEE_DRIVER_INCLUDE_DIR
-	NAMES arm_ffa_tee.h
+	NAMES arm_tstee.h
 	DOC "Linux FF-A TEE driver include directory"
 )
 
@@ -18,7 +18,7 @@ if(NOT LINUX_FFA_TEE_DRIVER_INCLUDE_DIR)
 
 	# Note: the aim of this external component is to make the header file defining the IOCTL API
 	#        available. Fetching a moving reference is ok as long as API compatibility is guaranteed.
-	set(LINUX_FFA_TEE_DRIVER_REFSPEC "origin/tee-v1"
+	set(LINUX_FFA_TEE_DRIVER_REFSPEC "origin/tee-v2"
 		CACHE STRING "Linux FF-A TEE driver git refspec")
 
 	set(LINUX_FFA_TEE_DRIVER_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/linux_ffa_tee_driver-src"
@@ -42,7 +42,7 @@ if(NOT LINUX_FFA_TEE_DRIVER_INCLUDE_DIR)
 		)
 
 	find_path(LINUX_FFA_TEE_DRIVER_INCLUDE_DIR
-		NAMES arm_ffa_tee.h
+		NAMES arm_tstee.h
 		PATHS ${LINUX_FFA_TEE_DRIVER_SOURCE_DIR}/uapi
 		NO_DEFAULT_PATH
 		REQUIRED
@@ -51,4 +51,4 @@ if(NOT LINUX_FFA_TEE_DRIVER_INCLUDE_DIR)
 endif()
 
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
-	"${LINUX_FFA_TEE_DRIVER_INCLUDE_DIR}/arm_ffa_tee.h")
+	"${LINUX_FFA_TEE_DRIVER_INCLUDE_DIR}/arm_tstee.h")
