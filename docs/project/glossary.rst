@@ -29,6 +29,21 @@ You can find additional definitions in the `Arm Glossary`_.
     FF-A
         `Firmware Framework for A`_
 
+    Normal World
+        The rich execution environment running the "business logic" of the device. NWd is separated by hardware
+        technology (e.g. see :term:`TrustZone`) from components which are managing sensitive information. See
+        :term:`Secure World`.
+
+    NWd
+        See :term:`Normal World`.
+
+    Secure World
+        Hardware isolated execution environment executing specially crafted software managing sensitive data. On Arm
+        devices :term:`TrustZone` technology can be used to implement the needed isolation.
+
+    SWd
+        See :term:`Secure World`.
+
     TEE
         Trusted Execution Environment. An SPE implemented using TrustZone.
 
@@ -40,7 +55,7 @@ You can find additional definitions in the `Arm Glossary`_.
 
     Secure Processing Environment
         An isolated environment to execute software images backed by a specific set of hardware and arm architecture
-        features. The aim of isolation os to protect sensitive workloads and their assets.
+        features. The aim of isolation is to protect sensitive workloads and their assets.
 
     SP
         see :term:`Secure Partition`
