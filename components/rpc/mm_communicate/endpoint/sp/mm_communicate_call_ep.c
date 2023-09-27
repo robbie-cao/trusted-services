@@ -15,6 +15,9 @@ bool mm_communicate_call_ep_init(struct mm_communicate_ep *call_ep, uint8_t *com
 {
 	unsigned int i = 0;
 
+	if (!call_ep || !comm_buffer)
+		return false;
+
 	if (comm_buffer_size < EFI_MM_COMMUNICATE_HEADER_SIZE)
 		return false;
 
@@ -43,21 +46,17 @@ static int32_t invoke_mm_service(struct mm_communicate_ep *call_ep, uint16_t sou
 
 	call_req.guid = &header->HeaderGuid;
 
-	/*
-	 * The subtraction for size field should be overflow-safe because of the
-	 * check in the init funciton.
-	 */
 	call_req.req_buf.data = header->Data;
-	call_req.req_buf.data_len = header->MessageLength;
+	call_req.req_buf.data_length = header->MessageLength;
 	call_req.req_buf.size = buffer_size;
 
 	call_req.resp_buf.data = header->Data;
-	call_req.resp_buf.data_len = 0;
+	call_req.resp_buf.data_length = 0;
 	call_req.resp_buf.size = buffer_size;
 
 	result = iface->receive(iface, &call_req);
 
-	header->MessageLength = call_req.resp_buf.data_len;
+	header->MessageLength = call_req.resp_buf.data_length;
 
 	return result;
 }

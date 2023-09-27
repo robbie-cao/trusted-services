@@ -697,7 +697,7 @@ static efi_status_t load_variable_data(
 					context->owner_id,
 					info->metadata.uid,
 					0,
-					max_data_len,
+					storage_info.size,
 					data,
 					&got_len);
 

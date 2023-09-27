@@ -31,7 +31,7 @@ static inline psa_status_t crypto_caller_export_key(struct service_client *conte
 						    size_t *data_length)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_EXPORT_KEY_SID,

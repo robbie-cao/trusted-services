@@ -11,15 +11,15 @@
 #include <psa/crypto.h>
 
 /* Service request handlers */
-static rpc_status_t aead_setup_handler(void *context, struct call_req *req);
-static rpc_status_t aead_generate_nonce_handler(void *context, struct call_req *req);
-static rpc_status_t aead_set_nonce_handler(void *context, struct call_req *req);
-static rpc_status_t aead_set_lengths_handler(void *context, struct call_req *req);
-static rpc_status_t aead_update_ad_handler(void *context, struct call_req *req);
-static rpc_status_t aead_update_handler(void *context, struct call_req *req);
-static rpc_status_t aead_finish_handler(void *context, struct call_req *req);
-static rpc_status_t aead_verify_handler(void *context, struct call_req *req);
-static rpc_status_t aead_abort_handler(void *context, struct call_req *req);
+static rpc_status_t aead_setup_handler(void *context, struct rpc_request *req);
+static rpc_status_t aead_generate_nonce_handler(void *context, struct rpc_request *req);
+static rpc_status_t aead_set_nonce_handler(void *context, struct rpc_request *req);
+static rpc_status_t aead_set_lengths_handler(void *context, struct rpc_request *req);
+static rpc_status_t aead_update_ad_handler(void *context, struct rpc_request *req);
+static rpc_status_t aead_update_handler(void *context, struct rpc_request *req);
+static rpc_status_t aead_finish_handler(void *context, struct rpc_request *req);
+static rpc_status_t aead_verify_handler(void *context, struct rpc_request *req);
+static rpc_status_t aead_abort_handler(void *context, struct rpc_request *req);
 
 /* Handler mapping table for service */
 static const struct service_handler handler_table[] = {
@@ -37,12 +37,14 @@ static const struct service_handler handler_table[] = {
 
 void aead_provider_init(struct aead_provider *context)
 {
+	const struct rpc_uuid nil_uuid = { 0 };
+
 	crypto_context_pool_init(&context->context_pool);
 
 	for (size_t encoding = 0; encoding < TS_RPC_ENCODING_LIMIT; ++encoding)
 		context->serializers[encoding] = NULL;
 
-	service_provider_init(&context->base_provider, context,
+	service_provider_init(&context->base_provider, context, &nil_uuid,
 		handler_table, sizeof(handler_table)/sizeof(struct service_handler));
 }
 
@@ -59,21 +61,18 @@ void aead_provider_register_serializer(struct aead_provider *context,
 }
 
 static const struct aead_provider_serializer* get_serializer(void *context,
-	const struct call_req *req)
+	const struct rpc_request *req)
 {
 	struct aead_provider *this_instance = (struct aead_provider*)context;
-	const struct aead_provider_serializer* serializer = NULL;
-	unsigned int encoding = call_req_get_encoding(req);
+	unsigned int encoding = 0; /* No other encodings supported */
 
-	if (encoding < TS_RPC_ENCODING_LIMIT) serializer = this_instance->serializers[encoding];
-
-	return serializer;
+	return this_instance->serializers[encoding];
 }
 
-static rpc_status_t aead_setup_handler(void *context, struct call_req *req)
+static rpc_status_t aead_setup_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct aead_provider_serializer *serializer = get_serializer(context, req);
 	struct aead_provider *this_instance = (struct aead_provider*)context;
 
@@ -83,13 +82,13 @@ static rpc_status_t aead_setup_handler(void *context, struct call_req *req)
 	if (serializer)
 		rpc_status = serializer->deserialize_aead_setup_req(req_buf, &key_id, &alg);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		uint32_t op_handle;
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_alloc(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_AEAD, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_AEAD, req->source_id,
 				&op_handle);
 
 		if (crypto_context) {
@@ -98,36 +97,34 @@ static rpc_status_t aead_setup_handler(void *context, struct call_req *req)
 
 			crypto_context->op.aead = psa_aead_operation_init();
 
-			psa_status = (call_req_get_opcode(req) == TS_CRYPTO_OPCODE_AEAD_ENCRYPT_SETUP) ?
+			psa_status = (req->opcode == TS_CRYPTO_OPCODE_AEAD_ENCRYPT_SETUP) ?
 				psa_aead_encrypt_setup(&crypto_context->op.aead, key_id, alg) :
 				psa_aead_decrypt_setup(&crypto_context->op.aead, key_id, alg);
 
 			if (psa_status == PSA_SUCCESS) {
 
-				struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+				struct rpc_buffer *resp_buf = &req->response;
 				rpc_status = serializer->serialize_aead_setup_resp(resp_buf, op_handle);
 			}
 
-			if ((psa_status != PSA_SUCCESS) || (rpc_status != TS_RPC_CALL_ACCEPTED)) {
-
+			if ((psa_status != PSA_SUCCESS) || (rpc_status != RPC_SUCCESS))
 				crypto_context_pool_free(&this_instance->context_pool, crypto_context);
-			}
 
-			call_req_set_opstatus(req, psa_status);
+			req->service_status = psa_status;
 		}
 		else {
 			/* Failed to allocate crypto context for transaction */
-			rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
+			rpc_status = RPC_ERROR_RESOURCE_FAILURE;
 		}
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t aead_generate_nonce_handler(void *context, struct call_req *req)
+static rpc_status_t aead_generate_nonce_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct aead_provider_serializer *serializer = get_serializer(context, req);
 	struct aead_provider *this_instance = (struct aead_provider*)context;
 
@@ -136,13 +133,13 @@ static rpc_status_t aead_generate_nonce_handler(void *context, struct call_req *
 	if (serializer)
 		rpc_status = serializer->deserialize_aead_generate_nonce_req(req_buf, &op_handle);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_AEAD, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_AEAD, req->source_id,
 				op_handle);
 
 		if (crypto_context) {
@@ -155,22 +152,22 @@ static rpc_status_t aead_generate_nonce_handler(void *context, struct call_req *
 
 			if (psa_status == PSA_SUCCESS) {
 
-				struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+				struct rpc_buffer *resp_buf = &req->response;
 				rpc_status = serializer->serialize_aead_generate_nonce_resp(resp_buf,
 					nonce, nonce_len);
 			}
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t aead_set_nonce_handler(void *context, struct call_req *req)
+static rpc_status_t aead_set_nonce_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct aead_provider_serializer *serializer = get_serializer(context, req);
 	struct aead_provider *this_instance = (struct aead_provider*)context;
 
@@ -182,13 +179,13 @@ static rpc_status_t aead_set_nonce_handler(void *context, struct call_req *req)
 		rpc_status = serializer->deserialize_aead_set_nonce_req(req_buf, &op_handle,
 			&nonce, &nonce_len);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_AEAD, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_AEAD, req->source_id,
 				op_handle);
 
 		if (crypto_context) {
@@ -196,16 +193,16 @@ static rpc_status_t aead_set_nonce_handler(void *context, struct call_req *req)
 			psa_status = psa_aead_set_nonce(&crypto_context->op.aead, nonce, nonce_len);
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t aead_set_lengths_handler(void *context, struct call_req *req)
+static rpc_status_t aead_set_lengths_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct aead_provider_serializer *serializer = get_serializer(context, req);
 	struct aead_provider *this_instance = (struct aead_provider*)context;
 
@@ -217,13 +214,13 @@ static rpc_status_t aead_set_lengths_handler(void *context, struct call_req *req
 		rpc_status = serializer->deserialize_aead_set_lengths_req(req_buf, &op_handle,
 			&ad_length, &plaintext_length);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_AEAD, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_AEAD, req->source_id,
 				op_handle);
 
 		if (crypto_context) {
@@ -232,16 +229,16 @@ static rpc_status_t aead_set_lengths_handler(void *context, struct call_req *req
 				ad_length, plaintext_length);
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t aead_update_ad_handler(void *context, struct call_req *req)
+static rpc_status_t aead_update_ad_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct aead_provider_serializer *serializer = get_serializer(context, req);
 	struct aead_provider *this_instance = (struct aead_provider*)context;
 
@@ -253,13 +250,13 @@ static rpc_status_t aead_update_ad_handler(void *context, struct call_req *req)
 		rpc_status = serializer->deserialize_aead_update_ad_req(req_buf, &op_handle,
 			&input, &input_len);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_AEAD, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_AEAD, req->source_id,
 				op_handle);
 
 		if (crypto_context) {
@@ -267,16 +264,16 @@ static rpc_status_t aead_update_ad_handler(void *context, struct call_req *req)
 			psa_status = psa_aead_update_ad(&crypto_context->op.aead, input, input_len);
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t aead_update_handler(void *context, struct call_req *req)
+static rpc_status_t aead_update_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct aead_provider_serializer *serializer = get_serializer(context, req);
 	struct aead_provider *this_instance = (struct aead_provider*)context;
 
@@ -288,13 +285,13 @@ static rpc_status_t aead_update_handler(void *context, struct call_req *req)
 		rpc_status = serializer->deserialize_aead_update_req(req_buf, &op_handle,
 			&input, &input_len);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_AEAD, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_AEAD, req->source_id,
 				op_handle);
 
 		if (crypto_context) {
@@ -311,7 +308,7 @@ static rpc_status_t aead_update_handler(void *context, struct call_req *req)
 
 				if (psa_status == PSA_SUCCESS) {
 
-					struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+					struct rpc_buffer *resp_buf = &req->response;
 					rpc_status = serializer->serialize_aead_update_resp(resp_buf,
 						output, output_len);
 				}
@@ -324,16 +321,16 @@ static rpc_status_t aead_update_handler(void *context, struct call_req *req)
 			}
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t aead_finish_handler(void *context, struct call_req *req)
+static rpc_status_t aead_finish_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct aead_provider_serializer *serializer = get_serializer(context, req);
 	struct aead_provider *this_instance = (struct aead_provider*)context;
 
@@ -342,13 +339,13 @@ static rpc_status_t aead_finish_handler(void *context, struct call_req *req)
 	if (serializer)
 		rpc_status = serializer->deserialize_aead_finish_req(req_buf, &op_handle);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_AEAD, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_AEAD, req->source_id,
 				op_handle);
 
 		if (crypto_context) {
@@ -365,7 +362,7 @@ static rpc_status_t aead_finish_handler(void *context, struct call_req *req)
 
 			if (psa_status == PSA_SUCCESS) {
 
-				struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+				struct rpc_buffer *resp_buf = &req->response;
 				rpc_status = serializer->serialize_aead_finish_resp(resp_buf,
 					ciphertext, ciphertext_len,
 					tag, tag_len);
@@ -374,16 +371,16 @@ static rpc_status_t aead_finish_handler(void *context, struct call_req *req)
 			}
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t aead_verify_handler(void *context, struct call_req *req)
+static rpc_status_t aead_verify_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct aead_provider_serializer *serializer = get_serializer(context, req);
 	struct aead_provider *this_instance = (struct aead_provider*)context;
 
@@ -395,13 +392,13 @@ static rpc_status_t aead_verify_handler(void *context, struct call_req *req)
 		rpc_status = serializer->deserialize_aead_verify_req(req_buf, &op_handle,
 			&tag, &tag_len);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_AEAD, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_AEAD, req->source_id,
 				op_handle);
 
 		if (crypto_context) {
@@ -415,7 +412,7 @@ static rpc_status_t aead_verify_handler(void *context, struct call_req *req)
 
 			if (psa_status == PSA_SUCCESS) {
 
-				struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+				struct rpc_buffer *resp_buf = &req->response;
 				rpc_status = serializer->serialize_aead_verify_resp(resp_buf,
 					plaintext, plaintext_len);
 
@@ -423,16 +420,16 @@ static rpc_status_t aead_verify_handler(void *context, struct call_req *req)
 			}
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t aead_abort_handler(void *context, struct call_req *req)
+static rpc_status_t aead_abort_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct aead_provider_serializer *serializer = get_serializer(context, req);
 	struct aead_provider *this_instance = (struct aead_provider*)context;
 
@@ -441,7 +438,7 @@ static rpc_status_t aead_abort_handler(void *context, struct call_req *req)
 	if (serializer)
 		rpc_status = serializer->deserialize_aead_abort_req(req_buf, &op_handle);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		/* Return success if operation is no longer active and
 		 * doesn't need aborting.
@@ -450,7 +447,7 @@ static rpc_status_t aead_abort_handler(void *context, struct call_req *req)
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_AEAD, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_AEAD, req->source_id,
 				op_handle);
 
 		if (crypto_context) {
@@ -459,7 +456,7 @@ static rpc_status_t aead_abort_handler(void *context, struct call_req *req)
 			crypto_context_pool_free(&this_instance->context_pool, crypto_context);
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;

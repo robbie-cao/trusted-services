@@ -43,6 +43,7 @@ function(get_newlib_compile_flags)
 	# Environment specific files require this variable to be set.
 	# Set it to a dummy value as we are not going to build these anyways.
 	# The namespace of the function will ensure globas setting is not affected.
+	set(SP_FFA_UUID_CANON "00000000-0000-0000-0000-000000000000")
 	set(SP_HEAP_SIZE 4096)
 	add_library(dummy EXCLUDE_FROM_ALL)
 	add_components(TARGET dummy

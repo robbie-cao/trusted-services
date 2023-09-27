@@ -6,7 +6,7 @@
 #ifndef MM_COMMUNICATE_CALL_EP_H_
 #define MM_COMMUNICATE_CALL_EP_H_
 
-#include "components/rpc/common/endpoint/rpc_interface.h"
+#include "components/rpc/common/endpoint/rpc_service_interface.h"
 #include "protocols/common/efi/efi_types.h"
 #include "ffa_api.h"
 #include <stdbool.h>
@@ -26,8 +26,8 @@ extern "C" {
  */
 struct mm_service_call_req {
 	EFI_GUID *guid;
-	struct call_param_buf req_buf;
-	struct call_param_buf resp_buf;
+	struct rpc_buffer req_buf;
+	struct rpc_buffer resp_buf;
 };
 
 /**

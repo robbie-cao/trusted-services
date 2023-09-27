@@ -15,8 +15,8 @@ packedc_crypto_client::packedc_crypto_client() :
 
 }
 
-packedc_crypto_client::packedc_crypto_client(struct rpc_caller *caller) :
-	crypto_client(caller)
+packedc_crypto_client::packedc_crypto_client(struct rpc_caller_session *session) :
+	crypto_client(session)
 {
 
 }

@@ -3,21 +3,23 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
+
+#include "attest_provider.h"
+#include "protocols/service/attestation/packed-c/opcodes.h"
+#include "protocols/rpc/common/packed-c/status.h"
+#include "service/attestation/key_mngr/attest_key_mngr.h"
+#include "service/attestation/reporter/attest_report.h"
+#include "psa/initial_attestation.h"
+#include "attestation_uuid.h"
 #include <stdlib.h>
 #include <string.h>
-#include <protocols/service/attestation/packed-c/opcodes.h>
-#include <protocols/rpc/common/packed-c/status.h>
-#include <service/attestation/key_mngr/attest_key_mngr.h>
-#include <service/attestation/reporter/attest_report.h>
-#include <psa/initial_attestation.h>
-#include "attest_provider.h"
 
 /* Service request handlers */
-static rpc_status_t get_token_handler(void *context, struct call_req* req);
-static rpc_status_t get_token_size_handler(void *context, struct call_req* req);
-static rpc_status_t export_iak_public_key_handler(void *context, struct call_req* req);
-static rpc_status_t import_iak_handler(void *context, struct call_req* req);
-static rpc_status_t iak_exists_handler(void *context, struct call_req* req);
+static rpc_status_t get_token_handler(void *context, struct rpc_request *req);
+static rpc_status_t get_token_size_handler(void *context, struct rpc_request *req);
+static rpc_status_t export_iak_public_key_handler(void *context, struct rpc_request *req);
+static rpc_status_t import_iak_handler(void *context, struct rpc_request *req);
+static rpc_status_t iak_exists_handler(void *context, struct rpc_request *req);
 
 /* Handler mapping table for service */
 static const struct service_handler handler_table[] = {
@@ -28,22 +30,19 @@ static const struct service_handler handler_table[] = {
 	{TS_ATTESTATION_OPCODE_IAK_EXISTS,              iak_exists_handler}
 };
 
-struct rpc_interface *attest_provider_init(struct attest_provider *context)
+struct rpc_service_interface *attest_provider_init(struct attest_provider *context)
 {
-	struct rpc_interface *rpc_interface = NULL;
+	const struct rpc_uuid attest_service_uuid = { .uuid = TS_PSA_ATTESTATION_SERVICE_UUID };
 
-	if (context) {
+	if (!context)
+		return NULL;
 
-		for (size_t encoding = 0; encoding < TS_RPC_ENCODING_LIMIT; ++encoding)
-			context->serializers[encoding] = NULL;
+	context->serializer = NULL;
 
-		service_provider_init(&context->base_provider, context,
-					handler_table, sizeof(handler_table)/sizeof(struct service_handler));
+	service_provider_init(&context->base_provider, context, &attest_service_uuid,
+			      handler_table, sizeof(handler_table)/sizeof(struct service_handler));
 
-		rpc_interface = service_provider_get_rpc_interface(&context->base_provider);
-	}
-
-	return rpc_interface;
+	return service_provider_get_rpc_interface(&context->base_provider);
 }
 
 void attest_provider_deinit(struct attest_provider *context)
@@ -52,181 +51,143 @@ void attest_provider_deinit(struct attest_provider *context)
 }
 
 void attest_provider_register_serializer(struct attest_provider *context,
-				unsigned int encoding, const struct attest_provider_serializer *serializer)
+					 const struct attest_provider_serializer *serializer)
 {
-	if (encoding < TS_RPC_ENCODING_LIMIT)
-		context->serializers[encoding] = serializer;
+	context->serializer = serializer;
 }
 
-static const struct attest_provider_serializer *get_attest_serializer(
-				struct attest_provider *context, const struct call_req *req)
+static rpc_status_t get_token_handler(void *context, struct rpc_request *req)
 {
-	const struct attest_provider_serializer *serializer = NULL;
-	unsigned int encoding = call_req_get_encoding(req);
-
-	if (encoding < TS_RPC_ENCODING_LIMIT) serializer = context->serializers[encoding];
-
-	return serializer;
-}
-
-static rpc_status_t get_token_handler(void *context, struct call_req* req)
-{
-	struct attest_provider *this_instance = (struct attest_provider*)context;
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-
+	struct attest_provider *this_instance = (struct attest_provider *)context;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 	uint8_t challenge[PSA_INITIAL_ATTEST_CHALLENGE_SIZE_64];
 	size_t challenge_len = sizeof(challenge);
+	const struct attest_provider_serializer *serializer = this_instance->serializer;
+	const uint8_t *token = NULL;
+	size_t token_size = 0;
 
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
-	const struct attest_provider_serializer *serializer = get_attest_serializer(this_instance, req);
+	if (!serializer)
+		return rpc_status;
 
-	if (serializer)
-		rpc_status = serializer->deserialize_get_token_req(req_buf, challenge, &challenge_len);
+	rpc_status = serializer->deserialize_get_token_req(&req->request, challenge,
+							   &challenge_len);
+	if (rpc_status != RPC_SUCCESS)
+		return rpc_status;
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	req->service_status = attest_report_create((int32_t)req->source_id, challenge,
+						   challenge_len, &token, &token_size);
 
-		const uint8_t *token = NULL;
-		size_t token_size = 0;
+	if (req->service_status == PSA_SUCCESS)
+		rpc_status = serializer->serialize_get_token_resp(&req->response, token,
+								  token_size);
 
-		rpc_opstatus_t opstatus = attest_report_create((int32_t)call_req_get_caller_id(req),
-			challenge, challenge_len,
-			&token, &token_size);
-
-		if (opstatus == PSA_SUCCESS) {
-
-			struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
-			rpc_status = serializer->serialize_get_token_resp(resp_buf, token, token_size);
-		}
-
-		attest_report_destroy(token);
-		call_req_set_opstatus(req, opstatus);
-	}
+	attest_report_destroy(token);
 
 	return rpc_status;
 }
 
-static rpc_status_t get_token_size_handler(void *context, struct call_req* req)
+static rpc_status_t get_token_size_handler(void *context, struct rpc_request *req)
 {
 	struct attest_provider *this_instance = (struct attest_provider*)context;
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 	uint8_t challenge[PSA_INITIAL_ATTEST_CHALLENGE_SIZE_64];
 	size_t challenge_len = sizeof(challenge);
-
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
-	const struct attest_provider_serializer *serializer = get_attest_serializer(this_instance, req);
+	const struct attest_provider_serializer *serializer = this_instance->serializer;
+	const uint8_t *token = NULL;
+	size_t token_size = 0;
 
 	memset(challenge, 0, sizeof(challenge));
 
-	if (serializer)
-		rpc_status = serializer->deserialize_get_token_size_req(req_buf, &challenge_len);
+	if (!serializer)
+		return rpc_status;
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	rpc_status = serializer->deserialize_get_token_size_req(&req->request, &challenge_len);
+	if (rpc_status != RPC_SUCCESS)
+		return rpc_status;
 
-		const uint8_t *token = NULL;
-		size_t token_size = 0;
+	req->service_status = attest_report_create((int32_t)req->source_id, challenge,
+						   challenge_len, &token, &token_size);
 
-		rpc_opstatus_t opstatus = attest_report_create((int32_t)call_req_get_caller_id(req),
-			challenge, challenge_len,
-			&token, &token_size);
+	if (req->service_status == PSA_SUCCESS)
+		rpc_status = serializer->serialize_get_token_size_resp(&req->response, token_size);
 
-		if (opstatus == PSA_SUCCESS) {
-
-			struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
-			rpc_status = serializer->serialize_get_token_size_resp(resp_buf, token_size);
-		}
-
-		attest_report_destroy(token);
-		call_req_set_opstatus(req, opstatus);
-	}
+	attest_report_destroy(token);
 
 	return rpc_status;
 }
 
-static rpc_status_t export_iak_public_key_handler(void *context, struct call_req* req)
+static rpc_status_t export_iak_public_key_handler(void *context, struct rpc_request *req)
 {
-    rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-    const struct attest_provider_serializer *serializer = get_attest_serializer(context, req);
+	struct attest_provider *this_instance = (struct attest_provider *)context;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	const struct attest_provider_serializer *serializer = this_instance->serializer;
+	size_t max_key_size = 0;
+	uint8_t *key_buffer = NULL;
+	size_t export_size = 0;
 
-	if (serializer) {
+	if (!serializer)
+		return rpc_status;
 
-		size_t max_key_size = attest_key_mngr_max_iak_export_size();
-		uint8_t *key_buffer = malloc(max_key_size);
+	max_key_size = attest_key_mngr_max_iak_export_size();
+	key_buffer = malloc(max_key_size);
 
-		if (key_buffer) {
+	if (!key_buffer)
+		return rpc_status;
 
-			size_t export_size = 0;
-			rpc_opstatus_t opstatus =
-				attest_key_mngr_export_iak_public_key(key_buffer, max_key_size, &export_size);
+	req->service_status = attest_key_mngr_export_iak_public_key(key_buffer, max_key_size,
+								    &export_size);
 
-			rpc_status = TS_RPC_CALL_ACCEPTED;
+	rpc_status = RPC_SUCCESS;
 
-			if (opstatus == PSA_SUCCESS) {
+	if (req->service_status == PSA_SUCCESS)
+		rpc_status = serializer->serialize_export_iak_public_key_resp(
+			&req->response, key_buffer, export_size);
 
-				struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
-				rpc_status =
-					serializer->serialize_export_iak_public_key_resp(resp_buf,
-						key_buffer, export_size);
-			}
-
-			free(key_buffer);
-			call_req_set_opstatus(req, opstatus);
-		}
-		else {
-			/* Failed to allocate key buffer */
-			rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
-		}
-	}
+	free(key_buffer);
 
 	return rpc_status;
 }
 
-static rpc_status_t import_iak_handler(void *context, struct call_req* req)
+static rpc_status_t import_iak_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
-	const struct attest_provider_serializer *serializer = get_attest_serializer(context, req);
+	struct attest_provider *this_instance = (struct attest_provider *)context;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	const struct attest_provider_serializer *serializer = this_instance->serializer;
+	size_t key_data_len = 0;
+	uint8_t *key_buffer = NULL;
 
-	if (serializer) {
+	if (!serializer)
+		return rpc_status;
 
-		size_t key_data_len = attest_key_mngr_max_iak_import_size();
-		uint8_t *key_buffer = malloc(key_data_len);
+	key_data_len = attest_key_mngr_max_iak_import_size();
+	key_buffer = malloc(key_data_len);
 
-		if (key_buffer) {
+	if (!key_buffer)
+		return rpc_status;
 
-			rpc_status =
-				serializer->deserialize_import_iak_req(req_buf, key_buffer, &key_data_len);
+	rpc_status = serializer->deserialize_import_iak_req(&req->request, key_buffer,
+							    &key_data_len);
 
-			if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS)
+		req->service_status = attest_key_mngr_import_iak(key_buffer, key_data_len);
 
-				rpc_opstatus_t opstatus;
-				opstatus = attest_key_mngr_import_iak(key_buffer, key_data_len);
-				call_req_set_opstatus(req, opstatus);
-			}
-
-			free(key_buffer);
-		}
-		else {
-
-			rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
-		}
-	}
+	free(key_buffer);
 
 	return rpc_status;
 }
 
-static rpc_status_t iak_exists_handler(void *context, struct call_req* req)
+static rpc_status_t iak_exists_handler(void *context, struct rpc_request *req)
 {
-    (void)context;
+	(void)context;
 
-    rpc_opstatus_t opstatus = PSA_ERROR_DOES_NOT_EXIST;
+	service_status_t opstatus = PSA_ERROR_DOES_NOT_EXIST;
 
 	if (attest_key_mngr_iak_exists()) {
 
 	   opstatus = PSA_SUCCESS;
 	}
 
-	call_req_set_opstatus(req, opstatus);
+	req->service_status = opstatus;
 
-	return TS_RPC_CALL_ACCEPTED;
+	return RPC_SUCCESS;
 }

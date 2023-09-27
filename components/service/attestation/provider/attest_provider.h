@@ -7,12 +7,12 @@
 #ifndef ATTEST_PROVIDER_H
 #define ATTEST_PROVIDER_H
 
-#include <rpc/common/endpoint/rpc_interface.h>
-#include <rpc_caller.h>
-#include <service/common/provider/service_provider.h>
-#include <service/attestation/provider/serializer/attest_provider_serializer.h>
-#include <service/attestation/key_mngr/attest_key_mngr.h>
-#include <protocols/rpc/common/packed-c/encoding.h>
+#include "rpc/common/endpoint/rpc_service_interface.h"
+#include "rpc/common/caller/rpc_caller.h"
+#include "service/common/provider/service_provider.h"
+#include "service/attestation/provider/serializer/attest_provider_serializer.h"
+#include "service/attestation/key_mngr/attest_key_mngr.h"
+#include "protocols/rpc/common/packed-c/encoding.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,8 +24,8 @@ extern "C" {
  */
 struct attest_provider
 {
-    struct service_provider base_provider;
-    const struct attest_provider_serializer *serializers[TS_RPC_ENCODING_LIMIT];
+	struct service_provider base_provider;
+	const struct attest_provider_serializer *serializer;
 };
 
 /**
@@ -38,7 +38,7 @@ struct attest_provider
  *
  * \return An rpc_interface or NULL on failure
  */
-struct rpc_interface *attest_provider_init(struct attest_provider *context);
+struct rpc_service_interface *attest_provider_init(struct attest_provider *context);
 
 /**
  * \brief Cleans up when the instance is no longer needed
@@ -55,7 +55,7 @@ void attest_provider_deinit(struct attest_provider *context);
  * \param[in] serializer  A concrete serializer
  */
 void attest_provider_register_serializer(struct attest_provider *context,
-    unsigned int encoding, const struct attest_provider_serializer *serializer);
+	const struct attest_provider_serializer *serializer);
 
 #ifdef __cplusplus
 } /* extern "C" */

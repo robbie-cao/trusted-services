@@ -18,18 +18,17 @@ int main(int argc, char *argv[]) {
 
 	service_locator_init();
 
-	crypto_service_context = service_locator_query("sn:trustedfirmware.org:crypto:0", &status);
+	crypto_service_context = service_locator_query("sn:trustedfirmware.org:crypto:0");
 
 	if (crypto_service_context) {
 
-		struct rpc_caller *caller;
-		rpc_session_handle rpc_session_handle;
+		struct rpc_caller_session *session = NULL;
 
-		rpc_session_handle = service_context_open(crypto_service_context, TS_RPC_ENCODING_PACKED_C, &caller);
+		session = service_context_open(crypto_service_context);
 
-		if (rpc_session_handle) {
+		if (session) {
 
-			packedc_crypto_client crypto_client(caller);
+			packedc_crypto_client crypto_client(session);
 
 			status = run_ts_demo(&crypto_client, true);
 
@@ -37,7 +36,7 @@ int main(int argc, char *argv[]) {
 				printf("run_ts_demo failed\n");
 			}
 
-			service_context_close(crypto_service_context, rpc_session_handle);
+			service_context_close(crypto_service_context, session);
 		}
 		else {
 			printf("Failed to open rpc session\n");

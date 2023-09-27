@@ -5,87 +5,94 @@
  */
 
 #include "linuxffa_service_context.h"
-#include <rpc/ffarpc/caller/linux/ffarpc_caller.h>
+#include "components/rpc/ts_rpc/caller/linux/ts_rpc_caller_linux.h"
 #include <stdlib.h>
 #include <string.h>
 
+struct linux_ts_service_context
+{
+    struct service_context service_context;
+    struct rpc_caller_interface caller;
+    struct rpc_uuid service_uuid;
+};
+
 /* Concrete service_context methods */
-static rpc_session_handle linuxffa_service_context_open(void *context, struct rpc_caller **caller);
-static void linuxffa_service_context_close(void *context, rpc_session_handle session_handle);
-static void linuxffa_service_context_relinquish(void *context);
+static struct rpc_caller_session *linux_ts_service_context_open(void *context);
+static void linux_ts_service_context_close(void *context, struct rpc_caller_session *session);
+static void linux_ts_service_context_relinquish(void *context);
 
 
-struct linuxffa_service_context *linuxffa_service_context_create(const char *dev_path,
-    uint16_t partition_id, uint16_t iface_id)
+struct linux_ts_service_context *linux_ts_service_context_create(const struct rpc_uuid *service_uuid)
+
 {
-    struct linuxffa_service_context *new_context =
-        (struct linuxffa_service_context*)malloc(sizeof(struct linuxffa_service_context));
+	struct linux_ts_service_context *new_context = NULL;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 
-    if (new_context) {
-        new_context->ffa_dev_path = strdup(dev_path);
-        if (!new_context->ffa_dev_path) {
-            free(new_context);
-            return NULL;
-        }
+	if (!service_uuid)
+		return NULL;
 
-        new_context->partition_id = partition_id;
-        new_context->iface_id = iface_id;
+	new_context = (struct linux_ts_service_context *)
+		calloc(1, sizeof(struct linux_ts_service_context));
+	if (!new_context)
+		return NULL;
 
-        new_context->service_context.context = new_context;
-        new_context->service_context.open = linuxffa_service_context_open;
-        new_context->service_context.close = linuxffa_service_context_close;
-        new_context->service_context.relinquish = linuxffa_service_context_relinquish;
-    }
+	rpc_status = ts_rpc_caller_linux_init(&new_context->caller);
+	if (rpc_status != RPC_SUCCESS) {
+		free(new_context);
+		return NULL;
+	}
 
-    return new_context;
+	memcpy(&new_context->service_uuid, service_uuid, sizeof(new_context->service_uuid));
+
+	new_context->service_context.context = new_context;
+	new_context->service_context.open = linux_ts_service_context_open;
+	new_context->service_context.close = linux_ts_service_context_close;
+	new_context->service_context.relinquish = linux_ts_service_context_relinquish;
+
+	return new_context;
 }
 
-static rpc_session_handle linuxffa_service_context_open(void *context, struct rpc_caller **caller)
+static struct rpc_caller_session *linux_ts_service_context_open(void *context)
 {
-    struct linuxffa_service_context *this_context = (struct linuxffa_service_context*)context;
-    rpc_session_handle session_handle = NULL;
-    struct ffarpc_caller *ffarpc_caller =
-        (struct ffarpc_caller*)malloc(sizeof(struct ffarpc_caller));
+	struct linux_ts_service_context *this_context = (struct linux_ts_service_context *)context;
+	struct rpc_caller_session *session = NULL;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 
-    if (ffarpc_caller) {
+	if (!context)
+		return NULL;
 
-        int status;
-        *caller = ffarpc_caller_init(ffarpc_caller, this_context->ffa_dev_path);
-        status = ffarpc_caller_open(ffarpc_caller,
-            this_context->partition_id, this_context->iface_id);
+	session = (struct rpc_caller_session *)calloc(1, sizeof(struct rpc_caller_session));
+	if (!session)
+		return NULL;
 
-		if (status == 0) {
-            /* Successfully opened session */
-            session_handle = ffarpc_caller;
-		}
-		else {
-            /* Failed to open session */
-			ffarpc_caller_close(ffarpc_caller);
-            ffarpc_caller_deinit(ffarpc_caller);
-            free(ffarpc_caller);
-		}
-    }
+	rpc_status = rpc_caller_session_find_and_open(session, &this_context->caller,
+						      &this_context->service_uuid, 8192);
+	if (rpc_status != RPC_SUCCESS) {
+		free(session);
+		return NULL;
+	}
 
-    return session_handle;
+	return session;
 }
 
-static void linuxffa_service_context_close(void *context, rpc_session_handle session_handle)
+static void linux_ts_service_context_close(void *context, struct rpc_caller_session *session)
 {
-    struct ffarpc_caller *ffarpc_caller = (struct ffarpc_caller*)session_handle;
+	(void)context;
 
-    (void)context;
+	if (!session)
+		return;
 
-    if (ffarpc_caller) {
-
-		ffarpc_caller_close(ffarpc_caller);
-        ffarpc_caller_deinit(ffarpc_caller);
-        free(ffarpc_caller);
-    }
+	rpc_caller_session_close(session);
+	free(session);
 }
 
-static void linuxffa_service_context_relinquish(void *context)
+static void linux_ts_service_context_relinquish(void *context)
 {
-    struct linuxffa_service_context *this_context = (struct linuxffa_service_context*)context;
-    free(this_context->ffa_dev_path);
-    free(this_context);
+	struct linux_ts_service_context *this_context = (struct linux_ts_service_context *)context;
+
+	if (!context)
+		return;
+
+	ts_rpc_caller_linux_deinit(&this_context->caller);
+	free(context);
 }

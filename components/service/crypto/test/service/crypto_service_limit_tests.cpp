@@ -8,9 +8,8 @@
 #include <vector>
 #include <cstring>
 #include <cstdint>
-#include <service/crypto/client/cpp/protocol/protobuf/protobuf_crypto_client.h>
-#include <protocols/rpc/common/packed-c/encoding.h>
-#include <service_locator.h>
+#include <service/crypto/client/cpp/protocol/packed-c/packedc_crypto_client.h>
+#include <service/locator/interface/service_locator.h>
 #include <CppUTest/TestHarness.h>
 
 /*
@@ -21,22 +20,16 @@ TEST_GROUP(CryptoServiceLimitTests)
 {
     void setup()
     {
-        struct rpc_caller *caller;
-        int status;
-
-        m_rpc_session_handle = NULL;
-        m_crypto_service_context = NULL;
-        m_crypto_client = NULL;
-
         service_locator_init();
 
-        m_crypto_service_context = service_locator_query("sn:trustedfirmware.org:crypto:0", &status);
-        CHECK(m_crypto_service_context);
+        m_service_context = service_locator_query("sn:trustedfirmware.org:crypto:0");
+        CHECK_TRUE(m_service_context != NULL);
 
-        m_rpc_session_handle = service_context_open(m_crypto_service_context, TS_RPC_ENCODING_PROTOBUF, &caller);
-        CHECK(m_rpc_session_handle);
+        m_session = service_context_open(m_service_context);
+        CHECK_TRUE(m_session != NULL);
 
-        m_crypto_client = new protobuf_crypto_client(caller);
+        m_crypto_client = new packedc_crypto_client(m_session);
+        CHECK(m_crypto_client != NULL);
     }
 
     void teardown()
@@ -44,15 +37,15 @@ TEST_GROUP(CryptoServiceLimitTests)
         delete m_crypto_client;
         m_crypto_client = NULL;
 
-	if (m_crypto_service_context) {
-	        if (m_rpc_session_handle) {
-                        service_context_close(m_crypto_service_context, m_rpc_session_handle);
-                        m_rpc_session_handle = NULL;
-	        }
+        if (m_session) {
+            service_context_close(m_service_context, m_session);
+            m_session = NULL;
+        }
 
-                service_context_relinquish(m_crypto_service_context);
-                m_crypto_service_context = NULL;
-	}
+        if (m_service_context) {
+            service_context_relinquish(m_service_context);
+            m_service_context = NULL;
+        }
     }
 
     psa_status_t generateVolatileEccKeyPair(std::vector<psa_key_id_t> &key_ids)
@@ -118,8 +111,8 @@ TEST_GROUP(CryptoServiceLimitTests)
      */
     const size_t MAX_KEY_SLOTS = 30;
 
-    rpc_session_handle m_rpc_session_handle;
-    struct service_context *m_crypto_service_context;
+    struct service_context *m_service_context;
+    struct rpc_caller_session *m_session;
     crypto_client *m_crypto_client;
 };
 

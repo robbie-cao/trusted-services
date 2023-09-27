@@ -10,7 +10,6 @@ add_components(TARGET "protected-storage"
 	COMPONENTS
 		components/common/tlv
 		components/service/common/include
-		components/service/common/client
 		components/service/common/provider
 		components/service/secure_storage/include
 		components/service/secure_storage/frontend/secure_storage_provider

@@ -34,14 +34,14 @@ TEST(mock_mm_service, receive)
 	struct mm_service_call_req req = {
 		&guid,
 		.req_buf = {
-			.size = 20,
-			.data_len = 12,
-			.data = (void *)0x1234
+			.data = (uint8_t *)0x1234,
+			.data_length = 12,
+			.size = 20
 		},
 		.resp_buf = {
-			.size = 30,
-			.data_len = 15,
-			.data = (void *)0x2345
+			.data = (uint8_t *)0x2345,
+			.data_length = 15,
+			.size = 30
 		}
 	};
 	int64_t result = -123456;

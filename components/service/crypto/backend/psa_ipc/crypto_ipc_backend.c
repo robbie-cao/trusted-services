@@ -10,9 +10,9 @@
 #include <protocols/rpc/common/packed-c/status.h>
 #include "crypto_ipc_backend.h"
 
-psa_status_t crypto_ipc_backend_init(struct rpc_caller *caller)
+psa_status_t crypto_ipc_backend_init(struct rpc_caller_session *session)
 {
-	psa_status_t status = psa_crypto_client_init(caller);
+	psa_status_t status = psa_crypto_client_init(session);
 
 	if (status == PSA_SUCCESS)
 		status = psa_crypto_init();

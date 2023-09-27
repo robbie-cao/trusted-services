@@ -46,9 +46,10 @@ private:
     struct crypto_provider *m_crypto_provider;
     struct secure_storage_provider m_storage_provider;
     struct secure_storage_client m_storage_client;
-    struct direct_caller m_crypto_caller;
-    struct direct_caller m_storage_caller;
-    struct dummy_caller m_dummy_storage_caller;
+    struct rpc_caller_interface m_crypto_caller;
+    struct rpc_caller_interface m_storage_caller;
+    struct rpc_caller_session m_crypto_session;
+    struct rpc_caller_session m_storage_session;
 };
 
 #endif /* STANDALONE_CRYPTO_CLIENT_H */

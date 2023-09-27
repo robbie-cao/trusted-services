@@ -11,11 +11,11 @@
 #include <psa/crypto.h>
 
 /* Service request handlers */
-static rpc_status_t mac_setup_handler(void *context, struct call_req* req);
-static rpc_status_t mac_update_handler(void *context, struct call_req* req);
-static rpc_status_t mac_sign_finish_handler(void *context, struct call_req* req);
-static rpc_status_t mac_verify_finish_handler(void *context, struct call_req* req);
-static rpc_status_t mac_abort_handler(void *context, struct call_req* req);
+static rpc_status_t mac_setup_handler(void *context, struct rpc_request *req);
+static rpc_status_t mac_update_handler(void *context, struct rpc_request *req);
+static rpc_status_t mac_sign_finish_handler(void *context, struct rpc_request *req);
+static rpc_status_t mac_verify_finish_handler(void *context, struct rpc_request *req);
+static rpc_status_t mac_abort_handler(void *context, struct rpc_request *req);
 
 /* Handler mapping table for service */
 static const struct service_handler handler_table[] = {
@@ -29,12 +29,14 @@ static const struct service_handler handler_table[] = {
 
 void mac_provider_init(struct mac_provider *context)
 {
+	const struct rpc_uuid nil_uuid = { 0 };
+
 	crypto_context_pool_init(&context->context_pool);
 
 	for (size_t encoding = 0; encoding < TS_RPC_ENCODING_LIMIT; ++encoding)
 		context->serializers[encoding] = NULL;
 
-	service_provider_init(&context->base_provider, context,
+	service_provider_init(&context->base_provider, context, &nil_uuid,
 		handler_table, sizeof(handler_table)/sizeof(struct service_handler));
 }
 
@@ -51,21 +53,18 @@ void mac_provider_register_serializer(struct mac_provider *context,
 }
 
 static const struct mac_provider_serializer* get_serializer(void *context,
-	const struct call_req *req)
+	const struct rpc_request *req)
 {
 	struct mac_provider *this_instance = (struct mac_provider*)context;
-	const struct mac_provider_serializer* serializer = NULL;
-	unsigned int encoding = call_req_get_encoding(req);
+	unsigned int encoding = 0; /* No other encodings supported */
 
-	if (encoding < TS_RPC_ENCODING_LIMIT) serializer = this_instance->serializers[encoding];
-
-	return serializer;
+	return this_instance->serializers[encoding];
 }
 
-static rpc_status_t mac_setup_handler(void *context, struct call_req* req)
+static rpc_status_t mac_setup_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct mac_provider_serializer *serializer = get_serializer(context, req);
 	struct mac_provider *this_instance = (struct mac_provider*)context;
 
@@ -75,13 +74,13 @@ static rpc_status_t mac_setup_handler(void *context, struct call_req* req)
 	if (serializer)
 		rpc_status = serializer->deserialize_mac_setup_req(req_buf, &key_id, &alg);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		uint32_t op_handle;
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_alloc(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_MAC, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_MAC, req->source_id,
 				&op_handle);
 
 		if (crypto_context) {
@@ -89,36 +88,34 @@ static rpc_status_t mac_setup_handler(void *context, struct call_req* req)
 			crypto_context->op.mac = psa_mac_operation_init();
 
 			psa_status_t psa_status =
-				(call_req_get_opcode(req) == TS_CRYPTO_OPCODE_MAC_SIGN_SETUP) ?
+				(req->opcode == TS_CRYPTO_OPCODE_MAC_SIGN_SETUP) ?
 					psa_mac_sign_setup(&crypto_context->op.mac, key_id, alg) :
 					psa_mac_verify_setup(&crypto_context->op.mac, key_id, alg);
 
 			if (psa_status == PSA_SUCCESS) {
 
-				struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+				struct rpc_buffer *resp_buf = &req->response;
 				rpc_status = serializer->serialize_mac_setup_resp(resp_buf, op_handle);
 			}
 
-			if ((psa_status != PSA_SUCCESS) || (rpc_status != TS_RPC_CALL_ACCEPTED)) {
-
+			if ((psa_status != PSA_SUCCESS) || (rpc_status != RPC_SUCCESS))
 				crypto_context_pool_free(&this_instance->context_pool, crypto_context);
-			}
 
-			call_req_set_opstatus(req, psa_status);
+			req->service_status = psa_status;
 		}
 		else {
 			/* Failed to allocate crypto context for transaction */
-			rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
+			rpc_status = RPC_ERROR_RESOURCE_FAILURE;
 		}
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t mac_update_handler(void *context, struct call_req* req)
+static rpc_status_t mac_update_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct mac_provider_serializer *serializer = get_serializer(context, req);
 	struct mac_provider *this_instance = (struct mac_provider*)context;
 
@@ -129,13 +126,13 @@ static rpc_status_t mac_update_handler(void *context, struct call_req* req)
 	if (serializer)
 		rpc_status = serializer->deserialize_mac_update_req(req_buf, &op_handle, &data, &data_len);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_MAC, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_MAC, req->source_id,
 				op_handle);
 
 		if (crypto_context) {
@@ -143,16 +140,16 @@ static rpc_status_t mac_update_handler(void *context, struct call_req* req)
 			psa_status = psa_mac_update(&crypto_context->op.mac, data, data_len);
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t mac_sign_finish_handler(void *context, struct call_req* req)
+static rpc_status_t mac_sign_finish_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct mac_provider_serializer *serializer = get_serializer(context, req);
 	struct mac_provider *this_instance = (struct mac_provider*)context;
 
@@ -161,13 +158,13 @@ static rpc_status_t mac_sign_finish_handler(void *context, struct call_req* req)
 	if (serializer)
 		rpc_status = serializer->deserialize_mac_sign_finish_req(req_buf, &op_handle);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_MAC, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_MAC, req->source_id,
 				op_handle);
 
 		if (crypto_context) {
@@ -179,23 +176,23 @@ static rpc_status_t mac_sign_finish_handler(void *context, struct call_req* req)
 
 			if (psa_status == PSA_SUCCESS) {
 
-				struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+				struct rpc_buffer *resp_buf = &req->response;
 				rpc_status = serializer->serialize_mac_sign_finish_resp(resp_buf, mac, mac_len);
 
 				crypto_context_pool_free(&this_instance->context_pool, crypto_context);
 			}
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t mac_verify_finish_handler(void *context, struct call_req* req)
+static rpc_status_t mac_verify_finish_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct mac_provider_serializer *serializer = get_serializer(context, req);
 	struct mac_provider *this_instance = (struct mac_provider*)context;
 
@@ -207,13 +204,13 @@ static rpc_status_t mac_verify_finish_handler(void *context, struct call_req* re
 		rpc_status = serializer->deserialize_mac_verify_finish_req(req_buf,
 			&op_handle, &mac, &mac_len);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_MAC, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_MAC, req->source_id,
 				op_handle);
 
 		if (crypto_context) {
@@ -226,16 +223,16 @@ static rpc_status_t mac_verify_finish_handler(void *context, struct call_req* re
 			}
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t mac_abort_handler(void *context, struct call_req* req)
+static rpc_status_t mac_abort_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct mac_provider_serializer *serializer = get_serializer(context, req);
 	struct mac_provider *this_instance = (struct mac_provider*)context;
 
@@ -244,7 +241,7 @@ static rpc_status_t mac_abort_handler(void *context, struct call_req* req)
 	if (serializer)
 		rpc_status = serializer->deserialize_mac_abort_req(req_buf, &op_handle);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		/* Return success if operation is no longer active and
 		 * doesn't need aborting.
@@ -253,7 +250,7 @@ static rpc_status_t mac_abort_handler(void *context, struct call_req* req)
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_MAC, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_MAC, req->source_id,
 				op_handle);
 
 		if (crypto_context) {
@@ -262,7 +259,7 @@ static rpc_status_t mac_abort_handler(void *context, struct call_req* req)
 			crypto_context_pool_free(&this_instance->context_pool, crypto_context);
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;

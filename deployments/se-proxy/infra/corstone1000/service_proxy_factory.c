@@ -7,12 +7,13 @@
 
 #include <stddef.h>
 #include <psa/sid.h>
-#include <rpc/common/endpoint/rpc_interface.h>
+#include "rpc/common/endpoint/rpc_service_interface.h"
 #include <rpc/psa_ipc/caller/sp/psa_ipc_caller.h>
 #include <service/attestation/provider/attest_provider.h>
 #include <service/attestation/provider/serializer/packed-c/packedc_attest_provider_serializer.h>
 #include <service/crypto/factory/crypto_provider_factory.h>
 #include <service/secure_storage/frontend/secure_storage_provider/secure_storage_provider.h>
+#include "service/secure_storage/frontend/secure_storage_provider/secure_storage_uuid.h"
 #include <trace.h>
 
 /* backends */
@@ -20,41 +21,55 @@
 #include <service/secure_storage/backend/secure_storage_ipc/secure_storage_ipc.h>
 #include <service/attestation/client/psa/iat_client.h>
 
-struct psa_ipc_caller psa_ipc;
+static const struct rpc_uuid dummy_uuid = { 0 };
 
-struct rpc_interface *attest_proxy_create(void)
+struct rpc_service_interface *attest_proxy_create(void)
 {
-	struct rpc_interface *attest_iface;
-	struct rpc_caller *attest_caller;
+	struct rpc_service_interface *attest_iface = NULL;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 
 	/* Static objects for proxy instance */
-	static struct attest_provider attest_provider;
+	static struct rpc_caller_interface psa_ipc = { 0 };
+	static struct rpc_caller_session rpc_session = { 0 };
+	static struct attest_provider attest_provider = { 0 };
 
-	attest_caller = psa_ipc_caller_init(&psa_ipc);
-	if (!attest_caller)
+	rpc_status = psa_ipc_caller_init(&psa_ipc);
+	if (rpc_status != RPC_SUCCESS)
+		return NULL;
+
+	rpc_status = rpc_caller_session_open(&rpc_session, &psa_ipc, &dummy_uuid, 0, 0);
+	if (rpc_status != RPC_SUCCESS)
 		return NULL;
 
 	/* Initialize the service provider */
 	attest_iface = attest_provider_init(&attest_provider);
-	psa_iat_client_init(&psa_ipc.rpc_caller);
+	psa_iat_client_init(&rpc_session);
 
 	attest_provider_register_serializer(&attest_provider,
-		TS_RPC_ENCODING_PACKED_C, packedc_attest_provider_serializer_instance());
+					    packedc_attest_provider_serializer_instance());
 
 	return attest_iface;
 }
 
-struct rpc_interface *crypto_proxy_create(void)
+struct rpc_service_interface *crypto_proxy_create(void)
 {
-	struct rpc_interface *crypto_iface = NULL;
+	struct rpc_service_interface *crypto_iface = NULL;
 	struct crypto_provider *crypto_provider;
-	struct rpc_caller *crypto_caller;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 
-	crypto_caller = psa_ipc_caller_init(&psa_ipc);
-	if (!crypto_caller)
+	/* Static objects for proxy instance */
+	static struct rpc_caller_interface psa_ipc = { 0 };
+	static struct rpc_caller_session rpc_session = { 0 };
+
+	rpc_status = psa_ipc_caller_init(&psa_ipc);
+	if (rpc_status != RPC_SUCCESS)
 		return NULL;
 
-	if (crypto_ipc_backend_init(&psa_ipc.rpc_caller) != PSA_SUCCESS)
+	rpc_status = rpc_caller_session_open(&rpc_session, &psa_ipc, &dummy_uuid, 0, 0);
+	if (rpc_status != RPC_SUCCESS)
+		return NULL;
+
+	if (crypto_ipc_backend_init(&rpc_session) != PSA_SUCCESS)
 		return NULL;
 
 	crypto_provider = crypto_provider_factory_create();
@@ -63,34 +78,54 @@ struct rpc_interface *crypto_proxy_create(void)
 	return crypto_iface;
 }
 
-struct rpc_interface *ps_proxy_create(void)
+struct rpc_service_interface *ps_proxy_create(void)
 {
 	static struct secure_storage_provider ps_provider;
 	static struct secure_storage_ipc ps_backend;
-	struct rpc_caller *storage_caller;
 	struct storage_backend *backend;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	const struct rpc_uuid ps_uuid = { .uuid = TS_PSA_PROTECTED_STORAGE_UUID };
 
-	storage_caller = psa_ipc_caller_init(&psa_ipc);
-	if (!storage_caller)
+	/* Static objects for proxy instance */
+	static struct rpc_caller_interface psa_ipc = { 0 };
+	static struct rpc_caller_session rpc_session = { 0 };
+
+	rpc_status = psa_ipc_caller_init(&psa_ipc);
+	if (rpc_status != RPC_SUCCESS)
 		return NULL;
-	backend = secure_storage_ipc_init(&ps_backend, &psa_ipc.rpc_caller);
+
+	rpc_status = rpc_caller_session_open(&rpc_session, &psa_ipc, &dummy_uuid, 0, 0);
+	if (rpc_status != RPC_SUCCESS)
+		return NULL;
+
+	backend = secure_storage_ipc_init(&ps_backend, &rpc_session);
 	ps_backend.service_handle = TFM_PROTECTED_STORAGE_SERVICE_HANDLE;
 
-	return secure_storage_provider_init(&ps_provider, backend);
+	return secure_storage_provider_init(&ps_provider, backend, &ps_uuid);
 }
 
-struct rpc_interface *its_proxy_create(void)
+struct rpc_service_interface *its_proxy_create(void)
 {
 	static struct secure_storage_provider its_provider;
 	static struct secure_storage_ipc its_backend;
-	struct rpc_caller *storage_caller;
 	struct storage_backend *backend;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	const struct rpc_uuid its_uuid = { .uuid = TS_PSA_INTERNAL_TRUSTED_STORAGE_UUID };
 
-	storage_caller = psa_ipc_caller_init(&psa_ipc);
-	if (!storage_caller)
+	/* Static objects for proxy instance */
+	static struct rpc_caller_interface psa_ipc = { 0 };
+	static struct rpc_caller_session rpc_session = { 0 };
+
+	rpc_status = psa_ipc_caller_init(&psa_ipc);
+	if (rpc_status != RPC_SUCCESS)
 		return NULL;
-	backend = secure_storage_ipc_init(&its_backend, &psa_ipc.rpc_caller);
+
+	rpc_status = rpc_caller_session_open(&rpc_session, &psa_ipc, &dummy_uuid, 0, 0);
+	if (rpc_status != RPC_SUCCESS)
+		return NULL;
+
+	backend = secure_storage_ipc_init(&its_backend, &rpc_session);
 	its_backend.service_handle = TFM_INTERNAL_TRUSTED_STORAGE_SERVICE_HANDLE;
 
-	return secure_storage_provider_init(&its_provider, backend);
+	return secure_storage_provider_init(&its_provider, backend, &its_uuid);
 }

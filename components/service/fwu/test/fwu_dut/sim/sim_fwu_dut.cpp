@@ -14,8 +14,6 @@
 #include "common/endian/le.h"
 #include "media/disk/guid.h"
 #include "media/volume/index/volume_index.h"
-#include "service/discovery/provider/discovery_provider.h"
-#include "service/discovery/provider/serializer/packed-c/packedc_discovery_provider_serializer.h"
 #include "service/fwu/fw_store/banked/metadata_serializer/v1/metadata_serializer_v1.h"
 #include "service/fwu/fw_store/banked/metadata_serializer/v2/metadata_serializer_v2.h"
 #include "service/fwu/fw_store/banked/volume_id.h"
@@ -69,10 +67,6 @@ sim_fwu_dut::sim_fwu_dut(unsigned int num_locations, unsigned int metadata_versi
 
 	fwu_provider_register_serializer(&m_fwu_provider, TS_RPC_ENCODING_PACKED_C,
 					 packedc_fwu_provider_serializer_instance());
-
-	discovery_provider_register_serializer(&m_fwu_provider.discovery_provider,
-					       TS_RPC_ENCODING_PACKED_C,
-					       packedc_discovery_provider_serializer_instance());
 
 	m_metadata_checker = create_metadata_checker();
 }
@@ -146,7 +140,7 @@ void sim_fwu_dut::shutdown(void)
 	m_is_booted = false;
 }
 
-struct rpc_interface *sim_fwu_dut::get_service_interface(void)
+struct rpc_service_interface *sim_fwu_dut::get_service_interface(void)
 {
 	return m_service_iface;
 }

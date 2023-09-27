@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -64,7 +64,7 @@ install(TARGETS spm-test${SP_NUMBER}
 
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
 export_sp(
-	SP_UUID_CANON ${SP_UUID_CANON}
+	SP_FFA_UUID_CANON ${SP_FFA_UUID_CANON}
 	SP_BIN_UUID_CANON ${SP_BIN_UUID_CANON}
 	SP_NAME "spm-test${SP_NUMBER}"
 	MK_IN ${TS_ROOT}/environments/opteesp/sp.mk.in

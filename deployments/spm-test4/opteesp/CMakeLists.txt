@@ -13,7 +13,8 @@ project(trusted-services LANGUAGES C ASM)
 add_executable(spm-test4)
 
 set(SP_BIN_UUID_CANON "423762ed-7772-406f-99d8-0c27da0abbf8")
-set(SP_UUID_CANON "23eb0100-e32a-4497-9052-2f11e584afa6")
+set(SP_FFA_UUID_CANON "${SP_BIN_UUID_CANON}")
+set(SP_FFA_UUID_CANON "23eb0100-e32a-4497-9052-2f11e584afa6")
 set(SP_NUMBER 4)
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "SPM-TEST${SP_NUMBER}" CACHE STRING "Trace prefix")
@@ -25,12 +26,12 @@ set(TRACE_PREFIX "SPM-TEST${SP_NUMBER}" CACHE STRING "Trace prefix")
 add_components(TARGET "spm-test${SP_NUMBER}"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
+		"environments/opteesp"
 		"components/common/fdt"
 		"components/common/trace"
 		"components/common/utils"
 		"components/config/loader/sp"
 		"components/messaging/ffa/libsp"
-		"environments/opteesp"
 )
 
 include(${TS_ROOT}/components/service/spm_test/spm_test.cmake)

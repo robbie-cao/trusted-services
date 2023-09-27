@@ -21,7 +21,9 @@ include(${TS_ROOT}/environments/opteesp/env.cmake)
 project(trusted-services LANGUAGES C ASM)
 add_executable(se-proxy)
 target_include_directories(se-proxy PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
-set(SP_UUID_CANON "46bb39d1-b4d9-45b5-88ff-040027dab249")
+set(SP_BIN_UUID_CANON "46bb39d1-b4d9-45b5-88ff-040027dab249")
+set(SP_FFA_UUID_CANON "${TS_RPC_UUID_CANON}")
+
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "SEPROXY" CACHE STRING "Trace prefix")
 
@@ -33,6 +35,7 @@ target_include_directories(se-proxy PRIVATE
 #  Components that are specific to deployment in the opteesp environment.
 #
 #-------------------------------------------------------------------------------
+
 add_components(TARGET "se-proxy"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
@@ -81,7 +84,8 @@ install(FILES ${_PROTO_FILES} DESTINATION ${TS_ENV}/lib/protobuf)
 
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
 export_sp(
-	SP_UUID_CANON ${SP_UUID_CANON}
+	SP_FFA_UUID_CANON ${SP_FFA_UUID_CANON}
+	SP_BIN_UUID_CANON ${SP_BIN_UUID_CANON}
 	SP_NAME "se-proxy"
 	MK_IN ${TS_ROOT}/environments/opteesp/sp.mk.in
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_se-proxy.dts.in

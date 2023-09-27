@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <psa/crypto.h>
+#include "rpc_caller_session.h"
 #include <service/common/client/service_client.h>
 #include <protocols/rpc/common/packed-c/status.h>
 #include <protocols/service/crypto/packed-c/opcodes.h>
@@ -36,23 +37,24 @@ static inline psa_status_t common_aead_setup(struct service_client *context,
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(context->caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(context->session, &req_buf, req_len,
+					       sizeof(struct ts_crypto_aead_setup_out));
 
 	if (call_handle) {
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		rpc_opstatus_t opstatus;
+		service_status_t service_status;
 
 		memcpy(req_buf, &req_msg, req_len);
 
 		context->rpc_status =
-			rpc_caller_invoke(context->caller, call_handle,
-				opcode, &opstatus, &resp_buf, &resp_len);
+			rpc_caller_session_invoke(call_handle, opcode,
+				&resp_buf, &resp_len, &service_status);
 
-		if (context->rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (context->rpc_status == RPC_SUCCESS) {
 
-			psa_status = opstatus;
+			psa_status = service_status;
 
 			if (psa_status == PSA_SUCCESS) {
 
@@ -69,7 +71,7 @@ static inline psa_status_t common_aead_setup(struct service_client *context,
 			}
 		}
 
-		rpc_caller_end(context->caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	}
 
 	return psa_status;
@@ -110,23 +112,23 @@ static inline psa_status_t crypto_caller_aead_generate_nonce(struct service_clie
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(context->caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(context->session, &req_buf, req_len, 0);
 
 	if (call_handle) {
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		rpc_opstatus_t opstatus;
+		service_status_t service_status;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
 		context->rpc_status =
-			rpc_caller_invoke(context->caller, call_handle,
-				TS_CRYPTO_OPCODE_AEAD_GENERATE_NONCE, &opstatus, &resp_buf, &resp_len);
+			rpc_caller_session_invoke(call_handle, TS_CRYPTO_OPCODE_AEAD_GENERATE_NONCE,
+						  &resp_buf, &resp_len, &service_status);
 
-		if (context->rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (context->rpc_status == RPC_SUCCESS) {
 
-			psa_status = opstatus;
+			psa_status = service_status;
 
 			if (psa_status == PSA_SUCCESS) {
 
@@ -154,7 +156,7 @@ static inline psa_status_t crypto_caller_aead_generate_nonce(struct service_clie
 			}
 		}
 
-		rpc_caller_end(context->caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	}
 
 	return psa_status;
@@ -182,13 +184,13 @@ static inline psa_status_t crypto_caller_aead_set_nonce(struct service_client *c
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(context->caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(context->session, &req_buf, req_len, 0);
 
 	if (call_handle) {
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		rpc_opstatus_t opstatus;
+		service_status_t service_status;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
@@ -197,12 +199,13 @@ static inline psa_status_t crypto_caller_aead_set_nonce(struct service_client *c
 		tlv_encode(&req_iter, &data_record);
 
 		context->rpc_status =
-			rpc_caller_invoke(context->caller, call_handle,
-				TS_CRYPTO_OPCODE_AEAD_SET_NONCE, &opstatus, &resp_buf, &resp_len);
+			rpc_caller_session_invoke(call_handle, TS_CRYPTO_OPCODE_AEAD_SET_NONCE,
+						  &resp_buf, &resp_len, &service_status);
 
-		if (context->rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (context->rpc_status == RPC_SUCCESS)
+			psa_status = service_status;
 
-		rpc_caller_end(context->caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	}
 
 	return psa_status;
@@ -225,23 +228,24 @@ static inline psa_status_t crypto_caller_aead_set_lengths(struct service_client 
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(context->caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(context->session, &req_buf, req_len, 0);
 
 	if (call_handle) {
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		rpc_opstatus_t opstatus;
+		service_status_t service_status;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
 		context->rpc_status =
-			rpc_caller_invoke(context->caller, call_handle,
-				TS_CRYPTO_OPCODE_AEAD_SET_LENGTHS, &opstatus, &resp_buf, &resp_len);
+			rpc_caller_session_invoke(call_handle, TS_CRYPTO_OPCODE_AEAD_SET_LENGTHS,
+						  &resp_buf, &resp_len, &service_status);
 
-		if (context->rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (context->rpc_status == RPC_SUCCESS)
+			psa_status = service_status;
 
-		rpc_caller_end(context->caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	}
 
 	return psa_status;
@@ -269,13 +273,13 @@ static inline psa_status_t crypto_caller_aead_update_ad(struct service_client *c
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(context->caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(context->session, &req_buf, req_len, 0);
 
 	if (call_handle) {
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		rpc_opstatus_t opstatus;
+		service_status_t service_status;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
@@ -284,12 +288,13 @@ static inline psa_status_t crypto_caller_aead_update_ad(struct service_client *c
 		tlv_encode(&req_iter, &data_record);
 
 		context->rpc_status =
-			rpc_caller_invoke(context->caller, call_handle,
-				TS_CRYPTO_OPCODE_AEAD_UPDATE_AD, &opstatus, &resp_buf, &resp_len);
+			rpc_caller_session_invoke(call_handle, TS_CRYPTO_OPCODE_AEAD_UPDATE_AD,
+						  &resp_buf, &resp_len, &service_status);
 
-		if (context->rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (context->rpc_status == RPC_SUCCESS)
+			psa_status = service_status;
 
-		rpc_caller_end(context->caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	}
 
 	return psa_status;
@@ -321,13 +326,13 @@ static inline psa_status_t crypto_caller_aead_update(struct service_client *cont
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(context->caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(context->session, &req_buf, req_len, 0);
 
 	if (call_handle) {
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		rpc_opstatus_t opstatus;
+		service_status_t service_status;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
@@ -336,12 +341,12 @@ static inline psa_status_t crypto_caller_aead_update(struct service_client *cont
 		tlv_encode(&req_iter, &data_record);
 
 		context->rpc_status =
-			rpc_caller_invoke(context->caller, call_handle,
-				TS_CRYPTO_OPCODE_AEAD_UPDATE, &opstatus, &resp_buf, &resp_len);
+			rpc_caller_session_invoke(call_handle, TS_CRYPTO_OPCODE_AEAD_UPDATE,
+						  &resp_buf, &resp_len, &service_status);
 
-		if (context->rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (context->rpc_status == RPC_SUCCESS) {
 
-			psa_status = opstatus;
+			psa_status = service_status;
 
 			if (psa_status == PSA_SUCCESS) {
 
@@ -369,7 +374,7 @@ static inline psa_status_t crypto_caller_aead_update(struct service_client *cont
 			}
 		}
 
-		rpc_caller_end(context->caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	}
 
 	return psa_status;
@@ -396,23 +401,23 @@ static inline psa_status_t crypto_caller_aead_finish(struct service_client *cont
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(context->caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(context->session, &req_buf, req_len, 0);
 
 	if (call_handle) {
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		rpc_opstatus_t opstatus;
+		service_status_t service_status;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
 		context->rpc_status =
-			rpc_caller_invoke(context->caller, call_handle,
-				TS_CRYPTO_OPCODE_AEAD_FINISH, &opstatus, &resp_buf, &resp_len);
+			rpc_caller_session_invoke(call_handle, TS_CRYPTO_OPCODE_AEAD_FINISH,
+						  &resp_buf, &resp_len, &service_status);
 
-		if (context->rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (context->rpc_status == RPC_SUCCESS) {
 
-			psa_status = opstatus;
+			psa_status = service_status;
 
 			if (psa_status == PSA_SUCCESS) {
 
@@ -458,7 +463,7 @@ static inline psa_status_t crypto_caller_aead_finish(struct service_client *cont
 			}
 		}
 
-		rpc_caller_end(context->caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	}
 
 	return psa_status;
@@ -490,13 +495,13 @@ static inline psa_status_t crypto_caller_aead_verify(struct service_client *cont
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(context->caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(context->session, &req_buf, req_len, 0);
 
 	if (call_handle) {
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		rpc_opstatus_t opstatus;
+		service_status_t service_status;
 		struct tlv_iterator req_iter;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
@@ -505,12 +510,12 @@ static inline psa_status_t crypto_caller_aead_verify(struct service_client *cont
 		tlv_encode(&req_iter, &data_record);
 
 		context->rpc_status =
-			rpc_caller_invoke(context->caller, call_handle,
-				TS_CRYPTO_OPCODE_AEAD_VERIFY, &opstatus, &resp_buf, &resp_len);
+			rpc_caller_session_invoke(call_handle, TS_CRYPTO_OPCODE_AEAD_VERIFY,
+						  &resp_buf, &resp_len, &service_status);
 
-		if (context->rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (context->rpc_status == RPC_SUCCESS) {
 
-			psa_status = opstatus;
+			psa_status = service_status;
 
 			if (psa_status == PSA_SUCCESS) {
 
@@ -538,7 +543,7 @@ static inline psa_status_t crypto_caller_aead_verify(struct service_client *cont
 			}
 		}
 
-		rpc_caller_end(context->caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	}
 
 	return psa_status;
@@ -557,23 +562,24 @@ static inline psa_status_t crypto_caller_aead_abort(struct service_client *conte
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(context->caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(context->session, &req_buf, req_len, 0);
 
 	if (call_handle) {
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		rpc_opstatus_t opstatus;
+		service_status_t service_status;
 
 		memcpy(req_buf, &req_msg, req_fixed_len);
 
 		context->rpc_status =
-			rpc_caller_invoke(context->caller, call_handle,
-				TS_CRYPTO_OPCODE_AEAD_ABORT, &opstatus, &resp_buf, &resp_len);
+			rpc_caller_session_invoke(call_handle, TS_CRYPTO_OPCODE_AEAD_ABORT,
+						  &resp_buf, &resp_len, &service_status);
 
-		if (context->rpc_status == TS_RPC_CALL_ACCEPTED) psa_status = opstatus;
+		if (context->rpc_status == RPC_SUCCESS)
+			psa_status = service_status;
 
-		rpc_caller_end(context->caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	}
 
 	return psa_status;

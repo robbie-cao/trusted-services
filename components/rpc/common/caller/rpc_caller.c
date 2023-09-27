@@ -1,39 +1,63 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <rpc_caller.h>
-#include <stdint.h>
-#include <protocols/rpc/common/packed-c/encoding.h>
+#include "rpc_caller.h"
 
-void rpc_caller_init(struct rpc_caller *s, void *context)
+rpc_status_t rpc_caller_open_session(struct rpc_caller_interface *caller,
+				     const struct rpc_uuid *service_uuid,
+				     uint16_t endpoint_id)
 {
-	s->context = context;
+	if (!caller)
+		return RPC_ERROR_INVALID_VALUE;
 
-	/* The default encoding scheme - may be overridden by a client */
-	s->encoding = TS_RPC_ENCODING_PACKED_C;
+	return caller->open_session(caller->context, service_uuid, endpoint_id);
 }
 
-void rpc_caller_set_encoding_scheme(struct rpc_caller *s, uint32_t encoding)
+rpc_status_t rpc_caller_find_and_open_session(struct rpc_caller_interface *caller,
+					      const struct rpc_uuid *service_uuid)
 {
-	s->encoding = encoding;
+	if (!caller)
+		return RPC_ERROR_INVALID_VALUE;
+
+	return caller->find_and_open_session(caller->context, service_uuid);
 }
 
-rpc_call_handle rpc_caller_begin(struct rpc_caller *s,
-								uint8_t **req_buf, size_t req_len)
+rpc_status_t rpc_caller_close_session(struct rpc_caller_interface *caller)
 {
-	return s->call_begin(s->context, req_buf, req_len);
+	if (!caller)
+		return RPC_ERROR_INVALID_VALUE;
+
+	return caller->close_session(caller->context);
 }
 
-rpc_status_t rpc_caller_invoke(struct rpc_caller *s, rpc_call_handle handle,
-			uint32_t opcode, rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len)
+rpc_status_t rpc_caller_create_shared_memory(struct rpc_caller_interface *caller, size_t length,
+					     struct rpc_caller_shared_memory *shared_memory)
 {
-	return s->call_invoke(s->context, handle, opcode, opstatus, resp_buf, resp_len);
+	if (!caller)
+		return RPC_ERROR_INVALID_VALUE;
+
+	return caller->create_shared_memory(caller->context, length, shared_memory);
 }
 
-void rpc_caller_end(struct rpc_caller *s, rpc_call_handle handle)
+rpc_status_t rpc_caller_release_shared_memory(struct rpc_caller_interface *caller,
+					      struct rpc_caller_shared_memory *shared_memory)
 {
-	s->call_end(s->context, handle);
+	if (!caller)
+		return RPC_ERROR_INVALID_VALUE;
+
+	return caller->release_shared_memory(caller->context, shared_memory);
+}
+
+rpc_status_t rpc_caller_call(struct rpc_caller_interface *caller, uint16_t opcode,
+			     struct rpc_caller_shared_memory *shared_memory, size_t request_length,
+			     size_t *response_length, service_status_t *service_status)
+{
+	if (!caller)
+		return RPC_ERROR_INVALID_VALUE;
+
+	return caller->call(caller->context, opcode, shared_memory, request_length,
+			    response_length, service_status);
 }

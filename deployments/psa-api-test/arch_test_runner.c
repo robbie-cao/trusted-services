@@ -10,9 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "rpc/common/logging/logging_caller.h"
 #include "service_under_test.h"
-#include "service_locator.h"
 
 #define TEST_ID_OFFSET      (5)
 #define TEST_POSTFIX_OFFSET (8)
@@ -118,11 +116,6 @@ int main(int argc, char *argv[])
 {
     int rval = -1;
     int option_index = 0;
-    struct logging_caller *selected_call_logger = NULL;
-    struct logging_caller call_logger;
-
-    logging_caller_init(&call_logger, stdout);
-    service_locator_init();
 
      /* Print available tests */
     if (option_selected("-l", argc, argv, &option_index)) {
@@ -149,10 +142,6 @@ int main(int argc, char *argv[])
         pal_set_custom_test_list(test_list_values);
     }
 
-    /* Setup verbose mode */
-    if (option_selected("-v", argc, argv, &option_index))
-        selected_call_logger = &call_logger;
-
     /* Print help */
     if (option_selected("-h", argc, argv, &option_index)) {
         print_help();
@@ -160,7 +149,7 @@ int main(int argc, char *argv[])
     }
 
     /* Locate service under test */
-    rval = locate_service_under_test(selected_call_logger);
+    rval = locate_service_under_test();
 
     /* Run tests */
     if (!rval) {
@@ -173,8 +162,6 @@ int main(int argc, char *argv[])
 
         printf("Failed to locate service under test.  Error code: %d\n", rval);
     }
-
-    logging_caller_deinit(&call_logger);
 
     return rval;
 }

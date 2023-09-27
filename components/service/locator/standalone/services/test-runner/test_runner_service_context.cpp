@@ -21,7 +21,7 @@ test_runner_service_context::~test_runner_service_context()
 
 void test_runner_service_context::do_init()
 {
-    struct rpc_interface *test_runner_ep = test_runner_provider_init(&m_test_runner_provider);
+    struct rpc_service_interface *test_runner_ep = test_runner_provider_init(&m_test_runner_provider);
 
     test_runner_provider_register_serializer(&m_test_runner_provider,
                     TS_RPC_ENCODING_PACKED_C, packedc_test_runner_provider_serializer_instance());

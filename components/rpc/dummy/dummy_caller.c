@@ -7,67 +7,121 @@
 #include "dummy_caller.h"
 #include <stdlib.h>
 
-static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_len);
-static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t opcode,
-		     	rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len);
-static void call_end(void *context, rpc_call_handle handle);
+struct dummy_caller_context {
+	rpc_status_t rpc_status;
+	service_status_t service_status;
+	uint8_t *req_buf;
+};
 
-
-struct rpc_caller *dummy_caller_init(struct dummy_caller *s,
-    rpc_status_t rpc_status, rpc_opstatus_t opstatus)
+rpc_status_t open_session(void *context, const struct rpc_uuid *service_uuid, uint16_t endpoint_id)
 {
-    struct rpc_caller *base = &s->rpc_caller;
+	(void)context;
+	(void)service_uuid;
+	(void)endpoint_id;
 
-    rpc_caller_init(base, s);
-    base->call_begin = call_begin;
-    base->call_invoke = call_invoke;
-    base->call_end = call_end;
-
-    s->rpc_status = rpc_status;
-    s->opstatus = opstatus;
-    s->req_buf = NULL;
-
-    return base;
+	return RPC_SUCCESS;
 }
 
-void dummy_caller_deinit(struct dummy_caller *s)
+rpc_status_t find_and_open_session(void *context, const struct rpc_uuid *service_uuid)
 {
-    free(s->req_buf);
-    s->req_buf = NULL;
+	(void)context;
+	(void)service_uuid;
+
+	return RPC_SUCCESS;
 }
 
-static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_len)
+static rpc_status_t close_session(void *context)
 {
-    struct dummy_caller *this_context = (struct dummy_caller*)context;
-    rpc_call_handle handle = this_context;
+	struct dummy_caller_context *caller_context = (struct dummy_caller_context *)context;
 
-    free(this_context->req_buf);
-    this_context->req_buf = malloc(req_len);
-    *req_buf = this_context->req_buf;
+	free(caller_context->req_buf);
 
-    return handle;
+	return RPC_SUCCESS;
 }
 
-static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t opcode,
-		     	rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len)
+static rpc_status_t create_shared_memory(void *context, size_t size,
+					 struct rpc_caller_shared_memory *shared_memory)
 {
-    (void)handle;
-    (void)opcode;
+	struct dummy_caller_context *caller_context = (struct dummy_caller_context *)context;
 
-    struct dummy_caller *this_context = (struct dummy_caller*)context;
+	if (caller_context->req_buf)
+		return RPC_ERROR_INVALID_STATE;
 
-    free(this_context->req_buf);
-    this_context->req_buf = NULL;
+	caller_context->req_buf = calloc(1, size);
 
-    *resp_buf = NULL;
-    *resp_len = 0;
-    *opstatus = this_context->opstatus;
+	shared_memory->id = 0;
+	shared_memory->buffer = caller_context->req_buf;
+	shared_memory->size = size;
 
-    return this_context->rpc_status;
+	return RPC_SUCCESS;
 }
 
-static void call_end(void *context, rpc_call_handle handle)
+static rpc_status_t release_shared_memory(void *context,
+					  struct rpc_caller_shared_memory *shared_memory)
 {
-    (void)context;
-    (void)handle;
+	struct dummy_caller_context *caller_context = (struct dummy_caller_context *)context;
+
+	if (shared_memory->buffer != caller_context->req_buf)
+		return RPC_ERROR_INVALID_VALUE;
+
+	if (!caller_context->req_buf)
+		return RPC_ERROR_INVALID_STATE;
+
+	free(caller_context->req_buf);
+	caller_context->req_buf = NULL;
+
+	return RPC_ERROR_INTERNAL;
+}
+
+static rpc_status_t call(void *context, uint16_t opcode,
+			 struct rpc_caller_shared_memory *shared_memory, size_t request_length,
+			 size_t *response_length, service_status_t *service_status)
+{
+	struct dummy_caller_context *caller_context = (struct dummy_caller_context *)context;
+
+	(void)opcode;
+	(void)shared_memory;
+	(void)request_length;
+
+	*response_length = 0;
+	*service_status = caller_context->rpc_status;
+
+	return caller_context->rpc_status;
+}
+
+rpc_status_t dummy_caller_init(struct rpc_caller_interface *rpc_caller, rpc_status_t rpc_status,
+			       service_status_t service_status)
+{
+	struct dummy_caller_context *context = NULL;
+
+	if (!rpc_caller || rpc_caller->context)
+		return RPC_ERROR_INVALID_VALUE;
+
+	context = (struct dummy_caller_context *)calloc(1, sizeof(struct dummy_caller_context));
+	if (!context)
+		return RPC_ERROR_INTERNAL;
+
+	context->rpc_status = rpc_status;
+	context->service_status = service_status;
+	context->req_buf = NULL;
+
+	rpc_caller->context = context;
+	rpc_caller->open_session = open_session;
+	rpc_caller->find_and_open_session = find_and_open_session;
+	rpc_caller->close_session = close_session;
+	rpc_caller->create_shared_memory = create_shared_memory;
+	rpc_caller->release_shared_memory = release_shared_memory;
+	rpc_caller->call = call;
+
+	return RPC_SUCCESS;
+}
+
+rpc_status_t dummy_caller_deinit(struct rpc_caller_interface *rpc_caller)
+{
+	if (!rpc_caller || !rpc_caller->context)
+		return RPC_ERROR_INVALID_VALUE;
+
+	free(rpc_caller->context);
+
+	return RPC_SUCCESS;
 }

@@ -19,23 +19,20 @@ TEST_GROUP(AttestationProvisioningTests)
 {
     void setup()
     {
-        struct rpc_caller *caller;
-        int status;
-
-        m_rpc_session_handle = NULL;
+        m_rpc_session = NULL;
         m_attest_service_context = NULL;
 
         service_locator_init();
 
         m_attest_service_context =
-            service_locator_query("sn:trustedfirmware.org:attestation:0", &status);
+            service_locator_query("sn:trustedfirmware.org:attestation:0");
         CHECK_TRUE(m_attest_service_context);
 
-        m_rpc_session_handle =
-            service_context_open(m_attest_service_context, TS_RPC_ENCODING_PACKED_C, &caller);
-        CHECK_TRUE(m_rpc_session_handle);
+        m_rpc_session =
+            service_context_open(m_attest_service_context);
+        CHECK_TRUE(m_rpc_session);
 
-        attest_provision_client_init(caller);
+        attest_provision_client_init(m_rpc_session);
     }
 
     void teardown()
@@ -43,9 +40,9 @@ TEST_GROUP(AttestationProvisioningTests)
         attest_provision_client_deinit();
 
 	if (m_attest_service_context) {
-		if (m_rpc_session_handle) {
-			service_context_close(m_attest_service_context, m_rpc_session_handle);
-			m_rpc_session_handle = NULL;
+		if (m_rpc_session) {
+			service_context_close(m_attest_service_context, m_rpc_session);
+			m_rpc_session = NULL;
 		}
 
 		service_context_relinquish(m_attest_service_context);
@@ -53,7 +50,7 @@ TEST_GROUP(AttestationProvisioningTests)
 	}
     }
 
-    rpc_session_handle m_rpc_session_handle;
+    struct rpc_caller_session *m_rpc_session;
     struct service_context *m_attest_service_context;
 };
 

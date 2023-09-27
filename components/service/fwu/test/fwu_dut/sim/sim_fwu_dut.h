@@ -55,7 +55,7 @@ public:
 	metadata_checker *create_metadata_checker(bool is_primary = true) const;
 	fwu_client *create_fwu_client(void);
 
-	struct rpc_interface *get_service_interface(void);
+	struct rpc_service_interface *get_service_interface(void);
 
 private:
 	/* Maximum locations supported */
@@ -100,7 +100,7 @@ private:
 	struct boot_info m_boot_info;
 	metadata_checker *m_metadata_checker;
 	unsigned int m_num_locations;
-	struct rpc_interface *m_service_iface;
+	struct rpc_service_interface *m_service_iface;
 
 	/* Firmware storage */
 	struct ram_block_store m_fw_flash;

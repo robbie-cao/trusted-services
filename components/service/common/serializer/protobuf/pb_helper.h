@@ -13,6 +13,8 @@
 extern "C" {
 #endif
 
+#define PB_PACKET_LENGTH(payload_length)	((payload_length) + 16)
+
 /* Returns an initialised pb_callback_t structure for encoding a variable length byte array */
 extern pb_callback_t pb_out_byte_array(const pb_bytes_array_t *byte_array);
 

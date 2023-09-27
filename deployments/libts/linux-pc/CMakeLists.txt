@@ -48,7 +48,7 @@ add_components(
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
 		"components/rpc/direct"
-		"components/rpc/common/demux"
+		"components/rpc/common/endpoint"
 		"components/common/tlv"
 		"components/common/uuid"
 		"components/common/endian"
@@ -60,8 +60,6 @@ add_components(
 		"components/service/common/client"
 		"components/service/common/serializer/protobuf"
 		"components/service/common/provider"
-		"components/service/discovery/provider"
-		"components/service/discovery/provider/serializer/packed-c"
 		"components/service/locator/standalone"
 		"components/service/locator/standalone/services/crypto"
 		"components/service/locator/standalone/services/internal-trusted-storage"
@@ -191,8 +189,10 @@ add_components(
 	COMPONENTS
 		"components/app/test-runner"
 		"components/common/tlv"
+		"components/rpc/common/caller"
+		"components/rpc/common/interface"
+		"components/rpc/common/endpoint"
 		"components/service/common/include"
-		"components/service/discovery/client"
 		"components/service/secure_storage/include"
 		"components/service/secure_storage/test/service"
 		"components/service/secure_storage/frontend/psa/its"

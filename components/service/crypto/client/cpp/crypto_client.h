@@ -237,8 +237,8 @@ public:
 
 protected:
 	crypto_client();
-	crypto_client(struct rpc_caller *caller);
-	void set_caller(struct rpc_caller *caller);
+	crypto_client(struct rpc_caller_session *session);
+	void set_caller(struct rpc_caller_session *session);
 
 	struct service_client m_client;
 };

@@ -31,7 +31,7 @@ static inline psa_status_t crypto_caller_cipher_encrypt_setup(
 					      psa_algorithm_t alg)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_CIPHER_ENCRYPT_SETUP_SID,
@@ -59,7 +59,7 @@ static inline psa_status_t crypto_caller_cipher_decrypt_setup(
 					      psa_algorithm_t alg)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_CIPHER_DECRYPT_SETUP_SID,
@@ -88,7 +88,7 @@ static inline psa_status_t crypto_caller_cipher_generate_iv(
 					    size_t *iv_length)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_CIPHER_GENERATE_IV_SID,
@@ -116,7 +116,7 @@ static inline psa_status_t crypto_caller_cipher_set_iv(
 					       size_t iv_length)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_CIPHER_SET_IV_SID,
@@ -146,7 +146,7 @@ static inline psa_status_t crypto_caller_cipher_update(
 					       size_t *output_length)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_CIPHER_UPDATE_SID,
@@ -176,7 +176,7 @@ static inline psa_status_t crypto_caller_cipher_finish(
 					       size_t *output_length)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_CIPHER_FINISH_SID,
@@ -203,7 +203,7 @@ static inline psa_status_t crypto_caller_cipher_abort(
 					      uint32_t op_handle)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_CIPHER_ABORT_SID,

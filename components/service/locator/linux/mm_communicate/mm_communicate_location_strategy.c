@@ -12,8 +12,6 @@
 #include <rpc/mm_communicate/caller/linux/mm_communicate_caller.h>
 #include <protocols/service/smm_variable/smm_variable_proto.h>
 
-#define MAX_PARTITION_INSTANCES		(1)
-
 /* Structure to define the location of an smm service */
 struct smm_service_location
 {
@@ -36,7 +34,7 @@ bool find_candidate_location(const char *sn, struct smm_service_location *locati
 	{
 		{
 			.service = "smm-variable",
-			.uuid = "ed32d533-99e6-4209-9cc0-2d72cdd998a7",
+			.uuid = SMM_VARIABLE_CANONICAL_GUID,
 			.svc_guid = SMM_VARIABLE_GUID
 		},
 		{
@@ -69,62 +67,27 @@ bool find_candidate_location(const char *sn, struct smm_service_location *locati
 	return found;
 }
 
-bool discover_partition(const char *dev_path, struct smm_service_location *location)
+static struct service_context *query(const char *sn)
 {
-	bool discovered = false;
+	struct smm_service_location location = { 0 };
+	struct mm_communicate_service_context *new_context = NULL;
+	static const char *dev_path = "/sys/kernel/debug/arm_ffa_user";
 
-	if (uuid_is_valid(location->uuid.characters) == UUID_CANONICAL_FORM_LEN) {
 
-		struct mm_communicate_caller mm_communicate_caller;
+	if (!sn_check_authority(sn, "trustedfirmware.org"))
+		return NULL;
 
-		if (!mm_communicate_caller_check_version())
-			return false;
+	if (!find_candidate_location(sn, &location))
+		return NULL;
 
-		mm_communicate_caller_init(&mm_communicate_caller, dev_path);
+	new_context = mm_communicate_service_context_create(
+			dev_path,
+			location.partition_id,
+			&location.svc_guid);
+	if (!new_context)
+		return NULL;
 
-		uint16_t discovered_partitions[MAX_PARTITION_INSTANCES];
-		size_t discovered_count;
-
-		discovered_count = mm_communicate_caller_discover(
-			&mm_communicate_caller,
-			&location->uuid,
-			discovered_partitions,
-			MAX_PARTITION_INSTANCES);
-
-		if (discovered_count > 0) {
-
-			location->partition_id = discovered_partitions[0];
-			discovered = true;
-		}
-
-		mm_communicate_caller_deinit(&mm_communicate_caller);
-	}
-
-	return discovered;
-}
-
-static struct service_context *query(const char *sn, int *status)
-{
-	struct service_context *result = NULL;
-
-	if (!sn_check_authority(sn, "trustedfirmware.org")) return NULL;
-
-	struct smm_service_location location;
-	const char *dev_path = "/sys/kernel/debug/arm_ffa_user";
-
-	if (find_candidate_location(sn, &location) &&
-		discover_partition(dev_path, &location)) {
-
-		struct mm_communicate_service_context *new_context =
-			mm_communicate_service_context_create(
-				dev_path,
-				location.partition_id,
-				&location.svc_guid);
-
-		if (new_context) result = &new_context->service_context;
-	}
-
-	return result;
+	return &new_context->service_context;
 }
 
 const struct service_location_strategy *mm_communicate_location_strategy(void)

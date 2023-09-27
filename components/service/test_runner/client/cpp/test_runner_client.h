@@ -21,10 +21,10 @@ class test_runner_client
 {
 public:
     test_runner_client();
-    test_runner_client(struct rpc_caller *caller);
+    test_runner_client(struct rpc_caller_session *session);
     virtual ~test_runner_client();
 
-    void set_caller(struct rpc_caller *caller);
+    void set_caller(struct rpc_caller_session *session);
     int err_rpc_status() const;
 
     int run_tests(const struct test_spec &spec,

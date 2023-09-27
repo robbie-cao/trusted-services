@@ -31,23 +31,24 @@ static inline psa_status_t crypto_caller_generate_random(struct service_client *
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(context->caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(context->session, &req_buf, req_len,
+					       tlv_required_space(output_size));
 
 	if (call_handle) {
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		rpc_opstatus_t opstatus;
+		service_status_t service_status;
 
 		memcpy(req_buf, &req_msg, req_len);
 
 		context->rpc_status =
-			rpc_caller_invoke(context->caller, call_handle,
-					TS_CRYPTO_OPCODE_GENERATE_RANDOM, &opstatus, &resp_buf, &resp_len);
+			rpc_caller_session_invoke(call_handle, TS_CRYPTO_OPCODE_GENERATE_RANDOM,
+						  &resp_buf, &resp_len, &service_status);
 
-		if (context->rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (context->rpc_status == RPC_SUCCESS) {
 
-			psa_status = opstatus;
+			psa_status = service_status;
 
 			if (psa_status == PSA_SUCCESS) {
 
@@ -74,7 +75,7 @@ static inline psa_status_t crypto_caller_generate_random(struct service_client *
 			}
 		}
 
-		rpc_caller_end(context->caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	}
 
 	return psa_status;

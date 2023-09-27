@@ -22,21 +22,18 @@ TEST_GROUP(PsServiceTests)
 {
     void setup()
     {
-        struct rpc_caller *caller;
-        int status;
-
-        m_rpc_session_handle = NULL;
+        m_rpc_session = NULL;
         m_its_service_context = NULL;
 
         service_locator_init();
 
-        m_its_service_context = service_locator_query("sn:trustedfirmware.org:protected-storage:0", &status);
+        m_its_service_context = service_locator_query("sn:trustedfirmware.org:protected-storage:0");
         CHECK(m_its_service_context);
 
-        m_rpc_session_handle = service_context_open(m_its_service_context, TS_RPC_ENCODING_PACKED_C, &caller);
-        CHECK(m_rpc_session_handle);
+        m_rpc_session = service_context_open(m_its_service_context);
+        CHECK(m_rpc_session);
 
-        struct storage_backend *storage_backend = secure_storage_client_init(&m_storage_client, caller);
+        struct storage_backend *storage_backend = secure_storage_client_init(&m_storage_client, m_rpc_session);
 
         psa_ps_frontend_init(storage_backend);
         psa_its_frontend_init(storage_backend);
@@ -48,9 +45,9 @@ TEST_GROUP(PsServiceTests)
         psa_its_frontend_init(NULL);
 
 	if (m_its_service_context) {
-		if (m_rpc_session_handle) {
-			service_context_close(m_its_service_context, m_rpc_session_handle);
-			m_rpc_session_handle = NULL;
+		if (m_rpc_session) {
+			service_context_close(m_its_service_context, m_rpc_session);
+			m_rpc_session = NULL;
 		}
 
 		service_context_relinquish(m_its_service_context);
@@ -60,7 +57,7 @@ TEST_GROUP(PsServiceTests)
         secure_storage_client_deinit(&m_storage_client);
     }
 
-    rpc_session_handle m_rpc_session_handle;
+    struct rpc_caller_session *m_rpc_session;
     struct service_context *m_its_service_context;
     struct secure_storage_client m_storage_client;
 };

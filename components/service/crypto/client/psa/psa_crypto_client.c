@@ -9,7 +9,7 @@
 
 struct psa_crypto_client psa_crypto_client_instance = {
 
-	.base.caller = NULL,
+	.base.session = NULL,
 
 	/* To conform to PSA API, psa_crypto_init needs to be called.
 	 * This state variable is used enforces this.
@@ -20,17 +20,15 @@ struct psa_crypto_client psa_crypto_client_instance = {
 psa_status_t psa_crypto_init(void) {
 
 	/* Must be called after psa_crypto_client_init */
-	if (psa_crypto_client_instance.base.caller) {
-
+	if (psa_crypto_client_instance.base.session)
 		psa_crypto_client_instance.init_status = PSA_SUCCESS;
-	}
 
 	return psa_crypto_client_instance.init_status;
 }
 
-psa_status_t psa_crypto_client_init(struct rpc_caller *caller)
+psa_status_t psa_crypto_client_init(struct rpc_caller_session *session)
 {
-	return service_client_init(&psa_crypto_client_instance.base, caller);
+	return service_client_init(&psa_crypto_client_instance.base, session);
 }
 
 void psa_crypto_client_deinit(void)

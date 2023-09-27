@@ -20,7 +20,8 @@ include(${TS_ROOT}/environments/opteesp/env.cmake)
 project(trusted-services LANGUAGES C ASM)
 add_executable(attestation)
 target_include_directories(attestation PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
-set(SP_UUID_CANON "a1baf155-8876-4695-8f7c-54955e8db974")
+set(SP_BIN_UUID_CANON "a1baf155-8876-4695-8f7c-54955e8db974")
+set(SP_FFA_UUID_CANON "${TS_RPC_UUID_CANON}")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
 set(TRACE_PREFIX "ATT" CACHE STRING "Trace prefix")
 
@@ -38,6 +39,7 @@ set(TS_NO_FLOAT_HW ON)
 #  Deployment specific components
 #
 #-------------------------------------------------------------------------------
+
 add_components(TARGET "attestation"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
@@ -86,7 +88,8 @@ install(FILES ${_PROTO_FILES} DESTINATION ${TS_ENV}/lib/protobuf)
 
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
 export_sp(
-	SP_UUID_CANON ${SP_UUID_CANON}
+	SP_FFA_UUID_CANON ${SP_FFA_UUID_CANON}
+	SP_BIN_UUID_CANON ${SP_BIN_UUID_CANON}
 	SP_NAME "attestation"
 	MK_IN ${TS_ROOT}/environments/opteesp/sp.mk.in
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_attestation.dts.in

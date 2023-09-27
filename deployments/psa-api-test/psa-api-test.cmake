@@ -29,9 +29,6 @@ add_components(
 		"components/common/tlv"
 		"components/service/common/client"
 		"components/service/common/include"
-		"components/service/discovery/client"
-		"components/rpc/common/caller"
-		"components/rpc/common/logging"
 )
 
 target_sources(${PROJECT_NAME} PRIVATE

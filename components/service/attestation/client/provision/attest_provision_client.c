@@ -24,9 +24,9 @@
 static struct service_client instance;
 
 
-psa_status_t attest_provision_client_init(struct rpc_caller *caller)
+psa_status_t attest_provision_client_init(struct rpc_caller_session *session)
 {
-	return service_client_init(&instance, caller);
+	return service_client_init(&instance, session);
 }
 
 void attest_provision_client_deinit(void)
@@ -51,20 +51,23 @@ psa_status_t attest_provision_export_iak_public_key(
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(instance.caller, &req_buf, 0);
+	call_handle = rpc_caller_session_begin(instance.session, &req_buf, 0,
+					       tlv_required_space(data_size));
 
 	if (call_handle) {
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		rpc_opstatus_t opstatus;
+		service_status_t service_status;
 
-		instance.rpc_status = rpc_caller_invoke(instance.caller, call_handle,
-			TS_ATTESTATION_OPCODE_EXPORT_IAK_PUBLIC_KEY, &opstatus, &resp_buf, &resp_len);
+		instance.rpc_status =
+			rpc_caller_session_invoke(call_handle,
+						  TS_ATTESTATION_OPCODE_EXPORT_IAK_PUBLIC_KEY,
+						  &resp_buf, &resp_len, &service_status);
 
-		if (instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (instance.rpc_status == RPC_SUCCESS) {
 
-			psa_status = opstatus;
+			psa_status = service_status;
 
 			if (psa_status == PSA_SUCCESS) {
 
@@ -92,7 +95,7 @@ psa_status_t attest_provision_export_iak_public_key(
 			}
 		}
 
-		rpc_caller_end(instance.caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	}
 
 	return psa_status;
@@ -113,27 +116,26 @@ psa_status_t attest_provision_import_iak(
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(instance.session, &req_buf, req_len, 0);
 
 	if (call_handle) {
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		rpc_opstatus_t opstatus;
+		service_status_t service_status;
 		struct tlv_iterator req_iter;
 
 		tlv_iterator_begin(&req_iter, req_buf, req_len);
 		tlv_encode(&req_iter, &key_record);
 
-		instance.rpc_status = rpc_caller_invoke(instance.caller, call_handle,
-			TS_ATTESTATION_OPCODE_IMPORT_IAK, &opstatus, &resp_buf, &resp_len);
+		instance.rpc_status =
+			rpc_caller_session_invoke(call_handle, TS_ATTESTATION_OPCODE_IMPORT_IAK,
+						  &resp_buf, &resp_len, &service_status);
 
-		if (instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (instance.rpc_status == RPC_SUCCESS)
+			psa_status = service_status;
 
-			psa_status = opstatus;
-		}
-
-		rpc_caller_end(instance.caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	}
 
 	return psa_status;
@@ -146,23 +148,22 @@ psa_status_t attest_provision_iak_exists(void)
 	rpc_call_handle call_handle;
 	uint8_t *req_buf;
 
-	call_handle = rpc_caller_begin(instance.caller, &req_buf, 0);
+	call_handle = rpc_caller_session_begin(instance.session, &req_buf, 0, 0);
 
 	if (call_handle) {
 
 		uint8_t *resp_buf;
 		size_t resp_len;
-		rpc_opstatus_t opstatus;
+		service_status_t service_status;
 
-		instance.rpc_status = rpc_caller_invoke(instance.caller, call_handle,
-			TS_ATTESTATION_OPCODE_IAK_EXISTS, &opstatus, &resp_buf, &resp_len);
+		instance.rpc_status =
+			rpc_caller_session_invoke(call_handle, TS_ATTESTATION_OPCODE_IAK_EXISTS,
+						  &resp_buf, &resp_len, &service_status);
 
-		if (instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (instance.rpc_status == RPC_SUCCESS)
+			psa_status = service_status;
 
-			psa_status = opstatus;
-		}
-
-		rpc_caller_end(instance.caller, call_handle);
+		rpc_caller_session_end(call_handle);
 	}
 
 	return psa_status;

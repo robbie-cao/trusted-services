@@ -187,14 +187,14 @@ TEST(mm_communicate_call_ep, mm_communicate_single_handler_matching)
 	struct mm_service_call_req req = {
 		.guid = &guid0,
 		.req_buf = {
-			.size = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE,
-			.data_len = req_len,
-			.data = header->Data
+			.data = header->Data,
+			.data_length = req_len,
+			.size = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE
 		},
 		.resp_buf = {
-			.size = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE,
-			.data_len = 0,
-			.data = header->Data
+			.data = header->Data,
+			.data_length = 0,
+			.size = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE
 		},
 	};
 
@@ -224,14 +224,14 @@ TEST(mm_communicate_call_ep, mm_communicate_single_handler_matching_with_offset)
 	struct mm_service_call_req req = {
 		.guid = &guid0,
 		.req_buf = {
-			.size = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE - offset,
-			.data_len = req_len,
-			.data = header->Data
+			.data = header->Data,
+			.data_length = req_len,
+			.size = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE - offset
 		},
 		.resp_buf = {
-			.size = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE - offset,
-			.data_len = 0,
-			.data = header->Data
+			.data = header->Data,
+			.data_length = 0,
+			.size = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE - offset
 		},
 	};
 
@@ -260,14 +260,14 @@ TEST(mm_communicate_call_ep, mm_communicate_single_handler_matching_error)
 	struct mm_service_call_req req = {
 		.guid = &guid0,
 		.req_buf = {
-			.size = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE,
-			.data_len = req_len,
-			.data = header->Data
+			.data = header->Data,
+			.data_length = req_len,
+			.size = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE
 		},
 		.resp_buf = {
-			.size = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE,
-			.data_len = 0,
-			.data = header->Data
+			.data = header->Data,
+			.data_length = 0,
+			.size = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE
 		},
 	};
 
@@ -298,14 +298,14 @@ TEST(mm_communicate_call_ep, mm_communicate_two_handlers)
 	struct mm_service_call_req req = {
 		.guid = &guid1,
 		.req_buf = {
-			.size = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE,
-			.data_len = req_len,
-			.data = header->Data
+			.data = header->Data,
+			.data_length = req_len,
+			.size = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE
 		},
 		.resp_buf = {
-			.size = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE,
-			.data_len = 0,
-			.data = header->Data
+			.data = header->Data,
+			.data_length = 0,
+			.size = sizeof(comm_buffer) - EFI_MM_COMMUNICATE_HEADER_SIZE
 		},
 	};
 

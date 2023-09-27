@@ -39,7 +39,6 @@ add_components(
 		"components/common/tlv"
 		"components/service/common/include"
 		"components/service/common/client"
-		"components/service/discovery/client"
 		"components/service/crypto/client/cpp"
 		"components/service/crypto/client/cpp/protocol/packed-c"
 		"protocols/service/crypto/packed-c"

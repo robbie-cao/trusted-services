@@ -11,16 +11,17 @@
 #include <psa/crypto.h>
 
 /* Service request handlers */
-static rpc_status_t key_derivation_setup_handler(void *context, struct call_req* req);
-static rpc_status_t key_derivation_get_capacity_handler(void *context, struct call_req* req);
-static rpc_status_t key_derivation_set_capacity_handler(void *context, struct call_req* req);
-static rpc_status_t key_derivation_input_bytes_handler(void *context, struct call_req* req);
-static rpc_status_t key_derivation_input_key_handler(void *context, struct call_req* req);
-static rpc_status_t key_derivation_output_bytes_handler(void *context, struct call_req* req);
-static rpc_status_t key_derivation_output_key_handler(void *context, struct call_req* req);
-static rpc_status_t key_derivation_abort_handler(void *context, struct call_req* req);
-static rpc_status_t key_derivation_key_agreement_handler(void *context, struct call_req* req);
-static rpc_status_t key_derivation_raw_key_agreement_handler(void *context, struct call_req* req);
+static rpc_status_t key_derivation_setup_handler(void *context, struct rpc_request *req);
+static rpc_status_t key_derivation_get_capacity_handler(void *context, struct rpc_request *req);
+static rpc_status_t key_derivation_set_capacity_handler(void *context, struct rpc_request *req);
+static rpc_status_t key_derivation_input_bytes_handler(void *context, struct rpc_request *req);
+static rpc_status_t key_derivation_input_key_handler(void *context, struct rpc_request *req);
+static rpc_status_t key_derivation_output_bytes_handler(void *context, struct rpc_request *req);
+static rpc_status_t key_derivation_output_key_handler(void *context, struct rpc_request *req);
+static rpc_status_t key_derivation_abort_handler(void *context, struct rpc_request *req);
+static rpc_status_t key_derivation_key_agreement_handler(void *context, struct rpc_request *req);
+static rpc_status_t key_derivation_raw_key_agreement_handler(void *context,
+							     struct rpc_request *req);
 
 /* Handler mapping table for service */
 static const struct service_handler handler_table[] = {
@@ -38,12 +39,14 @@ static const struct service_handler handler_table[] = {
 
 void key_derivation_provider_init(struct key_derivation_provider *context)
 {
+	const struct rpc_uuid nil_uuid = { 0 };
+
 	crypto_context_pool_init(&context->context_pool);
 
 	for (size_t encoding = 0; encoding < TS_RPC_ENCODING_LIMIT; ++encoding)
 		context->serializers[encoding] = NULL;
 
-	service_provider_init(&context->base_provider, context,
+	service_provider_init(&context->base_provider, context, &nil_uuid,
 		handler_table, sizeof(handler_table)/sizeof(struct service_handler));
 }
 
@@ -60,21 +63,18 @@ void key_derivation_provider_register_serializer(struct key_derivation_provider 
 }
 
 static const struct key_derivation_provider_serializer* get_serializer(void *context,
-	const struct call_req *req)
+	const struct rpc_request *req)
 {
 	struct key_derivation_provider *this_instance = (struct key_derivation_provider*)context;
-	const struct key_derivation_provider_serializer* serializer = NULL;
-	unsigned int encoding = call_req_get_encoding(req);
+	unsigned int encoding = 0; /* No other encodings supported */
 
-	if (encoding < TS_RPC_ENCODING_LIMIT) serializer = this_instance->serializers[encoding];
-
-	return serializer;
+	return this_instance->serializers[encoding];
 }
 
-static rpc_status_t key_derivation_setup_handler(void *context, struct call_req* req)
+static rpc_status_t key_derivation_setup_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct key_derivation_provider_serializer *serializer = get_serializer(context, req);
 	struct key_derivation_provider *this_instance = (struct key_derivation_provider*)context;
 
@@ -83,13 +83,13 @@ static rpc_status_t key_derivation_setup_handler(void *context, struct call_req*
 	if (serializer)
 		rpc_status = serializer->deserialize_key_derivation_setup_req(req_buf, &alg);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		uint32_t op_handle;
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_alloc(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, req->source_id,
 				&op_handle);
 
 		if (crypto_context) {
@@ -101,30 +101,28 @@ static rpc_status_t key_derivation_setup_handler(void *context, struct call_req*
 
 			if (psa_status == PSA_SUCCESS) {
 
-				struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+				struct rpc_buffer *resp_buf = &req->response;
 				rpc_status = serializer->serialize_key_derivation_setup_resp(resp_buf, op_handle);
 			}
 
-			if ((psa_status != PSA_SUCCESS) || (rpc_status != TS_RPC_CALL_ACCEPTED)) {
-
+			if ((psa_status != PSA_SUCCESS) || (rpc_status != RPC_SUCCESS))
 				crypto_context_pool_free(&this_instance->context_pool, crypto_context);
-			}
 
-			call_req_set_opstatus(req, psa_status);
+			req->service_status = psa_status;
 		}
 		else {
 			/* Failed to allocate crypto context for transaction */
-			rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
+			rpc_status = RPC_ERROR_RESOURCE_FAILURE;
 		}
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t key_derivation_get_capacity_handler(void *context, struct call_req* req)
+static rpc_status_t key_derivation_get_capacity_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct key_derivation_provider_serializer *serializer = get_serializer(context, req);
 	struct key_derivation_provider *this_instance = (struct key_derivation_provider*)context;
 
@@ -133,13 +131,13 @@ static rpc_status_t key_derivation_get_capacity_handler(void *context, struct ca
 	if (serializer)
 		rpc_status = serializer->deserialize_key_derivation_get_capacity_req(req_buf, &op_handle);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, req->source_id,
 				op_handle);
 
 		if (crypto_context) {
@@ -151,22 +149,22 @@ static rpc_status_t key_derivation_get_capacity_handler(void *context, struct ca
 
 			if (psa_status == PSA_SUCCESS) {
 
-				struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+				struct rpc_buffer *resp_buf = &req->response;
 				rpc_status = serializer->serialize_key_derivation_get_capacity_resp(resp_buf,
 					capacity);
 			}
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t key_derivation_set_capacity_handler(void *context, struct call_req* req)
+static rpc_status_t key_derivation_set_capacity_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct key_derivation_provider_serializer *serializer = get_serializer(context, req);
 	struct key_derivation_provider *this_instance = (struct key_derivation_provider*)context;
 
@@ -177,13 +175,13 @@ static rpc_status_t key_derivation_set_capacity_handler(void *context, struct ca
 		rpc_status = serializer->deserialize_key_derivation_set_capacity_req(req_buf,
 			&op_handle, &capacity);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, req->source_id,
 				op_handle);
 
 		if (crypto_context) {
@@ -192,16 +190,16 @@ static rpc_status_t key_derivation_set_capacity_handler(void *context, struct ca
 				capacity);
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t key_derivation_input_bytes_handler(void *context, struct call_req* req)
+static rpc_status_t key_derivation_input_bytes_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct key_derivation_provider_serializer *serializer = get_serializer(context, req);
 	struct key_derivation_provider *this_instance = (struct key_derivation_provider*)context;
 
@@ -214,13 +212,13 @@ static rpc_status_t key_derivation_input_bytes_handler(void *context, struct cal
 		rpc_status = serializer->deserialize_key_derivation_input_bytes_req(req_buf,
 			&op_handle, &step, &data, &data_len);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, req->source_id,
 				op_handle);
 
 		if (crypto_context) {
@@ -229,16 +227,16 @@ static rpc_status_t key_derivation_input_bytes_handler(void *context, struct cal
 				step, data, data_len);
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t key_derivation_input_key_handler(void *context, struct call_req* req)
+static rpc_status_t key_derivation_input_key_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct key_derivation_provider_serializer *serializer = get_serializer(context, req);
 	struct key_derivation_provider *this_instance = (struct key_derivation_provider*)context;
 
@@ -250,7 +248,7 @@ static rpc_status_t key_derivation_input_key_handler(void *context, struct call_
 		rpc_status = serializer->deserialize_key_derivation_input_key_req(req_buf,
 			&op_handle, &step, &key_id);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		psa_status_t psa_status = PSA_ERROR_INVALID_HANDLE;
 
@@ -260,7 +258,7 @@ static rpc_status_t key_derivation_input_key_handler(void *context, struct call_
 
 			struct crypto_context *crypto_context =
 				crypto_context_pool_find(&this_instance->context_pool,
-					CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, call_req_get_caller_id(req),
+					CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, req->source_id,
 					op_handle);
 
 			if (crypto_context) {
@@ -270,16 +268,16 @@ static rpc_status_t key_derivation_input_key_handler(void *context, struct call_
 			}
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t key_derivation_output_bytes_handler(void *context, struct call_req* req)
+static rpc_status_t key_derivation_output_bytes_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct key_derivation_provider_serializer *serializer = get_serializer(context, req);
 	struct key_derivation_provider *this_instance = (struct key_derivation_provider*)context;
 
@@ -290,13 +288,13 @@ static rpc_status_t key_derivation_output_bytes_handler(void *context, struct ca
 		rpc_status = serializer->deserialize_key_derivation_output_bytes_req(req_buf,
 			&op_handle, &output_len);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, req->source_id,
 				op_handle);
 
 		if (crypto_context) {
@@ -310,7 +308,7 @@ static rpc_status_t key_derivation_output_bytes_handler(void *context, struct ca
 
 				if (psa_status == PSA_SUCCESS) {
 
-					struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+					struct rpc_buffer *resp_buf = &req->response;
 					rpc_status = serializer->serialize_key_derivation_output_bytes_resp(resp_buf,
 						output, output_len);
 				}
@@ -323,16 +321,16 @@ static rpc_status_t key_derivation_output_bytes_handler(void *context, struct ca
 			}
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t key_derivation_output_key_handler(void *context, struct call_req* req)
+static rpc_status_t key_derivation_output_key_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct key_derivation_provider_serializer *serializer = get_serializer(context, req);
 	struct key_derivation_provider *this_instance = (struct key_derivation_provider*)context;
 
@@ -343,13 +341,13 @@ static rpc_status_t key_derivation_output_key_handler(void *context, struct call
 		rpc_status = serializer->deserialize_key_derivation_output_key_req(req_buf,
 			&op_handle, &attributes);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, req->source_id,
 				op_handle);
 
 		if (crypto_context) {
@@ -362,13 +360,13 @@ static rpc_status_t key_derivation_output_key_handler(void *context, struct call
 
 			if (psa_status == PSA_SUCCESS) {
 
-				struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+				struct rpc_buffer *resp_buf = &req->response;
 				rpc_status = serializer->serialize_key_derivation_output_key_resp(resp_buf,
 					key_id);
 			}
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	psa_reset_key_attributes(&attributes);
@@ -376,10 +374,10 @@ static rpc_status_t key_derivation_output_key_handler(void *context, struct call
 	return rpc_status;
 }
 
-static rpc_status_t key_derivation_abort_handler(void *context, struct call_req* req)
+static rpc_status_t key_derivation_abort_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct key_derivation_provider_serializer *serializer = get_serializer(context, req);
 	struct key_derivation_provider *this_instance = (struct key_derivation_provider*)context;
 
@@ -388,7 +386,7 @@ static rpc_status_t key_derivation_abort_handler(void *context, struct call_req*
 	if (serializer)
 		rpc_status = serializer->deserialize_key_derivation_abort_req(req_buf, &op_handle);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		/* Return success if operation is no longer active and
 		 * doesn't need aborting.
@@ -397,7 +395,7 @@ static rpc_status_t key_derivation_abort_handler(void *context, struct call_req*
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, req->source_id,
 				op_handle);
 
 		if (crypto_context) {
@@ -406,16 +404,16 @@ static rpc_status_t key_derivation_abort_handler(void *context, struct call_req*
 			crypto_context_pool_free(&this_instance->context_pool, crypto_context);
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t key_derivation_key_agreement_handler(void *context, struct call_req* req)
+static rpc_status_t key_derivation_key_agreement_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct key_derivation_provider_serializer *serializer = get_serializer(context, req);
 	struct key_derivation_provider *this_instance = (struct key_derivation_provider*)context;
 
@@ -429,13 +427,13 @@ static rpc_status_t key_derivation_key_agreement_handler(void *context, struct c
 		rpc_status = serializer->deserialize_key_derivation_key_agreement_req(req_buf,
 			&op_handle, &step, &private_key_id, &peer_key, &peer_key_len);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		psa_status_t psa_status = PSA_ERROR_BAD_STATE;
 
 		struct crypto_context *crypto_context =
 			crypto_context_pool_find(&this_instance->context_pool,
-				CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, call_req_get_caller_id(req),
+				CRYPTO_CONTEXT_OP_ID_KEY_DERIVATION, req->source_id,
 				op_handle);
 
 		if (crypto_context) {
@@ -444,16 +442,16 @@ static rpc_status_t key_derivation_key_agreement_handler(void *context, struct c
 				step, private_key_id, peer_key, peer_key_len);
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;
 }
 
-static rpc_status_t key_derivation_raw_key_agreement_handler(void *context, struct call_req* req)
+static rpc_status_t key_derivation_raw_key_agreement_handler(void *context, struct rpc_request *req)
 {
-	rpc_status_t rpc_status = TS_RPC_ERROR_SERIALIZATION_NOT_SUPPORTED;
-	struct call_param_buf *req_buf = call_req_get_req_buf(req);
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
 	const struct key_derivation_provider_serializer *serializer = get_serializer(context, req);
 
 	psa_algorithm_t alg;
@@ -465,7 +463,7 @@ static rpc_status_t key_derivation_raw_key_agreement_handler(void *context, stru
 		rpc_status = serializer->deserialize_key_derivation_raw_key_agreement_req(req_buf,
 			&alg, &private_key_id, &peer_key, &peer_key_len);
 
-	if (rpc_status == TS_RPC_CALL_ACCEPTED) {
+	if (rpc_status == RPC_SUCCESS) {
 
 		size_t output_len;
 		uint8_t output[PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE];
@@ -476,12 +474,12 @@ static rpc_status_t key_derivation_raw_key_agreement_handler(void *context, stru
 
 		if (psa_status == PSA_SUCCESS) {
 
-			struct call_param_buf *resp_buf = call_req_get_resp_buf(req);
+			struct rpc_buffer *resp_buf = &req->response;
 			rpc_status = serializer->serialize_key_derivation_raw_key_agreement_resp(resp_buf,
 				output, output_len);
 		}
 
-		call_req_set_opstatus(req, psa_status);
+		req->service_status = psa_status;
 	}
 
 	return rpc_status;

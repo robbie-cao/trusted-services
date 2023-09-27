@@ -23,7 +23,8 @@ project(trusted-services LANGUAGES C ASM)
 add_executable(fwu)
 target_include_directories(fwu PRIVATE "${TOP_LEVEL_INCLUDE_DIRS}")
 set(SP_NAME "fwu")
-set(SP_UUID_CANON "6823a838-1b06-470e-9774-0cce8bfb53fd")
+set(SP_BIN_UUID_CANON "6823a838-1b06-470e-9774-0cce8bfb53fd")
+set(SP_FFA_UUID_CANON "${TS_RPC_UUID_CANON}")
 set(SP_STACK_SIZE "64 * 1024" CACHE STRING "Stack size")
 set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "Heap size")
 
@@ -68,11 +69,11 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 
 endif()
 
-compiler_generate_binary_output(TARGET fwu NAME "${SP_UUID_CANON}.bin" SP_BINARY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SP_UUID_CANON}.bin DESTINATION ${TS_ENV}/bin)
+compiler_generate_binary_output(TARGET fwu NAME "${SP_BIN_UUID_CANON}.bin" SP_BINARY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SP_BIN_UUID_CANON}.bin DESTINATION ${TS_ENV}/bin)
 
 include(${TS_ROOT}/tools/cmake/common/ExportMemoryRegionsToManifest.cmake REQUIRED)
-export_memory_regions_to_manifest(TARGET fwu NAME "${SP_UUID_CANON}_memory_regions.dtsi" RES EXPORT_MEMORY_REGIONS_DTSI)
+export_memory_regions_to_manifest(TARGET fwu NAME "${SP_BIN_UUID_CANON}_memory_regions.dtsi" RES EXPORT_MEMORY_REGIONS_DTSI)
 
 #-------------------------------------------------------------------------------
 #  Deployment specific install options
@@ -87,9 +88,10 @@ install(TARGETS fwu
 
 include(${TS_ROOT}/tools/cmake/common/ExportSp.cmake)
 export_sp(
-	SP_UUID_CANON ${SP_UUID_CANON}
+	SP_FFA_UUID_CANON ${SP_FFA_UUID_CANON}
+	SP_BIN_UUID_CANON ${SP_BIN_UUID_CANON}
 	SP_NAME ${SP_NAME}
 	DTS_IN ${CMAKE_CURRENT_LIST_DIR}/default_${SP_NAME}.dts.in
-	DTS_MEM_REGIONS ${SP_UUID_CANON}_memory_regions.dtsi
+	DTS_MEM_REGIONS ${SP_BIN_UUID_CANON}_memory_regions.dtsi
 	JSON_IN ${TS_ROOT}/environments/sp/sp_pkg.json.in
 )

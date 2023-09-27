@@ -30,7 +30,7 @@ static inline psa_status_t crypto_caller_hash_setup(
 					    psa_algorithm_t alg)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_HASH_SETUP_SID,
@@ -57,7 +57,7 @@ static inline psa_status_t crypto_caller_hash_update(
 					     size_t input_length)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_HASH_UPDATE_SID,
@@ -85,7 +85,7 @@ static inline psa_status_t crypto_caller_hash_finish(
 					     size_t *hash_length)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_HASH_FINISH_SID,
@@ -112,7 +112,7 @@ static inline psa_status_t crypto_caller_hash_abort(
 					    uint32_t op_handle)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_HASH_ABORT_SID,
@@ -138,7 +138,7 @@ static inline psa_status_t crypto_caller_hash_verify(
 					     size_t hash_length)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_HASH_VERIFY_SID,
@@ -164,7 +164,7 @@ static inline psa_status_t crypto_caller_hash_clone(
 					    uint32_t *target_op_handle)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_HASH_CLONE_SID,

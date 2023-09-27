@@ -28,7 +28,7 @@ static inline psa_status_t crypto_caller_purge_key(struct service_client *contex
 						   psa_key_id_t id)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_PURGE_KEY_SID,

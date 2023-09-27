@@ -22,7 +22,9 @@ add_components(TARGET "block-storage"
 		"components/config/loader/sp"
 		"components/messaging/ffa/libsp"
 		"components/rpc/common/interface"
-		"components/rpc/ffarpc/endpoint"
+		"components/rpc/common/endpoint"
+		"components/rpc/ts_rpc/common"
+		"components/rpc/ts_rpc/endpoint/sp"
 )
 
 target_sources(block-storage PRIVATE

@@ -88,10 +88,9 @@ void attestation_service_context::do_init()
 
 	/* Initialize the attestation service provider */
 	local_attest_key_mngr_init(LOCAL_ATTEST_KEY_MNGR_VOLATILE_IAK);
-	struct rpc_interface *attest_ep = attest_provider_init(&m_attest_provider);
+	struct rpc_service_interface *attest_ep = attest_provider_init(&m_attest_provider);
 
-	attest_provider_register_serializer(&m_attest_provider,
-		TS_RPC_ENCODING_PACKED_C, packedc_attest_provider_serializer_instance());
+	attest_provider_register_serializer(&m_attest_provider, packedc_attest_provider_serializer_instance());
 
 	standalone_service_context::set_rpc_interface(attest_ep);
 }

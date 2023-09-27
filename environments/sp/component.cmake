@@ -6,7 +6,7 @@
 #-------------------------------------------------------------------------------
 
 # Check mandatory variables.
-foreach(_var IN ITEMS TGT TRACE_PREFIX SP_HEAP_SIZE SP_STACK_SIZE SP_UUID_CANON)
+foreach(_var IN ITEMS TGT TRACE_PREFIX SP_HEAP_SIZE SP_STACK_SIZE SP_FFA_UUID_CANON)
 	if (NOT DEFINED ${_var})
 		message(FATAL_ERROR "Mandatory parameter '${_var}' missing.")
 	endif()
@@ -15,7 +15,7 @@ endforeach()
 # Ensure elf output naming is symbolize.py compatible.
 # If binary UUID is not defined, fall back to using the SP UUID value.
 if (NOT SP_BIN_UUID_CANON)
-	set(SP_BIN_UUID_CANON "${SP_UUID_CANON}")
+	set(SP_BIN_UUID_CANON "${SP_FFA_UUID_CANON}")
 endif()
 ts_add_uuid_to_exe_name(TGT "${TGT}" UUID "${SP_BIN_UUID_CANON}" )
 

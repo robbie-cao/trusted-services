@@ -46,7 +46,7 @@ private:
 	void close_session(void);
 
 	struct service_client m_client;
-	rpc_session_handle m_rpc_session_handle;
+	struct rpc_caller_session *m_rpc_session;
 	struct service_context *m_service_context;
 };
 

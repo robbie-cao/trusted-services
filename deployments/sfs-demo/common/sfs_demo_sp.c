@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "components/rpc/ffarpc/caller/sp/ffarpc_caller.h"
+#include "components/rpc/ts_rpc/caller/sp/ts_rpc_caller_sp.h"
 #include "components/service/secure_storage/frontend/psa/its/its_frontend.h"
 #include "service/secure_storage/backend/secure_storage_client/secure_storage_client.h"
 #include "psa/internal_trusted_storage.h"
@@ -21,7 +21,7 @@
 
 static uint8_t tx_buffer[4096] __aligned(4096);
 static uint8_t rx_buffer[4096] __aligned(4096);
-static const uint8_t its_uuid[] = SP_ITS_UUID_BYTES;
+static const struct rpc_uuid its_uuid = { .uuid = SP_ITS_UUID_BYTES };
 
 static const psa_storage_uid_t test_data_uid = 0x12345678;
 static const uint8_t test_data[] = {
@@ -126,13 +126,11 @@ void __noreturn sp_main(union ffa_boot_info *boot_info) {
 
 	sp_result result = SP_RESULT_INTERNAL_ERROR;
 	struct sp_msg req_msg = { 0 };
-	struct rpc_caller *caller = NULL;
-	struct ffarpc_caller ffa_caller = { 0 };
+	struct rpc_caller_interface caller = { 0 };
+	struct rpc_caller_session session = { 0 };
 	struct secure_storage_client secure_storage_client = {0};
 	struct storage_backend *storage_backend = NULL;
-	uint16_t sp_ids[3] = { 0 };
-	uint32_t sp_id_cnt = 0;
-	uint16_t own_id = 0;
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
 	psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
 
 	/* Boot */
@@ -145,33 +143,19 @@ void __noreturn sp_main(union ffa_boot_info *boot_info) {
 		goto fatal_error;
 	}
 
-	result = sp_discovery_own_id_get(&own_id);
-	if (result != SP_RESULT_OK) {
-		EMSG("Failed to query own ID: %d", result);
+	rpc_status = ts_rpc_caller_sp_init(&caller);
+	if (rpc_status != RPC_SUCCESS) {
+		EMSG("Failed initialize RPC caller");
 		goto fatal_error;
 	}
 
-	IMSG("Test SP ID: 0x%x", own_id);
-
-	caller = ffarpc_caller_init(&ffa_caller, own_id);
-	if (!caller) {
-		EMSG("Failed initialize ffarpc_caller");
+	rpc_status = rpc_caller_session_find_and_open(&session, &caller, &its_uuid, 4096);
+	if (rpc_status != RPC_SUCCESS) {
+		EMSG("Failed to open RPC session");
 		goto fatal_error;
 	}
 
-	sp_id_cnt = ffarpc_caller_discover(its_uuid, sp_ids, 3);
-	if (sp_id_cnt == 0) {
-		EMSG("Failed to discover SPs: %d", sp_id_cnt);
-		goto fatal_error;
-	}
-	IMSG("ITS SP ID: 0x%x", sp_ids[0]);
-
-	if (ffarpc_caller_open(&ffa_caller, sp_ids[0], 0)) {
-		EMSG("Failed to open ffarpc_caller");
-		goto fatal_error;
-	}
-
-	storage_backend = secure_storage_client_init(&secure_storage_client, caller);
+	storage_backend = secure_storage_client_init(&secure_storage_client, &session);
 	if (!storage_backend) {
 		EMSG("Failed to initialize secure storage client");
 		goto fatal_error;
@@ -189,8 +173,15 @@ void __noreturn sp_main(union ffa_boot_info *boot_info) {
 	 */
 	run_its_test();
 
-	if (ffarpc_caller_close(&ffa_caller)) {
-		EMSG("Failed to close ffarpc_caller");
+	rpc_status = rpc_caller_session_close(&session);
+	if (rpc_status != RPC_SUCCESS) {
+		EMSG("Failed to close RPC session");
+		goto fatal_error;
+	}
+
+	rpc_status = ts_rpc_caller_sp_deinit(&caller);
+	if (rpc_status != RPC_SUCCESS) {
+		EMSG("Failed to close RPC caller");
 		goto fatal_error;
 	}
 

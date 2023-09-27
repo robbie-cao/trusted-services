@@ -39,7 +39,7 @@ static inline psa_status_t crypto_caller_aead_encrypt(
 					      size_t *aeadtext_length)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	size_t in_len;
 	int i;
@@ -100,7 +100,7 @@ static inline psa_status_t crypto_caller_aead_decrypt(
 					      size_t *plaintext_length)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	size_t in_len;
 	int i;
@@ -153,7 +153,7 @@ static inline psa_status_t crypto_caller_aead_encrypt_setup(
 					    psa_algorithm_t alg)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_AEAD_ENCRYPT_SETUP_SID,
@@ -183,7 +183,7 @@ static inline psa_status_t crypto_caller_aead_decrypt_setup(
 					    psa_algorithm_t alg)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_AEAD_DECRYPT_SETUP_SID,
@@ -214,7 +214,7 @@ static inline psa_status_t crypto_caller_aead_generate_nonce(
 					     size_t *nonce_length)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_AEAD_GENERATE_NONCE_SID,
@@ -244,7 +244,7 @@ static inline psa_status_t crypto_caller_aead_set_nonce(
 						size_t nonce_length)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_AEAD_SET_NONCE_SID,
@@ -273,7 +273,7 @@ static inline psa_status_t crypto_caller_aead_set_lengths(
 					  size_t plaintext_length)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_AEAD_SET_LENGTHS_SID,
@@ -303,7 +303,7 @@ static inline psa_status_t crypto_caller_aead_update_ad(
 						size_t input_length)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_AEAD_UPDATE_AD_SID,
@@ -345,7 +345,7 @@ static inline psa_status_t crypto_caller_aead_update(
 					     size_t *output_length)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_AEAD_UPDATE_SID,
@@ -390,7 +390,7 @@ static inline psa_status_t crypto_caller_aead_finish(
 					     size_t *tag_length)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_AEAD_FINISH_SID,
@@ -443,7 +443,7 @@ static inline psa_status_t crypto_caller_aead_verify(
 					     size_t tag_length)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_AEAD_VERIFY_SID,
@@ -489,7 +489,7 @@ static inline psa_status_t crypto_caller_aead_abort(
 					    uint32_t op_handle)
 {
 	struct service_client *ipc = context;
-	struct rpc_caller *caller = ipc->caller;
+	struct rpc_caller_interface *caller = ipc->session->caller;
 	psa_status_t status;
 	struct psa_ipc_crypto_pack_iovec iov = {
 		.function_id = TFM_CRYPTO_AEAD_ABORT_SID,

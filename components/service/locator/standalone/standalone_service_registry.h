@@ -29,7 +29,7 @@ public:
     void regsiter_service_instance(standalone_service_context *service_context);
     standalone_service_context *deregsiter_service_instance(const char *sn);
 
-    standalone_service_context *query(const char *sn, int *status);
+    standalone_service_context *query(const char *sn);
 
 private:
     bool find_context_index(const char *sn, size_t *index) const;

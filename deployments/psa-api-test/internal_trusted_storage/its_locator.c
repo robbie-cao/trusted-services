@@ -12,40 +12,32 @@
 #include "../service_under_test.h"
 
 /* RPC context */
-static rpc_session_handle session_handle = NULL;
+static struct rpc_caller_session *session = NULL;
 static struct service_context *ps_service_context = NULL;
 static struct secure_storage_client storage_client;
 
-int locate_service_under_test(struct logging_caller *call_logger)
+int locate_service_under_test(void)
 {
 	int status = -1;
 
-	if (!session_handle && !ps_service_context) {
+	service_locator_init();
 
-		struct rpc_caller *caller;
+	if (!session && !ps_service_context) {
 
 		ps_service_context =
-			service_locator_query("sn:trustedfirmware.org:internal-trusted-storage:0", &status);
+			service_locator_query("sn:trustedfirmware.org:internal-trusted-storage:0");
 
 		if (ps_service_context) {
 
-			session_handle =
-				service_context_open(ps_service_context, TS_RPC_ENCODING_PACKED_C, &caller);
+			session =
+				service_context_open(ps_service_context);
 
-			if (session_handle) {
+			if (session) {
 
 				struct storage_backend *storage_backend = NULL;
 				status = -1;
 
-				if (call_logger) {
-
-					storage_backend = secure_storage_client_init(&storage_client,
-						logging_caller_attach(call_logger, caller));
-				}
-				else {
-
-					storage_backend = secure_storage_client_init(&storage_client,  caller);
-				}
+				storage_backend = secure_storage_client_init(&storage_client, session);
 
 				if (storage_backend) {
 
@@ -61,15 +53,15 @@ int locate_service_under_test(struct logging_caller *call_logger)
 	return status;
 }
 
-void relinquish_service_under_test(void)
+int relinquish_service_under_test(void)
 {
 	psa_its_frontend_init(NULL);
 	secure_storage_client_deinit(&storage_client);
 
-	if (ps_service_context && session_handle) {
+	if (ps_service_context && session) {
 
-		service_context_close(ps_service_context, session_handle);
-		session_handle = NULL;
+		service_context_close(ps_service_context, session);
+		session = NULL;
 	}
 
 	if (ps_service_context) {
@@ -77,4 +69,6 @@ void relinquish_service_under_test(void)
 		service_context_relinquish(ps_service_context);
 		ps_service_context = NULL;
 	}
+
+	return 0;
 }

@@ -7,8 +7,7 @@
 #ifndef TEST_RUNNER_PROVIDER_H
 #define TEST_RUNNER_PROVIDER_H
 
-#include <rpc/common/endpoint/rpc_interface.h>
-#include <rpc_caller.h>
+#include "components/rpc/common/endpoint/rpc_service_interface.h"
 #include <service/common/provider/service_provider.h>
 #include <service/test_runner/provider/serializer/test_runner_provider_serializer.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
@@ -26,7 +25,7 @@ struct test_runner_provider
     struct test_runner_backend *backend_list;
 };
 
-struct rpc_interface *test_runner_provider_init(struct test_runner_provider *context);
+struct rpc_service_interface *test_runner_provider_init(struct test_runner_provider *context);
 
 void test_runner_provider_deinit(struct test_runner_provider *context);
 

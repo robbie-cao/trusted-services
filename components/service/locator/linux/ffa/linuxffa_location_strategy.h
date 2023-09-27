@@ -7,7 +7,7 @@
 #ifndef LINUXFFA_LOCATION_STRATEGY_H
 #define LINUXFFA_LOCATION_STRATEGY_H
 
-#include <service_locator.h>
+#include "service_locator.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,10 +15,10 @@ extern "C" {
 
 /*
  * Returns a service_location_strategy for locating a service instance
- * hosted in a secure partition, accessed using FFA from Linux userspace.
- * Relies on an FFA Linux kernel driver.
+ * hosted in a secure partition, accessed using TS RPC from Linux userspace.
+ * Relies on an TS Linux kernel driver.
  */
-const struct service_location_strategy *linuxffa_location_strategy(void);
+const struct service_location_strategy *linux_ts_location_strategy(void);
 
 #ifdef __cplusplus
 }

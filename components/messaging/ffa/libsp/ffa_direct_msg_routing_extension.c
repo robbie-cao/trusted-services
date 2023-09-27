@@ -8,8 +8,9 @@
 #include <stdbool.h>
 
 #define SP_ID_INVALID FFA_ID_GET_ID_MASK
-#define FFA_ROUTING_EXT_RC_BIT BIT(0)
-#define FFA_ROUTING_EXT_ERROR_BIT BIT(1)
+#define FFA_ROUTING_EXT_RC_BIT		BIT32(31)
+#define FFA_ROUTING_EXT_ERROR_BIT	BIT32(30)
+#define FFA_ROUTING_EXT_BITS_MASK	(FFA_ROUTING_EXT_RC_BIT | FFA_ROUTING_EXT_ERROR_BIT)
 
 enum sp_rc_state { idle = 0, root, leaf, rc_root, internal, forwarding };
 
@@ -99,6 +100,9 @@ static ffa_result request_received_hook(struct ffa_direct_msg *req)
 	caller_id = req->source_id;
 	callee_id = SP_ID_INVALID;
 
+	if (FFA_IS_32_BIT_FUNC(req->function_id))
+		req->args.args32[0] &= ~FFA_ROUTING_EXT_BITS_MASK;
+
 	return FFA_OK;
 }
 
@@ -107,10 +111,17 @@ ffa_result ffa_direct_msg_routing_ext_wait_post_hook(struct ffa_direct_msg *req)
 	return request_received_hook(req);
 }
 
-void ffa_direct_msg_routing_ext_req_pre_hook(struct ffa_direct_msg *req)
+ffa_result ffa_direct_msg_routing_ext_req_pre_hook(struct ffa_direct_msg *req)
 {
+	if (FFA_IS_32_BIT_FUNC(req->function_id)) {
+		if (req->args.args32[0] & FFA_ROUTING_EXT_BITS_MASK)
+			return FFA_INVALID_PARAMETERS;
+	}
+
 	state = internal;
 	callee_id = req->destination_id;
+
+	return FFA_OK;
 }
 
 ffa_result ffa_direct_msg_routing_ext_req_post_hook(struct ffa_direct_msg *resp)
@@ -179,11 +190,18 @@ void ffa_direct_msg_routing_ext_req_error_hook(void)
 	callee_id = SP_ID_INVALID;
 }
 
-void ffa_direct_msg_routing_ext_resp_pre_hook(struct ffa_direct_msg *resp)
+ffa_result ffa_direct_msg_routing_ext_resp_pre_hook(struct ffa_direct_msg *resp)
 {
+	if (FFA_IS_32_BIT_FUNC(resp->function_id)) {
+		if (resp->args.args32[0] & FFA_ROUTING_EXT_BITS_MASK)
+			return FFA_INVALID_PARAMETERS;
+	}
+
 	state = idle;
 	caller_id = SP_ID_INVALID;
 	callee_id = SP_ID_INVALID;
+
+	return FFA_OK;
 }
 
 ffa_result ffa_direct_msg_routing_ext_resp_post_hook(struct ffa_direct_msg *req)
@@ -195,10 +213,17 @@ void ffa_direct_msg_routing_ext_resp_error_hook(void)
 {
 }
 
-void ffa_direct_msg_routing_ext_rc_req_pre_hook(struct ffa_direct_msg *req)
+ffa_result ffa_direct_msg_routing_ext_rc_req_pre_hook(struct ffa_direct_msg *req)
 {
-	req->args.args32[0] = FFA_ROUTING_EXT_RC_BIT;
+	if (FFA_IS_32_BIT_FUNC(req->function_id)) {
+		if (req->args.args32[0] & FFA_ROUTING_EXT_BITS_MASK)
+			return FFA_INVALID_PARAMETERS;
+	}
+
+	req->args.args32[0] |= FFA_ROUTING_EXT_RC_BIT;
 	state = rc_root;
+
+	return FFA_OK;
 }
 
 ffa_result

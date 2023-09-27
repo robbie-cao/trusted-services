@@ -7,6 +7,7 @@
 #include <stddef.h>
 #include <string.h>
 #include "iat_client.h"
+#include "rpc_caller_session.h"
 #include <common/tlv/tlv.h>
 #include <psa/initial_attestation.h>
 #include <service/common/client/service_client.h>
@@ -23,9 +24,9 @@
 static struct service_client instance;
 
 
-psa_status_t psa_iat_client_init(struct rpc_caller *caller)
+psa_status_t psa_iat_client_init(struct rpc_caller_session *session)
 {
-	return service_client_init(&instance, caller);
+	return service_client_init(&instance, session);
 }
 
 void psa_iat_client_deinit(void)
@@ -40,106 +41,109 @@ int psa_iat_client_rpc_status(void)
 
 psa_status_t psa_initial_attest_get_token(
 	const uint8_t *auth_challenge, size_t challenge_size,
-    uint8_t *token_buf, size_t token_buf_size, size_t *token_size)
+	uint8_t *token_buf, size_t token_buf_size, size_t *token_size)
 {
-    psa_status_t psa_status = PSA_ERROR_INVALID_ARGUMENT;
-    size_t req_len = tlv_required_space(challenge_size);
+	psa_status_t psa_status = PSA_ERROR_INVALID_ARGUMENT;
+	size_t req_len = tlv_required_space(challenge_size);
+	struct tlv_record challenge_record = { 0 };
+	rpc_call_handle call_handle;
+	uint8_t *req_buf;
 
-    if (!token_buf || !token_buf_size) return PSA_ERROR_INVALID_ARGUMENT;
+	if (!token_buf || !token_buf_size)
+		return PSA_ERROR_INVALID_ARGUMENT;
 
-    struct tlv_record challenge_record;
-    challenge_record.tag = TS_ATTESTATION_GET_TOKEN_IN_TAG_AUTH_CHALLENGE;
-    challenge_record.length = challenge_size;
-    challenge_record.value = auth_challenge;
-
-    rpc_call_handle call_handle;
-    uint8_t *req_buf;
+	challenge_record.tag = TS_ATTESTATION_GET_TOKEN_IN_TAG_AUTH_CHALLENGE;
+	challenge_record.length = challenge_size;
+	challenge_record.value = auth_challenge;
 
 	*token_size = 0;
 
-    call_handle = rpc_caller_begin(instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(instance.session, &req_buf, req_len,
+					       tlv_required_space(token_buf_size));
 
-    if (call_handle) {
+	if (call_handle) {
 
-        uint8_t *resp_buf;
-        size_t resp_len;
-        rpc_opstatus_t opstatus;
-        struct tlv_iterator req_iter;
+		uint8_t *resp_buf;
+		size_t resp_len;
+		service_status_t service_status;
+		struct tlv_iterator req_iter;
 
-        tlv_iterator_begin(&req_iter, req_buf, req_len);
-        tlv_encode(&req_iter, &challenge_record);
+		tlv_iterator_begin(&req_iter, req_buf, req_len);
+		tlv_encode(&req_iter, &challenge_record);
 
-        instance.rpc_status = rpc_caller_invoke(instance.caller, call_handle,
-            TS_ATTESTATION_OPCODE_GET_TOKEN, &opstatus, &resp_buf, &resp_len);
+		instance.rpc_status =
+			rpc_caller_session_invoke(call_handle, TS_ATTESTATION_OPCODE_GET_TOKEN,
+						  &resp_buf, &resp_len, &service_status);
 
-        if (instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (instance.rpc_status == RPC_SUCCESS) {
 
-            psa_status = opstatus;
+			psa_status = service_status;
 
-            if (psa_status == PSA_SUCCESS) {
+			if (psa_status == PSA_SUCCESS) {
+				struct tlv_const_iterator resp_iter;
+				struct tlv_record decoded_record;
 
-                struct tlv_const_iterator resp_iter;
-                struct tlv_record decoded_record;
-                tlv_const_iterator_begin(&resp_iter, resp_buf, resp_len);
+				tlv_const_iterator_begin(&resp_iter, resp_buf, resp_len);
 
-                if (tlv_find_decode(&resp_iter,
-						TS_ATTESTATION_GET_TOKEN_OUT_TAG_TOKEN, &decoded_record)) {
+				if (tlv_find_decode(&resp_iter,
+					TS_ATTESTATION_GET_TOKEN_OUT_TAG_TOKEN, &decoded_record)) {
 
-                    if (decoded_record.length <= token_buf_size) {
+					if (decoded_record.length <= token_buf_size) {
 
-                        memcpy(token_buf, decoded_record.value, decoded_record.length);
-                        *token_size = decoded_record.length;
-                    }
-                    else {
-                        /* Provided buffer is too small */
-                        psa_status = PSA_ERROR_BUFFER_TOO_SMALL;
-                    }
-                }
-                else {
-                    /* Mandatory response parameter missing */
-                    psa_status = PSA_ERROR_GENERIC_ERROR;
-                }
+						memcpy(token_buf, decoded_record.value,
+						       decoded_record.length);
+						*token_size = decoded_record.length;
+					} else {
+						/* Provided buffer is too small */
+						psa_status = PSA_ERROR_BUFFER_TOO_SMALL;
+					}
+				} else {
+					/* Mandatory response parameter missing */
+					psa_status = PSA_ERROR_GENERIC_ERROR;
+				}
 			}
-        }
+		}
 
-        rpc_caller_end(instance.caller, call_handle);
-    }
+		rpc_caller_session_end(call_handle);
+	}
 
-    return psa_status;
+	return psa_status;
 }
 
 psa_status_t psa_initial_attest_get_token_size(
 	size_t challenge_size, size_t *token_size)
 {
-    psa_status_t psa_status = PSA_ERROR_INVALID_ARGUMENT;
-    struct ts_attestation_get_token_size_in req_msg;
-    size_t req_len = sizeof(struct ts_attestation_get_token_size_in);
+	psa_status_t psa_status = PSA_ERROR_INVALID_ARGUMENT;
+	struct ts_attestation_get_token_size_in req_msg;
+	size_t req_len = sizeof(struct ts_attestation_get_token_size_in);
 
-    *token_size = 0;  /* For failure case */
+	*token_size = 0;  /* For failure case */
 
-    req_msg.challenge_size = challenge_size;
+	req_msg.challenge_size = challenge_size;
 
-    rpc_call_handle call_handle;
-    uint8_t *req_buf;
+	rpc_call_handle call_handle;
+	uint8_t *req_buf;
 
-    call_handle = rpc_caller_begin(instance.caller, &req_buf, req_len);
+	call_handle = rpc_caller_session_begin(instance.session, &req_buf, req_len,
+					       sizeof(struct ts_attestation_get_token_size_out));
 
-    if (call_handle) {
+	if (call_handle) {
 
-        uint8_t *resp_buf;
-        size_t resp_len;
-        rpc_opstatus_t opstatus;
+		uint8_t *resp_buf;
+		size_t resp_len;
+		service_status_t service_status;
 
-        memcpy(req_buf, &req_msg, req_len);
+		memcpy(req_buf, &req_msg, req_len);
 
-        instance.rpc_status = rpc_caller_invoke(instance.caller, call_handle,
-                    TS_ATTESTATION_OPCODE_GET_TOKEN_SIZE, &opstatus, &resp_buf, &resp_len);
+		instance.rpc_status =
+			rpc_caller_session_invoke(call_handle, TS_ATTESTATION_OPCODE_GET_TOKEN_SIZE,
+						  &resp_buf, &resp_len, &service_status);
 
-        if (instance.rpc_status == TS_RPC_CALL_ACCEPTED) {
+		if (instance.rpc_status == RPC_SUCCESS) {
 
-            psa_status = opstatus;
+			psa_status = service_status;
 
-            if (psa_status == PSA_SUCCESS) {
+			if (psa_status == PSA_SUCCESS) {
 
 				if (resp_len >= sizeof(struct ts_attestation_get_token_size_out)) {
 
@@ -151,11 +155,11 @@ psa_status_t psa_initial_attest_get_token_size(
 					/* Failed to decode response message */
 					psa_status = PSA_ERROR_GENERIC_ERROR;
 				}
-            }
-        }
+			}
+		}
 
-        rpc_caller_end(instance.caller, call_handle);
-    }
+		rpc_caller_session_end(call_handle);
+	}
 
-    return psa_status;
+	return psa_status;
 }

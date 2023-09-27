@@ -10,11 +10,9 @@
 #include "mock_ffa_api.h"
 #include "../include/sp_messaging.h"
 
-#define SP_MSG_ARG_OFFSET (1)
-
 #if FFA_DIRECT_MSG_ROUTING_EXTENSION
-#define ROUTING_EXT_RC_BIT BIT(0)
-#define ROUTING_EXT_ERR_BIT BIT(1)
+#define ROUTING_EXT_RC_BIT BIT(31)
+#define ROUTING_EXT_ERR_BIT BIT(30)
 #endif
 
 TEST_GROUP(sp_messaging)
@@ -37,7 +35,7 @@ TEST_GROUP(sp_messaging)
 		int i = 0;
 
 		for (i = 0; i < SP_MSG_ARG_COUNT; i++) {
-			ffa_args[i + SP_MSG_ARG_OFFSET] = sp_args[i];
+			ffa_args[i] = sp_args[i];
 		}
 	}
 
@@ -46,7 +44,7 @@ TEST_GROUP(sp_messaging)
 		int i = 0;
 
 		for (i = 0; i < SP_MSG_ARG_COUNT; i++) {
-			ffa_args[i + SP_MSG_ARG_OFFSET] = sp_args[i];
+			ffa_args[i] = sp_args[i];
 		}
 	}
 
@@ -58,9 +56,8 @@ TEST_GROUP(sp_messaging)
 		msg->source_id = source_id;
 		msg->destination_id = dest_id;
 
-		msg->args.args32[0] = 0;
 		for (i = 0; i < SP_MSG_ARG_COUNT; i++) {
-			msg->args.args32[i + SP_MSG_ARG_OFFSET] = args32[i];
+			msg->args.args32[i] = args32[i];
 		}
 	}
 
@@ -72,9 +69,8 @@ TEST_GROUP(sp_messaging)
 		msg->source_id = source_id;
 		msg->destination_id = dest_id;
 
-		msg->args.args64[0] = 0;
 		for (i = 0; i < SP_MSG_ARG_COUNT; i++) {
-			msg->args.args64[i + SP_MSG_ARG_OFFSET] = args64[i];
+			msg->args.args64[i] = args64[i];
 		}
 	}
 
@@ -86,7 +82,7 @@ TEST_GROUP(sp_messaging)
 		msg->destination_id = dest_id;
 		msg->is_64bit_message = false;
 		for (i = 0; i < SP_MSG_ARG_COUNT; i++) {
-			msg->args.args32[i] = args32[i + SP_MSG_ARG_OFFSET];
+			msg->args.args32[i] = args32[i];
 		}
 	}
 
@@ -98,7 +94,7 @@ TEST_GROUP(sp_messaging)
 		msg->destination_id = dest_id;
 		msg->is_64bit_message = true;
 		for (i = 0; i < SP_MSG_ARG_COUNT; i++) {
-			msg->args.args64[i] = args64[i + SP_MSG_ARG_OFFSET];
+			msg->args.args64[i] = args64[i];
 		}
 	}
 
@@ -114,13 +110,13 @@ TEST_GROUP(sp_messaging)
 		if (sp_msg->is_64bit_message) {
 			for (i = 0; i < SP_MSG_ARG_COUNT; i++) {
 				UNSIGNED_LONGLONGS_EQUAL(
-					ffa_msg->args.args64[i + SP_MSG_ARG_OFFSET],
+					ffa_msg->args.args64[i],
 					sp_msg->args.args64[i]);
 			}
 		} else {
 			for (i = 0; i < SP_MSG_ARG_COUNT; i++) {
 				UNSIGNED_LONGS_EQUAL(
-					ffa_msg->args.args32[i + SP_MSG_ARG_OFFSET],
+					ffa_msg->args.args32[i],
 					sp_msg->args.args32[i]);
 			}
 		}
@@ -149,9 +145,10 @@ TEST_GROUP(sp_messaging)
 	const uint16_t source_id = 0x1234;
 	const uint16_t dest_id = 0x5678;
 	const uint32_t args32[SP_MSG_ARG_COUNT] = { 0x01234567, 0x12345678,
-						    0x23456789, 0x3456789a };
+						    0x23456789, 0x3456789a, 0xbcdef012 };
 	const uint64_t args64[SP_MSG_ARG_COUNT] = { 0x0123456776543210, 0x1234567887654321,
-						    0x2345678998765432, 0x3456789aa9876543 };
+						    0x2345678998765432, 0x3456789aa9876543,
+						    0x210fedcba9876543 };
 	const sp_result result = -1;
 	const sp_msg empty_sp_msg = (const sp_msg){ 0 };
 };
@@ -299,6 +296,17 @@ TEST(sp_messaging, sp_msg_send_direct_req_success)
 }
 
 #if FFA_DIRECT_MSG_ROUTING_EXTENSION
+TEST(sp_messaging, sp_msg_send_direct_req_rc_bits_conflict)
+{
+	sp_msg sp_req = { 0 };
+	sp_msg sp_resp = { 0 };
+
+	fill_sp_msg_32(&sp_req);
+	sp_req.args.args32[0] |= ROUTING_EXT_RC_BIT;
+
+	LONGS_EQUAL(SP_RESULT_INVALID_PARAMETERS, sp_msg_send_direct_req(&sp_req, &sp_resp));
+}
+
 TEST(sp_messaging, sp_msg_send_direct_req_rc_forwarding_success)
 {
 	const uint16_t root_id = 1;
@@ -345,9 +353,9 @@ TEST(sp_messaging, sp_msg_send_direct_req_rc_forwarding_success)
 	wait_and_receive_request(root_id, own_id);
 
 	/* Sending request and receiving RC request from RC root */
-	expect_ffa_msg_send_direct_req_32(own_id, rc_root_id, 0, req.args.args32[1],
-				       req.args.args32[2], req.args.args32[3], req.args.args32[4],
-				       &rc_req, FFA_OK);
+	expect_ffa_msg_send_direct_req_32(own_id, rc_root_id, req.args.args32[0],
+					  req.args.args32[1], req.args.args32[2],
+					  req.args.args32[3], req.args.args32[4], &rc_req, FFA_OK);
 
 	/* Forwarding RC request to root and receiving RC response */
 	expect_ffa_msg_send_direct_resp_32(own_id, root_id, rc_req.args.args32[0],
@@ -395,9 +403,10 @@ TEST(sp_messaging, sp_msg_send_direct_req_rc_error)
 	wait_and_receive_request(root_id, own_id);
 
 	/* Sending request and receiving RC request from RC root */
-	expect_ffa_msg_send_direct_req_32(own_id, rc_root_id, 0, req.args.args32[1],
-				       req.args.args32[2], req.args.args32[3], req.args.args32[4],
-				       &rc_err, FFA_OK);
+	expect_ffa_msg_send_direct_req_32(own_id, rc_root_id, req.args.args32[0],
+					  req.args.args32[1], req.args.args32[2],
+					  req.args.args32[3], req.args.args32[4],
+					  &rc_err, FFA_OK);
 
 	LONGS_EQUAL(SP_RESULT_FFA(result),
 		    sp_msg_send_direct_req(&sp_req, &sp_resp));
@@ -456,9 +465,10 @@ TEST(sp_messaging, sp_msg_send_direct_req_rc_forwarding_success_deny_request)
 	wait_and_receive_request(root_id, own_id);
 
 	/* Sending request and receiving RC request from RC root */
-	expect_ffa_msg_send_direct_req_32(own_id, rc_root_id, 0, req.args.args32[1],
-				       req.args.args32[2], req.args.args32[3], req.args.args32[4],
-				       &rc_req, FFA_OK);
+	expect_ffa_msg_send_direct_req_32(own_id, rc_root_id, req.args.args32[0],
+					 req.args.args32[1], req.args.args32[2],
+					 req.args.args32[3], req.args.args32[4],
+					 &rc_req, FFA_OK);
 
 	/* Forwarding RC request to root and receiving a request to deny */
 	expect_ffa_msg_send_direct_resp_32(own_id, root_id, rc_req.args.args32[0],
@@ -534,9 +544,10 @@ TEST(sp_messaging, sp_msg_send_direct_req_rc_forwarding_success_invalid_req_src)
 	wait_and_receive_request(root_id, own_id);
 
 	/* Sending request and receiving RC request from RC root */
-	expect_ffa_msg_send_direct_req_32(own_id, rc_root_id, 0, req.args.args32[1],
-				       req.args.args32[2], req.args.args32[3], req.args.args32[4],
-				       &rc_req, FFA_OK);
+	expect_ffa_msg_send_direct_req_32(own_id, rc_root_id, req.args.args32[0],
+					  req.args.args32[1], req.args.args32[2],
+					  req.args.args32[3], req.args.args32[4],
+					  &rc_req, FFA_OK);
 
 	/* Forwarding RC request to root and receiving RC response */
 	expect_ffa_msg_send_direct_resp_32(own_id, root_id, rc_req.args.args32[0],
@@ -612,9 +623,10 @@ TEST(sp_messaging, sp_msg_send_direct_req_deny_fail_wait_success)
 	wait_and_receive_request(root_id, own_id);
 
 	/* Sending request and receiving RC request from RC root */
-	expect_ffa_msg_send_direct_req_32(own_id, rc_root_id, 0, req.args.args32[1],
-				       req.args.args32[2], req.args.args32[3], req.args.args32[4],
-				       &rc_req, FFA_OK);
+	expect_ffa_msg_send_direct_req_32(own_id, rc_root_id, req.args.args32[0],
+					  req.args.args32[1], req.args.args32[2],
+					  req.args.args32[3], req.args.args32[4],
+					  &rc_req, FFA_OK);
 
 	/* Forwarding RC request to root and receiving RC response */
 	expect_ffa_msg_send_direct_resp_32(own_id, root_id, rc_req.args.args32[0],
@@ -693,9 +705,10 @@ TEST(sp_messaging, sp_msg_send_direct_req_deny_fail_wait_fail_forwarding)
 	wait_and_receive_request(root_id, own_id);
 
 	/* Sending request and receiving RC request from RC root */
-	expect_ffa_msg_send_direct_req_32(own_id, rc_root_id, 0, req.args.args32[1],
-				       req.args.args32[2], req.args.args32[3], req.args.args32[4],
-				       &rc_req, FFA_OK);
+	expect_ffa_msg_send_direct_req_32(own_id, rc_root_id, req.args.args32[0],
+					  req.args.args32[1], req.args.args32[2],
+					  req.args.args32[3], req.args.args32[4],
+					  &rc_req, FFA_OK);
 
 	/* Forwarding RC request to root and receiving RC response */
 	expect_ffa_msg_send_direct_resp_32(own_id, root_id, rc_req.args.args32[0],
@@ -767,9 +780,10 @@ TEST(sp_messaging, sp_msg_send_direct_req_rc_return_rc_error_msg)
 	wait_and_receive_request(root_id, own_id);
 
 	/* Sending request and receiving RC request from RC root */
-	expect_ffa_msg_send_direct_req_32(own_id, rc_root_id, 0, req.args.args32[1],
-				       req.args.args32[2], req.args.args32[3], req.args.args32[4],
-				       &rc_req, FFA_OK);
+	expect_ffa_msg_send_direct_req_32(own_id, rc_root_id, req.args.args32[0],
+					  req.args.args32[1], req.args.args32[2],
+					  req.args.args32[3], req.args.args32[4],
+					  &rc_req, FFA_OK);
 
 	/* Forwarding RC request to root and receiving RC response */
 	expect_ffa_msg_send_direct_resp_32(own_id, root_id, rc_req.args.args32[0],
@@ -834,9 +848,10 @@ TEST(sp_messaging, sp_msg_send_direct_req_rc_return_resp_fail)
 	wait_and_receive_request(root_id, own_id);
 
 	/* Sending request and receiving RC request from RC root */
-	expect_ffa_msg_send_direct_req_32(own_id, rc_root_id, 0, req.args.args32[1],
-				       req.args.args32[2], req.args.args32[3], req.args.args32[4],
-				       &rc_req, FFA_OK);
+	expect_ffa_msg_send_direct_req_32(own_id, rc_root_id, req.args.args32[0],
+					  req.args.args32[1], req.args.args32[2],
+					  req.args.args32[3], req.args.args32[4],
+					  &rc_req, FFA_OK);
 
 	/* Forwarding RC request to root and receiving RC response */
 	expect_ffa_msg_send_direct_resp_32(own_id, root_id, rc_req.args.args32[0],
@@ -940,6 +955,17 @@ TEST(sp_messaging, sp_msg_send_direct_resp_success)
 }
 
 #if FFA_DIRECT_MSG_ROUTING_EXTENSION
+TEST(sp_messaging, sp_msg_send_direct_resp_rc_bits_conflict)
+{
+	sp_msg sp_req = { 0 };
+	sp_msg sp_resp = { 0 };
+
+	fill_sp_msg_32(&sp_resp);
+	sp_resp.args.args32[0] |= ROUTING_EXT_RC_BIT;
+
+	LONGS_EQUAL(SP_RESULT_INVALID_PARAMETERS, sp_msg_send_direct_resp(&sp_resp, &sp_req));
+}
+
 TEST(sp_messaging, sp_msg_send_direct_resp_deny_rc_failure)
 {
 	uint32_t expected_ffa_args[5] = { 0 };
@@ -981,11 +1007,10 @@ TEST(sp_messaging, sp_msg_send_direct_resp_deny_rc)
 	fill_ffa_msg_32(&ffa_msg);
 	copy_sp_to_ffa_args_32(resp.args.args32, expected_ffa_args);
 
-	expect_ffa_msg_send_direct_resp_32(resp.source_id, resp.destination_id, 0,
-					expected_ffa_args[1],
-					expected_ffa_args[2],
-					expected_ffa_args[3],
-					expected_ffa_args[4], &rc_msg, FFA_OK);
+	expect_ffa_msg_send_direct_resp_32(resp.source_id, resp.destination_id,
+					   expected_ffa_args[0], expected_ffa_args[1],
+					   expected_ffa_args[2], expected_ffa_args[3],
+					   expected_ffa_args[4], &rc_msg, FFA_OK);
 
 	expect_ffa_msg_send_direct_resp_32(
 		rc_msg.destination_id, rc_msg.source_id,
@@ -1010,18 +1035,30 @@ TEST(sp_messaging, sp_msg_send_rc_req_resp_null)
 	MEMCMP_EQUAL(&empty_sp_msg, &resp, sizeof(empty_sp_msg));
 }
 
+TEST(sp_messaging, sp_msg_send_direct_rc_resp_rc_bits_conflict)
+{
+	sp_msg sp_req = { 0 };
+	sp_msg sp_resp = { 0 };
+
+	fill_sp_msg_32(&sp_req);
+	sp_req.args.args32[0] |= ROUTING_EXT_RC_BIT;
+
+	LONGS_EQUAL(SP_RESULT_INVALID_PARAMETERS, sp_msg_send_rc_req(&sp_req, &sp_resp));
+}
+
 TEST(sp_messaging, sp_msg_send_rc_req_ffa_error)
 {
 	ffa_result result = FFA_ABORTED;
 
 	fill_sp_msg_32(&resp);
 	memset(&req, 0x5a, sizeof(req));
+	req.args.args32[0] &= ~0xc0000000;
 	req.is_64bit_message = false;
 	fill_ffa_msg_32(&ffa_msg);
 
 	expect_ffa_msg_send_direct_resp_32(req.source_id, req.destination_id,
-					ROUTING_EXT_RC_BIT, req.args.args32[0],
-					req.args.args32[1], req.args.args32[2], req.args.args32[3],
+					ROUTING_EXT_RC_BIT | req.args.args32[0], req.args.args32[1],
+					req.args.args32[2], req.args.args32[3], req.args.args32[4],
 					&ffa_msg, result);
 
 	LONGS_EQUAL(SP_RESULT_FFA(result), sp_msg_send_rc_req(&req, &resp));
@@ -1046,8 +1083,8 @@ TEST(sp_messaging, sp_msg_send_rc_req_deny_fail_wait_fail)
 	ffa_msg.args.args32[0] = 0;
 
 	expect_ffa_msg_send_direct_resp_32(req.source_id, req.destination_id,
-					ROUTING_EXT_RC_BIT, req.args.args32[0],
-					req.args.args32[1], req.args.args32[2], req.args.args32[3],
+					ROUTING_EXT_RC_BIT | req.args.args32[0], req.args.args32[1],
+					req.args.args32[2], req.args.args32[3], req.args.args32[4],
 					&ffa_msg, FFA_OK);
 
 	expect_ffa_msg_send_direct_resp_32(
@@ -1080,8 +1117,8 @@ TEST(sp_messaging, sp_msg_send_rc_req_rc_error)
 	ffa_msg.args.args32[1] = sp_err;
 
 	expect_ffa_msg_send_direct_resp_32(req.source_id, req.destination_id,
-					ROUTING_EXT_RC_BIT, req.args.args32[0],
-					req.args.args32[1], req.args.args32[2], req.args.args32[3],
+					ROUTING_EXT_RC_BIT | req.args.args32[0], req.args.args32[1],
+					req.args.args32[2], req.args.args32[3], req.args.args32[4],
 					&ffa_msg, FFA_OK);
 
 	LONGS_EQUAL(sp_err, sp_msg_send_rc_req(&req, &resp));
@@ -1102,11 +1139,11 @@ TEST(sp_messaging, sp_msg_send_rc_req_success)
 	fill_ffa_msg_32(&ffa_msg);
 	ffa_msg.source_id = root_id;
 	ffa_msg.destination_id = own_id;
-	ffa_msg.args.args32[0] = ROUTING_EXT_RC_BIT;
+	ffa_msg.args.args32[0] = ROUTING_EXT_RC_BIT | req.args.args32[0];
 
 	expect_ffa_msg_send_direct_resp_32(req.source_id, req.destination_id,
-					ROUTING_EXT_RC_BIT, req.args.args32[0],
-					req.args.args32[1], req.args.args32[2], req.args.args32[3],
+					ROUTING_EXT_RC_BIT | req.args.args32[0], req.args.args32[1],
+					req.args.args32[2], req.args.args32[3], req.args.args32[4],
 					&ffa_msg, FFA_OK);
 
 	LONGS_EQUAL(SP_RESULT_OK, sp_msg_send_rc_req(&req, &resp));

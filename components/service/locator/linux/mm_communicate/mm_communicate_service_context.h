@@ -22,7 +22,7 @@ extern "C" {
 struct mm_communicate_service_context
 {
 	struct service_context service_context;
-	const char *ffa_dev_path;
+	struct rpc_caller_interface caller;
 	uint16_t partition_id;
 	EFI_GUID svc_guid;
 };

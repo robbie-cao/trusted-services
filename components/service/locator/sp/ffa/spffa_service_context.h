@@ -18,20 +18,18 @@ extern "C" {
  * a partition, accessed via FFA.  This service_context is suitable
  * for use by client applications running in a secure partition.
  */
-struct spffa_service_context
+struct sp_ts_service_context
 {
 	struct service_context service_context;
-	uint16_t partition_id;
-	uint16_t iface_id;
+	struct rpc_caller_interface caller;
+	struct rpc_uuid service_uuid;
 };
 
 /*
  * Factory method to create a service context associated with the specified
  * partition id and RPC interface instance.
  */
-struct spffa_service_context *spffa_service_context_create(
-	uint16_t partition_id,
-	uint16_t iface_id);
+struct sp_ts_service_context *spffa_service_context_create(const struct rpc_uuid *service_uuid);
 
 #ifdef __cplusplus
 }

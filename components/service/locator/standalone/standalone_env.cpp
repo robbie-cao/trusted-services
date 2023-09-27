@@ -18,8 +18,12 @@
 
 void service_locator_envinit(void)
 {
-	static crypto_service_context crypto_context("sn:trustedfirmware.org:crypto:0");
+	static crypto_service_context crypto_context("sn:trustedfirmware.org:crypto:0", TS_RPC_ENCODING_PACKED_C);
 	standalone_service_registry::instance()->regsiter_service_instance(&crypto_context);
+
+	static crypto_service_context crypto_context_protobuf("sn:trustedfirmware.org:crypto-protobuf:0",
+							      TS_RPC_ENCODING_PROTOBUF);
+	standalone_service_registry::instance()->regsiter_service_instance(&crypto_context_protobuf);
 
 	static its_service_context its_service_context("sn:trustedfirmware.org:internal-trusted-storage:0");
 	standalone_service_registry::instance()->regsiter_service_instance(&its_service_context);

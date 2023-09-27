@@ -14,22 +14,18 @@
 extern "C" {
 #endif
 
-ffa_result
-ffa_direct_msg_routing_ext_wait_post_hook(struct ffa_direct_msg *req);
+ffa_result ffa_direct_msg_routing_ext_wait_post_hook(struct ffa_direct_msg *req);
 
-void ffa_direct_msg_routing_ext_req_pre_hook(struct ffa_direct_msg *req);
-ffa_result
-ffa_direct_msg_routing_ext_req_post_hook(struct ffa_direct_msg *resp);
+ffa_result ffa_direct_msg_routing_ext_req_pre_hook(struct ffa_direct_msg *req);
+ffa_result ffa_direct_msg_routing_ext_req_post_hook(struct ffa_direct_msg *resp);
 void ffa_direct_msg_routing_ext_req_error_hook(void);
 
-void ffa_direct_msg_routing_ext_resp_pre_hook(struct ffa_direct_msg *resp);
-ffa_result
-ffa_direct_msg_routing_ext_resp_post_hook(struct ffa_direct_msg *req);
+ffa_result ffa_direct_msg_routing_ext_resp_pre_hook(struct ffa_direct_msg *resp);
+ffa_result ffa_direct_msg_routing_ext_resp_post_hook(struct ffa_direct_msg *req);
 void ffa_direct_msg_routing_ext_resp_error_hook(void);
 
-void ffa_direct_msg_routing_ext_rc_req_pre_hook(struct ffa_direct_msg *req);
-ffa_result
-ffa_direct_msg_routing_ext_rc_req_post_hook(struct ffa_direct_msg *resp);
+ffa_result ffa_direct_msg_routing_ext_rc_req_pre_hook(struct ffa_direct_msg *req);
+ffa_result ffa_direct_msg_routing_ext_rc_req_post_hook(struct ffa_direct_msg *resp);
 void ffa_direct_msg_routing_ext_rc_req_error_hook(void);
 
 #ifdef __cplusplus

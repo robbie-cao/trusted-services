@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -13,22 +13,24 @@
 extern "C" {
 #endif
 
-/** \brief RPC status code type
- *
- * Used for returning the status of an RPC transaction.  This is
- * different from the opstatus which is used to return an endpoint
- * specific status value.
+/**
+ * Used for returning the status of an RPC transaction. These values indicating the result of the
+ * RPC layer operations. Service level result must be handled in a service specific way.
  */
+
 typedef int32_t rpc_status_t;
 
-/** \brief RPC operation status code type
- *
- * Used for returning the endpoint specific operation status.
- * Different service layer protocols will use different status
- * value schemes. Status values returned by an operation are
- * carried by the RPC layer using this type.
- */
-typedef int64_t rpc_opstatus_t;
+#define RPC_SUCCESS			(0)
+#define RPC_ERROR_INTERNAL		(-1)
+#define RPC_ERROR_INVALID_VALUE		(-2)
+#define RPC_ERROR_NOT_FOUND		(-3)
+#define RPC_ERROR_INVALID_STATE		(-4)
+#define RPC_ERROR_TRANSPORT_LAYER	(-5)
+#define RPC_ERROR_INVALID_REQUEST_BODY	(-6)
+#define RPC_ERROR_INVALID_RESPONSE_BODY	(-7)
+#define RPC_ERROR_RESOURCE_FAILURE	(-8)
+
+typedef int64_t service_status_t;
 
 #ifdef __cplusplus
 }

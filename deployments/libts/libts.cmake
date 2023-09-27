@@ -46,6 +46,7 @@ add_components(
 # Enable exporting interface symbols for library public interface
 target_compile_definitions(ts PRIVATE
 	EXPORT_PUBLIC_INTERFACE_RPC_CALLER
+	EXPORT_PUBLIC_INTERFACE_RPC_SERVICE
 	EXPORT_PUBLIC_INTERFACE_SERVICE_LOCATOR
 )
 

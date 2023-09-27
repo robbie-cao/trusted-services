@@ -8,7 +8,7 @@
 #define PSA_IAT_CLIENT_H
 
 #include <psa/error.h>
-#include <rpc_caller.h>
+#include "rpc_caller_session.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,7 +25,7 @@ extern "C" {
  *
  * @return     A status indicating the success/failure of the operation
  */
-psa_status_t psa_iat_client_init(struct rpc_caller *caller);
+psa_status_t psa_iat_client_init(struct rpc_caller_session *session);
 
 /**
  * @brief      De-initialises the singleton IAT client

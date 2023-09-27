@@ -5,122 +5,114 @@
  */
 
 #include "direct_caller.h"
-#include <rpc/common/endpoint/rpc_interface.h>
-#include <protocols/rpc/common/packed-c/status.h>
+#include "components/rpc/common/endpoint/rpc_service_interface.h"
+#include "components/rpc/common/interface/rpc_uuid.h"
 #include <stdlib.h>
 
-#define DIRECT_CALLER_DEFAULT_REQ_BUF_SIZE      (4096)
-#define DIRECT_CALLER_DEFAULT_RESP_BUF_SIZE     (4096)
+struct direct_caller_context {
+	struct rpc_service_interface *service;
+};
 
-static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_len);
-static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t opcode,
-		     	rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len);
-static void call_end(void *context, rpc_call_handle handle);
+static rpc_status_t find_and_open_session(void *context, const struct rpc_uuid *service_uuid);
 
-
-struct rpc_caller *direct_caller_init(struct direct_caller *s, struct rpc_interface *iface,
-                        size_t req_buf_size, size_t resp_buf_size)
+static rpc_status_t open_session(void *context, const struct rpc_uuid *service_uuid,
+				 uint16_t endpoint_id)
 {
-    struct rpc_caller *base = &s->rpc_caller;
+	(void)endpoint_id;
 
-    rpc_caller_init(base, s);
-    base->call_begin = call_begin;
-    base->call_invoke = call_invoke;
-    base->call_end = call_end;
-
-    s->rpc_interface = iface;
-    s->caller_id = 0;
-    s->is_call_transaction_in_progess = false;
-    s->req_len = 0;
-    s->req_buf_size = req_buf_size;
-    s->resp_buf_size = resp_buf_size;
-    s->req_buf = malloc(s->req_buf_size);
-    s->resp_buf = malloc(s->resp_buf_size);
-
-    if (!s->req_buf || !s->resp_buf) {
-
-        /* Buffer allocation failed */
-        base = NULL;
-        direct_caller_deinit(s);
-    }
-
-    return base;
+	return find_and_open_session(context, service_uuid);
 }
 
-struct rpc_caller *direct_caller_init_default(struct direct_caller *s, struct rpc_interface *iface)
+static rpc_status_t find_and_open_session(void *context, const struct rpc_uuid *service_uuid)
 {
-    /* Initialise with default buffer sizes */
-    return direct_caller_init(s, iface,
-        DIRECT_CALLER_DEFAULT_REQ_BUF_SIZE,
-        DIRECT_CALLER_DEFAULT_RESP_BUF_SIZE);
+	struct direct_caller_context *caller = (struct direct_caller_context *)context;
+
+	if (!rpc_uuid_equal(service_uuid, &caller->service->uuid))
+		return RPC_ERROR_NOT_FOUND;
+
+	return RPC_SUCCESS;
 }
 
-void direct_caller_deinit(struct direct_caller *s)
+static rpc_status_t close_session(void *context)
 {
-    free(s->req_buf);
-    s->req_buf = NULL;
-    free(s->resp_buf);
-    s->resp_buf = NULL;
+	return RPC_SUCCESS;
 }
 
-static rpc_call_handle call_begin(void *context, uint8_t **req_buf, size_t req_len)
+static rpc_status_t create_shared_memory(void *context, size_t size,
+					 struct rpc_caller_shared_memory *shared_memory)
 {
-    struct direct_caller *this_context = (struct direct_caller*)context;
-    rpc_call_handle handle = NULL;
+	shared_memory->id = 0;
+	shared_memory->buffer = calloc(1, size);
+	shared_memory->size = size;
 
-    if (!this_context->is_call_transaction_in_progess &&
-        (req_len <= this_context->req_buf_size)) {
-
-        this_context->is_call_transaction_in_progess = true;
-
-        if (req_buf){
-            *req_buf = this_context->req_buf;
-            this_context->req_len = req_len;
-        }
-
-        handle = this_context;
-    }
-
-    return handle;
+	return RPC_SUCCESS;
 }
 
-static rpc_status_t call_invoke(void *context, rpc_call_handle handle, uint32_t opcode,
-		     	rpc_opstatus_t *opstatus, uint8_t **resp_buf, size_t *resp_len)
+static rpc_status_t release_shared_memory(void *context,
+					  struct rpc_caller_shared_memory *shared_memory)
 {
-    struct direct_caller *this_context = (struct direct_caller*)context;
-    rpc_status_t status = TS_RPC_ERROR_INVALID_TRANSACTION;
+	free(shared_memory->buffer);
 
-    if ((handle == this_context) && this_context->is_call_transaction_in_progess) {
-
-        struct call_req req;
-
-        req.interface_id = 0;
-        req.opcode = opcode;
-        req.encoding = this_context->rpc_caller.encoding;
-        req.caller_id = this_context->caller_id;
-        req.opstatus = 0;
-        req.req_buf = call_param_buf_init_full(this_context->req_buf,
-                            this_context->req_buf_size, this_context->req_len);
-        req.resp_buf = call_param_buf_init_empty(this_context->resp_buf,
-                            this_context->resp_buf_size);
-
-        status = rpc_interface_receive(this_context->rpc_interface, &req);
-
-        *resp_buf = this_context->resp_buf;
-        *resp_len = call_req_get_resp_buf(&req)->data_len;
-        *opstatus = call_req_get_opstatus(&req);
-    }
-
-    return status;
+	return RPC_SUCCESS;
 }
 
-static void call_end(void *context, rpc_call_handle handle)
+static rpc_status_t call(void *context, uint16_t opcode,
+			 struct rpc_caller_shared_memory *shared_memory, size_t request_length,
+			 size_t *response_length, service_status_t *service_status)
 {
-    struct direct_caller *this_context = (struct direct_caller*)context;
+	struct direct_caller_context *caller = (struct direct_caller_context *)context;
+	struct rpc_request rpc_request = { 0 };
+	rpc_status_t status = RPC_ERROR_INTERNAL;
 
-    if ((handle == this_context) && this_context->is_call_transaction_in_progess) {
+	rpc_request.source_id = 0;
+	rpc_request.opcode = opcode;
+	rpc_request.client_id = 0;
+	rpc_request.request.data = shared_memory->buffer;
+	rpc_request.request.data_length = request_length;
+	rpc_request.request.size = shared_memory->size;
+	rpc_request.response.data = shared_memory->buffer;
+	rpc_request.response.data_length = 0;
+	rpc_request.response.size = shared_memory->size;
 
-        this_context->req_len = 0;
-        this_context->is_call_transaction_in_progess = false;
-    }
+	status = rpc_service_receive(caller->service, &rpc_request);
+
+	*response_length = rpc_request.response.data_length;
+	*service_status = rpc_request.service_status;
+
+	return status;
+}
+
+rpc_status_t direct_caller_init(struct rpc_caller_interface *caller,
+				struct rpc_service_interface *service)
+{
+	struct direct_caller_context *context = NULL;
+
+	if (!caller || caller->context)
+		return RPC_ERROR_INVALID_VALUE;
+
+	context = (struct direct_caller_context *)calloc(1, sizeof(struct direct_caller_context));
+	if (!context)
+		return RPC_ERROR_INTERNAL;
+
+	context->service = service;
+
+	caller->context = context;
+	caller->open_session = open_session;
+	caller->find_and_open_session = find_and_open_session;
+	caller->close_session = close_session;
+	caller->create_shared_memory = create_shared_memory;
+	caller->release_shared_memory = release_shared_memory;
+	caller->call = call;
+
+	return RPC_SUCCESS;
+}
+
+rpc_status_t direct_caller_deinit(struct rpc_caller_interface *rpc_caller)
+{
+	if (!rpc_caller || !rpc_caller->context)
+		return RPC_ERROR_INVALID_VALUE;
+
+	free(rpc_caller->context);
+
+	return RPC_SUCCESS;
 }

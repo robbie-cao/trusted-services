@@ -4,32 +4,31 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <stddef.h>
-#include <protocols/rpc/common/packed-c/status.h>
 #include "service_client.h"
+#include <stddef.h>
 
-psa_status_t service_client_init(
-	struct service_client *context,
-	struct rpc_caller *caller)
+psa_status_t service_client_init(struct service_client *context,
+				 struct rpc_caller_session *session)
 {
-	context->caller = caller;
-	context->rpc_status = TS_RPC_CALL_ACCEPTED;
+	if (!context || !session)
+		return PSA_ERROR_INVALID_ARGUMENT;
+
+	context->session = session;
+	context->rpc_status = RPC_SUCCESS;
 
 	context->service_info.supported_encodings = 0;
-	context->service_info.max_payload = 0;
+	context->service_info.max_payload = 4096;
 
 	return PSA_SUCCESS;
 }
 
-void service_client_deinit(
-	struct service_client *context)
+void service_client_deinit(struct service_client *context)
 {
-	context->caller = NULL;
+	context->session = NULL;
 }
 
-void service_client_set_service_info(
-	struct service_client *context,
-	const struct service_info *service_info)
+void service_client_set_service_info(struct service_client *context,
+				     const struct service_info *service_info)
 {
 	context->service_info = *service_info;
 }

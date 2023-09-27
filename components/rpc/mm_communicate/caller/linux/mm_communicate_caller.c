@@ -6,6 +6,7 @@
 
 #include "mm_communicate_caller.h"
 #include "carveout.h"
+#include "util.h"
 #include <arm_ffa_user.h>
 #include <components/rpc/mm_communicate/common/mm_communicate_call_args.h>
 #include <protocols/rpc/common/packed-c/status.h>
@@ -23,31 +24,297 @@
 #define KERNEL_MOD_REQ_VER_MINOR 0
 #define KERNEL_MOD_REQ_VER_PATCH 0
 
-static rpc_call_handle call_begin(
-	void *context,
-	uint8_t **req_buf,
-	size_t req_len);
+struct mm_communicate_caller_context {
+	int ffa_fd;
+	const char *ffa_device_path;
+	uint16_t dest_partition_id;
+	uint8_t *comm_buffer;
+	size_t comm_buffer_size;
+	size_t req_len;
+	const struct mm_communicate_serializer *serializer;
+};
 
-static rpc_status_t call_invoke(
-	void *context,
-	rpc_call_handle handle,
-	uint32_t opcode,
-	rpc_opstatus_t *opstatus,
-	uint8_t **resp_buf,
-	size_t *resp_len);
+static const char mm_uuid[] = "ed32d533-99e6-4209-9cc0-2d72cdd998a7";
 
-static void call_end(
-	void *context,
-	rpc_call_handle handle);
+static rpc_status_t release_shared_memory(void *context,
+					  struct rpc_caller_shared_memory *shared_memory);
 
-static rpc_status_t mm_return_code_to_rpc_status(
-	int32_t return_code);
-
-bool mm_communicate_caller_check_version(void)
+static void rpc_uuid_to_efi_guid(const struct rpc_uuid *uuid, EFI_GUID *guid)
 {
-	FILE *f;
-	char mod_name[64];
-	int ver_major, ver_minor, ver_patch;
+	guid->Data1 = uuid->uuid[0] << 24 | uuid->uuid[1] << 16 | uuid->uuid[2] << 8 |
+		      uuid->uuid[3];
+	guid->Data2 = uuid->uuid[4] << 8 | uuid->uuid[5];
+	guid->Data3 = uuid->uuid[6] << 8 | uuid->uuid[7];
+	memcpy(guid->Data4, &uuid->uuid[8], sizeof(guid->Data4));
+}
+
+static rpc_status_t mm_return_code_to_rpc_status(int32_t return_code)
+{
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+
+	switch (return_code) {
+	case MM_RETURN_CODE_NOT_SUPPORTED:
+		rpc_status = RPC_ERROR_NOT_FOUND;
+		break;
+	case MM_RETURN_CODE_INVALID_PARAMETER:
+		rpc_status = RPC_ERROR_INVALID_VALUE;
+		break;
+	case MM_RETURN_CODE_DENIED:
+		rpc_status = RPC_ERROR_INVALID_STATE;
+		break;
+	case MM_RETURN_CODE_NO_MEMORY:
+		rpc_status = RPC_ERROR_INTERNAL;
+		break;
+	default:
+		break;
+	}
+
+	return rpc_status;
+}
+
+static rpc_status_t open_session(void *context, const struct rpc_uuid *service_uuid,
+				 uint16_t endpoint_id)
+{
+	struct mm_communicate_caller_context *mm_context =
+		(struct mm_communicate_caller_context *)context;
+	EFI_GUID svc_guid = { 0 };
+
+	if (!context || !service_uuid)
+		return RPC_ERROR_INVALID_VALUE;
+
+	if (mm_context->ffa_fd >= 0)
+		return RPC_ERROR_INVALID_STATE;
+
+	rpc_uuid_to_efi_guid(service_uuid, &svc_guid);
+
+	mm_context->serializer = mm_communicate_serializer_find(&svc_guid);
+	if (!mm_context->serializer)
+		return RPC_ERROR_INTERNAL;
+
+	if (!mm_context->ffa_device_path) {
+		mm_context->serializer = NULL;
+		return RPC_ERROR_INTERNAL;
+	}
+
+	mm_context->ffa_fd = open(mm_context->ffa_device_path, O_RDWR);
+	if (mm_context->ffa_fd < 0) {
+		mm_context->serializer = NULL;
+		return RPC_ERROR_INTERNAL;
+	}
+
+	mm_context->dest_partition_id = endpoint_id;
+
+	return RPC_SUCCESS;
+}
+
+static rpc_status_t find_and_open_session(void *context, const struct rpc_uuid *service_uuid)
+{
+	struct mm_communicate_caller_context *mm_context =
+		(struct mm_communicate_caller_context *)context;
+	int fd = 0;
+	int status = 0;
+	struct ffa_ioctl_ep_desc discovered_partition = { 0 };
+
+	if (!context || !service_uuid)
+		return RPC_ERROR_INVALID_VALUE;
+
+	if (mm_context->ffa_fd >= 0)
+		return RPC_ERROR_INVALID_STATE;
+
+	if (!mm_context->ffa_device_path)
+		return RPC_ERROR_INTERNAL;
+
+	fd = open(mm_context->ffa_device_path, O_RDWR);
+	if (fd < 0)
+		return RPC_ERROR_INTERNAL;
+
+	discovered_partition.uuid_ptr = (uintptr_t)&mm_uuid;
+	discovered_partition.id = 0;
+
+	status = ioctl(fd, FFA_IOC_GET_PART_ID, &discovered_partition);
+	if (status < 0) {
+		close(fd);
+		return RPC_ERROR_INTERNAL;
+	}
+
+	status = close(fd);
+	if (status < 0)
+		return RPC_ERROR_INTERNAL;
+
+	return open_session(context, service_uuid, discovered_partition.id);
+}
+
+static rpc_status_t close_session(void *context)
+{
+	struct mm_communicate_caller_context *mm_context =
+		(struct mm_communicate_caller_context *)context;
+	int status = -1;
+
+	if (!context)
+		return RPC_ERROR_INVALID_VALUE;
+
+	if (mm_context->ffa_fd < 0)
+		return RPC_ERROR_INVALID_STATE;
+
+	if (mm_context->comm_buffer) {
+		struct rpc_caller_shared_memory memory = { 0 };
+		rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+
+		memory.id = 0;
+		memory.buffer = mm_context->comm_buffer;
+		memory.size = mm_context->comm_buffer_size;
+
+		rpc_status = release_shared_memory(context, &memory);
+		if (rpc_status != RPC_SUCCESS)
+			return rpc_status;
+	}
+
+	status = close(mm_context->ffa_fd);
+	if (status < 0)
+		return RPC_ERROR_INTERNAL;
+
+	mm_context->ffa_fd = -1;
+	mm_context->dest_partition_id = 0;
+	mm_context->serializer = NULL;
+
+	return RPC_SUCCESS;
+}
+
+static bool is_valid_shared_memory(const struct mm_communicate_caller_context *mm_context,
+				   const struct rpc_caller_shared_memory *shared_memory)
+{
+	uintptr_t comm_buffer_end = 0;
+	uintptr_t shared_memory_end = 0;
+
+	if (ADD_OVERFLOW((uintptr_t)mm_context->comm_buffer,
+			 (uintptr_t)mm_context->comm_buffer_size, &comm_buffer_end))
+		return false;
+
+	if (ADD_OVERFLOW((uintptr_t)shared_memory->buffer, (uintptr_t)shared_memory->size,
+			 &shared_memory_end))
+		return false;
+
+	return (uintptr_t)mm_context->comm_buffer <= (uintptr_t)shared_memory->buffer &&
+	       shared_memory_end <= comm_buffer_end;
+}
+
+static rpc_status_t create_shared_memory(void *context, size_t size,
+					 struct rpc_caller_shared_memory *shared_memory)
+{
+	struct mm_communicate_caller_context *mm_context =
+		(struct mm_communicate_caller_context *)context;
+	size_t hdr_size = 0;
+	size_t required_size = 0;
+	int status = -1;
+
+	if (!context || !shared_memory)
+		return RPC_ERROR_INVALID_VALUE;
+
+	*shared_memory = (struct rpc_caller_shared_memory){ 0 };
+
+	if (!mm_context->serializer || mm_context->comm_buffer)
+		return RPC_ERROR_INVALID_STATE;
+
+	hdr_size = mm_communicate_serializer_header_size(mm_context->serializer);
+	if (!hdr_size)
+		return RPC_ERROR_INTERNAL;
+
+	status = carveout_claim(&mm_context->comm_buffer, &mm_context->comm_buffer_size);
+	if (status) {
+		mm_context->comm_buffer = NULL;
+		mm_context->comm_buffer_size = 0;
+
+		return RPC_ERROR_INTERNAL;
+	}
+
+	if (ADD_OVERFLOW(hdr_size, size, &required_size) ||
+	    required_size > mm_context->comm_buffer_size) {
+		carveout_relinquish(mm_context->comm_buffer, mm_context->comm_buffer_size);
+		mm_context->comm_buffer = NULL;
+		mm_context->comm_buffer_size = 0;
+
+		return RPC_ERROR_INVALID_VALUE;
+	}
+
+	shared_memory->id = 0;
+	shared_memory->buffer = &mm_context->comm_buffer[hdr_size];
+	shared_memory->size = mm_context->comm_buffer_size - hdr_size;
+
+	return RPC_SUCCESS;
+}
+
+static rpc_status_t release_shared_memory(void *context,
+					  struct rpc_caller_shared_memory *shared_memory)
+{
+	struct mm_communicate_caller_context *mm_context =
+		(struct mm_communicate_caller_context *)context;
+
+	if (!context || !shared_memory)
+		return RPC_ERROR_INVALID_VALUE;
+
+	if (!mm_context->comm_buffer)
+		return RPC_ERROR_INVALID_STATE;
+
+	if (!is_valid_shared_memory(mm_context, shared_memory))
+		return RPC_ERROR_INVALID_VALUE;
+
+	memset(mm_context->comm_buffer, 0x00, mm_context->comm_buffer_size);
+
+	carveout_relinquish(mm_context->comm_buffer, mm_context->comm_buffer_size);
+	mm_context->comm_buffer = NULL;
+	mm_context->comm_buffer_size = 0;
+
+	return RPC_SUCCESS;
+}
+
+static rpc_status_t call(void *context, uint16_t opcode,
+			 struct rpc_caller_shared_memory *shared_memory, size_t request_length,
+			 size_t *response_length, service_status_t *service_status)
+{
+	struct mm_communicate_caller_context *mm_context =
+		(struct mm_communicate_caller_context *)context;
+	struct ffa_ioctl_msg_args direct_msg = { 0 };
+	int kernel_op_status = 0;
+	int32_t mm_return_code = 0;
+	uint8_t *resp_buf = NULL;
+
+	if (!context || !shared_memory || !response_length || !service_status)
+		return RPC_ERROR_INVALID_VALUE;
+
+	if (!is_valid_shared_memory(mm_context, shared_memory))
+		return RPC_ERROR_INVALID_VALUE;
+
+	mm_communicate_serializer_header_encode(mm_context->serializer, mm_context->comm_buffer,
+						opcode, request_length);
+
+	/* Make direct call to send the request */
+	direct_msg.dst_id = mm_context->dest_partition_id;
+	direct_msg.args[MM_COMMUNICATE_CALL_ARGS_COMM_BUFFER_OFFSET] = 0;
+
+	kernel_op_status = ioctl(mm_context->ffa_fd, FFA_IOC_MSG_SEND, &direct_msg);
+	if (kernel_op_status < 0)
+		return RPC_ERROR_INTERNAL;
+
+	/* Kernel send operation completed normally */
+	mm_return_code = direct_msg.args[MM_COMMUNICATE_CALL_ARGS_RETURN_CODE];
+	if (mm_return_code != MM_RETURN_CODE_SUCCESS)
+		return mm_return_code_to_rpc_status(mm_return_code);
+
+	mm_communicate_serializer_header_decode(mm_context->serializer, mm_context->comm_buffer,
+						(efi_status_t *)service_status, &resp_buf,
+						response_length);
+
+	if (resp_buf != shared_memory->buffer)
+		return RPC_ERROR_INVALID_RESPONSE_BODY;
+
+	return RPC_SUCCESS;
+}
+
+static bool mm_communicate_caller_check_version(void)
+{
+	FILE *f = NULL;
+	char mod_name[64] = { 0 };
+	int ver_major = 0, ver_minor = 0, ver_patch = 0;
 	bool mod_loaded = false;
 
 	f = fopen("/proc/modules", "r");
@@ -56,7 +323,7 @@ bool mm_communicate_caller_check_version(void)
 		return false;
 	}
 
-	while (fscanf(f, "%64s %*[^\n]\n", mod_name) != EOF) {
+	while (fscanf(f, "%63s %*[^\n]\n", mod_name) != EOF) {
 		if (!strcmp(mod_name, "arm_ffa_user")) {
 			mod_loaded = true;
 			break;
@@ -97,269 +364,72 @@ bool mm_communicate_caller_check_version(void)
 	return true;
 
 err:
-	printf("error: kernel module is v%d.%d.%d but required v%d.%d.%d\n",
-		ver_major, ver_minor, ver_patch, KERNEL_MOD_REQ_VER_MAJOR,
-		KERNEL_MOD_REQ_VER_MINOR, KERNEL_MOD_REQ_VER_PATCH);
+	printf("error: kernel module is v%d.%d.%d but required v%d.%d.%d\n", ver_major, ver_minor,
+	       ver_patch, KERNEL_MOD_REQ_VER_MAJOR, KERNEL_MOD_REQ_VER_MINOR,
+	       KERNEL_MOD_REQ_VER_PATCH);
 
 	return false;
 }
 
-struct rpc_caller *mm_communicate_caller_init(
-	struct mm_communicate_caller *s,
-	const char *ffa_device_path)
+rpc_status_t mm_communicate_caller_init(struct rpc_caller_interface *rpc_caller,
+					const char *ffa_device_path)
 {
-	struct rpc_caller *base = &s->rpc_caller;
+	struct mm_communicate_caller_context *context = NULL;
 
-	rpc_caller_init(base, s);
-	base->call_begin = call_begin;
-	base->call_invoke = call_invoke;
-	base->call_end = call_end;
+	if (!rpc_caller || !ffa_device_path)
+		return RPC_ERROR_INVALID_VALUE;
 
-	s->ffa_fd = -1;
-	s->ffa_device_path = ffa_device_path;
-	s->dest_partition_id = 0;
-	s->comm_buffer = NULL;
-	s->comm_buffer_size = 0;
-	s->scrub_len = 0;
-	s->req_len = 0;
-	s->is_call_transaction_in_progess = false;
-	s->serializer = NULL;
+	if (!mm_communicate_caller_check_version())
+		return RPC_ERROR_INTERNAL;
 
-	return base;
+	context = (struct mm_communicate_caller_context *)calloc(
+		1, sizeof(struct mm_communicate_caller_context));
+	if (!context)
+		return RPC_ERROR_INTERNAL;
+
+	context->ffa_fd = -1;
+	context->ffa_device_path = ffa_device_path;
+	context->dest_partition_id = 0;
+	context->comm_buffer = NULL;
+	context->comm_buffer_size = 0;
+	context->req_len = 0;
+	context->serializer = NULL;
+
+	rpc_caller->context = context;
+	rpc_caller->open_session = open_session;
+	rpc_caller->find_and_open_session = find_and_open_session;
+	rpc_caller->close_session = close_session;
+	rpc_caller->create_shared_memory = create_shared_memory;
+	rpc_caller->release_shared_memory = release_shared_memory;
+	rpc_caller->call = call;
+
+	return RPC_SUCCESS;
 }
 
-void mm_communicate_caller_deinit(
-	struct mm_communicate_caller *s)
+rpc_status_t mm_communicate_caller_deinit(struct rpc_caller_interface *rpc_caller)
 {
-	s->rpc_caller.context = NULL;
-	s->rpc_caller.call_begin = NULL;
-	s->rpc_caller.call_invoke = NULL;
-	s->rpc_caller.call_end = NULL;
+	struct mm_communicate_caller_context *mm_context = NULL;
+	rpc_status_t status = RPC_ERROR_INTERNAL;
 
-	call_end(s, s);
-	mm_communicate_caller_close(s);
-}
+	if (!rpc_caller || !rpc_caller->context)
+		return RPC_ERROR_INVALID_VALUE;
 
-size_t mm_communicate_caller_discover(
-	const struct mm_communicate_caller *s,
-	const struct uuid_canonical *uuid,
-	uint16_t *partition_ids,
-	size_t discover_limit)
-{
-	size_t discover_count = 0;
+	mm_context = (struct mm_communicate_caller_context *)rpc_caller->context;
 
-	if (uuid && partition_ids && s->ffa_device_path) {
-		int fd;
-
-		fd = open(s->ffa_device_path, O_RDWR);
-
-		if (fd >= 0) {
-			int ioctl_status;
-			struct ffa_ioctl_ep_desc discovered_partition;
-
-			discovered_partition.uuid_ptr = (uintptr_t)&uuid->characters;
-			discovered_partition.id = 0;
-
-			ioctl_status = ioctl(fd, FFA_IOC_GET_PART_ID, &discovered_partition);
-
-			if ((ioctl_status == 0) && (discover_count < discover_limit)) {
-				partition_ids[discover_count] = discovered_partition.id;
-				++discover_count;
-			}
-
-			close(fd);
-		}
+	if (mm_context->comm_buffer) {
+		carveout_relinquish(mm_context->comm_buffer, mm_context->comm_buffer_size);
+		mm_context->comm_buffer = NULL;
+		mm_context->comm_buffer_size = 0;
 	}
 
-	return discover_count;
-}
-
-int mm_communicate_caller_open(
-	struct mm_communicate_caller *s,
-	uint16_t dest_partition_id,
-	const EFI_GUID *svc_guid)
-{
-	int status = -1;
-
-	s->serializer = mm_communicate_serializer_find(svc_guid);
-
-	if (s->serializer && s->ffa_device_path) {
-
-		s->ffa_fd = open(s->ffa_device_path, O_RDWR);
-
-		if ((s->ffa_fd >= 0) && !s->comm_buffer) {
-
-			status = carveout_claim(
-				&s->comm_buffer,
-				&s->comm_buffer_size);
-
-			if (status == 0) {
-
-				s->dest_partition_id = dest_partition_id;
-			}
-			else {
-				/* Failed to claim carveout */
-				s->comm_buffer = NULL;
-				s->comm_buffer_size = 0;
-
-				mm_communicate_caller_close(s);
-			}
-		}
+	if (mm_context->ffa_fd >= 0) {
+		status = rpc_caller_close_session(rpc_caller);
+		if (status != RPC_SUCCESS)
+			return status;
 	}
 
-	if (status != 0) {
+	free(rpc_caller->context);
+	rpc_caller->context = NULL;
 
-		s->serializer = NULL;
-	}
-
-	return status;
-}
-
-int mm_communicate_caller_close(
-	struct mm_communicate_caller *s)
-{
-	if (s->ffa_fd >= 0) {
-
-		close(s->ffa_fd);
-		s->ffa_fd = -1;
-		s->dest_partition_id = 0;
-	}
-
-	if (s->comm_buffer) {
-
-		carveout_relinquish(s->comm_buffer, s->comm_buffer_size);
-		s->comm_buffer = NULL;
-		s->comm_buffer_size = 0;
-	}
-
-	s->serializer = NULL;
-
-	s->is_call_transaction_in_progess = false;
-
-	return ((s->ffa_fd < 0) && !s->comm_buffer) ? 0 : -1;
-}
-
-static rpc_call_handle call_begin(
-	void *context,
-	uint8_t **req_buf,
-	size_t req_len)
-{
-	rpc_call_handle handle = NULL;
-	struct mm_communicate_caller *s = (struct mm_communicate_caller*)context;
-	size_t hdr_size = mm_communicate_serializer_header_size(s->serializer);
-	*req_buf = NULL;
-
-	if (!s->is_call_transaction_in_progess && hdr_size) {
-
-		if (req_len + hdr_size <= s->comm_buffer_size) {
-
-			s->is_call_transaction_in_progess = true;
-			handle = s;
-
-			s->req_len = req_len;
-			*req_buf = &s->comm_buffer[hdr_size];
-
-			s->scrub_len = hdr_size + req_len;
-		}
-		else {
-
-			s->req_len = 0;
-		}
-	}
-
-	return handle;
-}
-
-static rpc_status_t call_invoke(
-	void *context,
-	rpc_call_handle handle,
-	uint32_t opcode,
-	rpc_opstatus_t *opstatus,
-	uint8_t **resp_buf,
-	size_t *resp_len)
-{
-	struct mm_communicate_caller *s = (struct mm_communicate_caller*)context;
-
-	rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
-	*resp_len = 0;
-
-	if ((handle == s) && s->is_call_transaction_in_progess) {
-
-		mm_communicate_serializer_header_encode(s->serializer,
-			s->comm_buffer, opcode, s->req_len);
-
-		/* Make direct call to send the request */
-		struct ffa_ioctl_msg_args direct_msg;
-		memset(&direct_msg, 0, sizeof(direct_msg));
-
-		direct_msg.dst_id = s->dest_partition_id;
-
-		direct_msg.args[MM_COMMUNICATE_CALL_ARGS_COMM_BUFFER_OFFSET] = 0;
-
-		int kernel_op_status = ioctl(s->ffa_fd, FFA_IOC_MSG_SEND, &direct_msg);
-
-		if (kernel_op_status == 0) {
-			/* Kernel send operation completed normally */
-			int32_t mm_return_code = direct_msg.args[MM_COMMUNICATE_CALL_ARGS_RETURN_CODE];
-
-			if (mm_return_code == MM_RETURN_CODE_SUCCESS) {
-				mm_communicate_serializer_header_decode(
-					s->serializer, s->comm_buffer, (efi_status_t *)opstatus,
-					resp_buf, resp_len);
-
-				if (*resp_len > s->req_len)
-					s->scrub_len =
-						mm_communicate_serializer_header_size(
-							s->serializer) + *resp_len;
-
-				rpc_status = TS_RPC_CALL_ACCEPTED;
-			} else {
-
-				rpc_status = mm_return_code_to_rpc_status(mm_return_code);
-			}
-		}
-	}
-
-	return rpc_status;
-}
-
-static void call_end(void *context, rpc_call_handle handle)
-{
-	struct mm_communicate_caller *s = (struct mm_communicate_caller*)context;
-
-	if ((handle == s) && s->is_call_transaction_in_progess) {
-
-		/* Call transaction complete */
-		s->req_len = 0;
-		s->is_call_transaction_in_progess = false;
-
-		/* Scrub the comms buffer */
-		memset(s->comm_buffer, 0, s->scrub_len);
-		s->scrub_len = 0;
-	}
-}
-
-static rpc_status_t mm_return_code_to_rpc_status(int32_t return_code)
-{
-	rpc_status_t rpc_status = TS_RPC_ERROR_INTERNAL;
-
-	switch (return_code)
-	{
-		case MM_RETURN_CODE_NOT_SUPPORTED:
-			rpc_status = TS_RPC_ERROR_INTERFACE_DOES_NOT_EXIST;
-			break;
-		case MM_RETURN_CODE_INVALID_PARAMETER:
-			rpc_status = TS_RPC_ERROR_INVALID_PARAMETER;
-			break;
-		case MM_RETURN_CODE_DENIED:
-			rpc_status = TS_RPC_ERROR_ACCESS_DENIED;
-			break;
-		case MM_RETURN_CODE_NO_MEMORY:
-			rpc_status = TS_RPC_ERROR_RESOURCE_FAILURE;
-			break;
-		default:
-			break;
-	}
-
-	return rpc_status;
+	return RPC_SUCCESS;
 }

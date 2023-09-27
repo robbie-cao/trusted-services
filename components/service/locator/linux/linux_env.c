@@ -14,6 +14,6 @@ void service_locator_envinit(void)
 	 * Register all service location strategies that could be used
 	 * to locate services from Linux userspace.
 	 */
-	service_locator_register_strategy(linuxffa_location_strategy());
+	service_locator_register_strategy(linux_ts_location_strategy());
 	service_locator_register_strategy(mm_communicate_location_strategy());
 }
