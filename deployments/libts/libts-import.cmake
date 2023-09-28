@@ -13,7 +13,10 @@
 #-------------------------------------------------------------------------------
 option(CFG_FORCE_PREBUILT_LIBTS Off)
 # Try to find a pre-build package.
-find_package(libts "1.0.0" QUIET PATHS ${CMAKE_CURRENT_BINARY_DIR}/libts_install/${TS_ENV}/lib/cmake/libts)
+version_semver_read(FILE "${CMAKE_CURRENT_LIST_DIR}/version.txt" MAJOR _major MINOR _minor PATCH _patch)
+set(_verstring "${_major}.${_minor}.${_patch}")
+
+find_package(libts "${_verstring}" QUIET PATHS ${CMAKE_CURRENT_BINARY_DIR}/libts_install/${TS_ENV}/lib/cmake/libts)
 if(NOT libts_FOUND)
 	if (CFG_FORCE_PREBUILT_LIBTS)
 		string(CONCAT _msg "find_package() failed to find the \"libts\" package. Please pass -Dlibts_ROOT=<path> or"
@@ -59,7 +62,7 @@ if(NOT libts_FOUND)
 
 	install(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/libts/cmake_install.cmake)
 
-	find_package(libts "1.0.0" QUIET REQUIRED PATHS ${CMAKE_CURRENT_BINARY_DIR}/libts_install/${TS_ENV}/lib/cmake/libts)
+	find_package(libts "${_verstring}" QUIET REQUIRED PATHS ${CMAKE_CURRENT_BINARY_DIR}/libts_install/${TS_ENV}/lib/cmake/libts)
 else()
 	message(STATUS "Using prebuilt libts from ${libts_DIR}")
 endif()
