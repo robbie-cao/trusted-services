@@ -378,25 +378,52 @@ uefi_variable_store_get_next_variable_name(const struct uefi_variable_store *con
 					   size_t max_name_len, size_t *total_length)
 {
 	efi_status_t status = check_name_terminator(cur->Name, cur->NameSize);
+
 	if (status != EFI_SUCCESS)
 		return status;
 
 	*total_length = 0;
 
-	const struct variable_info *info = variable_index_find_next(
-		&context->variable_index, &cur->Guid, cur->NameSize, cur->Name, &status);
+	while (1) {
+		const struct variable_info *info = variable_index_find_next(
+			&context->variable_index, &cur->Guid, cur->NameSize, cur->Name, &status);
 
-	if (info && (status == EFI_SUCCESS)) {
-		if (info->metadata.name_size <= max_name_len) {
-			cur->Guid = info->metadata.guid;
-			cur->NameSize = info->metadata.name_size;
-			memcpy(cur->Name, info->metadata.name, info->metadata.name_size);
+		if (info && (status == EFI_SUCCESS)) {
+			if (info->metadata.name_size <= max_name_len) {
+				cur->Guid = info->metadata.guid;
+				cur->NameSize = info->metadata.name_size;
+				memcpy(cur->Name, info->metadata.name, info->metadata.name_size);
 
-			*total_length =
-				SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_TOTAL_SIZE(cur);
+				*total_length =
+					SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_TOTAL_SIZE(
+						cur);
+
+				/*
+				 * Check if variable is accessible (e.g boot variable is not
+				 * accessible at runtime)
+				 */
+				status = check_access_permitted(context, info);
+
+				if (status == EFI_SUCCESS)
+					break;
+			} else {
+				status = EFI_BUFFER_TOO_SMALL;
+				break;
+			}
+
 		} else {
-			status = EFI_BUFFER_TOO_SMALL;
+			/* Do not hide original error if there is any */
+			if (status == EFI_SUCCESS)
+				status = EFI_NOT_FOUND;
+			break;
 		}
+	}
+
+	/* If we found no accessible variable clear the fields for security */
+	if (status != EFI_SUCCESS) {
+		memset(cur->Name, 0, sizeof(cur->NameSize));
+		memset(&cur->Guid, 0, sizeof(EFI_GUID));
+		cur->NameSize = 0;
 	}
 
 	return status;

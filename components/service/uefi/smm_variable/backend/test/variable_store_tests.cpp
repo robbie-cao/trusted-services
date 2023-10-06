@@ -488,8 +488,24 @@ TEST(UefiVariableStoreTests, bootServiceAccess)
 	status = uefi_variable_store_exit_boot_service(&m_uefi_variable_store);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
-	/* Expect access to be blocked */
+	/* Expect access to be blocked for get_variable */
 	status = get_variable(var_name, output_data);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
+
+	/* Expect access to be blocked for get_next_variable_name */
+	uint8_t msg_buffer[VARIABLE_BUFFER_SIZE];
+	SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *next_name =
+		(SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *)msg_buffer;
+	size_t max_name_len =
+		VARIABLE_BUFFER_SIZE - SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET;
+
+	size_t total_len = 0;
+	next_name->NameSize = sizeof(int16_t);
+	next_name->Name[0] = 0;
+
+	status = uefi_variable_store_get_next_variable_name(&m_uefi_variable_store, next_name,
+							    max_name_len, &total_len);
+
 	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 }
 
