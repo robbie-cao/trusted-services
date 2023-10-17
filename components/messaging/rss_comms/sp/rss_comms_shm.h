@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef __RSS_COMMS_VIRTIO_H__
-#define __RSS_COMMS_VIRTIO_H__
+#ifndef __RSS_COMMS_SHM_H__
+#define __RSS_COMMS_SHM_H__
 
 #include <stddef.h>
 #include "rss_comms_caller.h"
@@ -18,19 +18,15 @@ union __packed __attribute__((aligned(4))) rss_comms_io_buffer_t {
 	struct serialized_rss_comms_reply_t reply;
 };
 
-struct rss_comms_virtio_shm {
-	uintptr_t base_addr;
-	size_t size;
-};
-
-struct rss_comms_virtio {
+struct rss_comms_shm {
 	struct rss_comms_messenger *rss_comms_msg;
-	struct rss_comms_virtio_shm shm;
 	union rss_comms_io_buffer_t io_buf;
 	size_t msg_size;
+	uintptr_t shm_addr;
+	size_t shm_size;
 };
 
-int rss_comms_virtio_init(struct rss_comms_messenger *rss_comms_msg);
-int rss_comms_virtio_deinit(struct rss_comms_messenger *rss_comms_msg);
+int rss_comms_init(struct rss_comms_messenger *rss_comms_msg);
+int rss_comms_deinit(struct rss_comms_messenger *rss_comms_msg);
 
-#endif /* __RSS_COMMS_VIRTIO_H__ */
+#endif /* __RSS_COMMS_SHM_H__ */

@@ -75,13 +75,13 @@ psa_status_t __psa_call(struct rpc_caller *caller, psa_handle_t handle,
 	 * functions not being reentrant becomes a problem.
 	 */
 	union rss_comms_io_buffer_t io_buf;
-	struct rss_comms_messenger *rpmsg;
+	struct rss_comms_messenger *msg;
 	psa_status_t psa_status = PSA_SUCCESS;
 	static uint8_t seq_num = 1U;
 	psa_status_t status;
 	size_t reply_size = sizeof(io_buf.reply);
 	psa_status_t return_val;
-	struct rss_comms_virtio *virtio;
+	struct rss_comms_shm *rss_shm;
 	struct rss_comms_caller *rss_comms;
 	rpc_call_handle rpc_handle;
 	rpc_handle = caller;
@@ -100,37 +100,37 @@ psa_status_t __psa_call(struct rpc_caller *caller, psa_handle_t handle,
 		return PSA_ERROR_GENERIC_ERROR;
 	}
 
-	rpmsg = &rss_comms->rss_comms_msg;
-	if (!rpmsg->transport) {
+	msg = &rss_comms->rss_comms_msg;
+	if (!msg->transport) {
 		EMSG("[RSS-COMMS] psa_call messenger is null\n");
 		return PSA_ERROR_GENERIC_ERROR;
 	}
 
-	virtio = (struct rss_comms_virtio *)rpmsg->platform;
+	rss_shm = (struct rss_comms_shm *)msg->platform;
 
 	if (type > INT16_MAX || type < INT16_MIN || in_len > PSA_MAX_IOVEC
 	    || out_len > PSA_MAX_IOVEC) {
 		return PSA_ERROR_INVALID_ARGUMENT;
 	}
 
-	virtio->io_buf.msg.header.seq_num = seq_num;
+	rss_shm->io_buf.msg.header.seq_num = seq_num;
 	/* No need to distinguish callers (currently concurrent calls are not supported). */
-	virtio->io_buf.msg.header.client_id = client_id;
-	virtio->io_buf.msg.header.protocol_ver = select_protocol_version(in_vec, in_len, out_vec, out_len);
+	rss_shm->io_buf.msg.header.client_id = client_id;
+	rss_shm->io_buf.msg.header.protocol_ver = select_protocol_version(in_vec, in_len, out_vec, out_len);
 
 	status = rss_protocol_serialize_msg(handle, type, in_vec, in_len, out_vec,
-					    out_len, &virtio->io_buf.msg, &msg_size);
+					    out_len, &rss_shm->io_buf.msg, &msg_size);
 	if (status != PSA_SUCCESS) {
 		EMSG("psa_call: serialize msg failed: %d\n", status);
 		return status;
 	}
 
-	virtio->msg_size = msg_size;
+	rss_shm->msg_size = msg_size;
 
-	IMSG("[RSS-COMMS] Sending message\n");
-	IMSG("protocol_ver=%u\n", virtio->io_buf.msg.header.protocol_ver);
-	IMSG("seq_num=%u\n", virtio->io_buf.msg.header.seq_num);
-	IMSG("client_id=%u\n", virtio->io_buf.msg.header.client_id);
+	DMSG("[RSS-COMMS] Sending message\n");
+	DMSG("protocol_ver=%u\n", rss_shm->io_buf.msg.header.protocol_ver);
+	DMSG("seq_num=%u\n", rss_shm->io_buf.msg.header.seq_num);
+	DMSG("client_id=%u\n", rss_shm->io_buf.msg.header.client_id);
 
 	ret = rpc_caller_invoke(caller, rpc_handle, 0, &psa_status, &resp,  &reply_size);
 	if (ret != TS_RPC_CALL_ACCEPTED) {
@@ -138,25 +138,25 @@ psa_status_t __psa_call(struct rpc_caller *caller, psa_handle_t handle,
 		return PSA_ERROR_GENERIC_ERROR;
 	}
 
-	virtio->io_buf.reply = *(struct serialized_rss_comms_reply_t *)resp;
+	rss_shm->io_buf.reply = *(struct serialized_rss_comms_reply_t *)resp;
 
-	IMSG("[RSS-COMMS] Received reply\n");
-	IMSG("protocol_ver=%u\n", virtio->io_buf.reply.header.protocol_ver);
-	IMSG("seq_num=%u\n", virtio->io_buf.reply.header.seq_num);
-	IMSG("client_id=%u\n", virtio->io_buf.reply.header.client_id);
-	IMSG("reply_size=%lu\n", reply_size);
+	DMSG("[RSS-COMMS] Received reply\n");
+	DMSG("protocol_ver=%u\n", rss_shm->io_buf.reply.header.protocol_ver);
+	DMSG("seq_num=%u\n", rss_shm->io_buf.reply.header.seq_num);
+	DMSG("client_id=%u\n", rss_shm->io_buf.reply.header.client_id);
+	DMSG("reply_size=%lu\n", reply_size);
 
 	status = rss_protocol_deserialize_reply(out_vec, out_len, &return_val,
-						&virtio->io_buf.reply, reply_size);
+						&rss_shm->io_buf.reply, reply_size);
 	if (status != PSA_SUCCESS) {
 		EMSG("psa_call: protocol deserialize reply failed: %d\n", status);
 		return status;
 	}
 
-	IMSG("return_val=%d\n", return_val);
+	DMSG("return_val=%d\n", return_val);
 
 	/* Clear the MHU message buffer to remove assets from memory */
-	memset(&virtio->io_buf, 0x0, sizeof(virtio->io_buf));
+	memset(&rss_shm->io_buf, 0x0, sizeof(rss_shm->io_buf));
 
 	seq_num++;
 

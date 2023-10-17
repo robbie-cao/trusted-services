@@ -10,7 +10,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "rss_comms_mhu.h"
-#include "rss_comms_virtio.h"
+#include "rss_comms_shm.h"
 
 struct rss_comms_platform_ops {
 	int (*transport_init)(struct rss_comms_messenger *rss_comms_msg);

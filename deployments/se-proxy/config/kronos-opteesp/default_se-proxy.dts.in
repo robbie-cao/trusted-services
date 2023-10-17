@@ -32,7 +32,7 @@
 			pages-count = <16>;
 			attributes = <0x3>; /* read-write */
 		};
-		rss_comms-virtio {
+		rss_comms-shm {
 			/* Armv8 A Foundation Platform values */
 			base-address = <0x00000000 0xFFFFC000>; /* shared memory for the communication between TS and RSS */
 			pages-count = <16>;

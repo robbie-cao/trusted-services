@@ -14,7 +14,7 @@ set_property(TARGET ${TGT} APPEND PROPERTY PUBLIC_HEADER
 
 target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/rss_comms_messenger.c"
-	"${CMAKE_CURRENT_LIST_DIR}/rss_comms_virtio.c"
+	"${CMAKE_CURRENT_LIST_DIR}/rss_comms_shm.c"
 	"${CMAKE_CURRENT_LIST_DIR}/rss_comms_mhu.c"
 	)
 

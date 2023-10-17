@@ -8,7 +8,6 @@
 #include <trace.h>
 #include "rss_comms_caller.h"
 #include "rss_comms_mhu.h"
-#include "rss_comms_virtio.h"
 #include <protocols/rpc/common/packed-c/status.h>
 #include <platform/drivers/arm/mhu_driver/mhu_v3_x.h>
 
@@ -20,10 +19,9 @@ static rpc_status_t rss_comms_call_invoke(void *context, rpc_call_handle handle,
 	struct mhu_v3_x_dev_t *rx_dev;
 	struct mhu_v3_x_dev_t *tx_dev;
 	struct rss_comms_mhu *mhu;
-	struct rss_comms_virtio *virtio;
-	struct rss_comms_virtio_shm *shm;
+	struct rss_comms_shm *rss_shm;
 	union rss_comms_io_buffer_t io_buf;
-	struct rss_comms_messenger *rpmsg;
+	struct rss_comms_messenger *msg;
 	enum mhu_error_t err;
 
 	(void)opcode;
@@ -33,20 +31,19 @@ static rpc_status_t rss_comms_call_invoke(void *context, rpc_call_handle handle,
 		return TS_RPC_ERROR_INVALID_PARAMETER;
 	}
 
-	rpmsg = &rss_comms->rss_comms_msg;
-	if (!rpmsg->transport) {
+	msg = &rss_comms->rss_comms_msg;
+	if (!msg->transport) {
 		EMSG("[RSS-COMMS] transport is null\n");
 		return PSA_ERROR_GENERIC_ERROR;
 	}
 
-	mhu = rpmsg->transport;
+	mhu = msg->transport;
 	rx_dev = &mhu->rx_dev;
 	tx_dev = &mhu->tx_dev;
-	virtio = rpmsg->platform;
-	shm = &virtio->shm;
-	io_buf = virtio->io_buf;
+	rss_shm = msg->platform;
+	io_buf = rss_shm->io_buf;
 
-	err = mhu_send_data(tx_dev, shm->base_addr, (uint8_t *)&io_buf.msg, virtio->msg_size);
+	err = mhu_send_data(tx_dev, rss_shm->shm_addr, (uint8_t *)&io_buf.msg, rss_shm->msg_size);
 	if (err != MHU_ERR_NONE) {
 		EMSG("[RSS-COMMS] mhu send data failed!\n");
 		return PSA_ERROR_COMMUNICATION_FAILURE;
@@ -60,7 +57,7 @@ static rpc_status_t rss_comms_call_invoke(void *context, rpc_call_handle handle,
 	memset(&io_buf.msg, 0xA5, msg_size);
 #endif
 
-	err = mhu_receive_data(rx_dev, shm->base_addr, (uint8_t *)&io_buf.reply, resp_len);
+	err = mhu_receive_data(rx_dev, rss_shm->shm_addr, (uint8_t *)&io_buf.reply, resp_len);
 	if (err != MHU_ERR_NONE) {
 		EMSG("[RSS-COMMS] mhu receive data failed!\n");
 		return PSA_ERROR_COMMUNICATION_FAILURE;
