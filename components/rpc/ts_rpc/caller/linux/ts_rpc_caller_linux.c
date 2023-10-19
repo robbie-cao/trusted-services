@@ -24,9 +24,6 @@
 
 #define INVALID_SESS_ID		  0
 #define MAX_TEE_DEV_NUM		  16
-#define TS_TEE_DRV_REQ_VER_MAJOR  2
-#define TS_TEE_DRV_REQ_VER_MINOR  0
-#define TS_TEE_DRV_REQ_VER_PATCH  0
 #define TS_TEE_DRV_INVALID_SHM_ID (0)
 
 struct ts_tee_dev {
@@ -236,47 +233,6 @@ static rpc_status_t call(void *context, uint16_t opcode,
 	return RPC_SUCCESS;
 }
 
-static bool ts_tee_drv_check_version(void)
-{
-	unsigned int major = 0;
-	unsigned int minor = 0;
-	unsigned int patch = 0;
-	FILE *f = NULL;
-	int cnt = 0;
-
-	f = fopen("/sys/module/arm_tstee/version", "r");
-	if (f) {
-		cnt = fscanf(f, "%u.%u.%u", &major, &minor, &patch);
-		fclose(f);
-
-		if (cnt != 3) {
-			printf("error: cannot read TS TEE driver version\n");
-			return false;
-		}
-	} else {
-		printf("error: TS TEE driver not available\n");
-		return false;
-	}
-
-	if (major != TS_TEE_DRV_REQ_VER_MAJOR)
-		goto err;
-
-	if (minor < TS_TEE_DRV_REQ_VER_MINOR)
-		goto err;
-
-	if (minor == TS_TEE_DRV_REQ_VER_MINOR)
-		if (patch < TS_TEE_DRV_REQ_VER_PATCH)
-			goto err;
-
-	return true;
-
-err:
-	printf("error: TS TEE driver is v%u.%u.%u but required v%u.%u.%u\n", major, minor, patch,
-	       TS_TEE_DRV_REQ_VER_MAJOR, TS_TEE_DRV_REQ_VER_MINOR, TS_TEE_DRV_REQ_VER_PATCH);
-
-	return false;
-}
-
 static void ts_tee_drv_discover(struct ts_tee_dev *ts_tee_devs, size_t count)
 {
 	struct tee_ioctl_version_data vers = { 0 };
@@ -313,9 +269,6 @@ rpc_status_t ts_rpc_caller_linux_init(struct rpc_caller_interface *rpc_caller)
 
 	if (!rpc_caller || rpc_caller->context)
 		return RPC_ERROR_INVALID_VALUE;
-
-	if (!ts_tee_drv_check_version())
-		return RPC_ERROR_INTERNAL;
 
 	context = (struct ts_rpc_caller_linux_context *)calloc(
 		1, sizeof(struct ts_rpc_caller_linux_context));
