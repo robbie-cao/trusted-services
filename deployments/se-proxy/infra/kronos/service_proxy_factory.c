@@ -14,6 +14,7 @@
 #include <service/crypto/factory/crypto_provider_factory.h>
 #include <service/secure_storage/frontend/secure_storage_provider/secure_storage_provider.h>
 #include <trace.h>
+#include <service/capsule_update/provider/capsule_update_provider.h>
 
 struct rss_comms_caller rss_comms;
 
@@ -92,4 +93,21 @@ struct rpc_interface *its_proxy_create(void)
 	struct storage_backend *backend = mock_store_init(&its_backend);
 
 	return secure_storage_provider_init(&its_provider, backend);
+}
+
+struct rpc_interface *capsule_update_proxy_create(void)
+{
+	static struct capsule_update_provider capsule_update_provider;
+	static struct rpc_caller *capsule_update_caller;
+
+	capsule_update_caller = rss_comms_caller_init(&rss_comms);
+
+	if (!capsule_update_caller) {
+		EMSG("capsule update caller is null\n");
+		return NULL;
+	}
+
+	capsule_update_provider.client.caller = capsule_update_caller;
+
+	return capsule_update_provider_init(&capsule_update_provider);
 }

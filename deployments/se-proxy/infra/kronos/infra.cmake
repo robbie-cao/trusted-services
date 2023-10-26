@@ -24,6 +24,7 @@ add_components(TARGET "se-proxy"
 	"components/service/crypto/backend/psa_ipc"
 	"components/service/crypto/client/psa"
 	"components/service/secure_storage/backend/mock_store"
+	"components/service/capsule_update/provider"
 )
 
 target_sources(se-proxy PRIVATE
