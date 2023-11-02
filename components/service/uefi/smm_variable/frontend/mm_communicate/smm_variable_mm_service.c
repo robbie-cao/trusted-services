@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
  */
+
+#include "smm_variable_mm_service.h"
+
+#include <assert.h>
 
 #include "protocols/common/mm/mm_smc.h"
 #include "protocols/service/smm_variable/smm_variable_proto.h"
-#include "smm_variable_mm_service.h"
-#include <assert.h>
 
 struct smm_variable_rpc_context {
 	struct rpc_interface *smm_variable_rpc_interface;
@@ -59,7 +61,8 @@ static int32_t smm_var_receive(struct mm_service_interface *iface,
 
 	rpc_req.opcode = header->Function;
 	rpc_req.request.data = header->Data;
-	rpc_req.request.data_length = mm_req->req_buf.data_length - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
+	rpc_req.request.data_length =
+		mm_req->req_buf.data_length - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
 	rpc_req.request.size = mm_req->req_buf.size - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
 
 	rpc_req.response.data = header->Data;
@@ -81,7 +84,7 @@ static int32_t smm_var_receive(struct mm_service_interface *iface,
 }
 
 struct mm_service_interface *smm_variable_mm_service_init(struct smm_variable_mm_service *service,
-						       struct rpc_service_interface *iface)
+							  struct rpc_service_interface *iface)
 {
 	assert(service != NULL);
 	assert(iface != NULL);

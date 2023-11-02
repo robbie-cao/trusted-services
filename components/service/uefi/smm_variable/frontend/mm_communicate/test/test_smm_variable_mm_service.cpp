@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
  */
 
 #include <CppUTest/TestHarness.h>
 #include <CppUTestExt/MockSupport.h>
-#include <string.h>
 #include <limits>
-#include "mock_assert.h"
+#include <string.h>
+
+#include "../smm_variable_mm_service.h"
 #include "components/rpc/common/test/mock_rpc_interface.h"
+#include "mock_assert.h"
 #include "protocols/common/mm/mm_smc.h"
 #include "protocols/service/smm_variable/smm_variable_proto.h"
-#include "../smm_variable_mm_service.h"
 
 TEST_GROUP(smm_variable_mm_service)
 {
@@ -84,7 +85,7 @@ TEST(smm_variable_mm_service, receive_zero_data)
 {
 	struct mm_service_interface *mm_service = NULL;
 	uint8_t buffer[128] = { 0 };
-	SMM_VARIABLE_COMMUNICATE_HEADER *header = (SMM_VARIABLE_COMMUNICATE_HEADER *) buffer;
+	SMM_VARIABLE_COMMUNICATE_HEADER *header = (SMM_VARIABLE_COMMUNICATE_HEADER *)buffer;
 	int32_t result = 0;
 
 	mm_req.req_buf.size = sizeof(buffer);
@@ -116,7 +117,8 @@ TEST(smm_variable_mm_service, receive_zero_data)
 
 	LONGS_EQUAL(MM_RETURN_CODE_SUCCESS, result);
 	UNSIGNED_LONGLONGS_EQUAL(rpc_req.service_status, header->ReturnStatus);
-	UNSIGNED_LONGLONGS_EQUAL(rpc_req.response.data_length + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
+	UNSIGNED_LONGLONGS_EQUAL(rpc_req.response.data_length +
+					 SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
 				 mm_req.resp_buf.data_length);
 }
 
@@ -124,7 +126,7 @@ TEST(smm_variable_mm_service, receive_data)
 {
 	struct mm_service_interface *mm_service = NULL;
 	uint8_t buffer[128] = { 0 };
-	SMM_VARIABLE_COMMUNICATE_HEADER *header = (SMM_VARIABLE_COMMUNICATE_HEADER *) buffer;
+	SMM_VARIABLE_COMMUNICATE_HEADER *header = (SMM_VARIABLE_COMMUNICATE_HEADER *)buffer;
 	int32_t result = 0;
 
 	mm_req.req_buf.size = sizeof(buffer);
@@ -156,7 +158,8 @@ TEST(smm_variable_mm_service, receive_data)
 
 	LONGS_EQUAL(MM_RETURN_CODE_SUCCESS, result);
 	UNSIGNED_LONGLONGS_EQUAL(rpc_req.service_status, header->ReturnStatus);
-	UNSIGNED_LONGLONGS_EQUAL(rpc_req.response.data_length + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
+	UNSIGNED_LONGLONGS_EQUAL(rpc_req.response.data_length +
+					 SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
 				 mm_req.resp_buf.data_length);
 }
 
@@ -164,7 +167,7 @@ TEST(smm_variable_mm_service, receive_long_response)
 {
 	struct mm_service_interface *mm_service = NULL;
 	uint8_t buffer[128] = { 0 };
-	SMM_VARIABLE_COMMUNICATE_HEADER *header = (SMM_VARIABLE_COMMUNICATE_HEADER *) buffer;
+	SMM_VARIABLE_COMMUNICATE_HEADER *header = (SMM_VARIABLE_COMMUNICATE_HEADER *)buffer;
 	int32_t result = 0;
 
 	mm_req.req_buf.size = sizeof(buffer);
@@ -184,7 +187,8 @@ TEST(smm_variable_mm_service, receive_long_response)
 	rpc_req.request.data_length = 32;
 	rpc_req.request.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
 	rpc_req.response.size = sizeof(buffer) - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
-	rpc_req.response.data_length = std::numeric_limits<size_t>::max() - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE + 1;
+	rpc_req.response.data_length =
+		std::numeric_limits<size_t>::max() - SMM_VARIABLE_COMMUNICATE_HEADER_SIZE + 1;
 	rpc_req.response.data = buffer + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE;
 
 	rpc_iface.receive = mock_rpc_interface_receive;
@@ -196,7 +200,8 @@ TEST(smm_variable_mm_service, receive_long_response)
 
 	LONGS_EQUAL(MM_RETURN_CODE_NO_MEMORY, result);
 	UNSIGNED_LONGLONGS_EQUAL(rpc_req.service_status, header->ReturnStatus);
-	UNSIGNED_LONGLONGS_EQUAL(rpc_req.response.data_length + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
+	UNSIGNED_LONGLONGS_EQUAL(rpc_req.response.data_length +
+					 SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
 				 mm_req.resp_buf.data_length);
 }
 
@@ -204,7 +209,7 @@ TEST(smm_variable_mm_service, receive_response_larger_than_size)
 {
 	struct mm_service_interface *mm_service = NULL;
 	uint8_t buffer[128] = { 0 };
-	SMM_VARIABLE_COMMUNICATE_HEADER *header = (SMM_VARIABLE_COMMUNICATE_HEADER *) buffer;
+	SMM_VARIABLE_COMMUNICATE_HEADER *header = (SMM_VARIABLE_COMMUNICATE_HEADER *)buffer;
 	int32_t result = 0;
 
 	mm_req.req_buf.size = sizeof(buffer);
@@ -236,7 +241,8 @@ TEST(smm_variable_mm_service, receive_response_larger_than_size)
 
 	LONGS_EQUAL(MM_RETURN_CODE_NO_MEMORY, result);
 	UNSIGNED_LONGLONGS_EQUAL(rpc_req.service_status, header->ReturnStatus);
-	UNSIGNED_LONGLONGS_EQUAL(rpc_req.response.data_length + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
+	UNSIGNED_LONGLONGS_EQUAL(rpc_req.response.data_length +
+					 SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
 				 mm_req.resp_buf.data_length);
 }
 
@@ -244,22 +250,22 @@ TEST(smm_variable_mm_service, receive_data_error_codes)
 {
 	struct mm_service_interface *mm_service = NULL;
 	uint8_t buffer[128] = { 0 };
-	SMM_VARIABLE_COMMUNICATE_HEADER *header = (SMM_VARIABLE_COMMUNICATE_HEADER *) buffer;
+	SMM_VARIABLE_COMMUNICATE_HEADER *header = (SMM_VARIABLE_COMMUNICATE_HEADER *)buffer;
 	int32_t result = 0;
 
 	const struct {
 		rpc_status_t rpc_status;
 		int32_t mm_result;
 	} status_mapping[] = {
-		{RPC_SUCCESS, MM_RETURN_CODE_SUCCESS},
-		{RPC_ERROR_INTERNAL, MM_RETURN_CODE_INVALID_PARAMETER},
-		{RPC_ERROR_INVALID_VALUE, MM_RETURN_CODE_INVALID_PARAMETER},
-		{RPC_ERROR_NOT_FOUND, MM_RETURN_CODE_NOT_SUPPORTED},
-		{RPC_ERROR_INVALID_STATE, MM_RETURN_CODE_INVALID_PARAMETER},
-		{RPC_ERROR_TRANSPORT_LAYER, MM_RETURN_CODE_INVALID_PARAMETER},
-		{RPC_ERROR_INVALID_REQUEST_BODY, MM_RETURN_CODE_INVALID_PARAMETER},
-		{RPC_ERROR_INVALID_RESPONSE_BODY, MM_RETURN_CODE_INVALID_PARAMETER},
-		{1, MM_RETURN_CODE_NOT_SUPPORTED}
+		{ RPC_SUCCESS, MM_RETURN_CODE_SUCCESS },
+		{ RPC_ERROR_INTERNAL, MM_RETURN_CODE_INVALID_PARAMETER },
+		{ RPC_ERROR_INVALID_VALUE, MM_RETURN_CODE_INVALID_PARAMETER },
+		{ RPC_ERROR_NOT_FOUND, MM_RETURN_CODE_NOT_SUPPORTED },
+		{ RPC_ERROR_INVALID_STATE, MM_RETURN_CODE_INVALID_PARAMETER },
+		{ RPC_ERROR_TRANSPORT_LAYER, MM_RETURN_CODE_INVALID_PARAMETER },
+		{ RPC_ERROR_INVALID_REQUEST_BODY, MM_RETURN_CODE_INVALID_PARAMETER },
+		{ RPC_ERROR_INVALID_RESPONSE_BODY, MM_RETURN_CODE_INVALID_PARAMETER },
+		{ 1, MM_RETURN_CODE_NOT_SUPPORTED }
 
 	};
 
@@ -288,12 +294,14 @@ TEST(smm_variable_mm_service, receive_data_error_codes)
 	mm_service = smm_variable_mm_service_init(&service, &rpc_iface);
 
 	for (size_t i = 0; i < ARRAY_SIZE(status_mapping); i++) {
-		expect_mock_rpc_interface_receive(&rpc_iface, &rpc_req, status_mapping[i].rpc_status);
+		expect_mock_rpc_interface_receive(&rpc_iface, &rpc_req,
+						  status_mapping[i].rpc_status);
 		result = mm_service->receive(mm_service, &mm_req);
 
 		LONGS_EQUAL(status_mapping[i].mm_result, result);
 		UNSIGNED_LONGLONGS_EQUAL(rpc_req.service_status, header->ReturnStatus);
-		UNSIGNED_LONGLONGS_EQUAL(rpc_req.response.data_length + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
-					mm_req.resp_buf.data_length);
+		UNSIGNED_LONGLONGS_EQUAL(rpc_req.response.data_length +
+						 SMM_VARIABLE_COMMUNICATE_HEADER_SIZE,
+					 mm_req.resp_buf.data_length);
 	}
 }

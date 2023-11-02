@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <cstring>
-#include <service/uefi/smm_variable/client/cpp/smm_variable_client.h>
-#include <protocols/rpc/common/packed-c/encoding.h>
-#include <service_locator.h>
 #include <CppUTest/TestHarness.h>
+#include <cstring>
+#include <protocols/rpc/common/packed-c/encoding.h>
+#include <service/uefi/smm_variable/client/cpp/smm_variable_client.h>
+#include <service_locator.h>
 
 /*
  * Service-level tests for the smm-variable service.
@@ -22,12 +22,10 @@ TEST_GROUP(SmmVariableServiceTests)
 
 		service_locator_init();
 
-		m_service_context =
-			service_locator_query("sn:trustedfirmware.org:smm-variable:0");
+		m_service_context = service_locator_query("sn:trustedfirmware.org:smm-variable:0");
 		CHECK_TRUE(m_service_context);
 
-		m_rpc_session =
-			service_context_open(m_service_context);
+		m_rpc_session = service_context_open(m_service_context);
 		CHECK_TRUE(m_rpc_session);
 
 		m_client = new smm_variable_client(m_rpc_session);
@@ -85,42 +83,29 @@ TEST_GROUP(SmmVariableServiceTests)
 		 * If the boot variable already exists at the start of the
 		 * test, indicating a subsequent test run, just return.
 		 */
-		efi_status = m_client->get_variable(
-			m_common_guid,
-			boot_var_name,
-			get_data);
-		if (efi_status == EFI_ACCESS_DENIED) return;
+		efi_status = m_client->get_variable(m_common_guid, boot_var_name, get_data);
+		if (efi_status == EFI_ACCESS_DENIED)
+			return;
 
 		/* Add variables with runtime state access control */
-		efi_status = m_client->set_variable(
-			m_common_guid,
-			boot_var_name,
-			boot_set_data,
-			EFI_VARIABLE_BOOTSERVICE_ACCESS);
+		efi_status = m_client->set_variable(m_common_guid, boot_var_name, boot_set_data,
+						    EFI_VARIABLE_BOOTSERVICE_ACCESS);
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 		efi_status = m_client->set_variable(
-			m_common_guid,
-			runtime_var_name,
-			runtime_set_data,
-			EFI_VARIABLE_NON_VOLATILE |
-			EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS);
+			m_common_guid, runtime_var_name, runtime_set_data,
+			EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS |
+				EFI_VARIABLE_BOOTSERVICE_ACCESS);
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 		/* Expect access to boot variable to be permitted */
-		efi_status = m_client->get_variable(
-			m_common_guid,
-			boot_var_name,
-			get_data);
+		efi_status = m_client->get_variable(m_common_guid, boot_var_name, get_data);
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 		UNSIGNED_LONGS_EQUAL(boot_set_data.size(), get_data.size());
 		LONGS_EQUAL(0, get_data.compare(boot_set_data));
 
 		/* Expect access to the runtime variable to also be permitted during boot */
-		efi_status = m_client->get_variable(
-			m_common_guid,
-			runtime_var_name,
-			get_data);
+		efi_status = m_client->get_variable(m_common_guid, runtime_var_name, get_data);
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 		/* Exit boot service - access should no longer be permitted */
@@ -128,17 +113,11 @@ TEST_GROUP(SmmVariableServiceTests)
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 		/* Access to the boot variable should now be forbidden */
-		efi_status = m_client->get_variable(
-			m_common_guid,
-			boot_var_name,
-			get_data);
+		efi_status = m_client->get_variable(m_common_guid, boot_var_name, get_data);
 		UNSIGNED_LONGLONGS_EQUAL(EFI_ACCESS_DENIED, efi_status);
 
 		/* Expect access to the runtime variable should still be permitted */
-		efi_status = m_client->get_variable(
-			m_common_guid,
-			runtime_var_name,
-			get_data);
+		efi_status = m_client->get_variable(m_common_guid, runtime_var_name, get_data);
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 		UNSIGNED_LONGS_EQUAL(runtime_set_data.size(), get_data.size());
 		LONGS_EQUAL(0, get_data.compare(runtime_set_data));
@@ -160,11 +139,9 @@ TEST_GROUP(SmmVariableServiceTests)
 		std::string set_data = "A read only variable";
 
 		/* Add a variable to the store */
-		efi_status = m_client->set_variable(
-			m_common_guid,
-			var_name_1,
-			set_data,
-			EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS);
+		efi_status = m_client->set_variable(m_common_guid, var_name_1, set_data,
+						    EFI_VARIABLE_BOOTSERVICE_ACCESS |
+							    EFI_VARIABLE_RUNTIME_ACCESS);
 
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -176,19 +153,15 @@ TEST_GROUP(SmmVariableServiceTests)
 		check_property.MinSize = 0;
 		check_property.MaxSize = 100;
 
-		efi_status = m_client->set_var_check_property(
-			m_common_guid,
-			var_name_1,
-			check_property);
+		efi_status =
+			m_client->set_var_check_property(m_common_guid, var_name_1, check_property);
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 		/* Read back the check property constraint and expect it to match the set value */
 		VAR_CHECK_VARIABLE_PROPERTY got_check_property;
 
-		efi_status = m_client->get_var_check_property(
-			m_common_guid,
-			var_name_1,
-			got_check_property);
+		efi_status = m_client->get_var_check_property(m_common_guid, var_name_1,
+							      got_check_property);
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 		UNSIGNED_LONGS_EQUAL(check_property.Revision, got_check_property.Revision);
@@ -199,9 +172,7 @@ TEST_GROUP(SmmVariableServiceTests)
 
 		/* Attempt to modify variable */
 		efi_status = m_client->set_variable(
-			m_common_guid,
-			var_name_1,
-			std::string("Different variable data"),
+			m_common_guid, var_name_1, std::string("Different variable data"),
 			EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS);
 
 		UNSIGNED_LONGLONGS_EQUAL(EFI_WRITE_PROTECTED, efi_status);
@@ -209,10 +180,7 @@ TEST_GROUP(SmmVariableServiceTests)
 		/* Expect to still be able to read variable */
 		std::string get_data;
 
-		efi_status = m_client->get_variable(
-			m_common_guid,
-			var_name_1,
-			get_data);
+		efi_status = m_client->get_variable(m_common_guid, var_name_1, get_data);
 
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -234,18 +202,13 @@ TEST(SmmVariableServiceTests, setAndGet)
 	std::string set_data = "UEFI variable data string";
 	std::string get_data;
 
-	efi_status = m_client->set_variable(
-		m_common_guid,
-		var_name,
-		set_data,
-		EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS);
+	efi_status = m_client->set_variable(m_common_guid, var_name, set_data,
+					    EFI_VARIABLE_BOOTSERVICE_ACCESS |
+						    EFI_VARIABLE_RUNTIME_ACCESS);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
-	efi_status = m_client->get_variable(
-		m_common_guid,
-		var_name,
-		get_data);
+	efi_status = m_client->get_variable(m_common_guid, var_name, get_data);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -255,19 +218,14 @@ TEST(SmmVariableServiceTests, setAndGet)
 	/* Extend the variable using an append write */
 	std::string append_data = " values added with append write";
 
-	efi_status = m_client->set_variable(
-		m_common_guid,
-		var_name,
-		append_data,
-		EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS |
-		EFI_VARIABLE_APPEND_WRITE);
+	efi_status = m_client->set_variable(m_common_guid, var_name, append_data,
+					    EFI_VARIABLE_BOOTSERVICE_ACCESS |
+						    EFI_VARIABLE_RUNTIME_ACCESS |
+						    EFI_VARIABLE_APPEND_WRITE);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
-	efi_status = m_client->get_variable(
-		m_common_guid,
-		var_name,
-		get_data);
+	efi_status = m_client->get_variable(m_common_guid, var_name, get_data);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -289,19 +247,14 @@ TEST(SmmVariableServiceTests, setAndGetNv)
 	std::string set_data = "Another UEFI variable data string";
 	std::string get_data;
 
-	efi_status = m_client->set_variable(
-		m_common_guid,
-		var_name,
-		set_data,
-		EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS |
-		EFI_VARIABLE_NON_VOLATILE);
+	efi_status = m_client->set_variable(m_common_guid, var_name, set_data,
+					    EFI_VARIABLE_BOOTSERVICE_ACCESS |
+						    EFI_VARIABLE_RUNTIME_ACCESS |
+						    EFI_VARIABLE_NON_VOLATILE);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
-	efi_status = m_client->get_variable(
-		m_common_guid,
-		var_name,
-		get_data);
+	efi_status = m_client->get_variable(m_common_guid, var_name, get_data);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -312,18 +265,13 @@ TEST(SmmVariableServiceTests, setAndGetNv)
 	std::string append_data = " values added with append write";
 
 	efi_status = m_client->set_variable(
-		m_common_guid,
-		var_name,
-		append_data,
+		m_common_guid, var_name, append_data,
 		EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS |
-		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_APPEND_WRITE);
+			EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_APPEND_WRITE);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
-	efi_status = m_client->get_variable(
-		m_common_guid,
-		var_name,
-		get_data);
+	efi_status = m_client->get_variable(m_common_guid, var_name, get_data);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -345,21 +293,15 @@ TEST(SmmVariableServiceTests, getVarSize)
 	std::string set_data = "UEFI variable data string";
 	std::string get_data;
 
-	efi_status = m_client->set_variable(
-		m_common_guid,
-		var_name,
-		set_data,
-		EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS);
+	efi_status = m_client->set_variable(m_common_guid, var_name, set_data,
+					    EFI_VARIABLE_BOOTSERVICE_ACCESS |
+						    EFI_VARIABLE_RUNTIME_ACCESS);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Get with the data size set to zero. This is the standard way
 	 * to discover the variable size. */
-	efi_status = m_client->get_variable(
-		m_common_guid,
-		var_name,
-		get_data,
-		0, 0);
+	efi_status = m_client->get_variable(m_common_guid, var_name, get_data, 0, 0);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_BUFFER_TOO_SMALL, efi_status);
 	UNSIGNED_LONGS_EQUAL(set_data.size(), get_data.size());
@@ -376,22 +318,16 @@ TEST(SmmVariableServiceTests, getVarSizeNv)
 	std::string set_data = "UEFI variable data string";
 	std::string get_data;
 
-	efi_status = m_client->set_variable(
-		m_common_guid,
-		var_name,
-		set_data,
-		EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS |
-		EFI_VARIABLE_NON_VOLATILE);
+	efi_status = m_client->set_variable(m_common_guid, var_name, set_data,
+					    EFI_VARIABLE_BOOTSERVICE_ACCESS |
+						    EFI_VARIABLE_RUNTIME_ACCESS |
+						    EFI_VARIABLE_NON_VOLATILE);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Get with the data size set to zero. This is the standard way
 	 * to discover the variable size. */
-	efi_status = m_client->get_variable(
-		m_common_guid,
-		var_name,
-		get_data,
-		0, 0);
+	efi_status = m_client->get_variable(m_common_guid, var_name, get_data, 0, 0);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_BUFFER_TOO_SMALL, efi_status);
 	UNSIGNED_LONGS_EQUAL(set_data.size(), get_data.size());
@@ -410,11 +346,10 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 	size_t nv_max_variable_size = 0;
 	size_t nv_remaining_variable_storage_size = 0;
 
-	efi_status = m_client->query_variable_info(
-		EFI_VARIABLE_NON_VOLATILE,
-		&nv_max_variable_storage_size,
-		&nv_remaining_variable_storage_size,
-		&nv_max_variable_size);
+	efi_status = m_client->query_variable_info(EFI_VARIABLE_NON_VOLATILE,
+						   &nv_max_variable_storage_size,
+						   &nv_remaining_variable_storage_size,
+						   &nv_max_variable_size);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 	UNSIGNED_LONGLONGS_EQUAL(nv_max_variable_storage_size, nv_remaining_variable_storage_size);
 
@@ -422,11 +357,9 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 	size_t v_max_variable_size = 0;
 	size_t v_remaining_variable_storage_size = 0;
 
-	efi_status = m_client->query_variable_info(
-		0,
-		&v_max_variable_storage_size,
-		&v_remaining_variable_storage_size,
-		&v_max_variable_size);
+	efi_status = m_client->query_variable_info(0, &v_max_variable_storage_size,
+						   &v_remaining_variable_storage_size,
+						   &v_max_variable_size);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 	UNSIGNED_LONGLONGS_EQUAL(v_max_variable_storage_size, v_remaining_variable_storage_size);
 
@@ -436,27 +369,20 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 	std::wstring var_name_3 = L"varibale_3";
 	std::string set_data = "Some variable data";
 
-	efi_status = m_client->set_variable(
-		m_common_guid,
-		var_name_1,
-		set_data,
-		EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_NON_VOLATILE);
+	efi_status =
+		m_client->set_variable(m_common_guid, var_name_1, set_data,
+				       EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_NON_VOLATILE);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
-	efi_status = m_client->set_variable(
-		m_common_guid,
-		var_name_2,
-		set_data,
-		EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_NON_VOLATILE);
+	efi_status =
+		m_client->set_variable(m_common_guid, var_name_2, set_data,
+				       EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_NON_VOLATILE);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
-	efi_status = m_client->set_variable(
-		m_common_guid,
-		var_name_3,
-		set_data,
-		EFI_VARIABLE_BOOTSERVICE_ACCESS);
+	efi_status = m_client->set_variable(m_common_guid, var_name_3, set_data,
+					    EFI_VARIABLE_BOOTSERVICE_ACCESS);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -466,26 +392,20 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 	size_t remaining_variable_storage_size = 0;
 
 	/* Check non-volatile - two variables have been added */
-	efi_status = m_client->query_variable_info(
-		EFI_VARIABLE_NON_VOLATILE,
-		&max_variable_storage_size,
-		&remaining_variable_storage_size,
-		&max_variable_size);
+	efi_status =
+		m_client->query_variable_info(EFI_VARIABLE_NON_VOLATILE, &max_variable_storage_size,
+					      &remaining_variable_storage_size, &max_variable_size);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
-	UNSIGNED_LONGLONGS_EQUAL(
-		(nv_remaining_variable_storage_size - set_data.size() * 2),
-		remaining_variable_storage_size);
+	UNSIGNED_LONGLONGS_EQUAL((nv_remaining_variable_storage_size - set_data.size() * 2),
+				 remaining_variable_storage_size);
 
 	/* Check volatile - one variables have been added */
-	efi_status = m_client->query_variable_info(
-		0,
-		&max_variable_storage_size,
-		&remaining_variable_storage_size,
-		&max_variable_size);
+	efi_status = m_client->query_variable_info(0, &max_variable_storage_size,
+						   &remaining_variable_storage_size,
+						   &max_variable_size);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
-	UNSIGNED_LONGLONGS_EQUAL(
-		(v_remaining_variable_storage_size - set_data.size() * 1),
-		remaining_variable_storage_size);
+	UNSIGNED_LONGLONGS_EQUAL((v_remaining_variable_storage_size - set_data.size() * 1),
+				 remaining_variable_storage_size);
 
 	/* Enumerate store contents - expect the values we added */
 	std::wstring var_name;
@@ -534,11 +454,8 @@ TEST(SmmVariableServiceTests, setSizeConstraint)
 	std::string set_data = "Initial value";
 
 	/* Add a variable to the store */
-	efi_status = m_client->set_variable(
-		m_common_guid,
-		var_name_1,
-		set_data,
-		EFI_VARIABLE_BOOTSERVICE_ACCESS);
+	efi_status = m_client->set_variable(m_common_guid, var_name_1, set_data,
+					    EFI_VARIABLE_BOOTSERVICE_ACCESS);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -550,26 +467,19 @@ TEST(SmmVariableServiceTests, setSizeConstraint)
 	check_property.MinSize = 0;
 	check_property.MaxSize = 20;
 
-	efi_status = m_client->set_var_check_property(
-		m_common_guid,
-		var_name_1,
-		check_property);
+	efi_status = m_client->set_var_check_property(m_common_guid, var_name_1, check_property);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Attempt to set value to a size that exceeds the MaxSize constraint */
 	efi_status = m_client->set_variable(
-		m_common_guid,
-		var_name_1,
+		m_common_guid, var_name_1,
 		std::string("A data value that exceeds the MaxSize constraint"),
 		EFI_VARIABLE_BOOTSERVICE_ACCESS);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 
 	/* But setting a value that's within the constraints should work */
-	efi_status = m_client->set_variable(
-		m_common_guid,
-		var_name_1,
-		std::string("Small value"),
-		EFI_VARIABLE_BOOTSERVICE_ACCESS);
+	efi_status = m_client->set_variable(m_common_guid, var_name_1, std::string("Small value"),
+					    EFI_VARIABLE_BOOTSERVICE_ACCESS);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Removing should be allowed though */
@@ -580,8 +490,7 @@ TEST(SmmVariableServiceTests, setSizeConstraint)
 	 * still be set.
 	 */
 	efi_status = m_client->set_variable(
-		m_common_guid,
-		var_name_1,
+		m_common_guid, var_name_1,
 		std::string("Another try to set a value that exceeds the MaxSize constraint"),
 		EFI_VARIABLE_BOOTSERVICE_ACCESS);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);

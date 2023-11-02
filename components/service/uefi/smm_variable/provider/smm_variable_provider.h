@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -19,8 +19,7 @@ extern "C" {
  * The smm_variable_provider is a service provider that implements an RPC interface
  * for an instance of the smm_variable service.
  */
-struct smm_variable_provider
-{
+struct smm_variable_provider {
 	struct service_provider base_provider;
 	struct uefi_variable_store variable_store;
 };
@@ -41,20 +40,17 @@ struct smm_variable_provider
  *
  * \return An rpc_interface or NULL on failure
  */
-struct rpc_service_interface *smm_variable_provider_init(
-	struct smm_variable_provider *context,
- 	uint32_t owner_id,
-	size_t max_variables,
-	struct storage_backend *persistent_store,
-	struct storage_backend *volatile_store);
+struct rpc_service_interface *smm_variable_provider_init(struct smm_variable_provider *context,
+							 uint32_t owner_id, size_t max_variables,
+							 struct storage_backend *persistent_store,
+							 struct storage_backend *volatile_store);
 
 /**
  * \brief Cleans up when the instance is no longer needed
  *
  * \param[in] context   The instance to de-initialize
  */
-void smm_variable_provider_deinit(
-	struct smm_variable_provider *context);
+void smm_variable_provider_deinit(struct smm_variable_provider *context);
 
 #ifdef __cplusplus
 } /* extern "C" */

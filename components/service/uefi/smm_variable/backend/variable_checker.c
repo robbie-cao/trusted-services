@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, Arm Limited. All rights reserved.
+ * Copyright (c) 2021-2023, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -7,10 +7,9 @@
 
 #include "variable_checker.h"
 
-efi_status_t variable_checker_set_constraints(
-	struct variable_constraints *constraints,
-	bool is_update,
-	const VAR_CHECK_VARIABLE_PROPERTY *check_var_property)
+efi_status_t variable_checker_set_constraints(struct variable_constraints *constraints,
+					      bool is_update,
+					      const VAR_CHECK_VARIABLE_PROPERTY *check_var_property)
 {
 	/* Sanity check input parameters */
 	if (check_var_property->Revision != VAR_CHECK_VARIABLE_PROPERTY_REVISION)
@@ -21,9 +20,8 @@ efi_status_t variable_checker_set_constraints(
 
 	/* Check for an attempt to undo previously set access constraints */
 	if (is_update) {
-
 		if ((constraints->property & VAR_CHECK_VARIABLE_PROPERTY_READ_ONLY) &&
-			!(check_var_property->Property & VAR_CHECK_VARIABLE_PROPERTY_READ_ONLY))
+		    !(check_var_property->Property & VAR_CHECK_VARIABLE_PROPERTY_READ_ONLY))
 			return EFI_INVALID_PARAMETER;
 	}
 
@@ -37,9 +35,8 @@ efi_status_t variable_checker_set_constraints(
 	return EFI_SUCCESS;
 }
 
-void variable_checker_get_constraints(
-	const struct variable_constraints *constraints,
-	VAR_CHECK_VARIABLE_PROPERTY *check_var_property)
+void variable_checker_get_constraints(const struct variable_constraints *constraints,
+				      VAR_CHECK_VARIABLE_PROPERTY *check_var_property)
 {
 	check_var_property->Revision = constraints->revision;
 	check_var_property->Attributes = constraints->attributes;
@@ -48,10 +45,8 @@ void variable_checker_get_constraints(
 	check_var_property->MaxSize = constraints->max_size;
 }
 
-efi_status_t variable_checker_check_on_set(
-	const struct variable_constraints *constraints,
-	uint32_t attributes,
-	size_t data_size)
+efi_status_t variable_checker_check_on_set(const struct variable_constraints *constraints,
+					   uint32_t attributes, size_t data_size)
 {
 	(void)attributes;
 

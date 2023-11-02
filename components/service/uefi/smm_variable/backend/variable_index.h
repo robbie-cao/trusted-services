@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2021-2023, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -8,11 +8,12 @@
 #ifndef VARIABLE_INDEX_H
 #define VARIABLE_INDEX_H
 
+#include <protocols/common/efi/efi_status.h>
+#include <protocols/service/smm_variable/smm_variable_proto.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <protocols/common/efi/efi_status.h>
-#include <protocols/service/smm_variable/smm_variable_proto.h>
+
 #include "variable_checker.h"
 
 #ifdef __cplusplus
@@ -22,20 +23,19 @@ extern "C" {
 /**
  * Implementation limits
  */
-#define VARIABLE_INDEX_MAX_NAME_SIZE		(32)
+#define VARIABLE_INDEX_MAX_NAME_SIZE (32)
 
 /**
  * \brief variable_metadata structure definition
  *
  * Holds metadata associated with stored variable.
  */
-struct variable_metadata
-{
-	EFI_GUID	guid;
-	size_t		name_size;
-	int16_t		name[VARIABLE_INDEX_MAX_NAME_SIZE];
-	uint32_t	attributes;
-	uint64_t	uid;
+struct variable_metadata {
+	EFI_GUID guid;
+	size_t name_size;
+	int16_t name[VARIABLE_INDEX_MAX_NAME_SIZE];
+	uint32_t attributes;
+	uint64_t uid;
 };
 
 /**
@@ -43,8 +43,7 @@ struct variable_metadata
  *
  * Holds information about a stored variable.
  */
-struct variable_info
-{
+struct variable_info {
 	struct variable_metadata metadata;
 	struct variable_constraints check_constraints;
 
@@ -57,12 +56,11 @@ struct variable_info
  *
  * Represents a store variable in the variable index.
  */
-struct variable_entry
-{
-	struct 	variable_info info;
+struct variable_entry {
+	struct variable_info info;
 
-	bool	in_use;
-	bool	dirty;
+	bool in_use;
+	bool dirty;
 };
 
 /**
@@ -71,8 +69,7 @@ struct variable_entry
  * Provides an index of stored variables to allow the uefi variable store
  * contents to be enumerated.
  */
-struct variable_index
-{
+struct variable_index {
 	size_t max_variables;
 	struct variable_entry *entries;
 };
@@ -85,17 +82,14 @@ struct variable_index
  *
  * @return     EFI_SUCCESS if initialized successfully
  */
-efi_status_t variable_index_init(
-	struct variable_index *context,
-	size_t max_variables);
+efi_status_t variable_index_init(struct variable_index *context, size_t max_variables);
 
 /**
  * @brief      De-initialises a variable_index
  *
  * @param[in]  context variable_index
  */
-void variable_index_deinit(
-	struct variable_index *context);
+void variable_index_deinit(struct variable_index *context);
 
 /**
  * @brief      Returns the maximum dump size
@@ -106,8 +100,7 @@ void variable_index_deinit(
  *
  * @param[in]  context variable_index
  */
-size_t variable_index_max_dump_size(
-	struct variable_index *context);
+size_t variable_index_max_dump_size(struct variable_index *context);
 
 /**
  * @brief      Find info about a variable
@@ -119,11 +112,8 @@ size_t variable_index_max_dump_size(
  *
  * @return     Pointer to variable_info or NULL
  */
-struct variable_info *variable_index_find(
-	struct variable_index *context,
-	const EFI_GUID *guid,
-	size_t name_size,
-	const int16_t *name);
+struct variable_info *variable_index_find(struct variable_index *context, const EFI_GUID *guid,
+					  size_t name_size, const int16_t *name);
 
 /**
  * @brief      Find the next variable in the index
@@ -136,12 +126,9 @@ struct variable_info *variable_index_find(
  *
  * @return     Pointer to variable_info or NULL
  */
-struct variable_info *variable_index_find_next(
-	const struct variable_index *context,
-	const EFI_GUID *guid,
-	size_t name_size,
-	const int16_t *name,
-	efi_status_t *status);
+struct variable_info *variable_index_find_next(const struct variable_index *context,
+					       const EFI_GUID *guid, size_t name_size,
+					       const int16_t *name, efi_status_t *status);
 
 /**
  * @brief      Add a new entry to the index
@@ -157,11 +144,8 @@ struct variable_info *variable_index_find_next(
  *
  * @return     Pointer to variable_info or NULL
  */
-struct variable_info *variable_index_add_entry(
-	struct variable_index *context,
-	const EFI_GUID *guid,
-	size_t name_size,
-	const int16_t *name);
+struct variable_info *variable_index_add_entry(struct variable_index *context, const EFI_GUID *guid,
+					       size_t name_size, const int16_t *name);
 
 /**
  * @brief      Remove an unused entry from the index
@@ -171,9 +155,7 @@ struct variable_info *variable_index_add_entry(
  * @param[in]  context variable_index
  * @param[in]  info The variable info corresponding to the entry to remove
  */
-void variable_index_remove_unused_entry(
-	struct variable_index *context,
-	struct variable_info *info);
+void variable_index_remove_unused_entry(struct variable_index *context, struct variable_info *info);
 
 /**
  * @brief      Set a variable to the index
@@ -183,9 +165,7 @@ void variable_index_remove_unused_entry(
  * @param[in]  info variable info
  * @param[in]  attributes The variable's attributes
  */
-void variable_index_set_variable(
-	struct variable_info *info,
-	uint32_t attributes);
+void variable_index_set_variable(struct variable_info *info, uint32_t attributes);
 
 /**
  * @brief      Clear a variable from the index
@@ -195,9 +175,7 @@ void variable_index_set_variable(
  * @param[in]  context variable_index
  * @param[in]  info The variable info corresponding to the variable to clear
  */
-void variable_index_clear_variable(
-	struct variable_index *context,
-	struct variable_info *info);
+void variable_index_clear_variable(struct variable_index *context, struct variable_info *info);
 
 /**
  * @brief      Set a check constraints object associated with a variavle
@@ -205,9 +183,8 @@ void variable_index_clear_variable(
  * @param[in]  info variable info
  * @param[in]  constraints The check constraints
  */
-void variable_index_set_constraints(
-	struct variable_info *info,
-	const struct variable_constraints *constraints);
+void variable_index_set_constraints(struct variable_info *info,
+				    const struct variable_constraints *constraints);
 
 /**
  * @brief      Dump the serialized index contents for persistent backup
@@ -219,11 +196,8 @@ void variable_index_set_constraints(
  *
  * @return     True if there is unsaved data
  */
-bool variable_index_dump(
-	struct variable_index *context,
-	size_t buffer_size,
-	uint8_t *buffer,
-	size_t *data_len);
+bool variable_index_dump(struct variable_index *context, size_t buffer_size, uint8_t *buffer,
+			 size_t *data_len);
 
 /**
  * @brief      Restore the serialized index contents
@@ -237,11 +211,8 @@ bool variable_index_dump(
  *
  * @return     Number of bytes loaded
  */
-size_t variable_index_restore(
-	const struct variable_index *context,
-	size_t data_len,
-	const uint8_t *buffer);
-
+size_t variable_index_restore(const struct variable_index *context, size_t data_len,
+			      const uint8_t *buffer);
 
 #ifdef __cplusplus
 }

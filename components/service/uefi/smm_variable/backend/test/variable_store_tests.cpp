@@ -1,15 +1,15 @@
 /*
- * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <CppUTest/TestHarness.h>
+#include <service/secure_storage/backend/mock_store/mock_store.h>
+#include <service/uefi/smm_variable/backend/uefi_variable_store.h>
+#include <string.h>
 #include <string>
 #include <vector>
-#include <string.h>
-#include <CppUTest/TestHarness.h>
-#include <service/uefi/smm_variable/backend/uefi_variable_store.h>
-#include <service/secure_storage/backend/mock_store/mock_store.h>
 
 TEST_GROUP(UefiVariableStoreTests)
 {
@@ -18,26 +18,18 @@ TEST_GROUP(UefiVariableStoreTests)
 		m_persistent_backend = mock_store_init(&m_persistent_store);
 		m_volatile_backend = mock_store_init(&m_volatile_store);
 
-		efi_status_t status = uefi_variable_store_init(
-			&m_uefi_variable_store,
-			OWNER_ID,
-			MAX_VARIABLES,
-			m_persistent_backend,
-			m_volatile_backend);
+		efi_status_t status = uefi_variable_store_init(&m_uefi_variable_store, OWNER_ID,
+							       MAX_VARIABLES, m_persistent_backend,
+							       m_volatile_backend);
 
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
-		uefi_variable_store_set_storage_limits(
-			&m_uefi_variable_store,
-			EFI_VARIABLE_NON_VOLATILE,
-			STORE_CAPACITY,
-			MAX_VARIABLE_SIZE);
+		uefi_variable_store_set_storage_limits(&m_uefi_variable_store,
+						       EFI_VARIABLE_NON_VOLATILE, STORE_CAPACITY,
+						       MAX_VARIABLE_SIZE);
 
-		uefi_variable_store_set_storage_limits(
-			&m_uefi_variable_store,
-			0,
-			STORE_CAPACITY,
-			MAX_VARIABLE_SIZE);
+		uefi_variable_store_set_storage_limits(&m_uefi_variable_store, 0, STORE_CAPACITY,
+						       MAX_VARIABLE_SIZE);
 
 		setup_common_guid();
 	}
@@ -69,7 +61,6 @@ TEST_GROUP(UefiVariableStoreTests)
 		std::vector<int16_t> var_name;
 
 		for (size_t i = 0; i < string.size(); i++) {
-
 			var_name.push_back((int16_t)string[i]);
 		}
 
@@ -79,17 +70,13 @@ TEST_GROUP(UefiVariableStoreTests)
 		return var_name;
 	}
 
-	bool compare_variable_name(
-		const std::wstring &expected,
-		const int16_t *name,
-		size_t name_size) {
-
+	bool compare_variable_name(const std::wstring &expected, const int16_t *name,
+				   size_t name_size)
+	{
 		bool is_equal = (expected.size() + 1 <= name_size / sizeof(int16_t));
 
 		for (size_t i = 0; is_equal && i < expected.size(); i++) {
-
 			if (name[i] != (int16_t)expected[i]) {
-
 				is_equal = false;
 				break;
 			}
@@ -98,18 +85,17 @@ TEST_GROUP(UefiVariableStoreTests)
 		return is_equal;
 	}
 
-	efi_status_t set_variable(
-		const std::wstring &name,
-		const std::string &data,
-		uint32_t attributes)
+	efi_status_t set_variable(const std::wstring &name, const std::string &data,
+				  uint32_t attributes)
 	{
 		std::vector<int16_t> var_name = to_variable_name(name);
 		size_t name_size = var_name.size() * sizeof(int16_t);
 		size_t data_size = data.size();
-		uint8_t msg_buffer[SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_SIZE(name_size, data_size)];
+		uint8_t msg_buffer[SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_SIZE(name_size,
+										 data_size)];
 
 		SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *access_variable =
-			(SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE*)msg_buffer;
+			(SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *)msg_buffer;
 
 		access_variable->Guid = m_common_guid;
 		access_variable->Attributes = attributes;
@@ -118,20 +104,18 @@ TEST_GROUP(UefiVariableStoreTests)
 		memcpy(access_variable->Name, var_name.data(), name_size);
 
 		access_variable->DataSize = data_size;
-		memcpy(&msg_buffer[SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(access_variable)],
-			data.c_str(), data_size);
+		memcpy(&msg_buffer[SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(
+			       access_variable)],
+		       data.c_str(), data_size);
 
-		efi_status_t status = uefi_variable_store_set_variable(
-			&m_uefi_variable_store,
-			access_variable);
+		efi_status_t status =
+			uefi_variable_store_set_variable(&m_uefi_variable_store, access_variable);
 
 		return status;
 	}
 
-	efi_status_t get_variable(
-		const std::wstring &name,
-		std::string &data,
-		size_t data_len_clamp = VARIABLE_BUFFER_SIZE)
+	efi_status_t get_variable(const std::wstring &name, std::string &data,
+				  size_t data_len_clamp = VARIABLE_BUFFER_SIZE)
 	{
 		std::vector<int16_t> var_name = to_variable_name(name);
 		size_t name_size = var_name.size() * sizeof(int16_t);
@@ -139,7 +123,7 @@ TEST_GROUP(UefiVariableStoreTests)
 		uint8_t msg_buffer[VARIABLE_BUFFER_SIZE];
 
 		SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *access_variable =
-			(SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE*)msg_buffer;
+			(SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *)msg_buffer;
 
 		access_variable->Guid = m_common_guid;
 		access_variable->Attributes = 0;
@@ -147,50 +131,48 @@ TEST_GROUP(UefiVariableStoreTests)
 		access_variable->NameSize = name_size;
 		memcpy(access_variable->Name, var_name.data(), name_size);
 
-		size_t max_data_len = (data_len_clamp == VARIABLE_BUFFER_SIZE) ?
-			VARIABLE_BUFFER_SIZE -
-				SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(access_variable) :
-			data_len_clamp;
+		size_t max_data_len =
+			(data_len_clamp == VARIABLE_BUFFER_SIZE) ?
+				VARIABLE_BUFFER_SIZE -
+					SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(
+						access_variable) :
+				data_len_clamp;
 
 		access_variable->DataSize = max_data_len;
 
 		efi_status_t status = uefi_variable_store_get_variable(
-			&m_uefi_variable_store,
-			access_variable,
-			max_data_len,
-			&total_size);
+			&m_uefi_variable_store, access_variable, max_data_len, &total_size);
 
 		data.clear();
 
 		if (status == EFI_SUCCESS) {
-
-			const char *data_start = (const char*)(msg_buffer +
-				SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(access_variable));
+			const char *data_start =
+				(const char *)(msg_buffer +
+					       SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(
+						       access_variable));
 
 			data = std::string(data_start, access_variable->DataSize);
 
 			UNSIGNED_LONGLONGS_EQUAL(
-				SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_TOTAL_SIZE(access_variable),
+				SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_TOTAL_SIZE(
+					access_variable),
 				total_size);
-		}
-		else if (status == EFI_BUFFER_TOO_SMALL) {
-
+		} else if (status == EFI_BUFFER_TOO_SMALL) {
 			/* String length set to reported variable length */
 			data.insert(0, access_variable->DataSize, '!');
 
 			UNSIGNED_LONGLONGS_EQUAL(
-				SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(access_variable),
+				SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(
+					access_variable),
 				total_size);
 		}
 
 		return status;
 	}
 
-	efi_status_t query_variable_info(
-		uint32_t attributes,
-		size_t *max_variable_storage_size,
-		size_t *remaining_variable_storage_size,
-		size_t *max_variable_size)
+	efi_status_t query_variable_info(uint32_t attributes, size_t * max_variable_storage_size,
+					 size_t * remaining_variable_storage_size,
+					 size_t * max_variable_size)
 	{
 		SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO query;
 
@@ -199,12 +181,10 @@ TEST_GROUP(UefiVariableStoreTests)
 		query.MaximumVariableSize = 0;
 		query.Attributes = attributes;
 
-		efi_status_t status = uefi_variable_store_query_variable_info(
-			&m_uefi_variable_store,
-			&query);
+		efi_status_t status =
+			uefi_variable_store_query_variable_info(&m_uefi_variable_store, &query);
 
 		if (status == EFI_SUCCESS) {
-
 			*max_variable_storage_size = query.MaximumVariableStorageSize;
 			*remaining_variable_storage_size = query.RemainingVariableStorageSize;
 			*max_variable_size = query.MaximumVariableSize;
@@ -213,16 +193,16 @@ TEST_GROUP(UefiVariableStoreTests)
 		return status;
 	}
 
-	efi_status_t set_check_var_property(
-		const std::wstring &name,
-		const VAR_CHECK_VARIABLE_PROPERTY &check_property)
+	efi_status_t set_check_var_property(const std::wstring &name,
+					    const VAR_CHECK_VARIABLE_PROPERTY &check_property)
 	{
 		std::vector<int16_t> var_name = to_variable_name(name);
 		size_t name_size = var_name.size() * sizeof(int16_t);
-		uint8_t msg_buffer[SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_SIZE(name_size)];
+		uint8_t msg_buffer[SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_SIZE(
+			name_size)];
 
 		SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *check_var =
-			(SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY*)msg_buffer;
+			(SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *)msg_buffer;
 
 		check_var->Guid = m_common_guid;
 		check_var->NameSize = name_size;
@@ -231,14 +211,12 @@ TEST_GROUP(UefiVariableStoreTests)
 		check_var->VariableProperty = check_property;
 
 		efi_status_t status = uefi_variable_store_set_var_check_property(
-			&m_uefi_variable_store,
-			check_var);
+			&m_uefi_variable_store, check_var);
 
 		return status;
 	}
 
-	void zap_stored_variable(
-		const std::wstring &name)
+	void zap_stored_variable(const std::wstring &name)
 	{
 		std::vector<int16_t> var_name = to_variable_name(name);
 		size_t name_size = var_name.size() * sizeof(int16_t);
@@ -249,20 +227,14 @@ TEST_GROUP(UefiVariableStoreTests)
 		struct variable_index *variable_index = &m_uefi_variable_store.variable_index;
 
 		const struct variable_info *info = variable_index_find(
-			variable_index,
-			&m_common_guid,
-			name_size,
-			var_name.data());
+			variable_index, &m_common_guid, name_size, var_name.data());
 
 		if (info && (info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE)) {
-
 			struct storage_backend *storage_backend =
 				m_uefi_variable_store.persistent_store.storage_backend;
 
-			storage_backend->interface->remove(
-				storage_backend->context,
-				OWNER_ID,
-				info->metadata.uid);
+			storage_backend->interface->remove(storage_backend->context, OWNER_ID,
+							   info->metadata.uid);
 		}
 	}
 
@@ -274,26 +246,18 @@ TEST_GROUP(UefiVariableStoreTests)
 		/* Lose volatile store contents */
 		mock_store_reset(&m_volatile_store);
 
-		efi_status_t status = uefi_variable_store_init(
-			&m_uefi_variable_store,
-			OWNER_ID,
-			MAX_VARIABLES,
-			m_persistent_backend,
-			m_volatile_backend);
+		efi_status_t status = uefi_variable_store_init(&m_uefi_variable_store, OWNER_ID,
+							       MAX_VARIABLES, m_persistent_backend,
+							       m_volatile_backend);
 
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
-		uefi_variable_store_set_storage_limits(
-			&m_uefi_variable_store,
-			EFI_VARIABLE_NON_VOLATILE,
-			STORE_CAPACITY,
-			MAX_VARIABLE_SIZE);
+		uefi_variable_store_set_storage_limits(&m_uefi_variable_store,
+						       EFI_VARIABLE_NON_VOLATILE, STORE_CAPACITY,
+						       MAX_VARIABLE_SIZE);
 
-		uefi_variable_store_set_storage_limits(
-			&m_uefi_variable_store,
-			0,
-			STORE_CAPACITY,
-			MAX_VARIABLE_SIZE);
+		uefi_variable_store_set_storage_limits(&m_uefi_variable_store, 0, STORE_CAPACITY,
+						       MAX_VARIABLE_SIZE);
 	}
 
 	static const size_t MAX_VARIABLES = 10;
@@ -348,16 +312,14 @@ TEST(UefiVariableStoreTests, setGetRoundtrip)
 	size_t remaining_variable_storage_size = 0;
 	size_t max_variable_size = 0;
 
-	status = query_variable_info(
-		0,
-		&max_variable_storage_size,
-		&remaining_variable_storage_size,
-		&max_variable_size);
+	status = query_variable_info(0, &max_variable_storage_size,
+				     &remaining_variable_storage_size, &max_variable_size);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	UNSIGNED_LONGLONGS_EQUAL(STORE_CAPACITY, max_variable_storage_size);
 	UNSIGNED_LONGLONGS_EQUAL(MAX_VARIABLE_SIZE, max_variable_size);
-	UNSIGNED_LONGLONGS_EQUAL(STORE_CAPACITY - expected_output.size(), remaining_variable_storage_size);
+	UNSIGNED_LONGLONGS_EQUAL(STORE_CAPACITY - expected_output.size(),
+				 remaining_variable_storage_size);
 }
 
 TEST(UefiVariableStoreTests, persistentSetGet)
@@ -367,8 +329,7 @@ TEST(UefiVariableStoreTests, persistentSetGet)
 	std::string input_data = "quick brown fox";
 	std::string output_data;
 
-	status = set_variable(var_name, input_data,
-		EFI_VARIABLE_NON_VOLATILE);
+	status = set_variable(var_name, input_data, EFI_VARIABLE_NON_VOLATILE);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	status = get_variable(var_name, output_data);
@@ -382,7 +343,7 @@ TEST(UefiVariableStoreTests, persistentSetGet)
 	std::string input_data2 = " jumps over the lazy dog";
 
 	status = set_variable(var_name, input_data2,
-		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_APPEND_WRITE);
+			      EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_APPEND_WRITE);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	status = get_variable(var_name, output_data);
@@ -410,16 +371,14 @@ TEST(UefiVariableStoreTests, persistentSetGet)
 	size_t remaining_variable_storage_size = 0;
 	size_t max_variable_size = 0;
 
-	status = query_variable_info(
-		EFI_VARIABLE_NON_VOLATILE,
-		&max_variable_storage_size,
-		&remaining_variable_storage_size,
-		&max_variable_size);
+	status = query_variable_info(EFI_VARIABLE_NON_VOLATILE, &max_variable_storage_size,
+				     &remaining_variable_storage_size, &max_variable_size);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	UNSIGNED_LONGLONGS_EQUAL(STORE_CAPACITY, max_variable_storage_size);
 	UNSIGNED_LONGLONGS_EQUAL(MAX_VARIABLE_SIZE, max_variable_size);
-	UNSIGNED_LONGLONGS_EQUAL(STORE_CAPACITY - expected_output.size(), remaining_variable_storage_size);
+	UNSIGNED_LONGLONGS_EQUAL(STORE_CAPACITY - expected_output.size(),
+				 remaining_variable_storage_size);
 }
 
 TEST(UefiVariableStoreTests, getWithSmallBuffer)
@@ -449,7 +408,7 @@ TEST(UefiVariableStoreTests, getWithSmallBuffer)
 	UNSIGNED_LONGLONGS_EQUAL(input_data.size(), output_data.size());
 
 	/* Try with a non-zero length but too small buffer */
-	status = get_variable(var_name, output_data, input_data.size() -1);
+	status = get_variable(var_name, output_data, input_data.size() - 1);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_BUFFER_TOO_SMALL, status);
 	UNSIGNED_LONGLONGS_EQUAL(input_data.size(), output_data.size());
 }
@@ -506,14 +465,12 @@ TEST(UefiVariableStoreTests, removePersistent)
 TEST(UefiVariableStoreTests, bootServiceAccess)
 {
 	efi_status_t status = EFI_SUCCESS;
-	std::wstring var_name  = L"test_variable";
+	std::wstring var_name = L"test_variable";
 	std::string input_data = "a variable with access restricted to boot";
 	std::string output_data;
 
-	status = set_variable(
-		var_name,
-		input_data,
-		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS);
+	status = set_variable(var_name, input_data,
+			      EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* 'Reboot' */
@@ -537,7 +494,7 @@ TEST(UefiVariableStoreTests, bootServiceAccess)
 TEST(UefiVariableStoreTests, runtimeAccess)
 {
 	efi_status_t status = EFI_SUCCESS;
-	std::wstring var_name  = L"test_variable";
+	std::wstring var_name = L"test_variable";
 	std::string input_data = "a variable with access restricted to runtime";
 	std::string output_data;
 
@@ -545,17 +502,13 @@ TEST(UefiVariableStoreTests, runtimeAccess)
 	 * Client is reponsible for setting bootservice access whenever runtime
 	 * access is specified. This checks the defence against invalid attributes.
 	 */
-	status = set_variable(
-		var_name,
-		input_data,
-		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS);
+	status = set_variable(var_name, input_data,
+			      EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, status);
 
-	status = set_variable(
-		var_name,
-		input_data,
-		EFI_VARIABLE_NON_VOLATILE |
-		EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS);
+	status = set_variable(var_name, input_data,
+			      EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS |
+				      EFI_VARIABLE_BOOTSERVICE_ACCESS);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* 'Reboot' */
@@ -584,79 +537,55 @@ TEST(UefiVariableStoreTests, enumerateStoreContents)
 	std::string input_data = "blah blah";
 
 	/* Add some variables - a mixture of NV and volatile */
-	status = set_variable(
-		var_name_1,
-		input_data,
-		EFI_VARIABLE_NON_VOLATILE);
+	status = set_variable(var_name_1, input_data, EFI_VARIABLE_NON_VOLATILE);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
-	status = set_variable(
-		var_name_2,
-		input_data,
-		0);
+	status = set_variable(var_name_2, input_data, 0);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
-	status = set_variable(
-		var_name_3,
-		input_data,
-		EFI_VARIABLE_NON_VOLATILE);
+	status = set_variable(var_name_3, input_data, EFI_VARIABLE_NON_VOLATILE);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Prepare to enumerate */
 	size_t total_len = 0;
 	uint8_t msg_buffer[VARIABLE_BUFFER_SIZE];
 	SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *next_name =
-		(SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME*)msg_buffer;
-	size_t max_name_len = VARIABLE_BUFFER_SIZE -
-		SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET;
+		(SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *)msg_buffer;
+	size_t max_name_len =
+		VARIABLE_BUFFER_SIZE - SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET;
 
 	/* First check handling of invalid variable name */
-	std::vector<int16_t> bogus_name = to_variable_name( L"bogus_variable");
+	std::vector<int16_t> bogus_name = to_variable_name(L"bogus_variable");
 	size_t bogus_name_size = bogus_name.size() * sizeof(uint16_t);
 	next_name->Guid = m_common_guid;
 	next_name->NameSize = bogus_name_size;
 	memcpy(next_name->Name, bogus_name.data(), bogus_name_size);
 
-	status = uefi_variable_store_get_next_variable_name(
-		&m_uefi_variable_store,
-		next_name,
-		max_name_len,
-		&total_len);
+	status = uefi_variable_store_get_next_variable_name(&m_uefi_variable_store, next_name,
+							    max_name_len, &total_len);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, status);
 
 	/* Enumerate store contents */
 	next_name->NameSize = sizeof(int16_t);
 	next_name->Name[0] = 0;
 
-	status = uefi_variable_store_get_next_variable_name(
-		&m_uefi_variable_store,
-		next_name,
-		max_name_len,
-		&total_len);
+	status = uefi_variable_store_get_next_variable_name(&m_uefi_variable_store, next_name,
+							    max_name_len, &total_len);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	CHECK_TRUE(compare_variable_name(var_name_1, next_name->Name, next_name->NameSize));
 
-	status = uefi_variable_store_get_next_variable_name(
-		&m_uefi_variable_store,
-		next_name,
-		max_name_len,
-		&total_len);
+	status = uefi_variable_store_get_next_variable_name(&m_uefi_variable_store, next_name,
+							    max_name_len, &total_len);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	CHECK_TRUE(compare_variable_name(var_name_2, next_name->Name, next_name->NameSize));
 
-	status = uefi_variable_store_get_next_variable_name(
-		&m_uefi_variable_store,
-		next_name,
-		max_name_len,
-		&total_len);
+	status = uefi_variable_store_get_next_variable_name(&m_uefi_variable_store, next_name,
+							    max_name_len, &total_len);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	CHECK_TRUE(compare_variable_name(var_name_3, next_name->Name, next_name->NameSize));
 
-	status = uefi_variable_store_get_next_variable_name(
-		&m_uefi_variable_store,
-		next_name,
-		max_name_len,
-		&total_len);
+	status = uefi_variable_store_get_next_variable_name(&m_uefi_variable_store, next_name,
+							    max_name_len, &total_len);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 
 	power_cycle();
@@ -667,27 +596,18 @@ TEST(UefiVariableStoreTests, enumerateStoreContents)
 	next_name->NameSize = 10 * sizeof(int16_t);
 	memset(next_name->Name, 0, next_name->NameSize);
 
-	status = uefi_variable_store_get_next_variable_name(
-		&m_uefi_variable_store,
-		next_name,
-		max_name_len,
-		&total_len);
+	status = uefi_variable_store_get_next_variable_name(&m_uefi_variable_store, next_name,
+							    max_name_len, &total_len);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	CHECK_TRUE(compare_variable_name(var_name_1, next_name->Name, next_name->NameSize));
 
-	status = uefi_variable_store_get_next_variable_name(
-		&m_uefi_variable_store,
-		next_name,
-		max_name_len,
-		&total_len);
+	status = uefi_variable_store_get_next_variable_name(&m_uefi_variable_store, next_name,
+							    max_name_len, &total_len);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	CHECK_TRUE(compare_variable_name(var_name_3, next_name->Name, next_name->NameSize));
 
-	status = uefi_variable_store_get_next_variable_name(
-		&m_uefi_variable_store,
-		next_name,
-		max_name_len,
-		&total_len);
+	status = uefi_variable_store_get_next_variable_name(&m_uefi_variable_store, next_name,
+							    max_name_len, &total_len);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 }
 
@@ -700,22 +620,13 @@ TEST(UefiVariableStoreTests, failedNvSet)
 	std::string input_data = "blah blah";
 
 	/* Add some variables - a mixture of NV and volatile */
-	status = set_variable(
-		var_name_1,
-		input_data,
-		EFI_VARIABLE_NON_VOLATILE);
+	status = set_variable(var_name_1, input_data, EFI_VARIABLE_NON_VOLATILE);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
-	status = set_variable(
-		var_name_2,
-		input_data,
-		0);
+	status = set_variable(var_name_2, input_data, 0);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
-	status = set_variable(
-		var_name_3,
-		input_data,
-		EFI_VARIABLE_NON_VOLATILE);
+	status = set_variable(var_name_3, input_data, EFI_VARIABLE_NON_VOLATILE);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Simulate a power failure which resulted in the
@@ -731,28 +642,22 @@ TEST(UefiVariableStoreTests, failedNvSet)
 	 */
 	uint8_t msg_buffer[VARIABLE_BUFFER_SIZE];
 	SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *next_name =
-		(SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME*)msg_buffer;
-	size_t max_name_len = VARIABLE_BUFFER_SIZE -
-		SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET;
+		(SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *)msg_buffer;
+	size_t max_name_len =
+		VARIABLE_BUFFER_SIZE - SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET;
 
 	/* Enumerate store contents */
 	size_t total_len = 0;
 	next_name->NameSize = sizeof(int16_t);
 	next_name->Name[0] = 0;
 
-	status = uefi_variable_store_get_next_variable_name(
-		&m_uefi_variable_store,
-		next_name,
-		max_name_len,
-		&total_len);
+	status = uefi_variable_store_get_next_variable_name(&m_uefi_variable_store, next_name,
+							    max_name_len, &total_len);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	CHECK_TRUE(compare_variable_name(var_name_1, next_name->Name, next_name->NameSize));
 
-	status = uefi_variable_store_get_next_variable_name(
-		&m_uefi_variable_store,
-		next_name,
-		max_name_len,
-		&total_len);
+	status = uefi_variable_store_get_next_variable_name(&m_uefi_variable_store, next_name,
+							    max_name_len, &total_len);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 }
 
@@ -763,10 +668,8 @@ TEST(UefiVariableStoreTests, unsupportedAttribute)
 	std::string input_data = "blah blah";
 
 	/* Add a variable with an unsupported attribute */
-	status = set_variable(
-		var_name_1,
-		input_data,
-		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_AUTHENTICATED_WRITE_ACCESS);
+	status = set_variable(var_name_1, input_data,
+			      EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_AUTHENTICATED_WRITE_ACCESS);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_UNSUPPORTED, status);
 }
 
@@ -777,10 +680,7 @@ TEST(UefiVariableStoreTests, readOnlycheck)
 	std::string input_data = "blah blah";
 
 	/* Add a variable */
-	status = set_variable(
-		var_name_1,
-		input_data,
-		EFI_VARIABLE_NON_VOLATILE);
+	status = set_variable(var_name_1, input_data, EFI_VARIABLE_NON_VOLATILE);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Apply a check to constrain to Read Only */
@@ -795,10 +695,7 @@ TEST(UefiVariableStoreTests, readOnlycheck)
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Subsequent set operations should fail */
-	status = set_variable(
-		var_name_1,
-		input_data,
-		EFI_VARIABLE_NON_VOLATILE);
+	status = set_variable(var_name_1, input_data, EFI_VARIABLE_NON_VOLATILE);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_WRITE_PROTECTED, status);
 }
 
@@ -809,10 +706,7 @@ TEST(UefiVariableStoreTests, noRemoveCheck)
 	std::string input_data = "blah blah";
 
 	/* Add a variable */
-	status = set_variable(
-		var_name_1,
-		input_data,
-		EFI_VARIABLE_NON_VOLATILE);
+	status = set_variable(var_name_1, input_data, EFI_VARIABLE_NON_VOLATILE);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Apply a check to constrain size to > 0.  This should prevent removal */
@@ -827,23 +721,15 @@ TEST(UefiVariableStoreTests, noRemoveCheck)
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Try and remove by setting with zero length data */
-	status = set_variable(
-		var_name_1,
-		std::string(),
-		EFI_VARIABLE_NON_VOLATILE);
+	status = set_variable(var_name_1, std::string(), EFI_VARIABLE_NON_VOLATILE);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, status);
 
 	/* Setting with non zero data should work */
-	status = set_variable(
-		var_name_1,
-		std::string("Good"),
-		EFI_VARIABLE_NON_VOLATILE);
+	status = set_variable(var_name_1, std::string("Good"), EFI_VARIABLE_NON_VOLATILE);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* But with data that exceeds the MaxSize */
-	status = set_variable(
-		var_name_1,
-		std::string("A data value that exceeds the MaxSize"),
-		EFI_VARIABLE_NON_VOLATILE);
+	status = set_variable(var_name_1, std::string("A data value that exceeds the MaxSize"),
+			      EFI_VARIABLE_NON_VOLATILE);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, status);
 }

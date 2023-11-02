@@ -1,16 +1,15 @@
 /*
- * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <wchar.h>
-#include <string>
-#include <vector>
 #include <CppUTest/TestHarness.h>
 #include <service/uefi/smm_variable/backend/variable_index.h>
 #include <service/uefi/smm_variable/backend/variable_index_iterator.h>
-
+#include <string>
+#include <vector>
+#include <wchar.h>
 
 TEST_GROUP(UefiVariableIndexTests)
 {
@@ -58,7 +57,6 @@ TEST_GROUP(UefiVariableIndexTests)
 		std::vector<int16_t> var_name;
 
 		for (size_t i = 0; i < string.size(); i++) {
-
 			var_name.push_back((int16_t)string[i]);
 		}
 
@@ -71,36 +69,23 @@ TEST_GROUP(UefiVariableIndexTests)
 	{
 		struct variable_info *info = NULL;
 
-		info = variable_index_add_entry(
-			&m_variable_index,
-			&guid_1,
-			name_1.size() * sizeof(int16_t),
-			name_1.data());
+		info = variable_index_add_entry(&m_variable_index, &guid_1,
+						name_1.size() * sizeof(int16_t), name_1.data());
 		CHECK_TRUE(info);
-		variable_index_set_variable(
-			info,
-			EFI_VARIABLE_BOOTSERVICE_ACCESS);
+		variable_index_set_variable(info, EFI_VARIABLE_BOOTSERVICE_ACCESS);
 
-		info = variable_index_add_entry(
-			&m_variable_index,
-			&guid_2,
-			name_2.size() * sizeof(int16_t),
-			name_2.data());
+		info = variable_index_add_entry(&m_variable_index, &guid_2,
+						name_2.size() * sizeof(int16_t), name_2.data());
 		CHECK_TRUE(info);
-		variable_index_set_variable(
-			info,
-			EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS);
+		variable_index_set_variable(info, EFI_VARIABLE_NON_VOLATILE |
+							  EFI_VARIABLE_BOOTSERVICE_ACCESS);
 
-		info = variable_index_add_entry(
-			&m_variable_index,
-			&guid_1,
-			name_3.size() * sizeof(int16_t),
-			name_3.data());
+		info = variable_index_add_entry(&m_variable_index, &guid_1,
+						name_3.size() * sizeof(int16_t), name_3.data());
 		CHECK_TRUE(info);
-		variable_index_set_variable(
-			info,
-			EFI_VARIABLE_NON_VOLATILE |
-			EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS);
+		variable_index_set_variable(info, EFI_VARIABLE_NON_VOLATILE |
+							  EFI_VARIABLE_RUNTIME_ACCESS |
+							  EFI_VARIABLE_BOOTSERVICE_ACCESS);
 	}
 
 	static const size_t MAX_VARIABLES = 10;
@@ -119,27 +104,18 @@ TEST(UefiVariableIndexTests, emptyIndexOperations)
 	struct variable_info *info = NULL;
 
 	/* Expect not to find a variable */
-	info = variable_index_find(
-		&m_variable_index,
-		&guid_1,
-		name_1.size() * sizeof(int16_t),
-		name_1.data());
+	info = variable_index_find(&m_variable_index, &guid_1, name_1.size() * sizeof(int16_t),
+				   name_1.data());
 	POINTERS_EQUAL(NULL, info);
 
 	/* Expect also find next to be rejected */
-	info = variable_index_find_next(
-		&m_variable_index,
-		&guid_1,
-		name_1.size() * sizeof(int16_t),
-		name_1.data(),
-		&status);
+	info = variable_index_find_next(&m_variable_index, &guid_1, name_1.size() * sizeof(int16_t),
+					name_1.data(), &status);
 	POINTERS_EQUAL(NULL, info);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, status);
 
 	/* Remove should silently return */
-	variable_index_clear_variable(
-		&m_variable_index,
-		info);
+	variable_index_clear_variable(&m_variable_index, info);
 }
 
 TEST(UefiVariableIndexTests, addWithOversizedName)
@@ -149,22 +125,16 @@ TEST(UefiVariableIndexTests, addWithOversizedName)
 
 	name = to_variable_name(L"a long variable name that exceeds the length limit");
 
-	info = variable_index_add_entry(
-		&m_variable_index,
-		&guid_1,
-		name.size() * sizeof(int16_t),
-		name.data());
+	info = variable_index_add_entry(&m_variable_index, &guid_1, name.size() * sizeof(int16_t),
+					name.data());
 
 	/* Expect the add to fail because of an oversized name */
 	POINTERS_EQUAL(NULL, info);
 
 	name = to_variable_name(L"a long variable name that fits!");
 
-	info = variable_index_add_entry(
-		&m_variable_index,
-		&guid_1,
-		name.size() * sizeof(int16_t),
-		name.data());
+	info = variable_index_add_entry(&m_variable_index, &guid_1, name.size() * sizeof(int16_t),
+					name.data());
 
 	/* Expect the add succeed */
 	CHECK_TRUE(info);
@@ -177,12 +147,8 @@ TEST(UefiVariableIndexTests, variableIndexFull)
 
 	/* Expect to be able to fill the index */
 	for (size_t i = 0; i < MAX_VARIABLES; ++i) {
-
-		info = variable_index_add_entry(
-			&m_variable_index,
-			&guid,
-			name_1.size() * sizeof(int16_t),
-			name_1.data());
+		info = variable_index_add_entry(&m_variable_index, &guid,
+						name_1.size() * sizeof(int16_t), name_1.data());
 
 		CHECK_TRUE(info);
 
@@ -191,15 +157,11 @@ TEST(UefiVariableIndexTests, variableIndexFull)
 	}
 
 	/* Variable index should now be full */
-	info = variable_index_add_entry(
-		&m_variable_index,
-		&guid,
-		name_1.size() * sizeof(int16_t),
-		name_1.data());
+	info = variable_index_add_entry(&m_variable_index, &guid, name_1.size() * sizeof(int16_t),
+					name_1.data());
 
 	POINTERS_EQUAL(NULL, info);
 }
-
 
 TEST(UefiVariableIndexTests, enumerateStore)
 {
@@ -209,49 +171,36 @@ TEST(UefiVariableIndexTests, enumerateStore)
 
 	create_variables();
 
-	info = variable_index_find_next(
-		&m_variable_index,
-		&guid_1,
-		null_name.size() * sizeof(int16_t),
-		null_name.data(),
-		&status);
+	info = variable_index_find_next(&m_variable_index, &guid_1,
+					null_name.size() * sizeof(int16_t), null_name.data(),
+					&status);
 	CHECK_TRUE(info);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	LONGS_EQUAL(EFI_VARIABLE_BOOTSERVICE_ACCESS, info->metadata.attributes);
 	MEMCMP_EQUAL(&guid_1, &info->metadata.guid, sizeof(EFI_GUID));
 	MEMCMP_EQUAL(name_1.data(), info->metadata.name, name_1.size());
 
-	info = variable_index_find_next(
-		&m_variable_index,
-		&info->metadata.guid,
-		info->metadata.name_size,
-		info->metadata.name,
-		&status);
+	info = variable_index_find_next(&m_variable_index, &info->metadata.guid,
+					info->metadata.name_size, info->metadata.name, &status);
 	CHECK_TRUE(info);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
-	LONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS, info->metadata.attributes);
+	LONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS,
+		    info->metadata.attributes);
 	MEMCMP_EQUAL(&guid_2, &info->metadata.guid, sizeof(EFI_GUID));
 	MEMCMP_EQUAL(name_2.data(), info->metadata.name, name_2.size());
 
-	info = variable_index_find_next(
-		&m_variable_index,
-		&info->metadata.guid,
-		info->metadata.name_size,
-		info->metadata.name,
-		&status);
+	info = variable_index_find_next(&m_variable_index, &info->metadata.guid,
+					info->metadata.name_size, info->metadata.name, &status);
 	CHECK_TRUE(info);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
-	LONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE |
-		EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS, info->metadata.attributes);
+	LONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS |
+			    EFI_VARIABLE_BOOTSERVICE_ACCESS,
+		    info->metadata.attributes);
 	MEMCMP_EQUAL(&guid_1, &info->metadata.guid, sizeof(EFI_GUID));
 	MEMCMP_EQUAL(name_3.data(), info->metadata.name, name_3.size());
 
-	info = variable_index_find_next(
-		&m_variable_index,
-		&info->metadata.guid,
-		info->metadata.name_size,
-		info->metadata.name,
-		&status);
+	info = variable_index_find_next(&m_variable_index, &info->metadata.guid,
+					info->metadata.name_size, info->metadata.name, &status);
 	POINTERS_EQUAL(NULL, info);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 }
@@ -290,35 +239,24 @@ TEST(UefiVariableIndexTests, dumpLoadRoadtrip)
 	const struct variable_info *info = NULL;
 	std::vector<int16_t> null_name = to_variable_name(L"");
 
-	info = variable_index_find_next(
-		&m_variable_index,
-		&guid_1,
-		null_name.size() * sizeof(int16_t),
-		null_name.data(),
-		&status);
+	info = variable_index_find_next(&m_variable_index, &guid_1,
+					null_name.size() * sizeof(int16_t), null_name.data(),
+					&status);
 	CHECK_TRUE(info);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS,
-		info->metadata.attributes);
+				 info->metadata.attributes);
 
-	info = variable_index_find_next(
-		&m_variable_index,
-		&info->metadata.guid,
-		info->metadata.name_size,
-		info->metadata.name,
-		&status);
+	info = variable_index_find_next(&m_variable_index, &info->metadata.guid,
+					info->metadata.name_size, info->metadata.name, &status);
 	CHECK_TRUE(info);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
-	UNSIGNED_LONGLONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE |
-		EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS,
-		info->metadata.attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS |
+					 EFI_VARIABLE_BOOTSERVICE_ACCESS,
+				 info->metadata.attributes);
 
-	info = variable_index_find_next(
-		&m_variable_index,
-		&info->metadata.guid,
-		info->metadata.name_size,
-		info->metadata.name,
-		&status);
+	info = variable_index_find_next(&m_variable_index, &info->metadata.guid,
+					info->metadata.name_size, info->metadata.name, &status);
 	POINTERS_EQUAL(NULL, info);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 }
@@ -340,7 +278,6 @@ TEST(UefiVariableIndexTests, dumpBufferTooSmall)
 	UNSIGNED_LONGS_EQUAL(sizeof(struct variable_metadata) * 1, dump_len);
 }
 
-
 TEST(UefiVariableIndexTests, removeVariable)
 {
 	uint8_t buffer[MAX_VARIABLES * sizeof(struct variable_metadata)];
@@ -349,15 +286,10 @@ TEST(UefiVariableIndexTests, removeVariable)
 	create_variables();
 
 	/* Remove one of the NV variables */
-	info = variable_index_find(
-		&m_variable_index,
-		&guid_2,
-		name_2.size() * sizeof(int16_t),
-		name_2.data());
+	info = variable_index_find(&m_variable_index, &guid_2, name_2.size() * sizeof(int16_t),
+				   name_2.data());
 
-	variable_index_clear_variable(
-		&m_variable_index,
-		info);
+	variable_index_clear_variable(&m_variable_index, info);
 
 	/* Expect index to be dirty and for only one NV variable to be left */
 	size_t dump_len = 0;
@@ -367,15 +299,10 @@ TEST(UefiVariableIndexTests, removeVariable)
 	UNSIGNED_LONGS_EQUAL((sizeof(struct variable_metadata) * 1), dump_len);
 
 	/* Remove the volatile variable */
-	info = variable_index_find(
-		&m_variable_index,
-		&guid_1,
-		name_1.size() * sizeof(int16_t),
-		name_1.data());
+	info = variable_index_find(&m_variable_index, &guid_1, name_1.size() * sizeof(int16_t),
+				   name_1.data());
 
-	variable_index_clear_variable(
-		&m_variable_index,
-		info);
+	variable_index_clear_variable(&m_variable_index, info);
 
 	/* Expect index not to be dirty because there was no change to any NV variable */
 	dump_len = 0;
@@ -385,15 +312,10 @@ TEST(UefiVariableIndexTests, removeVariable)
 	UNSIGNED_LONGS_EQUAL((sizeof(struct variable_metadata) * 1), dump_len);
 
 	/* Remove the remaining NV variable */
-	info = variable_index_find(
-		&m_variable_index,
-		&guid_1,
-		name_3.size() * sizeof(int16_t),
-		name_3.data());
+	info = variable_index_find(&m_variable_index, &guid_1, name_3.size() * sizeof(int16_t),
+				   name_3.data());
 
-	variable_index_clear_variable(
-		&m_variable_index,
-		info);
+	variable_index_clear_variable(&m_variable_index, info);
 
 	/* Expect index to be dirty and dump to now be empty */
 	dump_len = 0;
@@ -407,12 +329,9 @@ TEST(UefiVariableIndexTests, removeVariable)
 	efi_status_t status = EFI_SUCCESS;
 	std::vector<int16_t> null_name = to_variable_name(L"");
 
-	info = variable_index_find_next(
-		&m_variable_index,
-		&guid_1,
-		null_name.size() * sizeof(int16_t),
-		null_name.data(),
-		&status);
+	info = variable_index_find_next(&m_variable_index, &guid_1,
+					null_name.size() * sizeof(int16_t), null_name.data(),
+					&status);
 	POINTERS_EQUAL(NULL, info);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 }
@@ -504,10 +423,7 @@ TEST(UefiVariableIndexTests, setCheckConstraintsExistingVar)
 
 	/* Set check constraints on one of the variables */
 	struct variable_info *info = variable_index_find(
-		&m_variable_index,
-		&guid_2,
-		name_2.size() * sizeof(int16_t),
-		name_2.data());
+		&m_variable_index, &guid_2, name_2.size() * sizeof(int16_t), name_2.data());
 
 	CHECK_TRUE(info);
 	CHECK_TRUE(info->is_variable_set);
@@ -521,15 +437,10 @@ TEST(UefiVariableIndexTests, setCheckConstraintsExistingVar)
 	/* Remove the variable but still expect the variable to be indexed
 	 * because of the set constraints.
 	 */
-	variable_index_clear_variable(
-		&m_variable_index,
-		info);
+	variable_index_clear_variable(&m_variable_index, info);
 
-	info = variable_index_find(
-		&m_variable_index,
-		&guid_2,
-		name_2.size() * sizeof(int16_t),
-		name_2.data());
+	info = variable_index_find(&m_variable_index, &guid_2, name_2.size() * sizeof(int16_t),
+				   name_2.data());
 
 	CHECK_TRUE(info);
 	CHECK_FALSE(info->is_variable_set);
@@ -540,34 +451,23 @@ TEST(UefiVariableIndexTests, setCheckConstraintsExistingVar)
 	efi_status_t status = EFI_NOT_FOUND;
 	std::vector<int16_t> null_name = to_variable_name(L"");
 
-	info = variable_index_find_next(
-		&m_variable_index,
-		&guid_1,
-		null_name.size() * sizeof(int16_t),
-		null_name.data(),
-		&status);
+	info = variable_index_find_next(&m_variable_index, &guid_1,
+					null_name.size() * sizeof(int16_t), null_name.data(),
+					&status);
 	CHECK_TRUE(info);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_VARIABLE_BOOTSERVICE_ACCESS, info->metadata.attributes);
 
-	info = variable_index_find_next(
-		&m_variable_index,
-		&info->metadata.guid,
-		info->metadata.name_size,
-		info->metadata.name,
-		&status);
+	info = variable_index_find_next(&m_variable_index, &info->metadata.guid,
+					info->metadata.name_size, info->metadata.name, &status);
 	CHECK_TRUE(info);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
-	UNSIGNED_LONGLONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE |
-		EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS,
-		info->metadata.attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS |
+					 EFI_VARIABLE_BOOTSERVICE_ACCESS,
+				 info->metadata.attributes);
 
-	info = variable_index_find_next(
-		&m_variable_index,
-		&info->metadata.guid,
-		info->metadata.name_size,
-		info->metadata.name,
-		&status);
+	info = variable_index_find_next(&m_variable_index, &info->metadata.guid,
+					info->metadata.name_size, info->metadata.name, &status);
 	CHECK_FALSE(info);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 
@@ -622,19 +522,13 @@ TEST(UefiVariableIndexTests, setCheckConstraintsNonExistingVar)
 
 	/* Initially expect no variable_info */
 	struct variable_info *info = variable_index_find(
-		&m_variable_index,
-		&guid_2,
-		name_2.size() * sizeof(int16_t),
-		name_2.data());
+		&m_variable_index, &guid_2, name_2.size() * sizeof(int16_t), name_2.data());
 
 	CHECK_FALSE(info);
 
 	/* Adding the check constraints should result in an entry being added */
-	info = variable_index_add_entry(
-		&m_variable_index,
-		&guid_2,
-		name_2.size() * sizeof(int16_t),
-		name_2.data());
+	info = variable_index_add_entry(&m_variable_index, &guid_2, name_2.size() * sizeof(int16_t),
+					name_2.data());
 	CHECK_TRUE(info);
 
 	variable_index_set_constraints(info, &constraints);
@@ -643,7 +537,7 @@ TEST(UefiVariableIndexTests, setCheckConstraintsNonExistingVar)
 
 	/* Updating the variable should cause the variable to be marked as set */
 	variable_index_set_variable(info,
-		EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS);
+				    EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS);
 
 	CHECK_TRUE(info->is_variable_set);
 	CHECK_TRUE(info->is_constraints_set);

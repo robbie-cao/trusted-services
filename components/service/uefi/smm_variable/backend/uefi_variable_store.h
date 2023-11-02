@@ -8,12 +8,13 @@
 #ifndef UEFI_VARIABLE_STORE_H
 #define UEFI_VARIABLE_STORE_H
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stddef.h>
 #include <protocols/common/efi/efi_status.h>
 #include <protocols/service/smm_variable/smm_variable_proto.h>
 #include <service/secure_storage/backend/storage_backend.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
 #include "variable_index.h"
 
 #ifdef __cplusplus
@@ -26,8 +27,7 @@ extern "C" {
  * A delegate_variable_store combines an association with a concrete
  * storage backend and a set of limits parameters.
  */
-struct delegate_variable_store
-{
+struct delegate_variable_store {
 	bool is_nv;
 	size_t total_capacity;
 	size_t max_variable_size;
@@ -42,8 +42,7 @@ struct delegate_variable_store
  * by another trusted service such as the protected storage or internal trusted
  * storage service.
  */
-struct uefi_variable_store
-{
+struct uefi_variable_store {
 	bool is_boot_service;
 	uint32_t owner_id;
 	uint8_t *index_sync_buffer;
@@ -68,20 +67,17 @@ struct uefi_variable_store
  *
  * @return     EFI_SUCCESS if initialized successfully
  */
-efi_status_t uefi_variable_store_init(
-	struct uefi_variable_store *context,
-	uint32_t owner_id,
-	size_t max_variables,
-	struct storage_backend *persistent_store,
-	struct storage_backend *volatile_store);
+efi_status_t uefi_variable_store_init(struct uefi_variable_store *context, uint32_t owner_id,
+				      size_t max_variables,
+				      struct storage_backend *persistent_store,
+				      struct storage_backend *volatile_store);
 
 /**
  * @brief      De-initialises a uefi_variable_store
  *
  * @param[in]  context uefi_variable_store instance
  */
-void uefi_variable_store_deinit(
-	struct uefi_variable_store *context);
+void uefi_variable_store_deinit(struct uefi_variable_store *context);
 
 /**
  * @brief      Set storage limits
@@ -94,11 +90,9 @@ void uefi_variable_store_deinit(
  * @param[in]  total_capacity The total storage capacity in bytes
  * @param[in]  max_variable_size Variable size limit
  */
-void uefi_variable_store_set_storage_limits(
-	struct uefi_variable_store *context,
-	uint32_t attributes,
-	size_t total_capacity,
-	size_t max_variable_size);
+void uefi_variable_store_set_storage_limits(struct uefi_variable_store *context,
+					    uint32_t attributes, size_t total_capacity,
+					    size_t max_variable_size);
 
 /**
  * @brief      Set variable
@@ -110,9 +104,8 @@ void uefi_variable_store_set_storage_limits(
  *
  * @return     EFI_SUCCESS if successful
  */
-efi_status_t uefi_variable_store_set_variable(
-	struct uefi_variable_store *context,
-	const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var);
+efi_status_t uefi_variable_store_set_variable(struct uefi_variable_store *context,
+					      const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var);
 
 /**
  * @brief      Get variable
@@ -126,11 +119,9 @@ efi_status_t uefi_variable_store_set_variable(
  *
  * @return     EFI_SUCCESS if successful
  */
-efi_status_t uefi_variable_store_get_variable(
-	struct uefi_variable_store *context,
-	SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var,
-	size_t max_data_len,
-	size_t *total_length);
+efi_status_t uefi_variable_store_get_variable(struct uefi_variable_store *context,
+					      SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var,
+					      size_t max_data_len, size_t *total_length);
 
 /**
  * @brief      Get next variable name
@@ -144,11 +135,10 @@ efi_status_t uefi_variable_store_get_variable(
  *
  * @return     EFI_SUCCESS if successful
  */
-efi_status_t uefi_variable_store_get_next_variable_name(
-	struct uefi_variable_store *context,
-	SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *cur,
-	size_t max_name_len,
-	size_t *total_length);
+efi_status_t
+uefi_variable_store_get_next_variable_name(struct uefi_variable_store *context,
+					   SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *cur,
+					   size_t max_name_len, size_t *total_length);
 
 /**
  * @brief      Query for variable info
@@ -158,9 +148,9 @@ efi_status_t uefi_variable_store_get_next_variable_name(
  *
  * @return     EFI_SUCCESS if successful
  */
-efi_status_t uefi_variable_store_query_variable_info(
-	struct uefi_variable_store *context,
-	SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO *var_info);
+efi_status_t
+uefi_variable_store_query_variable_info(struct uefi_variable_store *context,
+					SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO *var_info);
 
 /**
  * @brief      Exit boot service
@@ -172,8 +162,7 @@ efi_status_t uefi_variable_store_query_variable_info(
   *
  * @return     EFI_SUCCESS if successful
  */
-efi_status_t uefi_variable_store_exit_boot_service(
-	struct uefi_variable_store *context);
+efi_status_t uefi_variable_store_exit_boot_service(struct uefi_variable_store *context);
 
 /**
  * @brief      Set variable check property
