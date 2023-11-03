@@ -46,6 +46,9 @@ target_compile_definitions(ts PRIVATE
 	EXPORT_PUBLIC_INTERFACE_FWU_SERVICE_CONTEXT
 )
 
+# Enable RPMB authentication key write for host tests
+set(RPMB_WRITE_KEY TRUE CACHE BOOL "Enable RPMB Authentication Key Write")
+
 #-------------------------------------------------------------------------------
 #  Components that are specific to deployment in the linux-pc environment.
 #
@@ -75,6 +78,7 @@ add_components(
 		"components/service/locator/standalone/services/attestation"
 		"components/service/locator/standalone/services/block-storage"
 		"components/service/locator/standalone/services/fwu"
+		"components/service/locator/standalone/services/rpmb"
 		"components/service/locator/standalone/services/smm-variable"
 		"components/service/attestation/include"
 		"components/service/attestation/claims"
@@ -92,6 +96,7 @@ add_components(
 		"components/service/block_storage/block_store"
 		"components/service/block_storage/block_store/device"
 		"components/service/block_storage/block_store/device/ram"
+		"components/service/block_storage/block_store/device/rpmb"
 		"components/service/block_storage/block_store/partitioned"
 		"components/service/block_storage/block_store/client"
 		"components/service/block_storage/provider"
@@ -100,6 +105,7 @@ add_components(
 		"components/service/block_storage/config/ref"
 		"components/service/block_storage/factory/ref_ram_gpt"
 		"components/service/block_storage/factory/client"
+		"components/service/block_storage/factory/rpmb"
 		"components/service/crypto/provider"
 		"components/service/crypto/provider/serializer/protobuf"
 		"components/service/crypto/provider/serializer/packed-c"
@@ -116,6 +122,12 @@ add_components(
 		"components/service/crypto/factory/full"
 		"components/service/crypto/backend/mbedcrypto"
 		"components/service/crypto/backend/mbedcrypto/trng_adapter/linux"
+		"components/service/rpmb/backend"
+		"components/service/rpmb/backend/emulated"
+		"components/service/rpmb/client"
+		"components/service/rpmb/frontend"
+		"components/service/rpmb/frontend/platform/default"
+		"components/service/rpmb/provider"
 		"components/service/secure_storage/include"
 		"components/service/secure_storage/frontend/psa/its"
 		"components/service/secure_storage/frontend/secure_storage_provider"

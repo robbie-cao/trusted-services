@@ -111,6 +111,8 @@ add_components(
 		"components/service/fwu/test/fwu_dut_factory/remote_sim"
 		"components/service/fwu/test/metadata_fetcher/volume"
 		"components/service/fwu/test/ref_scenarios"
+		"components/service/rpmb/backend/emulated"
+		"components/service/rpmb/provider"
 		"components/media/volume"
 		"components/media/volume/index"
 		"components/media/volume/base_io_dev"

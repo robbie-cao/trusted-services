@@ -44,6 +44,7 @@ TEST_GROUP(BlockStorageServiceTests)
 	}
 
 	static const uint32_t LOCAL_CLIENT_ID = 1;
+	static const uint32_t SECTOR_SIZE = 512;
 
 	struct block_store *m_block_store;
 	struct uuid_octets m_partition_1_guid;
@@ -61,7 +62,8 @@ TEST(BlockStorageServiceTests, getPartitionInfo)
 		m_block_store, &m_partition_1_guid, &info);
 
 	LONGS_EQUAL(PSA_SUCCESS, status);
-	LONGS_EQUAL(REF_PARTITION_1_ENDING_LBA - REF_PARTITION_1_STARTING_LBA + 1, info.num_blocks);
+	LONGS_EQUAL(REF_PARTITION_1_ENDING_LBA - REF_PARTITION_1_STARTING_LBA + 1,
+		    info.num_blocks * info.block_size / SECTOR_SIZE);
 	LONGS_EQUAL(REF_PARTITION_BLOCK_SIZE, info.block_size);
 	MEMCMP_EQUAL(m_partition_1_guid.octets,
 		info.partition_guid.octets, sizeof(info.partition_guid.octets));
@@ -71,7 +73,8 @@ TEST(BlockStorageServiceTests, getPartitionInfo)
 		m_block_store, &m_partition_2_guid, &info);
 
 	LONGS_EQUAL(PSA_SUCCESS, status);
-	LONGS_EQUAL(REF_PARTITION_2_ENDING_LBA - REF_PARTITION_2_STARTING_LBA + 1, info.num_blocks);
+	LONGS_EQUAL(REF_PARTITION_2_ENDING_LBA - REF_PARTITION_2_STARTING_LBA + 1,
+		    info.num_blocks * info.block_size / SECTOR_SIZE);
 	LONGS_EQUAL(REF_PARTITION_BLOCK_SIZE, info.block_size);
 	MEMCMP_EQUAL(m_partition_2_guid.octets,
 		info.partition_guid.octets, sizeof(info.partition_guid.octets));
@@ -81,7 +84,8 @@ TEST(BlockStorageServiceTests, getPartitionInfo)
 		m_block_store, &m_partition_3_guid, &info);
 
 	LONGS_EQUAL(PSA_SUCCESS, status);
-	LONGS_EQUAL(REF_PARTITION_3_ENDING_LBA - REF_PARTITION_3_STARTING_LBA + 1, info.num_blocks);
+	LONGS_EQUAL(REF_PARTITION_3_ENDING_LBA - REF_PARTITION_3_STARTING_LBA + 1,
+		    info.num_blocks * info.block_size / SECTOR_SIZE);
 	LONGS_EQUAL(REF_PARTITION_BLOCK_SIZE, info.block_size);
 	MEMCMP_EQUAL(m_partition_3_guid.octets,
 		info.partition_guid.octets, sizeof(info.partition_guid.octets));
@@ -91,7 +95,8 @@ TEST(BlockStorageServiceTests, getPartitionInfo)
 		m_block_store, &m_partition_4_guid, &info);
 
 	LONGS_EQUAL(PSA_SUCCESS, status);
-	LONGS_EQUAL(REF_PARTITION_4_ENDING_LBA - REF_PARTITION_4_STARTING_LBA + 1, info.num_blocks);
+	LONGS_EQUAL(REF_PARTITION_4_ENDING_LBA - REF_PARTITION_4_STARTING_LBA + 1,
+		    info.num_blocks * info.block_size / SECTOR_SIZE);
 	LONGS_EQUAL(REF_PARTITION_BLOCK_SIZE, info.block_size);
 	MEMCMP_EQUAL(m_partition_4_guid.octets,
 		info.partition_guid.octets, sizeof(info.partition_guid.octets));
@@ -180,12 +185,6 @@ TEST(BlockStorageServiceTests, blockAccessOperations)
 		UNSIGNED_LONGS_EQUAL(sizeof(write_buffer), data_len);
 		MEMCMP_EQUAL(write_buffer, read_buffer, sizeof(write_buffer));
 	}
-
-	/* Write again to the first block - this should fail as it's not erased */
-	status = block_store_write(
-		m_block_store, LOCAL_CLIENT_ID, handle, 0,
-		0, write_buffer, sizeof(write_buffer), &num_written);
-	LONGS_EQUAL(PSA_ERROR_STORAGE_FAILURE, status);
 
 	/* Erase a set of blocks */
 	uint64_t erase_begin_lba = 0;

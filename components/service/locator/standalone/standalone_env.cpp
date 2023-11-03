@@ -13,6 +13,7 @@
 #include <service/locator/standalone/services/block-storage/block_storage_service_context.h>
 #include <service/locator/standalone/services/fwu/fwu_service_context.h>
 #include <service/locator/standalone/services/smm-variable/smm_variable_service_context.h>
+#include <service/locator/standalone/services/rpmb/rpmb_service_context.h>
 #include "standalone_location_strategy.h"
 #include "standalone_service_registry.h"
 
@@ -45,6 +46,9 @@ void service_locator_envinit(void)
 
 	static smm_variable_service_context smm_variable_context("sn:trustedfirmware.org:smm-variable:0");
 	standalone_service_registry::instance()->regsiter_service_instance(&smm_variable_context);
+
+	static rpmb_service_context rpmb_context("sn:trustedfirmware.org:rpmb:0");
+	standalone_service_registry::instance()->regsiter_service_instance(&rpmb_context);
 
 	service_locator_register_strategy(standalone_location_strategy());
 }

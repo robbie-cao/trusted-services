@@ -25,7 +25,7 @@ extern "C" {
  */
 
 #define REF_PARTITION_BACK_STORE_SIZE   (200)
-#define REF_PARTITION_BLOCK_SIZE        (512)
+#define REF_PARTITION_BLOCK_SIZE        (256)
 
 /* About the right size for PSA storage */
 #define REF_PARTITION_1_GUID            DISK_GUID_UNIQUE_PARTITION_PSA_ITS

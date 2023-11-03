@@ -7,7 +7,7 @@
 #include <assert.h>
 #include <cstring>
 #include "service/block_storage/provider/serializer/packed-c/packedc_block_storage_serializer.h"
-#include "service/block_storage/factory/ref_ram_gpt/block_store_factory.h"
+#include "service/block_storage/factory/rpmb/block_store_factory.h"
 #include "block_storage_service_context.h"
 
 block_storage_service_context::block_storage_service_context(const char *sn) :
@@ -26,7 +26,7 @@ block_storage_service_context::~block_storage_service_context()
 void block_storage_service_context::do_init()
 {
 	/* Create backend block store */
-	m_block_store = ref_ram_gpt_block_store_factory_create();
+	m_block_store = rpmb_block_store_factory_create();
 	assert(m_block_store);
 
 	/* Initialise the block storage service provider */
@@ -44,5 +44,5 @@ void block_storage_service_context::do_init()
 void block_storage_service_context::do_deinit()
 {
 	block_storage_provider_deinit(&m_block_storage_provider);
-	ref_ram_gpt_block_store_factory_destroy(m_block_store);
+	rpmb_block_store_factory_destroy(m_block_store);
 }
