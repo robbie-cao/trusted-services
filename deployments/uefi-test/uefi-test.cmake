@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -31,16 +31,6 @@ add_components(
 		"components/service/uefi/smm_variable/client/cpp"
 		"components/service/uefi/smm_variable/test/service"
 )
-
-#-------------------------------------------------------------------------------
-#  Components used from external projects
-#
-#-------------------------------------------------------------------------------
-
-# Nanopb
-include(${TS_ROOT}/external/nanopb/nanopb.cmake)
-target_link_libraries(uefi-test PRIVATE nanopb::protobuf-nanopb-static)
-protobuf_generate_all(TGT "uefi-test" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protocols")
 
 #-------------------------------------------------------------------------------
 #  Define install content.
