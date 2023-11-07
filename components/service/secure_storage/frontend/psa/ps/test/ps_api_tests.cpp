@@ -12,7 +12,7 @@
  * Creates a new slot and sets its contents in one go.  Uses
  * mandatory PS API operations only.
  */
-void ps_api_tests::createAndSet()
+void ps_api_tests::set()
 {
     psa_status_t status;
     psa_storage_uid_t uid = 10;
@@ -26,10 +26,6 @@ void ps_api_tests::createAndSet()
     /* Probe to check item does not exist */
     status = psa_ps_get_info(uid, &storage_info);
     CHECK_EQUAL(PSA_ERROR_DOES_NOT_EXIST, status);
-
-    /* Create empty store record with capcity for the item */
-    status = psa_ps_create(uid, sizeof(item), PSA_STORAGE_FLAG_NONE);
-    CHECK_EQUAL(PSA_SUCCESS, status);
 
     /* Store the item */
     status = psa_ps_set(uid, sizeof(item), item, PSA_STORAGE_FLAG_NONE);
@@ -68,6 +64,9 @@ void ps_api_tests::createAndSetExtended()
     static const size_t ITEM_SIZE = 100;
     uint8_t item[ITEM_SIZE];
     uint8_t read_item[ITEM_SIZE];
+
+    if ((psa_ps_get_support() & PSA_STORAGE_SUPPORT_SET_EXTENDED) == 0)
+        return;
 
     memset(item, 0xaa, sizeof(item));
 

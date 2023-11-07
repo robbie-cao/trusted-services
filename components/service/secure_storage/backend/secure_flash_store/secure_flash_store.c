@@ -277,36 +277,12 @@ static psa_status_t sfs_create(void *context,
                             uint32_t create_flags)
 {
     (void)context;
+    (void)client_id;
+    (void)uid;
+    (void)capacity;
+    (void)create_flags;
 
-    psa_status_t status;
-
-    /* Check that the UID is valid */
-    if (uid == SFS_INVALID_UID) {
-        return PSA_ERROR_INVALID_ARGUMENT;
-    }
-
-    /* Check that the create_flags does not contain any unsupported flags */
-    if (create_flags & ~(PSA_STORAGE_FLAG_WRITE_ONCE |
-                         PSA_STORAGE_FLAG_NO_CONFIDENTIALITY |
-                         PSA_STORAGE_FLAG_NO_REPLAY_PROTECTION)) {
-        return PSA_ERROR_NOT_SUPPORTED;
-    }
-
-    /* Set file id */
-    sfs_get_fid(client_id, uid, g_fid);
-
-    /* Read file info */
-    status = sfs_flash_fs_file_get_info(&fs_ctx_sfs, g_fid, &g_file_info);
-    if (status == PSA_SUCCESS) {
-        return PSA_ERROR_ALREADY_EXISTS;
-    }
-
-    /* Create the file in the file system */
-    status = sfs_flash_fs_file_create(&fs_ctx_sfs, g_fid, capacity,
-                                      0, (uint32_t)create_flags,
-                                      NULL);
-
-    return status;
+    return PSA_ERROR_NOT_SUPPORTED;
 }
 
 static psa_status_t sfs_set_extended(void *context,

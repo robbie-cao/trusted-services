@@ -69,7 +69,7 @@ TEST(PsServiceTests, storeNewItem)
 
 TEST(PsServiceTests, createAndSet)
 {
-    ps_api_tests::createAndSet();
+    ps_api_tests::set();
 }
 
 TEST(PsServiceTests, createAndSetExtended)

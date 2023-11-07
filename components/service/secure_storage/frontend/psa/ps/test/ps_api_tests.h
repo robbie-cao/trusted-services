@@ -15,7 +15,7 @@ class ps_api_tests
 {
 public:
 
-    static void createAndSet();
+    static void set();
     static void createAndSetExtended();
 };
 
