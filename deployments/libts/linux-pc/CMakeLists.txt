@@ -29,6 +29,13 @@ include(${TS_ROOT}/external/tf_a/tf-a.cmake)
 add_tfa_dependency(TARGET "ts")
 
 #-------------------------------------------------------------------------------
+# Options and variables
+#-------------------------------------------------------------------------------
+target_compile_definitions(ts PRIVATE
+	-DUEFI_AUTH_VAR
+)
+
+#-------------------------------------------------------------------------------
 #  Define public interfaces for library
 #
 #-------------------------------------------------------------------------------
@@ -124,6 +131,7 @@ add_components(
 		"components/service/test_runner/provider/backend/mock"
 		"components/service/test_runner/provider/backend/simple_c"
 		"components/service/uefi/smm_variable/backend"
+		"components/service/uefi/smm_variable/backend/direct"
 		"components/service/uefi/smm_variable/provider"
 		"components/media/disk"
 		"components/media/disk/disk_images"
