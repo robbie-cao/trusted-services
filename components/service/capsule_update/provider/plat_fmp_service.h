@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef CORSTONE1000_FMP_SERVICE_H
-#define CORSTONE1000_FMP_SERVICE_H
+#ifndef PLAT_FMP_SERVICE_H
+#define PLAT_FMP_SERVICE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,4 +22,4 @@ void set_fmp_image_info(struct rpc_caller *caller);
 } /* extern "C" */
 #endif
 
-#endif /* CORSTONE1000_FMP_SERVICE_H */
+#endif /* PLAT_FMP_SERVICE_H */

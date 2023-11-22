@@ -11,15 +11,15 @@
 #include <protocols/service/capsule_update/capsule_update_proto.h>
 #include <protocols/rpc/common/packed-c/status.h>
 #include "capsule_update_provider.h"
-#include "corstone1000_fmp_service.h"
+#include "plat_fmp_service.h"
 
 
 #define CAPSULE_UPDATE_REQUEST (0x1)
 #define KERNEL_STARTED_EVENT   (0x2)
 
-enum corstone1000_ioctl_id_t {
-	IOCTL_CORSTONE1000_FWU_FLASH_IMAGES = 0,
-	IOCTL_CORSTONE1000_FWU_HOST_ACK,
+enum plat_ioctl_id_t {
+	IOCTL_PLAT_FWU_FLASH_IMAGES = 0,
+	IOCTL_PLAT_FWU_HOST_ACK,
 };
 
 /* Service request handlers */
@@ -77,14 +77,14 @@ static rpc_status_t event_handler(uint32_t opcode, struct rpc_caller *caller)
 	switch(opcode) {
 		case CAPSULE_UPDATE_REQUEST:
 		/* Openamp call with IOCTL for firmware update*/
-		ioctl_id = IOCTL_CORSTONE1000_FWU_FLASH_IMAGES;
+		ioctl_id = IOCTL_PLAT_FWU_FLASH_IMAGES;
 		psa_call(caller,TFM_PLATFORM_SERVICE_HANDLE, TFM_PLATFORM_API_ID_IOCTL,
 			in_vec,IOVEC_LEN(in_vec), NULL, 0);
 		set_fmp_image_info(caller);
 		break;
 
 		case KERNEL_STARTED_EVENT:
-		ioctl_id = IOCTL_CORSTONE1000_FWU_HOST_ACK;
+		ioctl_id = IOCTL_PLAT_FWU_HOST_ACK;
 		/*openamp call with IOCTL for kernel start*/
 		
 		psa_call(caller,TFM_PLATFORM_SERVICE_HANDLE, TFM_PLATFORM_API_ID_IOCTL,

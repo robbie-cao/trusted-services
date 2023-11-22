@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "corstone1000_fmp_service.h"
+#include "plat_fmp_service.h"
 #include <psa/client.h>
 #include <psa/sid.h>
 #include <psa/storage_common.h>
@@ -209,7 +209,7 @@ static variable_data_t fmp_variables_data[FMP_VARIABLES_COUNT];
 
 #define IMAGE_INFO_BUFFER_SIZE	256
 static char image_info_buffer[IMAGE_INFO_BUFFER_SIZE];
-#define IOCTL_CORSTONE1000_FMP_IMAGE_INFO	2
+#define IOCTL_PLAT_FMP_IMAGE_INFO	2
 
 static psa_status_t unpack_image_info(void *buffer, uint32_t size)
 {
@@ -242,7 +242,7 @@ static psa_status_t get_image_info(struct rpc_caller *caller)
 {
     psa_status_t status;
     psa_handle_t handle;
-    uint32_t ioctl_id = IOCTL_CORSTONE1000_FMP_IMAGE_INFO;
+    uint32_t ioctl_id = IOCTL_PLAT_FMP_IMAGE_INFO;
 
     struct psa_invec in_vec[] = {
 	{ .base = &ioctl_id, .len = sizeof(ioctl_id) },
