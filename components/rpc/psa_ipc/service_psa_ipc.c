@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2024, Arm Limited and Contributors. All rights reserved.
  * Copyright (c) 2021-2023, Linaro Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -176,13 +176,13 @@ static psa_status_t __psa_call(struct rpc_caller_interface *caller, psa_handle_t
 	if (!resp_msg || !out_len || resp_msg->reply != PSA_SUCCESS)
 		goto caller_end;
 
-	out_vec_param = (struct psa_outvec *)psa_ipc_phys_to_virt(caller,
+	out_vec_param = (struct psa_outvec *)psa_ipc_phys_to_virt(caller->context,
 				psa_u32_to_ptr(resp_msg->params.out_vec));
 
 	for (i = 0; i < resp_msg->params.out_len; i++) {
 		out_vec[i].len = out_vec_param[i].len;
 		unaligned_memcpy(psa_u32_to_ptr(out_vec[i].base),
-				 psa_ipc_phys_to_virt(caller,
+				 psa_ipc_phys_to_virt(caller->context,
 				      psa_u32_to_ptr(out_vec_param[i].base)),
 				 out_vec[i].len);
 	}
