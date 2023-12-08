@@ -25,6 +25,14 @@ smm_variable_client::~smm_variable_client()
 {
 }
 
+std::u16string smm_variable_client::to_variable_name(const char16_t *name) const
+{
+	std::u16string name_var(name);
+	name_var.push_back(0);
+
+	return name_var;
+}
+
 void smm_variable_client::set_caller_session(struct rpc_caller_session *session)
 {
 	this->session = session;
@@ -35,20 +43,32 @@ int smm_variable_client::err_rpc_status() const
 	return m_err_rpc_status;
 }
 
-efi_status_t smm_variable_client::set_variable(const EFI_GUID &guid, const std::wstring &name,
+efi_status_t smm_variable_client::set_variable(const EFI_GUID &guid, const char16_t *name,
+					       const std::string data, uint32_t attributes)
+{
+	return set_variable(guid, to_variable_name(name), data, attributes, 0, 0);
+}
+
+efi_status_t smm_variable_client::set_variable(const EFI_GUID &guid, const char16_t *name,
+					       const unsigned char* data, size_t data_length,
+					       uint32_t attributes)
+{
+	std::string data_var((const char *)data, data_length);
+	return set_variable(guid, to_variable_name(name), data_var, attributes, 0, 0);
+}
+
+efi_status_t smm_variable_client::set_variable(const EFI_GUID &guid, const std::u16string &name,
 					       const std::string &data, uint32_t attributes)
 {
 	return set_variable(guid, name, data, attributes, 0, 0);
 }
 
-efi_status_t smm_variable_client::set_variable(const EFI_GUID &guid, const std::wstring &name,
+efi_status_t smm_variable_client::set_variable(const EFI_GUID &guid, const std::u16string &name,
 					       const std::string &data, uint32_t attributes,
 					       size_t override_name_size, size_t override_data_size)
 {
 	efi_status_t efi_status = EFI_NOT_READY;
-
-	std::vector<int16_t> var_name = to_variable_name(name);
-	size_t name_size = var_name.size() * sizeof(int16_t);
+	size_t name_size = name.size() * sizeof(char16_t);
 	size_t data_size = data.size();
 	size_t req_len = SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_SIZE(name_size, data_size);
 
@@ -70,7 +90,7 @@ efi_status_t smm_variable_client::set_variable(const EFI_GUID &guid, const std::
 		access_var->DataSize = data_size;
 		access_var->Attributes = attributes;
 
-		memcpy(access_var->Name, var_name.data(), name_size);
+		memcpy(access_var->Name, name.c_str(), name_size);
 		memcpy(&req_buf[SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(access_var)],
 		       data.data(), data_size);
 
@@ -96,20 +116,32 @@ efi_status_t smm_variable_client::set_variable(const EFI_GUID &guid, const std::
 	return efi_status;
 }
 
-efi_status_t smm_variable_client::get_variable(const EFI_GUID &guid, const std::wstring &name,
+efi_status_t smm_variable_client::get_variable(const EFI_GUID &guid, const char16_t *name,
+					       std::string &data)
+{
+	return get_variable(guid, to_variable_name(name), data, 0, MAX_VAR_DATA_SIZE);
+}
+
+efi_status_t smm_variable_client::get_variable(const EFI_GUID &guid, const char16_t *name,
+					       std::string &data, size_t override_name_size,
+					       size_t max_data_size)
+{
+	return get_variable(guid, to_variable_name(name), data, override_name_size, max_data_size);
+}
+
+efi_status_t smm_variable_client::get_variable(const EFI_GUID &guid, const std::u16string &name,
 					       std::string &data)
 {
 	return get_variable(guid, name, data, 0, MAX_VAR_DATA_SIZE);
 }
 
-efi_status_t smm_variable_client::get_variable(const EFI_GUID &guid, const std::wstring &name,
+efi_status_t smm_variable_client::get_variable(const EFI_GUID &guid, const std::u16string &name,
 					       std::string &data, size_t override_name_size,
 					       size_t max_data_size)
 {
 	efi_status_t efi_status = EFI_NOT_READY;
 
-	std::vector<int16_t> var_name = to_variable_name(name);
-	size_t name_size = var_name.size() * sizeof(int16_t);
+	size_t name_size = name.size() * sizeof(char16_t);
 	size_t req_len = SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_SIZE(name_size, 0);
 	size_t resp_len = SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_SIZE(name_size, 0);
 
@@ -130,7 +162,7 @@ efi_status_t smm_variable_client::get_variable(const EFI_GUID &guid, const std::
 		access_var->NameSize = name_size;
 		access_var->DataSize = max_data_size;
 
-		memcpy(access_var->Name, var_name.data(), name_size);
+		memcpy(access_var->Name, name.c_str(), name_size);
 
 		/* To support invalid size testing, use overrides if set */
 		if (override_name_size)
@@ -171,13 +203,18 @@ efi_status_t smm_variable_client::get_variable(const EFI_GUID &guid, const std::
 	return efi_status;
 }
 
-efi_status_t smm_variable_client::remove_variable(const EFI_GUID &guid, const std::wstring &name)
+efi_status_t smm_variable_client::remove_variable(const EFI_GUID &guid, const char16_t *name)
+{
+	return remove_variable(guid, to_variable_name(name));
+}
+
+efi_status_t smm_variable_client::remove_variable(const EFI_GUID &guid, const std::u16string &name)
 {
 	/* Variable is removed by performing a 'set' with zero length data */
 	return set_variable(guid, name, std::string(), 0);
 }
 
-efi_status_t smm_variable_client::get_next_variable_name(EFI_GUID &guid, std::wstring &name)
+efi_status_t smm_variable_client::get_next_variable_name(EFI_GUID &guid, std::u16string &name)
 {
 	return get_next_variable_name(guid, name, 0);
 }
@@ -243,13 +280,12 @@ efi_status_t smm_variable_client::query_variable_info(uint32_t attributes,
 	return efi_status;
 }
 
-efi_status_t smm_variable_client::get_next_variable_name(EFI_GUID &guid, std::wstring &name,
+efi_status_t smm_variable_client::get_next_variable_name(EFI_GUID &guid, std::u16string &name,
 							 size_t override_name_size)
 {
 	efi_status_t efi_status = EFI_NOT_READY;
 
-	std::vector<int16_t> var_name = to_variable_name(name);
-	size_t name_size = var_name.size() * sizeof(int16_t);
+	size_t name_size = name.size() * sizeof(char16_t);
 	size_t req_len = SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_SIZE(name_size);
 	size_t resp_len = SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_SIZE(name_size);
 
@@ -269,7 +305,7 @@ efi_status_t smm_variable_client::get_next_variable_name(EFI_GUID &guid, std::ws
 		next_var->Guid = guid;
 		next_var->NameSize = name_size;
 
-		memcpy(next_var->Name, var_name.data(), name_size);
+		memcpy(next_var->Name, name.c_str(), name_size);
 
 		/* To support invalid size testing, use overrides if set */
 		if (override_name_size)
@@ -295,8 +331,8 @@ efi_status_t smm_variable_client::get_next_variable_name(EFI_GUID &guid, std::ws
 					    SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_TOTAL_SIZE(
 						    next_var)) {
 						guid = next_var->Guid;
-						name = from_variable_name(next_var->Name,
-									  next_var->NameSize);
+						from_variable_name(next_var->Name,
+									  next_var->NameSize, name);
 
 						efi_status = EFI_SUCCESS;
 					}
@@ -342,22 +378,36 @@ efi_status_t smm_variable_client::exit_boot_service()
 	return efi_status;
 }
 
+efi_status_t smm_variable_client::set_var_check_property(const EFI_GUID &guid, const char16_t *name,
+					    const VAR_CHECK_VARIABLE_PROPERTY &check_property)
+{
+	return set_var_check_property(guid, to_variable_name(name), check_property, 0);
+}
+
+efi_status_t smm_variable_client::set_var_check_property(const EFI_GUID &guid, const char16_t *name,
+					    const VAR_CHECK_VARIABLE_PROPERTY &check_property,
+					    size_t override_name_size)
+{
+	return set_var_check_property(guid, to_variable_name(name), check_property,
+		override_name_size);
+}
+
+
 efi_status_t
-smm_variable_client::set_var_check_property(const EFI_GUID &guid, const std::wstring &name,
+smm_variable_client::set_var_check_property(const EFI_GUID &guid, const std::u16string &name,
 					    const VAR_CHECK_VARIABLE_PROPERTY &check_property)
 {
 	return set_var_check_property(guid, name, check_property, 0);
 }
 
 efi_status_t
-smm_variable_client::set_var_check_property(const EFI_GUID &guid, const std::wstring &name,
+smm_variable_client::set_var_check_property(const EFI_GUID &guid, const std::u16string &name,
 					    const VAR_CHECK_VARIABLE_PROPERTY &check_property,
 					    size_t override_name_size)
 {
 	efi_status_t efi_status = EFI_NOT_READY;
 
-	std::vector<int16_t> var_name = to_variable_name(name);
-	size_t name_size = var_name.size() * sizeof(int16_t);
+	size_t name_size = name.size() * sizeof(char16_t);
 	size_t req_len = SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_SIZE(name_size);
 	size_t resp_len = SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_SIZE(name_size);
 
@@ -378,7 +428,7 @@ smm_variable_client::set_var_check_property(const EFI_GUID &guid, const std::wst
 		req_msg->NameSize = name_size;
 		req_msg->VariableProperty = check_property;
 
-		memcpy(req_msg->Name, var_name.data(), name_size);
+		memcpy(req_msg->Name, name.data(), name_size);
 
 		/* To support invalid size testing, use override if set */
 		if (override_name_size)
@@ -400,22 +450,35 @@ smm_variable_client::set_var_check_property(const EFI_GUID &guid, const std::wst
 	return efi_status;
 }
 
+efi_status_t smm_variable_client::get_var_check_property(const EFI_GUID &guid, const char16_t *name,
+					VAR_CHECK_VARIABLE_PROPERTY &check_property)
+{
+	return get_var_check_property(guid, to_variable_name(name), check_property, 0);
+}
+
+efi_status_t smm_variable_client::get_var_check_property(const EFI_GUID &guid, const char16_t *name,
+					VAR_CHECK_VARIABLE_PROPERTY &check_property,
+					size_t override_name_size)
+{
+	return get_var_check_property(guid, to_variable_name(name), check_property,
+		override_name_size);
+}
+
 efi_status_t
-smm_variable_client::get_var_check_property(const EFI_GUID &guid, const std::wstring &name,
+smm_variable_client::get_var_check_property(const EFI_GUID &guid, const std::u16string &name,
 					    VAR_CHECK_VARIABLE_PROPERTY &check_property)
 {
 	return get_var_check_property(guid, name, check_property, 0);
 }
 
 efi_status_t
-smm_variable_client::get_var_check_property(const EFI_GUID &guid, const std::wstring &name,
+smm_variable_client::get_var_check_property(const EFI_GUID &guid, const std::u16string &name,
 					    VAR_CHECK_VARIABLE_PROPERTY &check_property,
 					    size_t override_name_size)
 {
 	efi_status_t efi_status = EFI_NOT_READY;
 
-	std::vector<int16_t> var_name = to_variable_name(name);
-	size_t name_size = var_name.size() * sizeof(int16_t);
+	size_t name_size = name.size() * sizeof(char16_t);
 	size_t req_len = SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_SIZE(name_size);
 	size_t resp_len = SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_SIZE(name_size);
 
@@ -435,7 +498,7 @@ smm_variable_client::get_var_check_property(const EFI_GUID &guid, const std::wst
 		req_msg->Guid = guid;
 		req_msg->NameSize = name_size;
 
-		memcpy(req_msg->Name, var_name.data(), name_size);
+		memcpy(req_msg->Name, name.data(), name_size);
 
 		/* To support invalid size testing, use overrides if set */
 		if (override_name_size)
@@ -555,30 +618,9 @@ efi_status_t smm_variable_client::rpc_to_efi_status() const
 	return efi_status;
 }
 
-std::vector<int16_t> smm_variable_client::to_variable_name(const std::wstring &string)
+void smm_variable_client::from_variable_name(const int16_t *var_name,
+							   size_t name_size, std::u16string &result)
 {
-	std::vector<int16_t> var_name;
-
-	for (size_t i = 0; i < string.size(); i++) {
-		var_name.push_back((int16_t)string[i]);
-	}
-
-	var_name.push_back(0);
-
-	return var_name;
-}
-
-const std::wstring smm_variable_client::from_variable_name(const int16_t *var_name,
-							   size_t name_size)
-{
-	std::wstring name;
 	size_t num_chars = name_size / sizeof(int16_t);
-
-	for (size_t i = 0; i < num_chars; i++) {
-		if (!var_name[i])
-			break; /* Reached null terminator */
-		name.push_back((wchar_t)var_name[i]);
-	}
-
-	return name;
+	result.assign((const char16_t *) var_name, num_chars);
 }

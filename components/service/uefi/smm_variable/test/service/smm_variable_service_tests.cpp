@@ -72,9 +72,9 @@ TEST_GROUP(SmmVariableServiceTests)
 	void runtimeStateAccessControl()
 	{
 		efi_status_t efi_status = EFI_SUCCESS;
-		std::wstring boot_var_name = L"a boot variable";
+		std::u16string boot_var_name = u"a boot variable";
 		std::string boot_set_data = "Only accessible during boot";
-		std::wstring runtime_var_name = L"a runtime variable";
+		std::u16string runtime_var_name = u"a runtime variable";
 		std::string runtime_set_data = "Only accessible during runtime";
 		std::string get_data;
 
@@ -135,7 +135,7 @@ TEST_GROUP(SmmVariableServiceTests)
 	void setReadOnlyConstraint()
 	{
 		efi_status_t efi_status = EFI_SUCCESS;
-		std::wstring var_name_1 = L"ro_variable";
+		std::u16string var_name_1 = u"ro_variable";
 		std::string set_data = "A read only variable";
 
 		/* Add a variable to the store */
@@ -189,6 +189,13 @@ TEST_GROUP(SmmVariableServiceTests)
 		LONGS_EQUAL(0, get_data.compare(set_data));
 	}
 
+	std::u16string to_variable_name(const char16_t *string)
+	{
+		std::u16string var_name(string);
+		var_name.push_back(0);
+
+		return var_name;
+	}
 	smm_variable_client *m_client;
 	struct rpc_caller_session *m_rpc_session;
 	struct service_context *m_service_context;
@@ -198,7 +205,7 @@ TEST_GROUP(SmmVariableServiceTests)
 TEST(SmmVariableServiceTests, setAndGet)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
-	std::wstring var_name = L"test_variable";
+	const char16_t var_name[] = u"test_variable";
 	std::string set_data = "UEFI variable data string";
 	std::string get_data;
 
@@ -243,7 +250,7 @@ TEST(SmmVariableServiceTests, setAndGet)
 TEST(SmmVariableServiceTests, setAndGetNv)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
-	std::wstring var_name = L"an NV test_variable";
+	const char16_t var_name[] = u"an NV test_variable";
 	std::string set_data = "Another UEFI variable data string";
 	std::string get_data;
 
@@ -289,7 +296,7 @@ TEST(SmmVariableServiceTests, setAndGetNv)
 TEST(SmmVariableServiceTests, getVarSize)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
-	std::wstring var_name = L"test_variable";
+	const char16_t var_name[] = u"test_variable";
 	std::string set_data = "UEFI variable data string";
 	std::string get_data;
 
@@ -314,7 +321,7 @@ TEST(SmmVariableServiceTests, getVarSize)
 TEST(SmmVariableServiceTests, getVarSizeNv)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
-	std::wstring var_name = L"test_variable";
+	const char16_t var_name[] = u"test_variable";
 	std::string set_data = "UEFI variable data string";
 	std::string get_data;
 
@@ -364,9 +371,9 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 	UNSIGNED_LONGLONGS_EQUAL(v_max_variable_storage_size, v_remaining_variable_storage_size);
 
 	/* Add some variables to the store */
-	std::wstring var_name_1 = L"varibale_1";
-	std::wstring var_name_2 = L"varibale_2";
-	std::wstring var_name_3 = L"varibale_3";
+	std::u16string var_name_1 = to_variable_name(u"variable_1");
+	std::u16string var_name_2 = to_variable_name(u"variable_2");
+	std::u16string var_name_3 = to_variable_name(u"variable_3");
 	std::string set_data = "Some variable data";
 
 	efi_status =
@@ -408,7 +415,7 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 				 remaining_variable_storage_size);
 
 	/* Enumerate store contents - expect the values we added */
-	std::wstring var_name;
+	std::u16string var_name=to_variable_name(u"");
 	EFI_GUID guid;
 	memset(&guid, 0, sizeof(guid));
 
@@ -450,7 +457,7 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 TEST(SmmVariableServiceTests, setSizeConstraint)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
-	std::wstring var_name_1 = L"size_limited_variable";
+	const char16_t var_name_1[] = u"size_limited_variable";
 	std::string set_data = "Initial value";
 
 	/* Add a variable to the store */

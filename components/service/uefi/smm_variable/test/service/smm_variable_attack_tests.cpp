@@ -33,6 +33,10 @@ TEST_GROUP(SmmVariableAttackTests)
 		m_client = new smm_variable_client(m_rpc_session);
 
 		setup_common_guid();
+		var_name_1=to_variable_name(u"varibale_1");
+		null_name=to_variable_name(u"");
+		var_name_test=to_variable_name(u"test_variable");
+
 	}
 
 	void teardown()
@@ -66,20 +70,30 @@ TEST_GROUP(SmmVariableAttackTests)
 		m_common_guid.Data4[7] = 0x07;
 	}
 
+	std::u16string to_variable_name(const char16_t *string)
+	{
+		std::u16string var_name(string);
+		var_name.push_back(0);
+
+		return var_name;
+	}
+
 	smm_variable_client *m_client;
 	struct rpc_caller_session *m_rpc_session;
 	struct service_context *m_service_context;
 	EFI_GUID m_common_guid;
+	std::u16string var_name_1;
+	std::u16string null_name;
+	std::u16string var_name_test;
 };
 
 TEST(SmmVariableAttackTests, setWithOversizeData)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
-	std::wstring var_name = L"test_variable";
 	std::string set_data = "UEFI variable data string";
 
 	/* Override the data size with a big but plausable length */
-	efi_status = m_client->set_variable(m_common_guid, var_name, set_data, 0, 0,
+	efi_status = m_client->set_variable(m_common_guid, var_name_test, set_data, 0, 0,
 					    std::numeric_limits<uint16_t>::max());
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
@@ -88,11 +102,10 @@ TEST(SmmVariableAttackTests, setWithOversizeData)
 TEST(SmmVariableAttackTests, setWithSizeMaxDataSize)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
-	std::wstring var_name = L"test_variable";
 	std::string set_data = "UEFI variable data string";
 
 	/* Override the data size with SIZE_MAX length */
-	efi_status = m_client->set_variable(m_common_guid, var_name, set_data, 0, 0,
+	efi_status = m_client->set_variable(m_common_guid, var_name_test, set_data, 0, 0,
 					    std::numeric_limits<size_t>::max());
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
@@ -101,12 +114,11 @@ TEST(SmmVariableAttackTests, setWithSizeMaxDataSize)
 TEST(SmmVariableAttackTests, setWithOversizeName)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
-	std::wstring var_name = L"test_variable";
 	std::string set_data = "UEFI variable data string";
 
 	/* Override the name size slightly too big such that name + data don't fit */
-	efi_status = m_client->set_variable(m_common_guid, var_name, set_data, 0,
-					    (var_name.size() + 1) * sizeof(int16_t) + 1, 0);
+	efi_status = m_client->set_variable(m_common_guid, var_name_test, set_data, 0,
+					    (var_name_test.size() + 1) * sizeof(uint16_t) + 1, 0);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 }
@@ -114,11 +126,10 @@ TEST(SmmVariableAttackTests, setWithOversizeName)
 TEST(SmmVariableAttackTests, setWithSizeMaxNameSize)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
-	std::wstring var_name = L"test_variable";
 	std::string set_data = "UEFI variable data string";
 
 	/* Override the name size slightly too big such that name + data don't fit */
-	efi_status = m_client->set_variable(m_common_guid, var_name, set_data, 0,
+	efi_status = m_client->set_variable(m_common_guid, var_name_test, set_data, 0,
 					    std::numeric_limits<size_t>::max(), 0);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
@@ -127,28 +138,27 @@ TEST(SmmVariableAttackTests, setWithSizeMaxNameSize)
 TEST(SmmVariableAttackTests, setAndGetWithOversizeName)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
-	std::wstring var_name = L"test_variable";
 	std::string set_data = "UEFI variable data string";
 	std::string get_data;
 
-	efi_status = m_client->set_variable(m_common_guid, var_name, set_data, 0);
+	efi_status = m_client->set_variable(m_common_guid, var_name_test, set_data, 0);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
-	efi_status = m_client->get_variable(m_common_guid, var_name, get_data,
-					    (var_name.size() + 1) * sizeof(int16_t) + 1);
+	efi_status = m_client->get_variable(m_common_guid, var_name_test, get_data,
+					    (var_name_test.size() + 1) * sizeof(int16_t) + 1);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 
 	/* Expect remove to be permitted */
-	efi_status = m_client->remove_variable(m_common_guid, var_name);
+	efi_status = m_client->remove_variable(m_common_guid, var_name_test);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 }
 
 TEST(SmmVariableAttackTests, setAndGetWithSizeMaxNameSize)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
-	std::wstring var_name = L"test_variable";
+	const char16_t var_name[] = u"test_variable";
 	std::string set_data = "UEFI variable data string";
 	std::string get_data;
 
@@ -169,7 +179,7 @@ TEST(SmmVariableAttackTests, setAndGetWithSizeMaxNameSize)
 TEST(SmmVariableAttackTests, enumerateWithOversizeName)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
-	std::wstring var_name;
+	std::u16string var_name = null_name;
 	EFI_GUID guid;
 	memset(&guid, 0, sizeof(guid));
 
@@ -182,8 +192,7 @@ TEST(SmmVariableAttackTests, enumerateWithOversizeName)
 TEST(SmmVariableAttackTests, enumerateWithSizeMaxNameSize)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
-	std::wstring var_name_1 = L"varibale_1";
-	std::wstring var_name;
+	std::u16string var_name=null_name;
 	EFI_GUID guid;
 	memset(&guid, 0, sizeof(guid));
 
@@ -212,7 +221,6 @@ TEST(SmmVariableAttackTests, enumerateWithSizeMaxNameSize)
 TEST(SmmVariableAttackTests, setCheckPropertyWithOversizeName)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
-	std::wstring var_name = L"varibale_1";
 
 	VAR_CHECK_VARIABLE_PROPERTY check_property;
 	check_property.Revision = VAR_CHECK_VARIABLE_PROPERTY_REVISION;
@@ -221,15 +229,14 @@ TEST(SmmVariableAttackTests, setCheckPropertyWithOversizeName)
 	check_property.MinSize = 0;
 	check_property.MaxSize = 200;
 
-	efi_status = m_client->set_var_check_property(m_common_guid, var_name, check_property,
-						      (var_name.size() + 1) * sizeof(int16_t) + 1);
+	efi_status = m_client->set_var_check_property(m_common_guid, var_name_1, check_property,
+						      (var_name_1.size() + 1) * sizeof(int16_t) + 1);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 }
 
 TEST(SmmVariableAttackTests, setCheckPropertyWithMaxSizeName)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
-	std::wstring var_name = L"varibale_1";
 
 	VAR_CHECK_VARIABLE_PROPERTY check_property;
 	check_property.Revision = VAR_CHECK_VARIABLE_PROPERTY_REVISION;
@@ -238,7 +245,7 @@ TEST(SmmVariableAttackTests, setCheckPropertyWithMaxSizeName)
 	check_property.MinSize = 0;
 	check_property.MaxSize = 200;
 
-	efi_status = m_client->set_var_check_property(m_common_guid, var_name, check_property,
+	efi_status = m_client->set_var_check_property(m_common_guid, var_name_1, check_property,
 						      std::numeric_limits<size_t>::max());
 	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 }
@@ -246,23 +253,20 @@ TEST(SmmVariableAttackTests, setCheckPropertyWithMaxSizeName)
 TEST(SmmVariableAttackTests, getCheckPropertyWithOversizeName)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
-	std::wstring var_name = L"varibale_1";
-
 	VAR_CHECK_VARIABLE_PROPERTY check_property;
 
-	efi_status = m_client->get_var_check_property(m_common_guid, var_name, check_property,
-						      (var_name.size() + 1) * sizeof(int16_t) + 1);
+	efi_status = m_client->get_var_check_property(m_common_guid, var_name_1, check_property,
+						      (var_name_1.size() + 1) * sizeof(int16_t) + 1);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 }
 
 TEST(SmmVariableAttackTests, getCheckPropertyWithMaxSizeName)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
-	std::wstring var_name = L"varibale_1";
 
 	VAR_CHECK_VARIABLE_PROPERTY check_property;
 
-	efi_status = m_client->get_var_check_property(m_common_guid, var_name, check_property,
+	efi_status = m_client->get_var_check_property(m_common_guid, var_name_1, check_property,
 						      std::numeric_limits<size_t>::max());
 	UNSIGNED_LONGLONGS_EQUAL(EFI_INVALID_PARAMETER, efi_status);
 }

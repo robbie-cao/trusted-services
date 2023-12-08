@@ -41,28 +41,9 @@ TEST_GROUP(UefiVariableStoreTests)
 		mock_store_reset(&m_volatile_store);
 	}
 
-	void setup_common_guid()
+	std::u16string to_variable_name(const std::u16string &string)
 	{
-		m_common_guid.Data1 = 0x12341234;
-		m_common_guid.Data2 = 0x1234;
-		m_common_guid.Data3 = 0x1234;
-		m_common_guid.Data4[0] = 0x00;
-		m_common_guid.Data4[1] = 0x01;
-		m_common_guid.Data4[2] = 0x02;
-		m_common_guid.Data4[3] = 0x03;
-		m_common_guid.Data4[4] = 0x04;
-		m_common_guid.Data4[5] = 0x05;
-		m_common_guid.Data4[6] = 0x06;
-		m_common_guid.Data4[7] = 0x07;
-	}
-
-	std::vector<int16_t> to_variable_name(const std::wstring &string)
-	{
-		std::vector<int16_t> var_name;
-
-		for (size_t i = 0; i < string.size(); i++) {
-			var_name.push_back((int16_t)string[i]);
-		}
+		std::u16string var_name(string);
 
 		/* Add mandatory null terminator */
 		var_name.push_back(0);
@@ -70,7 +51,14 @@ TEST_GROUP(UefiVariableStoreTests)
 		return var_name;
 	}
 
-	bool compare_variable_name(const std::wstring &expected, const int16_t *name,
+	std::u16string to_variable_name(const char16_t *string)
+	{
+		std::u16string var_name(string);
+		var_name.push_back(0);
+		return var_name;
+	}
+
+	bool compare_variable_name(const std::u16string &expected, const int16_t *name,
 				   size_t name_size)
 	{
 		bool is_equal = (expected.size() + 1 <= name_size / sizeof(int16_t));
@@ -85,10 +73,10 @@ TEST_GROUP(UefiVariableStoreTests)
 		return is_equal;
 	}
 
-	efi_status_t set_variable(const std::wstring &name, const std::string &data,
+	efi_status_t set_variable(const std::u16string &name, const std::string &data,
 				  uint32_t attributes)
 	{
-		std::vector<int16_t> var_name = to_variable_name(name);
+		std::u16string var_name = to_variable_name(name);
 		size_t name_size = var_name.size() * sizeof(int16_t);
 		size_t data_size = data.size();
 		uint8_t msg_buffer[SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_SIZE(name_size,
@@ -114,11 +102,11 @@ TEST_GROUP(UefiVariableStoreTests)
 		return status;
 	}
 
-	efi_status_t get_variable(const std::wstring &name, std::string &data,
+	efi_status_t get_variable(const std::u16string &name, std::string &data,
 				  size_t data_len_clamp = VARIABLE_BUFFER_SIZE)
 	{
-		std::vector<int16_t> var_name = to_variable_name(name);
-		size_t name_size = var_name.size() * sizeof(int16_t);
+		std::u16string var_name = to_variable_name(name);
+		size_t name_size = var_name.size() * sizeof(uint16_t);
 		size_t total_size = 0;
 		uint8_t msg_buffer[VARIABLE_BUFFER_SIZE];
 
@@ -193,13 +181,12 @@ TEST_GROUP(UefiVariableStoreTests)
 		return status;
 	}
 
-	efi_status_t set_check_var_property(const std::wstring &name,
+	efi_status_t set_check_var_property(const std::u16string &name,
 					    const VAR_CHECK_VARIABLE_PROPERTY &check_property)
 	{
-		std::vector<int16_t> var_name = to_variable_name(name);
-		size_t name_size = var_name.size() * sizeof(int16_t);
-		uint8_t msg_buffer[SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_SIZE(
-			name_size)];
+		std::u16string var_name = to_variable_name(name);
+		size_t name_size = var_name.size() * sizeof(uint16_t);
+
 
 		SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *check_var =
 			(SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *)msg_buffer;
@@ -216,9 +203,9 @@ TEST_GROUP(UefiVariableStoreTests)
 		return status;
 	}
 
-	void zap_stored_variable(const std::wstring &name)
+	void zap_stored_variable(const std::u16string &name)
 	{
-		std::vector<int16_t> var_name = to_variable_name(name);
+		std::u16string var_name = to_variable_name(name);
 		size_t name_size = var_name.size() * sizeof(int16_t);
 
 		/* Create the condition where a variable is indexed but
@@ -227,7 +214,8 @@ TEST_GROUP(UefiVariableStoreTests)
 		struct variable_index *variable_index = &m_uefi_variable_store.variable_index;
 
 		const struct variable_info *info = variable_index_find(
-			variable_index, &m_common_guid, name_size, var_name.data());
+			variable_index, &m_common_guid, name_size,
+			(const int16_t *) var_name.data());
 
 		if (info && (info->metadata.attributes & EFI_VARIABLE_NON_VOLATILE)) {
 			struct storage_backend *storage_backend =
@@ -278,7 +266,7 @@ TEST_GROUP(UefiVariableStoreTests)
 TEST(UefiVariableStoreTests, setGetRoundtrip)
 {
 	efi_status_t status = EFI_SUCCESS;
-	std::wstring var_name = L"test_variable";
+	std::u16string var_name = u"test_variable";
 	std::string input_data = "quick brown fox";
 	std::string output_data;
 
@@ -325,7 +313,7 @@ TEST(UefiVariableStoreTests, setGetRoundtrip)
 TEST(UefiVariableStoreTests, persistentSetGet)
 {
 	efi_status_t status = EFI_SUCCESS;
-	std::wstring var_name = L"test_variable";
+	std::u16string var_name = u"test_variable";
 	std::string input_data = "quick brown fox";
 	std::string output_data;
 
@@ -384,7 +372,7 @@ TEST(UefiVariableStoreTests, persistentSetGet)
 TEST(UefiVariableStoreTests, getWithSmallBuffer)
 {
 	efi_status_t status = EFI_SUCCESS;
-	std::wstring var_name = L"test_variable";
+	std::u16string var_name = u"test_variable";
 	std::string input_data = "quick brown fox";
 	std::string output_data;
 
@@ -416,7 +404,7 @@ TEST(UefiVariableStoreTests, getWithSmallBuffer)
 TEST(UefiVariableStoreTests, removeVolatile)
 {
 	efi_status_t status = EFI_SUCCESS;
-	std::wstring var_name = L"rm_volatile_variable";
+	std::u16string var_name = u"rm_volatile_variable";
 	std::string input_data = "quick brown fox";
 	std::string output_data;
 
@@ -438,7 +426,7 @@ TEST(UefiVariableStoreTests, removeVolatile)
 TEST(UefiVariableStoreTests, removePersistent)
 {
 	efi_status_t status = EFI_SUCCESS;
-	std::wstring var_name = L"rm_nv_variable";
+	std::u16string var_name = u"rm_nv_variable";
 	std::string input_data = "quick brown fox";
 	std::string output_data;
 
@@ -465,7 +453,7 @@ TEST(UefiVariableStoreTests, removePersistent)
 TEST(UefiVariableStoreTests, bootServiceAccess)
 {
 	efi_status_t status = EFI_SUCCESS;
-	std::wstring var_name = L"test_variable";
+	std::u16string var_name = u"test_variable";
 	std::string input_data = "a variable with access restricted to boot";
 	std::string output_data;
 
@@ -494,13 +482,13 @@ TEST(UefiVariableStoreTests, bootServiceAccess)
 TEST(UefiVariableStoreTests, runtimeAccess)
 {
 	efi_status_t status = EFI_SUCCESS;
-	std::wstring var_name = L"test_variable";
+	std::u16string var_name = u"test_variable";
 	std::string input_data = "a variable with access restricted to runtime";
 	std::string output_data;
 
 	/*
-	 * Client is reponsible for setting bootservice access whenever runtime
-	 * access is specified. This checks the defence against invalid attributes.
+	 * Client is responsible for setting bootservice access whenever runtime
+	 * access is specified. This checks the defense against invalid attributes.
 	 */
 	status = set_variable(var_name, input_data,
 			      EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS);
@@ -531,9 +519,9 @@ TEST(UefiVariableStoreTests, runtimeAccess)
 TEST(UefiVariableStoreTests, enumerateStoreContents)
 {
 	efi_status_t status = EFI_SUCCESS;
-	std::wstring var_name_1 = L"test_variable_1";
-	std::wstring var_name_2 = L"test_variable_2";
-	std::wstring var_name_3 = L"test_variable_3";
+	std::u16string var_name_1 = u"test_variable_1";
+	std::u16string var_name_2 = u"test_variable_2";
+	std::u16string var_name_3 = u"test_variable_3";
 	std::string input_data = "blah blah";
 
 	/* Add some variables - a mixture of NV and volatile */
@@ -555,7 +543,7 @@ TEST(UefiVariableStoreTests, enumerateStoreContents)
 		VARIABLE_BUFFER_SIZE - SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET;
 
 	/* First check handling of invalid variable name */
-	std::vector<int16_t> bogus_name = to_variable_name(L"bogus_variable");
+	std::u16string bogus_name = to_variable_name(u"bogus_variable");
 	size_t bogus_name_size = bogus_name.size() * sizeof(uint16_t);
 	next_name->Guid = m_common_guid;
 	next_name->NameSize = bogus_name_size;
@@ -614,9 +602,9 @@ TEST(UefiVariableStoreTests, enumerateStoreContents)
 TEST(UefiVariableStoreTests, failedNvSet)
 {
 	efi_status_t status = EFI_SUCCESS;
-	std::wstring var_name_1 = L"test_variable_1";
-	std::wstring var_name_2 = L"test_variable_2";
-	std::wstring var_name_3 = L"test_variable_3";
+	std::u16string var_name_1 = u"test_variable_1";
+	std::u16string var_name_2 = u"test_variable_2";
+	std::u16string var_name_3 = u"test_variable_3";
 	std::string input_data = "blah blah";
 
 	/* Add some variables - a mixture of NV and volatile */
@@ -664,7 +652,7 @@ TEST(UefiVariableStoreTests, failedNvSet)
 TEST(UefiVariableStoreTests, unsupportedAttribute)
 {
 	efi_status_t status = EFI_SUCCESS;
-	std::wstring var_name_1 = L"test_variable_1";
+	std::u16string var_name_1 = u"test_variable_1";
 	std::string input_data = "blah blah";
 
 	/* Add a variable with an unsupported attribute */
@@ -676,7 +664,7 @@ TEST(UefiVariableStoreTests, unsupportedAttribute)
 TEST(UefiVariableStoreTests, readOnlycheck)
 {
 	efi_status_t status = EFI_SUCCESS;
-	std::wstring var_name_1 = L"test_variable_1";
+	std::u16string var_name_1 = u"test_variable_1";
 	std::string input_data = "blah blah";
 
 	/* Add a variable */
@@ -702,7 +690,7 @@ TEST(UefiVariableStoreTests, readOnlycheck)
 TEST(UefiVariableStoreTests, noRemoveCheck)
 {
 	efi_status_t status = EFI_SUCCESS;
-	std::wstring var_name_1 = L"test_variable_1";
+	std::u16string var_name_1 = u"test_variable_1";
 	std::string input_data = "blah blah";
 
 	/* Add a variable */
