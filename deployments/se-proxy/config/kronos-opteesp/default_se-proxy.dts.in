@@ -16,7 +16,8 @@
 	execution-state = <0>; /* AArch64 */
 	xlat-granule = <0>; /* 4KiB */
 	messaging-method = <3>; /* Direct messaging only */
-	legacy-elf-format = <1>;
+	ns-interrupts-action = <2>; /* Non-secure interrupts are signaled */
+	elf-format = <1>;
 
 	device-regions {
 		compatible = "arm,ffa-manifest-device-regions";
