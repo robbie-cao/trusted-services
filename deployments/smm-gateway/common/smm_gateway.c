@@ -18,7 +18,7 @@
 #define SMM_GATEWAY_NV_STORE_SN		"sn:ffa:751bf801-3dde-4768-a514-0f10aeed1790:0"
 #endif
 
-#if defined(UEFI_AUTH_VAR)
+#if defined(UEFI_AUTH_VAR) && !defined(UEFI_INTERNAL_CRYPTO)
 /* Default to using the Crypto SP */
 #ifndef SMM_GATEWAY_CRYPTO_SN
 #define SMM_GATEWAY_CRYPTO_SN "sn:ffa:d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0:0"
@@ -38,14 +38,14 @@ static struct smm_gateway
 	struct mock_store volatile_store;
 	struct service_context *nv_storage_service_context;
 	struct rpc_caller_session *nv_storage_session;
-#if defined(UEFI_AUTH_VAR)
+#if defined(UEFI_AUTH_VAR) && !defined(UEFI_INTERNAL_CRYPTO)
 	struct service_context *crypto_service_context;
 	struct rpc_caller_session *crypto_session;
 #endif
 
 } smm_gateway_instance;
 
-#if defined(UEFI_AUTH_VAR)
+#if defined(UEFI_AUTH_VAR) && !defined(UEFI_INTERNAL_CRYPTO)
 bool create_crypto_binding(void)
 {
  	psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;

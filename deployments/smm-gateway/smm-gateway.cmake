@@ -5,6 +5,40 @@
 #
 #-------------------------------------------------------------------------------
 
+option(UEFI_INTERNAL_CRYPTO "Use internal mbedtls instance" OFF)
+
+if (UEFI_AUTH_VAR)
+
+# If enabled an internal mbedtls instance will be used instead of the crypto SP
+if (UEFI_INTERNAL_CRYPTO)
+set(MBEDTLS_USER_CONFIG_FILE "${TS_ROOT}/external/MbedTLS/config/x509_only.h"
+	CACHE STRING "Configuration file for Mbed TLS" FORCE)
+include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
+target_link_libraries(smm-gateway PRIVATE MbedTLS::mbedcrypto)
+target_link_libraries(smm-gateway PRIVATE MbedTLS::mbedx509)
+
+target_compile_definitions(smm-gateway PRIVATE
+	-DUEFI_INTERNAL_CRYPTO
+)
+
+add_components(TARGET "smm-gateway"
+	BASE_DIR ${TS_ROOT}
+	COMPONENTS
+		"components/service/uefi/smm_variable/backend/direct"
+)
+
+else()
+add_components(TARGET "smm-gateway"
+	BASE_DIR ${TS_ROOT}
+	COMPONENTS
+		"components/common/tlv"
+		"components/service/crypto/include"
+		"components/service/crypto/client/psa"
+)
+endif()
+
+endif()
+
 add_components(TARGET "smm-gateway"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
@@ -20,16 +54,6 @@ add_components(TARGET "smm-gateway"
 		"components/service/secure_storage/backend/mock_store"
 		"protocols/rpc/common/packed-c"
 )
-
-if (UEFI_AUTH_VAR)
-add_components(TARGET "smm-gateway"
-	BASE_DIR ${TS_ROOT}
-	COMPONENTS
-		"components/common/tlv"
-		"components/service/crypto/include"
-		"components/service/crypto/client/psa"
-)
-endif()
 
 target_include_directories(smm-gateway PRIVATE
 	${TS_ROOT}
