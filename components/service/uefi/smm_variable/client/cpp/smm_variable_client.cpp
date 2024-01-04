@@ -9,6 +9,11 @@
 #include <cstring>
 #include <protocols/rpc/common/packed-c/status.h>
 
+static size_t string_get_size_in_bytes(const std::u16string &string)
+{
+	return string.size() * sizeof(typename std::u16string::value_type);
+}
+
 smm_variable_client::smm_variable_client()
 	: session(NULL)
 	, m_err_rpc_status(RPC_SUCCESS)
@@ -77,7 +82,7 @@ efi_status_t smm_variable_client::set_variable(const EFI_GUID &guid, const std::
 					       size_t override_name_size, size_t override_data_size)
 {
 	efi_status_t efi_status = EFI_NOT_READY;
-	size_t name_size = name.size() * sizeof(char16_t);
+	size_t name_size = string_get_size_in_bytes(name);
 	size_t data_size = data.size();
 	size_t req_len = SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_SIZE(name_size, data_size);
 
@@ -150,7 +155,7 @@ efi_status_t smm_variable_client::get_variable(const EFI_GUID &guid, const std::
 {
 	efi_status_t efi_status = EFI_NOT_READY;
 
-	size_t name_size = name.size() * sizeof(char16_t);
+	size_t name_size = string_get_size_in_bytes(name);
 	size_t req_len = SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_SIZE(name_size, 0);
 	size_t resp_len = SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_SIZE(name_size, 0);
 
@@ -294,7 +299,7 @@ efi_status_t smm_variable_client::get_next_variable_name(EFI_GUID &guid, std::u1
 {
 	efi_status_t efi_status = EFI_NOT_READY;
 
-	size_t name_size = name.size() * sizeof(char16_t);
+	size_t name_size = string_get_size_in_bytes(name);
 	size_t req_len = SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_SIZE(name_size);
 	size_t resp_len = SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME_SIZE(name_size);
 
@@ -416,7 +421,7 @@ smm_variable_client::set_var_check_property(const EFI_GUID &guid, const std::u16
 {
 	efi_status_t efi_status = EFI_NOT_READY;
 
-	size_t name_size = name.size() * sizeof(char16_t);
+	size_t name_size = string_get_size_in_bytes(name);
 	size_t req_len = SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_SIZE(name_size);
 	size_t resp_len = SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_SIZE(name_size);
 
@@ -487,7 +492,7 @@ smm_variable_client::get_var_check_property(const EFI_GUID &guid, const std::u16
 {
 	efi_status_t efi_status = EFI_NOT_READY;
 
-	size_t name_size = name.size() * sizeof(char16_t);
+	size_t name_size = string_get_size_in_bytes(name);
 	size_t req_len = SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_SIZE(name_size);
 	size_t resp_len = SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_SIZE(name_size);
 
