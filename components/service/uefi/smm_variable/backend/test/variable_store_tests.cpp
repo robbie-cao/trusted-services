@@ -56,32 +56,34 @@ TEST_GROUP(UefiVariableStoreTests)
 		return var_name;
 	}
 
+	size_t string_get_size_in_bytes(const std::u16string &string)
+	{
+		return string.size() * sizeof(uint16_t);
+	}
+
 	bool compare_variable_name(const std::u16string &expected, const int16_t *name,
 				   size_t name_size)
 	{
-		bool is_equal = (expected.size() + 1 <= name_size / sizeof(int16_t));
+		std::u16string var_name = to_variable_name(expected);
 
-		for (size_t i = 0; is_equal && i < expected.size(); i++) {
-			if (name[i] != (int16_t)expected[i]) {
-				is_equal = false;
-				break;
-			}
-		}
+		if (name_size != string_get_size_in_bytes(var_name))
+			return false;
 
-		return is_equal;
+		return 0==memcmp(name, var_name.data(), name_size);
 	}
 
 	efi_status_t set_variable(const std::u16string &name, const uint8_t *data, size_t data_size,
 				  uint32_t attributes, EFI_GUID *guid = NULL)
 	{
 		std::u16string var_name = to_variable_name(name);
-		size_t name_size = var_name.size() * sizeof(int16_t);
+		size_t name_size = string_get_size_in_bytes(var_name);
 
-		uint8_t msg_buffer[SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_SIZE(name_size,
-										 data_size)];
+		/* Use a vector as a temporary buffer to move allocation to the HEAP and for RAII benefits. */
+		std::vector<uint8_t> msg_buffer(
+			(std::size_t)SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_SIZE(name_size, data_size));
 
 		SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *access_variable =
-			(SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *)msg_buffer;
+			(SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE  *) msg_buffer.data();
 
 		if (!guid)
 			guid = &m_common_guid;
@@ -92,9 +94,9 @@ TEST_GROUP(UefiVariableStoreTests)
 		memcpy(access_variable->Name, var_name.data(), name_size);
 
 		access_variable->DataSize = data_size;
-		memcpy(&msg_buffer[SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(
-			       access_variable)],
-		       data, data_size);
+		memcpy(msg_buffer.data() +
+			SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(access_variable),
+			data, data_size);
 
 		efi_status_t status =
 			uefi_variable_store_set_variable(&m_uefi_variable_store, access_variable);
@@ -105,7 +107,7 @@ TEST_GROUP(UefiVariableStoreTests)
 	efi_status_t set_variable(const std::u16string &name, const std::string &data,
 				  uint32_t attributes, EFI_GUID *guid = NULL)
 	{
-		return set_variable(name, static_cast<uint8_t *>(data.data()), data.size(),
+		return set_variable(name, (uint8_t *) data.data(), data.size(),
 					attributes, guid);
 	}
 
@@ -113,12 +115,13 @@ TEST_GROUP(UefiVariableStoreTests)
 				  size_t data_len_clamp = VARIABLE_BUFFER_SIZE)
 	{
 		std::u16string var_name = to_variable_name(name);
-		size_t name_size = var_name.size() * sizeof(uint16_t);
+		size_t name_size = string_get_size_in_bytes(var_name);
+
 		size_t total_size = 0;
-		uint8_t msg_buffer[VARIABLE_BUFFER_SIZE];
+		std::vector<uint8_t> msg_buffer(VARIABLE_BUFFER_SIZE);
 
 		SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *access_variable =
-			(SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *)msg_buffer;
+			(SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE  *) msg_buffer.data();
 
 		access_variable->Guid = m_common_guid;
 		access_variable->Attributes = 0;
@@ -142,7 +145,7 @@ TEST_GROUP(UefiVariableStoreTests)
 
 		if (status == EFI_SUCCESS) {
 			const char *data_start =
-				(const char *)(msg_buffer +
+				(const char *) (msg_buffer.data() +
 					       SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(
 						       access_variable));
 
@@ -192,11 +195,13 @@ TEST_GROUP(UefiVariableStoreTests)
 					    const VAR_CHECK_VARIABLE_PROPERTY &check_property)
 	{
 		std::u16string var_name = to_variable_name(name);
-		size_t name_size = var_name.size() * sizeof(uint16_t);
+		size_t name_size = string_get_size_in_bytes(var_name);
 
+		std::vector<uint8_t> msg_buffer(
+			SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY_SIZE(name_size));
 
 		SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *check_var =
-			(SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *)msg_buffer;
+			(SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *) msg_buffer.data();
 
 		check_var->Guid = m_common_guid;
 		check_var->NameSize = name_size;
@@ -213,7 +218,7 @@ TEST_GROUP(UefiVariableStoreTests)
 	void zap_stored_variable(const std::u16string &name)
 	{
 		std::u16string var_name = to_variable_name(name);
-		size_t name_size = var_name.size() * sizeof(int16_t);
+		size_t name_size = string_get_size_in_bytes(var_name);
 
 		/* Create the condition where a variable is indexed but
 		 * there is no corresponding stored object.
@@ -493,9 +498,9 @@ TEST(UefiVariableStoreTests, bootServiceAccess)
 	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 
 	/* Expect access to be blocked for get_next_variable_name */
-	uint8_t msg_buffer[VARIABLE_BUFFER_SIZE];
+	std::vector<uint8_t> msg_buffer(VARIABLE_BUFFER_SIZE);
 	SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *next_name =
-		(SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *)msg_buffer;
+		(SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *) msg_buffer.data();
 	size_t max_name_len =
 		VARIABLE_BUFFER_SIZE - SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET;
 
@@ -566,15 +571,15 @@ TEST(UefiVariableStoreTests, enumerateStoreContents)
 
 	/* Prepare to enumerate */
 	size_t total_len = 0;
-	uint8_t msg_buffer[VARIABLE_BUFFER_SIZE];
+	std::vector<uint8_t> msg_buffer(VARIABLE_BUFFER_SIZE);
 	SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *next_name =
-		(SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *)msg_buffer;
+		(SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *) msg_buffer.data();
 	size_t max_name_len =
 		VARIABLE_BUFFER_SIZE - SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET;
 
 	/* First check handling of invalid variable name */
 	std::u16string bogus_name = to_variable_name(u"bogus_variable");
-	size_t bogus_name_size = bogus_name.size() * sizeof(uint16_t);
+	size_t bogus_name_size = string_get_size_in_bytes(bogus_name);
 	next_name->Guid = m_common_guid;
 	next_name->NameSize = bogus_name_size;
 	memcpy(next_name->Name, bogus_name.data(), bogus_name_size);
@@ -658,9 +663,9 @@ TEST(UefiVariableStoreTests, failedNvSet)
 	 * to have gone and for the index to have been cleaned up
 	 * for the failed variable 3.
 	 */
-	uint8_t msg_buffer[VARIABLE_BUFFER_SIZE];
+	std::vector<uint8_t> msg_buffer(VARIABLE_BUFFER_SIZE);
 	SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *next_name =
-		(SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *)msg_buffer;
+		(SMM_VARIABLE_COMMUNICATE_GET_NEXT_VARIABLE_NAME *) msg_buffer.data();
 	size_t max_name_len =
 		VARIABLE_BUFFER_SIZE - SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_NAME_OFFSET;
 
