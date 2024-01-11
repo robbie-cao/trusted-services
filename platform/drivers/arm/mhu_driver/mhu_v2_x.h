@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Arm Limited
+ * Copyright (c) 2020-2022 Arm Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ enum mhu_v2_x_supported_revisions {
 };
 
 struct mhu_v2_x_dev_t {
-    uintptr_t base;
+    const uintptr_t base;
     enum mhu_v2_x_frame_t frame;
     uint32_t subversion;    /*!< Hardware subversion: v2.X */
     bool is_initialized;    /*!< Indicates if the MHU driver
@@ -92,8 +92,6 @@ enum mhu_v2_x_error_t mhu_v2_x_driver_init(struct mhu_v2_x_dev_t *dev,
  *
  * \param[in] dev         MHU device struct \ref mhu_v2_x_dev_t
  *
- * Returns the number of channels implemented.
- *
  * \return Returns the number of channels implemented.
  *
  * \note This function doesn't check if dev is NULL.
@@ -117,6 +115,23 @@ uint32_t mhu_v2_x_get_num_channel_implemented(
  */
 enum mhu_v2_x_error_t mhu_v2_x_channel_send(const struct mhu_v2_x_dev_t *dev,
      uint32_t channel, uint32_t val);
+
+/**
+ * \brief Polls sender channel status.
+ *
+ * \param[in]  dev         MHU device struct \ref mhu_v2_x_dev_t
+ * \param[in]  channel     Channel to poll the status of.
+ * \param[out] value       Pointer to variable that will store the value.
+ *
+ * Polls sender channel status.
+ *
+ * \return Returns mhu_v2_x_error_t error code
+ *
+ * \note This function doesn't check if dev is NULL.
+ * \note This function doesn't check if channel is implemented.
+ */
+enum mhu_v2_x_error_t mhu_v2_x_channel_poll(const struct mhu_v2_x_dev_t *dev,
+     uint32_t channel, uint32_t *value);
 
 /**
  * \brief Clears the channel after the value is send over it.
@@ -218,12 +233,12 @@ enum mhu_v2_x_error_t mhu_v2_x_channel_interrupt_disable(
      const struct mhu_v2_x_dev_t *dev, uint32_t channel);
 
 /**
- * \brief Cleares the Channel interrupt.
+ * \brief Clears the Channel interrupt.
  *
  * \param[in] dev         MHU device struct \ref mhu_v2_x_dev_t
  * \param[in] channel     Which channel's interrupt to clear.
  *
- * Cleares the Channel interrupt.
+ * Clears the Channel interrupt.
  *
  * \return Returns mhu_v2_x_error_t error code
  *
