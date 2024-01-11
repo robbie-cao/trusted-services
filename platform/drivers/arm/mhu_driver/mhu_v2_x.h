@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022 Arm Limited
+ * Copyright (c) 2020-2024 Arm Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ enum mhu_v2_x_supported_revisions {
 };
 
 struct mhu_v2_x_dev_t {
-    const uintptr_t base;
+    uintptr_t base;
     enum mhu_v2_x_frame_t frame;
     uint32_t subversion;    /*!< Hardware subversion: v2.X */
     bool is_initialized;    /*!< Indicates if the MHU driver
