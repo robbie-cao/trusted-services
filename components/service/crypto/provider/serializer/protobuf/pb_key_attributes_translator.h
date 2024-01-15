@@ -8,7 +8,7 @@
 #define PB_CRYPTO_PROVIDER_KEY_ATTRIBUTES_TRANSLATOR_H
 
 #include <service/crypto/protobuf/key_attributes.pb.h>
-#include <psa/crypto.h>
+#include <service/crypto/backend/crypto_backend.h>
 
 void pb_crypto_provider_translate_key_attributes(
     psa_key_attributes_t *psa_attributes,

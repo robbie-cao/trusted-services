@@ -8,7 +8,8 @@
 #include <protocols/service/crypto/packed-c/opcodes.h>
 #include <service/crypto/provider/extension/mac/mac_provider.h>
 #include <protocols/rpc/common/packed-c/status.h>
-#include <psa/crypto.h>
+#include <service/crypto/backend/crypto_backend.h>
+#include <service/crypto/provider/crypto_partition.h>
 
 /* Service request handlers */
 static rpc_status_t mac_setup_handler(void *context, struct rpc_request *req);
@@ -84,13 +85,15 @@ static rpc_status_t mac_setup_handler(void *context, struct rpc_request *req)
 				&op_handle);
 
 		if (crypto_context) {
+			namespaced_key_id_t ns_key_id =
+				crypto_partition_get_namespaced_key_id(req->source_id, key_id);
 
 			crypto_context->op.mac = psa_mac_operation_init();
 
 			psa_status_t psa_status =
 				(req->opcode == TS_CRYPTO_OPCODE_MAC_SIGN_SETUP) ?
-					psa_mac_sign_setup(&crypto_context->op.mac, key_id, alg) :
-					psa_mac_verify_setup(&crypto_context->op.mac, key_id, alg);
+				psa_mac_sign_setup(&crypto_context->op.mac, ns_key_id, alg) :
+				psa_mac_verify_setup(&crypto_context->op.mac, ns_key_id, alg);
 
 			if (psa_status == PSA_SUCCESS) {
 

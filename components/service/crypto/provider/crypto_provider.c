@@ -8,11 +8,12 @@
 #include <mbedtls/x509_crt.h>
 #include <protocols/rpc/common/packed-c/status.h>
 #include <protocols/service/crypto/packed-c/opcodes.h>
-#include <psa/crypto.h>
+#include <service/crypto/backend/crypto_backend.h>
 #include <service/crypto/provider/crypto_provider.h>
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "crypto_partition.h"
 #include "crypto_uuid.h"
 
 /* Service request handlers */
@@ -109,13 +110,16 @@ static rpc_status_t generate_key_handler(void *context, struct rpc_request *req)
 
 	if (rpc_status == RPC_SUCCESS) {
 		psa_status_t psa_status;
-		psa_key_id_t id;
+		namespaced_key_id_t ns_key_id = NAMESPACED_KEY_ID_INIT;
 
-		psa_status = psa_generate_key(&attributes, &id);
+		crypto_partition_bind_to_owner(&attributes, req->source_id);
+
+		psa_status = psa_generate_key(&attributes, &ns_key_id);
 
 		if (psa_status == PSA_SUCCESS) {
+			psa_key_id_t key_id = namespaced_key_id_get_key_id(ns_key_id);
 			struct rpc_buffer *resp_buf = &req->response;
-			rpc_status = serializer->serialize_generate_key_resp(resp_buf, id);
+			rpc_status = serializer->serialize_generate_key_resp(resp_buf, key_id);
 		}
 
 		req->service_status = psa_status;
@@ -132,15 +136,17 @@ static rpc_status_t destroy_key_handler(void *context, struct rpc_request *req)
 	struct rpc_buffer *req_buf = &req->request;
 	const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
 
-	psa_key_id_t id;
+	psa_key_id_t key_id = PSA_KEY_ID_NULL;
 
 	if (serializer)
-		rpc_status = serializer->deserialize_destroy_key_req(req_buf, &id);
+		rpc_status = serializer->deserialize_destroy_key_req(req_buf, &key_id);
 
 	if (rpc_status == RPC_SUCCESS) {
 		psa_status_t psa_status;
+		namespaced_key_id_t ns_key_id =
+			crypto_partition_get_namespaced_key_id(req->source_id, key_id);
 
-		psa_status = psa_destroy_key(id);
+		psa_status = psa_destroy_key(ns_key_id);
 		req->service_status = psa_status;
 	}
 
@@ -153,19 +159,21 @@ static rpc_status_t export_key_handler(void *context, struct rpc_request *req)
 	struct rpc_buffer *req_buf = &req->request;
 	const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
 
-	psa_key_id_t id;
+	psa_key_id_t key_id = PSA_KEY_ID_NULL;
 
 	if (serializer)
-		rpc_status = serializer->deserialize_export_key_req(req_buf, &id);
+		rpc_status = serializer->deserialize_export_key_req(req_buf, &key_id);
 
 	if (rpc_status == RPC_SUCCESS) {
+		namespaced_key_id_t ns_key_id =
+			crypto_partition_get_namespaced_key_id(req->source_id, key_id);
 		size_t max_export_size = PSA_EXPORT_KEY_PAIR_MAX_SIZE;
 		uint8_t *key_buffer = malloc(max_export_size);
 
 		if (key_buffer) {
 			size_t export_size;
 			psa_status_t psa_status =
-				psa_export_key(id, key_buffer, max_export_size, &export_size);
+				psa_export_key(ns_key_id, key_buffer, max_export_size, &export_size);
 
 			if (psa_status == PSA_SUCCESS) {
 				struct rpc_buffer *resp_buf = &req->response;
@@ -191,19 +199,21 @@ static rpc_status_t export_public_key_handler(void *context, struct rpc_request 
 	struct rpc_buffer *req_buf = &req->request;
 	const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
 
-	psa_key_id_t id;
+	psa_key_id_t key_id = PSA_KEY_ID_NULL;
 
 	if (serializer)
-		rpc_status = serializer->deserialize_export_public_key_req(req_buf, &id);
+		rpc_status = serializer->deserialize_export_public_key_req(req_buf, &key_id);
 
 	if (rpc_status == RPC_SUCCESS) {
+		namespaced_key_id_t ns_key_id =
+			crypto_partition_get_namespaced_key_id(req->source_id, key_id);
 		size_t max_export_size = PSA_EXPORT_PUBLIC_KEY_MAX_SIZE;
 		uint8_t *key_buffer = malloc(max_export_size);
 
 		if (key_buffer) {
 			size_t export_size;
 			psa_status_t psa_status = psa_export_public_key(
-				id, key_buffer, max_export_size, &export_size);
+				ns_key_id, key_buffer, max_export_size, &export_size);
 
 			if (psa_status == PSA_SUCCESS) {
 				struct rpc_buffer *resp_buf = &req->response;
@@ -240,16 +250,20 @@ static rpc_status_t import_key_handler(void *context, struct rpc_request *req)
 
 			if (rpc_status == RPC_SUCCESS) {
 				psa_status_t psa_status;
-				psa_key_id_t id;
+				namespaced_key_id_t ns_key_id = NAMESPACED_KEY_ID_INIT;
+
+				crypto_partition_bind_to_owner(&attributes, req->source_id);
 
 				psa_status =
-					psa_import_key(&attributes, key_buffer, key_data_len, &id);
+					psa_import_key(&attributes, key_buffer, key_data_len, &ns_key_id);
 
 				if (psa_status == PSA_SUCCESS) {
+					psa_key_id_t key_id =
+						namespaced_key_id_get_key_id(ns_key_id);
 					struct rpc_buffer *resp_buf = &req->response;
 
 					rpc_status =
-						serializer->serialize_import_key_resp(resp_buf, id);
+						serializer->serialize_import_key_resp(resp_buf, key_id);
 				}
 
 				req->service_status = psa_status;
@@ -271,25 +285,25 @@ static rpc_status_t asymmetric_sign_handler(void *context, struct rpc_request *r
 	struct rpc_buffer *req_buf = &req->request;
 	const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
 
-	psa_key_id_t id;
+	psa_key_id_t key_id = PSA_KEY_ID_NULL;
 	psa_algorithm_t alg;
 	size_t hash_len = PSA_HASH_MAX_SIZE;
 	uint8_t hash_buffer[PSA_HASH_MAX_SIZE];
 
 	if (serializer)
-		rpc_status = serializer->deserialize_asymmetric_sign_req(req_buf, &id, &alg,
+		rpc_status = serializer->deserialize_asymmetric_sign_req(req_buf, &key_id, &alg,
 									 hash_buffer, &hash_len);
 
 	if (rpc_status == RPC_SUCCESS) {
+		namespaced_key_id_t ns_key_id =
+			crypto_partition_get_namespaced_key_id(req->source_id, key_id);
 		psa_status_t psa_status;
 		size_t sig_len;
 		uint8_t sig_buffer[PSA_SIGNATURE_MAX_SIZE];
 
 		psa_status = (req->opcode == TS_CRYPTO_OPCODE_SIGN_HASH) ?
-				     psa_sign_hash(id, alg, hash_buffer, hash_len, sig_buffer,
-						   sizeof(sig_buffer), &sig_len) :
-				     psa_sign_message(id, alg, hash_buffer, hash_len, sig_buffer,
-						      sizeof(sig_buffer), &sig_len);
+			psa_sign_hash(ns_key_id, alg, hash_buffer, hash_len, sig_buffer, sizeof(sig_buffer), &sig_len) :
+			psa_sign_message(ns_key_id, alg, hash_buffer, hash_len, sig_buffer, sizeof(sig_buffer), &sig_len);
 
 		if (psa_status == PSA_SUCCESS) {
 			struct rpc_buffer *resp_buf = &req->response;
@@ -310,7 +324,7 @@ static rpc_status_t asymmetric_verify_handler(void *context, struct rpc_request 
 	struct rpc_buffer *req_buf = &req->request;
 	const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
 
-	psa_key_id_t id;
+	psa_key_id_t key_id = PSA_KEY_ID_NULL;
 	psa_algorithm_t alg;
 	size_t hash_len = PSA_HASH_MAX_SIZE;
 	uint8_t hash_buffer[PSA_HASH_MAX_SIZE];
@@ -319,16 +333,16 @@ static rpc_status_t asymmetric_verify_handler(void *context, struct rpc_request 
 
 	if (serializer)
 		rpc_status = serializer->deserialize_asymmetric_verify_req(
-			req_buf, &id, &alg, hash_buffer, &hash_len, sig_buffer, &sig_len);
+			req_buf, &key_id, &alg, hash_buffer, &hash_len, sig_buffer, &sig_len);
 
 	if (rpc_status == RPC_SUCCESS) {
 		psa_status_t psa_status;
+		namespaced_key_id_t ns_key_id =
+			crypto_partition_get_namespaced_key_id(req->source_id, key_id);
 
 		psa_status = (req->opcode == TS_CRYPTO_OPCODE_VERIFY_HASH) ?
-				     psa_verify_hash(id, alg, hash_buffer, hash_len, sig_buffer,
-						     sig_len) :
-				     psa_verify_message(id, alg, hash_buffer, hash_len, sig_buffer,
-							sig_len);
+			psa_verify_hash(ns_key_id, alg, hash_buffer, hash_len, sig_buffer, sig_len) :
+			psa_verify_message(ns_key_id, alg, hash_buffer, hash_len, sig_buffer, sig_len);
 
 		req->service_status = psa_status;
 	}
@@ -345,7 +359,7 @@ static rpc_status_t asymmetric_decrypt_handler(void *context, struct rpc_request
 	if (serializer) {
 		size_t max_param_size = serializer->max_deserialised_parameter_size(req_buf);
 
-		psa_key_id_t id;
+		psa_key_id_t key_id = PSA_KEY_ID_NULL;
 		psa_algorithm_t alg;
 		size_t ciphertext_len = max_param_size;
 		uint8_t *ciphertext_buffer = malloc(ciphertext_len);
@@ -354,14 +368,16 @@ static rpc_status_t asymmetric_decrypt_handler(void *context, struct rpc_request
 
 		if (ciphertext_buffer && salt_buffer) {
 			rpc_status = serializer->deserialize_asymmetric_decrypt_req(
-				req_buf, &id, &alg, ciphertext_buffer, &ciphertext_len, salt_buffer,
+				req_buf, &key_id, &alg, ciphertext_buffer, &ciphertext_len, salt_buffer,
 				&salt_len);
 
 			if (rpc_status == RPC_SUCCESS) {
 				psa_status_t psa_status;
 				psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+				namespaced_key_id_t ns_key_id =
+					crypto_partition_get_namespaced_key_id(req->source_id, key_id);
 
-				psa_status = psa_get_key_attributes(id, &attributes);
+				psa_status = psa_get_key_attributes(ns_key_id, &attributes);
 
 				if (psa_status == PSA_SUCCESS) {
 					size_t max_decrypt_size =
@@ -377,7 +393,7 @@ static rpc_status_t asymmetric_decrypt_handler(void *context, struct rpc_request
 						uint8_t *salt = (salt_len) ? salt_buffer : NULL;
 
 						psa_status = psa_asymmetric_decrypt(
-							id, alg, ciphertext_buffer, ciphertext_len,
+							ns_key_id, alg, ciphertext_buffer, ciphertext_len,
 							salt, salt_len, plaintext_buffer,
 							max_decrypt_size, &plaintext_len);
 
@@ -419,7 +435,7 @@ static rpc_status_t asymmetric_encrypt_handler(void *context, struct rpc_request
 	if (serializer) {
 		size_t max_param_size = serializer->max_deserialised_parameter_size(req_buf);
 
-		psa_key_id_t id;
+		psa_key_id_t key_id = PSA_KEY_ID_NULL;
 		psa_algorithm_t alg;
 		size_t plaintext_len = max_param_size;
 		uint8_t *plaintext_buffer = malloc(plaintext_len);
@@ -428,14 +444,16 @@ static rpc_status_t asymmetric_encrypt_handler(void *context, struct rpc_request
 
 		if (plaintext_buffer && salt_buffer) {
 			rpc_status = serializer->deserialize_asymmetric_encrypt_req(
-				req_buf, &id, &alg, plaintext_buffer, &plaintext_len, salt_buffer,
+				req_buf, &key_id, &alg, plaintext_buffer, &plaintext_len, salt_buffer,
 				&salt_len);
 
 			if (rpc_status == RPC_SUCCESS) {
 				psa_status_t psa_status;
 				psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+				namespaced_key_id_t ns_key_id =
+					crypto_partition_get_namespaced_key_id(req->source_id, key_id);
 
-				psa_status = psa_get_key_attributes(id, &attributes);
+				psa_status = psa_get_key_attributes(ns_key_id, &attributes);
 
 				if (psa_status == PSA_SUCCESS) {
 					size_t max_encrypt_size =
@@ -451,7 +469,7 @@ static rpc_status_t asymmetric_encrypt_handler(void *context, struct rpc_request
 						uint8_t *salt = (salt_len) ? salt_buffer : NULL;
 
 						psa_status = psa_asymmetric_encrypt(
-							id, alg, plaintext_buffer, plaintext_len,
+							ns_key_id, alg, plaintext_buffer, plaintext_len,
 							salt, salt_len, ciphertext_buffer,
 							max_encrypt_size, &ciphertext_len);
 
@@ -528,18 +546,23 @@ static rpc_status_t copy_key_handler(void *context, struct rpc_request *req)
 	const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
 
 	psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-	psa_key_id_t source_key_id;
+	psa_key_id_t source_key_id = PSA_KEY_ID_NULL;
 
 	if (serializer)
 		rpc_status =
 			serializer->deserialize_copy_key_req(req_buf, &attributes, &source_key_id);
 
 	if (rpc_status == RPC_SUCCESS) {
-		psa_key_id_t target_key_id;
+		namespaced_key_id_t target_ns_key_id = NAMESPACED_KEY_ID_INIT;
+		namespaced_key_id_t source_ns_key_id =
+			crypto_partition_get_namespaced_key_id(req->source_id, source_key_id);
 
-		psa_status_t psa_status = psa_copy_key(source_key_id, &attributes, &target_key_id);
+		crypto_partition_bind_to_owner(&attributes, req->source_id);
+
+		psa_status_t psa_status = psa_copy_key(source_ns_key_id, &attributes, &target_ns_key_id);
 
 		if (psa_status == PSA_SUCCESS) {
+			psa_key_id_t target_key_id = namespaced_key_id_get_key_id(target_ns_key_id);
 			struct rpc_buffer *resp_buf = &req->response;
 			rpc_status = serializer->serialize_copy_key_resp(resp_buf, target_key_id);
 		}
@@ -558,13 +581,15 @@ static rpc_status_t purge_key_handler(void *context, struct rpc_request *req)
 	struct rpc_buffer *req_buf = &req->request;
 	const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
 
-	psa_key_id_t id;
+	psa_key_id_t key_id = PSA_KEY_ID_NULL;
 
 	if (serializer)
-		rpc_status = serializer->deserialize_purge_key_req(req_buf, &id);
+		rpc_status = serializer->deserialize_purge_key_req(req_buf, &key_id);
 
 	if (rpc_status == RPC_SUCCESS) {
-		psa_status_t psa_status = psa_purge_key(id);
+		namespaced_key_id_t ns_key_id =
+			crypto_partition_get_namespaced_key_id(req->source_id, key_id);
+		psa_status_t psa_status = psa_purge_key(ns_key_id);
 		req->service_status = psa_status;
 	}
 
@@ -577,15 +602,17 @@ static rpc_status_t get_key_attributes_handler(void *context, struct rpc_request
 	struct rpc_buffer *req_buf = &req->request;
 	const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
 
-	psa_key_id_t id;
+	psa_key_id_t key_id = PSA_KEY_ID_NULL;
 
 	if (serializer)
-		rpc_status = serializer->deserialize_get_key_attributes_req(req_buf, &id);
+		rpc_status = serializer->deserialize_get_key_attributes_req(req_buf, &key_id);
 
 	if (rpc_status == RPC_SUCCESS) {
 		psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+		namespaced_key_id_t ns_key_id =
+			crypto_partition_get_namespaced_key_id(req->source_id, key_id);
 
-		psa_status_t psa_status = psa_get_key_attributes(id, &attributes);
+		psa_status_t psa_status = psa_get_key_attributes(ns_key_id, &attributes);
 
 		if (psa_status == PSA_SUCCESS) {
 			struct rpc_buffer *resp_buf = &req->response;

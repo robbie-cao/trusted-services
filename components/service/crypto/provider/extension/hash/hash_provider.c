@@ -8,7 +8,7 @@
 #include <protocols/service/crypto/packed-c/opcodes.h>
 #include <service/crypto/provider/extension/hash/hash_provider.h>
 #include <protocols/rpc/common/packed-c/status.h>
-#include <psa/crypto.h>
+#include <service/crypto/backend/crypto_backend.h>
 
 /* Service request handlers */
 static rpc_status_t hash_setup_handler(void *context, struct rpc_request *req);

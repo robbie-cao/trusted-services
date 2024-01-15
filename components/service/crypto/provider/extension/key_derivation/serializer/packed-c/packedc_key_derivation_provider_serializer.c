@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <common/tlv/tlv.h>
-#include <psa/crypto.h>
+#include <service/crypto/backend/crypto_backend.h>
 #include <protocols/service/crypto/packed-c/key_derivation.h>
 #include <service/crypto/provider/serializer/packed-c/packedc_key_attributes_translator.h>
 #include "packedc_key_derivation_provider_serializer.h"

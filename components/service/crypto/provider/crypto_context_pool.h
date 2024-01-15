@@ -8,7 +8,7 @@
 #define CRYPTO_CONTEXT_POOL_H
 
 #include <stdint.h>
-#include <psa/crypto.h>
+#include <service/crypto/backend/crypto_backend.h>
 
 /**
  * Some crypto transactions require state to be held between separate

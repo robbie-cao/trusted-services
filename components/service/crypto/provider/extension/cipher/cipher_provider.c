@@ -8,7 +8,8 @@
 #include <protocols/service/crypto/packed-c/opcodes.h>
 #include <service/crypto/provider/extension/cipher/cipher_provider.h>
 #include <protocols/rpc/common/packed-c/status.h>
-#include <psa/crypto.h>
+#include <service/crypto/backend/crypto_backend.h>
+#include <service/crypto/provider/crypto_partition.h>
 
 /* Service request handlers */
 static rpc_status_t cipher_setup_handler(void *context, struct rpc_request *req);
@@ -88,12 +89,14 @@ static rpc_status_t cipher_setup_handler(void *context, struct rpc_request *req)
 		if (crypto_context) {
 
 			psa_status_t psa_status;
+			namespaced_key_id_t ns_key_id =
+				crypto_partition_get_namespaced_key_id(req->source_id, key_id);
 
 			crypto_context->op.cipher = psa_cipher_operation_init();
 
 			psa_status = (req->opcode == TS_CRYPTO_OPCODE_CIPHER_ENCRYPT_SETUP) ?
-				psa_cipher_encrypt_setup(&crypto_context->op.cipher, key_id, alg) :
-				psa_cipher_decrypt_setup(&crypto_context->op.cipher, key_id, alg);
+				psa_cipher_encrypt_setup(&crypto_context->op.cipher, ns_key_id, alg) :
+				psa_cipher_decrypt_setup(&crypto_context->op.cipher, ns_key_id, alg);
 
 			if (psa_status == PSA_SUCCESS) {
 

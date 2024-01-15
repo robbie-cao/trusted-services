@@ -7,7 +7,7 @@
 #ifndef CRYPTO_PROVIDER_SERIALIZER_H
 #define CRYPTO_PROVIDER_SERIALIZER_H
 
-#include <psa/crypto.h>
+#include <service/crypto/backend/crypto_backend.h>
 #include <stddef.h>
 #include <stdint.h>
 

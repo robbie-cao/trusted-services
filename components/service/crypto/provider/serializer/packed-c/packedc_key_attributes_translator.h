@@ -8,7 +8,7 @@
 #define PACKEDC_CRYPTO_PROVIDER_KEY_ATTRIBUTES_TRANSLATOR_H
 
 #include <protocols/service/crypto/packed-c/key_attributes.h>
-#include <psa/crypto.h>
+#include <service/crypto/backend/crypto_backend.h>
 
 void packedc_crypto_provider_translate_key_attributes_from_proto(
     psa_key_attributes_t *psa_attributes,

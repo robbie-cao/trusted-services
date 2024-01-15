@@ -8,7 +8,7 @@
 #include <pb_decode.h>
 #include <pb_encode.h>
 #include <protocols/rpc/common/packed-c/status.h>
-#include <psa/crypto.h>
+#include <service/crypto/backend/crypto_backend.h>
 #include <service/common/serializer/protobuf/pb_helper.h>
 #include <service/crypto/protobuf/asymmetric_decrypt.pb.h>
 #include <service/crypto/protobuf/asymmetric_encrypt.pb.h>

@@ -22,7 +22,7 @@
 #include <protocols/service/crypto/packed-c/sign_hash.h>
 #include <protocols/service/crypto/packed-c/verify_hash.h>
 #include <protocols/service/crypto/packed-c/verify_pkcs7_signature.h>
-#include <psa/crypto.h>
+#include <service/crypto/backend/crypto_backend.h>
 #include <stdlib.h>
 #include <string.h>
 

@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <common/tlv/tlv.h>
-#include <psa/crypto.h>
+#include <service/crypto/backend/crypto_backend.h>
 #include <protocols/service/crypto/packed-c/hash.h>
 #include "packedc_hash_provider_serializer.h"
 

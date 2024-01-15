@@ -13,8 +13,11 @@ void pb_crypto_provider_translate_key_attributes(psa_key_attributes_t *psa_attri
     psa_set_key_lifetime(psa_attributes, proto_attributes->lifetime);
 
     if (proto_attributes->lifetime == PSA_KEY_LIFETIME_PERSISTENT) {
+        namespaced_key_id_t ns_key_id = NAMESPACED_KEY_ID_INIT;
 
-        psa_set_key_id(psa_attributes, proto_attributes->id);
+        /* Note: that namespace is set later */
+        namespaced_key_id_init(&ns_key_id, 0, proto_attributes->id);
+        psa_set_key_id(psa_attributes, ns_key_id);
     }
 
     if (proto_attributes->has_policy) {

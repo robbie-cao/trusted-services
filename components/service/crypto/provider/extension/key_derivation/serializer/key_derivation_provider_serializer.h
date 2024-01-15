@@ -9,7 +9,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <psa/crypto.h>
+#include <service/crypto/backend/crypto_backend.h>
 #include "components/rpc/common/endpoint/rpc_service_interface.h"
 
 /* Provides a common interface for parameter serialization operations
