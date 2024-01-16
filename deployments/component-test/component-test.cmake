@@ -160,6 +160,7 @@ add_components(
 		"components/service/crypto/test/service/extension/key_derivation"
 		"components/service/crypto/test/service/extension/key_derivation/packed-c"
 		"components/service/crypto/test/protocol"
+		"components/service/crypto/test/security/standalone"
 		"components/service/secure_storage/include"
 		"components/service/secure_storage/frontend/psa/its"
 		"components/service/secure_storage/frontend/psa/its/test"
