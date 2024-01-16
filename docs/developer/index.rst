@@ -16,9 +16,10 @@ Developer Documents
     docs-build
     writing-documentation
     b-test
+    spmc-tests
 
 --------------
 
-*Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2020-2024, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause

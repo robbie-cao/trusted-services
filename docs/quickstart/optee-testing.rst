@@ -28,7 +28,7 @@ built and run. Read the following guides to understand how to do this:
     :ref:`Running user-space programs on FVP`
 
 
-Build the linux application binaries
+Build the Linux application binaries
 ------------------------------------
 
 From the root directory of the workspace, enter the following to build the test applications::
@@ -54,8 +54,39 @@ Once it boots to the login prompt, log in as root and from the FVP terminal, ent
 Use the same flow for other user-space programs. Check the output of the ``cp`` command executed to see
 executables copied under ``/usr/bin``.
 
+.. _build-spmc-tests:
+
+Build SPMC tests
+----------------
+
+Trusted Services includes S-EL0 tests SPs for validating the SPMC's behavior by invoking various FF-A interfaces. These tests
+require OP-TEE's `xtest`_ for starting them from the normal world. ``xtest`` uses ``linux-arm-ffa-user`` for accessing the
+FF-A layer. Building the SPMC tests uses the same build system but with the ``SPMC_TEST=y`` configuration::
+
+  make -C build SPMC_TEST=y all
+
+.. note::
+  This build configuration only contains the SPMC test SPs and it does not include any of the :ref:`Services`.
+
+See :ref:`SPMC tests` for further information.
+
+Run SPMC tests
 --------------
 
-*Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.*
+From the root directory of the workspace, enter::
+
+  FVP_PATH=../Base_RevC_AEMvA_pkg/models/Linux64_GCC-9.3 make -C build run-only
+
+Once it boots to the login prompt, log in as root and from the FVP terminal, enter::
+
+  cd /mnt/host
+  out/linux-arm-ffa-user/load_module.sh
+  xtest -t ffa_spmc
+
+--------------
+
+.. _`xtest`: https://optee.readthedocs.io/en/latest/building/gits/optee_test.html
+
+*Copyright (c) 2022-2024, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause
