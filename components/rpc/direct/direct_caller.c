@@ -9,11 +9,26 @@
 #include "components/rpc/common/interface/rpc_uuid.h"
 #include <stdlib.h>
 
+#define DIRECT_CALLER_BASE_DEFAULT_ID (0x1000)
+
 struct direct_caller_context {
 	struct rpc_service_interface *service;
+	uint16_t endpoint_id;
 };
 
 static rpc_status_t find_and_open_session(void *context, const struct rpc_uuid *service_uuid);
+
+static uint16_t allocate_caller_endpoint_id(void)
+{
+	/*
+	 * By default, each caller is assigned a unique ID to represent
+	 * callers operating from different security domains. This may be
+	 * overridden after initialization if necessary.
+	 */
+	static uint32_t next_caller_id = DIRECT_CALLER_BASE_DEFAULT_ID;
+	uint32_t assigned_id = next_caller_id++;
+	return assigned_id;
+}
 
 static rpc_status_t open_session(void *context, const struct rpc_uuid *service_uuid,
 				 uint16_t endpoint_id)
@@ -64,7 +79,7 @@ static rpc_status_t call(void *context, uint16_t opcode,
 	struct rpc_request rpc_request = { 0 };
 	rpc_status_t status = RPC_ERROR_INTERNAL;
 
-	rpc_request.source_id = 0;
+	rpc_request.source_id = caller->endpoint_id;
 	rpc_request.opcode = opcode;
 	rpc_request.client_id = 0;
 	rpc_request.request.data = shared_memory->buffer;
@@ -95,6 +110,7 @@ rpc_status_t direct_caller_init(struct rpc_caller_interface *caller,
 		return RPC_ERROR_INTERNAL;
 
 	context->service = service;
+	context->endpoint_id = allocate_caller_endpoint_id();
 
 	caller->context = context;
 	caller->open_session = open_session;
