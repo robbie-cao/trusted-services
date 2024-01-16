@@ -12,8 +12,8 @@
 .. |PSA| replace:: :term:`PSA`
 .. |FF-A| replace:: :term:`FF-A`
 .. |TRUSTZONE| replace:: :term:`TrustZone`
-.. |NWd| replace: :term:`Normal World`
-.. |SWd| replace: :term:`Secure World`
+.. |NWd| replace:: :term:`Normal World`
+.. |SWd| replace:: :term:`Secure World`
 
 .. _`TS Mailing List`: https://lists.trustedfirmware.org/mailman3/lists/trusted-services.lists.trustedfirmware.org/
 .. _`TS repository`: https://review.trustedfirmware.org/admin/repos/TS/trusted-services
@@ -22,6 +22,6 @@
 ..
    --------------
 
-   *Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.*
+   *Copyright (c) 2020-2024, Arm Limited and Contributors. All rights reserved.*
 
    SPDX-License-Identifier: BSD-3-Clause
