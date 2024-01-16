@@ -10,7 +10,4 @@ endif()
 
 target_sources(${TGT} PRIVATE
 	"${CMAKE_CURRENT_LIST_DIR}/crypto_msg_encode_decode.cpp"
-	"${CMAKE_CURRENT_LIST_DIR}/poc_crypto_ops.cpp"
-	"${CMAKE_CURRENT_LIST_DIR}/crypto_fault_tests.cpp"
 	)
-

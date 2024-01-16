@@ -4,10 +4,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <service/crypto/backend/mbedcrypto/mbedtls_psa_crypto_backend.h>
 #include <service/crypto/backend/mbedcrypto/trng_adapter/trng_adapter.h>
 #include <service/secure_storage/frontend/psa/its/its_frontend.h>
-#include <psa/crypto.h>
-
 
 psa_status_t mbedcrypto_backend_init(struct storage_backend *storage_backend,
 						int trng_instance_num)

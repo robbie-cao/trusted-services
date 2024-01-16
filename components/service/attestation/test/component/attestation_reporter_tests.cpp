@@ -5,7 +5,6 @@
  */
 
 #include <psa/error.h>
-#include <psa/crypto.h>
 #include <psa/lifecycle.h>
 #include <qcbor/qcbor_spiffy_decode.h>
 #include <t_cose/t_cose_sign1_verify.h>
@@ -20,6 +19,8 @@
 #include <service/attestation/key_mngr/attest_key_mngr.h>
 #include <service/attestation/key_mngr/local/local_attest_key_mngr.h>
 #include <protocols/service/attestation/packed-c/eat.h>
+#include <service/crypto/client/psa/psa_crypto_client.h>
+#include <service_locator.h>
 #include <CppUTest/TestHarness.h>
 
 
@@ -32,7 +33,7 @@ TEST_GROUP(AttestationReporterTests)
         report = NULL;
         report_len = 0;
 
-        psa_crypto_init();
+        open_crypto_session();
         local_attest_key_mngr_init(LOCAL_ATTEST_KEY_MNGR_VOLATILE_IAK);
 
         /* The set of registered claim_sources determines the content
@@ -64,8 +65,36 @@ TEST_GROUP(AttestationReporterTests)
         attest_report_destroy(report);
         claims_register_deinit();
         local_attest_key_mngr_deinit();
+        close_crypto_session();
     }
 
+    void open_crypto_session()
+    {
+        m_crypto_service_context = service_locator_query("sn:trustedfirmware.org:crypto:0");
+        if (m_crypto_service_context) {
+            m_crypto_session = service_context_open(m_crypto_service_context);
+            if (m_crypto_session) {
+                psa_crypto_client_init(m_crypto_session);
+                psa_crypto_init();
+            }
+        }
+    }
+
+    void close_crypto_session()
+    {
+        psa_crypto_client_deinit();
+
+        if (m_crypto_service_context && m_crypto_session) {
+            service_context_close(m_crypto_service_context, m_crypto_session);
+            m_crypto_session = NULL;
+
+            service_context_relinquish(m_crypto_service_context);
+            m_crypto_service_context = NULL;
+        }
+    }
+
+    struct service_context *m_crypto_service_context;
+    struct rpc_caller_session *m_crypto_session;
     struct event_log_claim_source event_log_claim_source;
     struct boot_seed_generator boot_seed_claim_source;
     struct null_lifecycle_claim_source lifecycle_claim_source;

@@ -13,6 +13,7 @@
 #include <config/ramstore/config_ramstore.h>
 #include <config/interface/config_store.h>
 #include <config/interface/config_blob.h>
+#include <service/crypto/client/psa/psa_crypto_client.h>
 #include <psa/crypto.h>
 
 attestation_service_context::attestation_service_context(const char *sn) :
@@ -22,7 +23,9 @@ attestation_service_context::attestation_service_context(const char *sn) :
 	m_boot_seed_claim_source(),
 	m_lifecycle_claim_source(),
 	m_instance_id_claim_source(),
-	m_implementation_id_claim_source()
+	m_implementation_id_claim_source(),
+	m_crypto_service_context(NULL),
+	m_crypto_session(NULL)
 {
 
 }
@@ -37,11 +40,8 @@ void attestation_service_context::do_init()
 	struct claim_source *claim_source;
 	struct config_blob event_log_blob;
 
-	/* For the standalone attestation service deployment, the
-	 * mbedcrypto library is used directly.  Note that psa_crypto_init()
-	 * is allowed to be called multiple times.
-	 */
-	psa_crypto_init();
+	/* The crypto service is used for token signing */
+	open_crypto_session();
 
 	/**
 	 * Initialize the config_store and load dynamic parameters.  For
@@ -101,4 +101,30 @@ void attestation_service_context::do_deinit()
 	claims_register_deinit();
 	config_ramstore_deinit();
 	local_attest_key_mngr_deinit();
+	close_crypto_session();
+}
+
+void attestation_service_context::open_crypto_session()
+{
+	m_crypto_service_context = service_locator_query("sn:trustedfirmware.org:crypto:0");
+	if (m_crypto_service_context) {
+		m_crypto_session = service_context_open(m_crypto_service_context);
+		if (m_crypto_session) {
+			psa_crypto_client_init(m_crypto_session);
+			psa_crypto_init();
+		}
+	}
+}
+
+void attestation_service_context::close_crypto_session()
+{
+	psa_crypto_client_deinit();
+
+	if (m_crypto_service_context && m_crypto_session) {
+		service_context_close(m_crypto_service_context, m_crypto_session);
+		m_crypto_session = NULL;
+
+		service_context_relinquish(m_crypto_service_context);
+		m_crypto_service_context = NULL;
+	}
 }

@@ -52,6 +52,9 @@ set(MBEDTLS_USER_CONFIG_FILE "${TS_ROOT}/external/MbedTLS/config/crypto_posix.h"
 include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(${PROJECT_NAME} PRIVATE MbedTLS::mbedcrypto)
 
+# Use Mbed TLS to provide the psa crypto api interface files
+set(PSA_CRYPTO_API_INCLUDE ${MBEDTLS_PUBLIC_INCLUDE_PATH})
+
 #-------------------------------------------------------------------------------
 #  Advertise PSA API include paths to PSA Arch tests
 #

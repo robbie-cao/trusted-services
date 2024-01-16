@@ -21,3 +21,9 @@ set(MBEDTLS_EXTRA_INCLUDES
 	"${TS_ROOT}/components/service/common/include"
 	"${TS_ROOT}/components/service/secure_storage/include"
 	CACHE STRING "PSA ITS for MbedTLS" FORCE)
+
+# Override the default crypto backend interface with an alternative that is
+# compatible with the configuration of mbedtls that this component imposes.
+target_compile_definitions(${TGT} PUBLIC
+	ALTERNATIVE_CRYPTO_BACKEND="${CMAKE_CURRENT_LIST_DIR}/mbedtls_psa_crypto_backend.h"
+	)

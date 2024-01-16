@@ -34,7 +34,9 @@ private:
 	struct secure_storage_client m_persistent_store_client;
 	struct mock_store m_volatile_store;
 	struct service_context *m_storage_service_context;
+	struct service_context *m_crypto_service_context;
 	struct rpc_caller_session *m_storage_session;
+	struct rpc_caller_session *m_crypto_session;
 };
 
 #endif /* STANDALONE_SMM_VARIABLE_SERVICE_CONTEXT_H */

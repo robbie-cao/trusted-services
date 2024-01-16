@@ -66,6 +66,9 @@ if(TARGET stdlib::c)
 	unset(_mbedtls_tgt)
 endif()
 
-# Advertise Mbed TLS as the provider of the PSA Crypto API
-set(PSA_CRYPTO_API_INCLUDE "${MBEDTLS_INSTALL_DIR}/include"
-		CACHE STRING "PSA Crypto API include path")
+# Advertise Mbed TLS provided psa crypto api header file.  Can be used with #include MBEDTLS_PSA_CRYPTO_H
+# when it is necessary to explicitly include the mbedtls provided version of psa/crypto.h.
+add_compile_definitions(MBEDTLS_PSA_CRYPTO_H="${MBEDTLS_INSTALL_DIR}/include/psa/crypto.h")
+
+# Advertise the public interface path to allow a deployment to determine what scope to give it
+set(MBEDTLS_PUBLIC_INCLUDE_PATH "${MBEDTLS_INSTALL_DIR}/include" CACHE STRING "Mbedtls public include path")
