@@ -8,7 +8,7 @@
 #include "config/interface/config_store.h"
 #include "config/loader/sp/sp_config_loader.h"
 #include "components/rpc/mm_communicate/endpoint/sp/mm_communicate_call_ep.h"
-#include "components/service/smm_variable/frontend/mm_communicate/smm_variable_mm_service.h"
+#include "components/service/uefi/smm_variable/frontend/mm_communicate/smm_variable_mm_service.h"
 #include "platform/interface/memory_region.h"
 #include "protocols/common/mm/mm_smc.h"
 #include "ffa_api.h"

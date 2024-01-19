@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -11,7 +11,9 @@
 #define SFS_FLASH_AREA_ADDR (0x0)
 
 /* Adjust to a size that will allow all assets to fit */
+#ifndef SFS_FLASH_AREA_SIZE
 #define SFS_FLASH_AREA_SIZE (0x4000)
+#endif
 
 /* Adjust to match the size of the flash device's physical erase unit */
 #define SFS_SECTOR_SIZE (0x1000)

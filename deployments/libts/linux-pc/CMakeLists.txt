@@ -29,6 +29,13 @@ include(${TS_ROOT}/external/tf_a/tf-a.cmake)
 add_tfa_dependency(TARGET "ts")
 
 #-------------------------------------------------------------------------------
+# Options and variables
+#-------------------------------------------------------------------------------
+target_compile_definitions(ts PRIVATE
+	-DUEFI_AUTH_VAR
+)
+
+#-------------------------------------------------------------------------------
 #  Define public interfaces for library
 #
 #-------------------------------------------------------------------------------
@@ -123,8 +130,9 @@ add_components(
 		"components/service/test_runner/provider/serializer/packed-c"
 		"components/service/test_runner/provider/backend/mock"
 		"components/service/test_runner/provider/backend/simple_c"
-		"components/service/smm_variable/backend"
-		"components/service/smm_variable/provider"
+		"components/service/uefi/smm_variable/backend"
+		"components/service/uefi/smm_variable/backend/direct"
+		"components/service/uefi/smm_variable/provider"
 		"components/media/disk"
 		"components/media/disk/disk_images"
 		"components/media/disk/formatter"
@@ -163,9 +171,17 @@ include(${TS_ROOT}/external/nanopb/nanopb.cmake)
 target_link_libraries(ts PRIVATE nanopb::protobuf-nanopb-static)
 protobuf_generate_all(TGT "ts" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protocols")
 
-# Mbed TLS provides libmbedcrypto
+# MbedTLS
+set(MBEDTLS_USER_CONFIG_FILE "${TS_ROOT}/external/MbedTLS/config/libmbedx509.h"
+	CACHE STRING "Configuration file for Mbed TLS" FORCE)
 include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(ts PRIVATE MbedTLS::mbedcrypto)
+target_link_libraries(ts PRIVATE MbedTLS::mbedx509)
+
+# Pass the location of the mbedtls config file to C preprocessor.
+target_compile_definitions(ts PRIVATE
+		MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}"
+)
 
 # Qcbor
 include(${TS_ROOT}/external/qcbor/qcbor.cmake)

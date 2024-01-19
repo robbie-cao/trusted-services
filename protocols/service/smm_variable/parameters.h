@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -7,8 +7,13 @@
 #ifndef TS_SMM_VARIABLE_PARAMETERS_H
 #define TS_SMM_VARIABLE_PARAMETERS_H
 
+#include <stddef.h>
+
 #include "protocols/common/efi/efi_status.h"
 #include "protocols/common/efi/efi_types.h"
+#include "protocols/common/efi/efi_certificate.h"
+#include <protocols/common/efi/efi_global_variable.h>
+#include <protocols/common/efi/efi_image_authentication.h>
 
 /**
  * C/C++ definition of smm_variable service parameters
@@ -33,23 +38,24 @@ typedef struct {
 /**
  * Variable attributes
  */
-#define	EFI_VARIABLE_NON_VOLATILE							(0x00000001)
-#define	EFI_VARIABLE_BOOTSERVICE_ACCESS						(0x00000002)
-#define	EFI_VARIABLE_RUNTIME_ACCESS							(0x00000004)
-#define	EFI_VARIABLE_HARDWARE_ERROR_RECORD					(0x00000008)
-#define	EFI_VARIABLE_AUTHENTICATED_WRITE_ACCESS				(0x00000010)
+#define	EFI_VARIABLE_NON_VOLATILE				(0x00000001)
+#define	EFI_VARIABLE_BOOTSERVICE_ACCESS				(0x00000002)
+#define	EFI_VARIABLE_RUNTIME_ACCESS				(0x00000004)
+#define	EFI_VARIABLE_HARDWARE_ERROR_RECORD			(0x00000008)
+#define	EFI_VARIABLE_AUTHENTICATED_WRITE_ACCESS			(0x00000010)
 #define	EFI_VARIABLE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS	(0x00000020)
-#define	EFI_VARIABLE_APPEND_WRITE							(0x00000040)
+#define	EFI_VARIABLE_APPEND_WRITE				(0x00000040)
+#define EFI_VARIABLE_ENHANCED_AUTHENTICATED_ACCESS              (0x00000080)
+
 #define	EFI_VARIABLE_MASK \
 	(EFI_VARIABLE_NON_VOLATILE | \
 	 EFI_VARIABLE_BOOTSERVICE_ACCESS | \
 	 EFI_VARIABLE_RUNTIME_ACCESS | \
 	 EFI_VARIABLE_HARDWARE_ERROR_RECORD | \
 	 EFI_VARIABLE_AUTHENTICATED_WRITE_ACCESS | \
-	 EFI_VARIABLE_APPEND_WRITE)
-#define	EFI_VARIABLE_AUTHENTICATED_WRITE_ACCESS_MASK \
-	(EFI_VARIABLE_AUTHENTICATED_WRITE_ACCESS | \
-	 EFI_VARIABLE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS)
+	 EFI_VARIABLE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS | \
+	 EFI_VARIABLE_APPEND_WRITE | \
+	 EFI_VARIABLE_ENHANCED_AUTHENTICATED_ACCESS)
 
 /**
  * Parameter structure for SetVariable and GetVariable.
@@ -145,5 +151,13 @@ typedef struct {
 	uint64_t						VariablePayloadSize;
 } SMM_VARIABLE_COMMUNICATE_GET_PAYLOAD_SIZE;
 
+/**
+ * Authentication header included at the start of variable data for SetVariable operations
+ * when the EFI_VARIABLE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS attribute is set.
+ */
+typedef struct {
+	EFI_TIME                    TimeStamp;
+	WIN_CERTIFICATE_UEFI_GUID   AuthInfo;
+} EFI_VARIABLE_AUTHENTICATION_2;
 
 #endif /* TS_SMM_VARIABLE_PARAMETERS_H */

@@ -1,8 +1,11 @@
 /*
- * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
+#include <mbedtls/build_info.h>
+#include <mbedtls/pkcs7.h>
+#include <mbedtls/x509_crt.h>
 #include <protocols/rpc/common/packed-c/status.h>
 #include <protocols/service/crypto/packed-c/opcodes.h>
 #include <psa/crypto.h>
@@ -26,24 +29,26 @@ static rpc_status_t generate_random_handler(void *context, struct rpc_request *r
 static rpc_status_t copy_key_handler(void *context, struct rpc_request *req);
 static rpc_status_t purge_key_handler(void *context, struct rpc_request *req);
 static rpc_status_t get_key_attributes_handler(void *context, struct rpc_request *req);
+static rpc_status_t verify_pkcs7_signature_handler(void *context, struct rpc_request *req);
 
 /* Handler mapping table for service */
 static const struct service_handler handler_table[] = {
-	{ TS_CRYPTO_OPCODE_GENERATE_KEY, generate_key_handler },
-	{ TS_CRYPTO_OPCODE_DESTROY_KEY, destroy_key_handler },
-	{ TS_CRYPTO_OPCODE_EXPORT_KEY, export_key_handler },
-	{ TS_CRYPTO_OPCODE_EXPORT_PUBLIC_KEY, export_public_key_handler },
-	{ TS_CRYPTO_OPCODE_IMPORT_KEY, import_key_handler },
-	{ TS_CRYPTO_OPCODE_SIGN_HASH, asymmetric_sign_handler },
-	{ TS_CRYPTO_OPCODE_VERIFY_HASH, asymmetric_verify_handler },
-	{ TS_CRYPTO_OPCODE_ASYMMETRIC_DECRYPT, asymmetric_decrypt_handler },
-	{ TS_CRYPTO_OPCODE_ASYMMETRIC_ENCRYPT, asymmetric_encrypt_handler },
-	{ TS_CRYPTO_OPCODE_GENERATE_RANDOM, generate_random_handler },
-	{ TS_CRYPTO_OPCODE_COPY_KEY, copy_key_handler },
-	{ TS_CRYPTO_OPCODE_PURGE_KEY, purge_key_handler },
-	{ TS_CRYPTO_OPCODE_GET_KEY_ATTRIBUTES, get_key_attributes_handler },
-	{ TS_CRYPTO_OPCODE_SIGN_MESSAGE, asymmetric_sign_handler },
-	{ TS_CRYPTO_OPCODE_VERIFY_MESSAGE, asymmetric_verify_handler },
+	{ TS_CRYPTO_OPCODE_GENERATE_KEY,           generate_key_handler },
+	{ TS_CRYPTO_OPCODE_DESTROY_KEY,            destroy_key_handler },
+	{ TS_CRYPTO_OPCODE_EXPORT_KEY,             export_key_handler },
+	{ TS_CRYPTO_OPCODE_EXPORT_PUBLIC_KEY,      export_public_key_handler },
+	{ TS_CRYPTO_OPCODE_IMPORT_KEY,             import_key_handler },
+	{ TS_CRYPTO_OPCODE_SIGN_HASH,              asymmetric_sign_handler },
+	{ TS_CRYPTO_OPCODE_VERIFY_HASH,            asymmetric_verify_handler },
+	{ TS_CRYPTO_OPCODE_ASYMMETRIC_DECRYPT,     asymmetric_decrypt_handler },
+	{ TS_CRYPTO_OPCODE_ASYMMETRIC_ENCRYPT,     asymmetric_encrypt_handler },
+	{ TS_CRYPTO_OPCODE_GENERATE_RANDOM,        generate_random_handler },
+	{ TS_CRYPTO_OPCODE_COPY_KEY,               copy_key_handler },
+	{ TS_CRYPTO_OPCODE_PURGE_KEY,              purge_key_handler },
+	{ TS_CRYPTO_OPCODE_GET_KEY_ATTRIBUTES,     get_key_attributes_handler },
+	{ TS_CRYPTO_OPCODE_SIGN_MESSAGE,           asymmetric_sign_handler },
+	{ TS_CRYPTO_OPCODE_VERIFY_MESSAGE,         asymmetric_verify_handler },
+	{ TS_CRYPTO_OPCODE_VERIFY_PKCS7_SIGNATURE, verify_pkcs7_signature_handler },
 };
 
 struct rpc_service_interface *
@@ -592,6 +597,83 @@ static rpc_status_t get_key_attributes_handler(void *context, struct rpc_request
 		psa_reset_key_attributes(&attributes);
 		req->service_status = psa_status;
 	}
+
+	return rpc_status;
+}
+
+static rpc_status_t verify_pkcs7_signature_handler(void *context, struct rpc_request *req)
+{
+	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
+	struct rpc_buffer *req_buf = &req->request;
+	const struct crypto_provider_serializer *serializer = get_crypto_serializer(context, req);
+
+	int mbedtls_status = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+
+	uint8_t *signature_cert = NULL;
+	uint64_t signature_cert_len = 0;
+	uint8_t *hash = NULL;
+	uint64_t hash_len = 0;
+	uint8_t *public_key_cert = NULL;
+	uint64_t public_key_cert_len = 0;
+
+	if (serializer) {
+		/* First collect the lengths of the fields */
+		rpc_status = serializer->deserialize_verify_pkcs7_signature_req(
+			req_buf, NULL, &signature_cert_len, NULL, &hash_len, NULL,
+			&public_key_cert_len);
+
+		if (rpc_status == RPC_SUCCESS) {
+			/* Allocate the needed space and get the data */
+			signature_cert = (uint8_t *)malloc(signature_cert_len);
+			hash = (uint8_t *)malloc(hash_len);
+			public_key_cert = (uint8_t *)malloc(public_key_cert_len);
+
+			if (signature_cert && hash && public_key_cert) {
+				rpc_status = serializer->deserialize_verify_pkcs7_signature_req(
+					req_buf, signature_cert, &signature_cert_len, hash,
+					&hash_len, public_key_cert, &public_key_cert_len);
+			} else {
+				rpc_status = RPC_ERROR_RESOURCE_FAILURE;
+			}
+		}
+	}
+
+	if (rpc_status == RPC_SUCCESS) {
+		/* Parse the public key certificate */
+		mbedtls_x509_crt signer_certificate;
+
+		mbedtls_x509_crt_init(&signer_certificate);
+
+		mbedtls_status = mbedtls_x509_crt_parse_der(&signer_certificate, public_key_cert,
+							    public_key_cert_len);
+
+		if (mbedtls_status == 0) {
+			/* Parse the PKCS#7 DER encoded signature block */
+			mbedtls_pkcs7 pkcs7_structure;
+
+			mbedtls_pkcs7_init(&pkcs7_structure);
+
+			mbedtls_status = mbedtls_pkcs7_parse_der(&pkcs7_structure, signature_cert,
+								 signature_cert_len);
+
+			if (mbedtls_status == MBEDTLS_PKCS7_SIGNED_DATA) {
+				/* Verify hash against signed hash */
+				mbedtls_status = mbedtls_pkcs7_signed_hash_verify(
+					&pkcs7_structure, &signer_certificate, hash, hash_len);
+			}
+
+			mbedtls_pkcs7_free(&pkcs7_structure);
+		}
+
+		mbedtls_x509_crt_free(&signer_certificate);
+	}
+
+	free(signature_cert);
+	free(hash);
+	free(public_key_cert);
+
+	/* Provide the result of the verification */
+	req->service_status = mbedtls_status;
 
 	return rpc_status;
 }

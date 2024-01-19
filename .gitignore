@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2020, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -24,3 +24,5 @@
 **/.project
 **/.pydevproject
 **/.settings/
+tools/bash/uefi_authenticated_variables/temp_files/
+tools/bash/uefi_authenticated_variables/auth_vectors/

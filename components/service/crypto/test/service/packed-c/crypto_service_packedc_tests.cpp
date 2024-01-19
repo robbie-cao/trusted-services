@@ -112,3 +112,8 @@ TEST(CryptoServicePackedcTests, generateRandomNumbers)
 {
 	m_scenarios->generateRandomNumbers();
 }
+
+TEST(CryptoServicePackedcTests, verifyPkcs7Signature)
+{
+	m_scenarios->verifypkcs7signature();
+}

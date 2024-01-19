@@ -30,7 +30,7 @@ set(GIT_OPTIONS
 	PATCH_COMMAND
 		git stash
 		COMMAND git branch -f bf-am
-		COMMAND git am ${CMAKE_CURRENT_LIST_DIR}/0001-Add-capability-to-build-libmbedcrypto-only.patch
+		COMMAND git am ${CMAKE_CURRENT_LIST_DIR}/0001-Add-capability-to-selectively-build-libraries.patch
 		COMMAND git reset bf-am
 		COMMAND ${Python3_EXECUTABLE} scripts/config.py crypto
 )

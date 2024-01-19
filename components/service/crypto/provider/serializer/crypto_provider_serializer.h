@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -118,6 +118,14 @@ struct crypto_provider_serializer {
 
 	rpc_status_t (*serialize_generate_random_resp)(struct rpc_buffer *resp_buf,
 						       const uint8_t *output, size_t output_len);
+
+	/* Operation: verify_pkcs7_signature */
+	rpc_status_t (*deserialize_verify_pkcs7_signature_req)(struct rpc_buffer *req_buf,
+							       uint8_t *signature_cert,
+							       uint64_t *signature_cert_len,
+							       uint8_t *hash, uint64_t *hash_len,
+							       uint8_t *public_key_cert,
+							       uint64_t *public_key_cert_len);
 };
 
 #endif /* CRYPTO_PROVIDER_SERIALIZER_H */

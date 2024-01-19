@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -1155,6 +1155,22 @@ psa_status_t protobuf_crypto_client::raw_key_agreement(psa_algorithm_t alg,
 	(void)output;
 	(void)output_size;
 	(void)output_length;
+
+	return PSA_ERROR_NOT_SUPPORTED;
+}
+
+int protobuf_crypto_client::verify_pkcs7_signature(const uint8_t *signature_cert,
+						   uint64_t signature_cert_len, const uint8_t *hash,
+						   uint64_t hash_len,
+						   const uint8_t *public_key_cert,
+						   uint64_t public_key_cert_len)
+{
+	(void)signature_cert;
+	(void)signature_cert_len;
+	(void)hash;
+	(void)hash_len;
+	(void)public_key_cert;
+	(void)public_key_cert_len;
 
 	return PSA_ERROR_NOT_SUPPORTED;
 }

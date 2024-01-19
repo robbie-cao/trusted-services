@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: BSD-2-Clause
 /*
- * Copyright (c) 2020-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
  */
 
+#include <cstdio>
 #include <service/crypto/client/cpp/protocol/packed-c/packedc_crypto_client.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
 #include <app/ts-demo/ts-demo.h>

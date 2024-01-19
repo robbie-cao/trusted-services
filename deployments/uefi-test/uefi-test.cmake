@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -21,6 +21,16 @@ include(${TS_ROOT}/deployments/libts/libts-import.cmake)
 target_link_libraries(uefi-test PRIVATE libts::ts)
 
 #-------------------------------------------------------------------------------
+# Options and variables
+#-------------------------------------------------------------------------------
+option(UEFI_AUTH_VAR "Enable variable authentication" ON)
+if (UEFI_AUTH_VAR)
+	target_compile_definitions(uefi-test PRIVATE
+		-DUEFI_AUTH_VAR
+	)
+endif()
+
+#-------------------------------------------------------------------------------
 #  Components that are common accross all deployments
 #
 #-------------------------------------------------------------------------------
@@ -28,19 +38,9 @@ add_components(
 	TARGET "uefi-test"
 	BASE_DIR ${TS_ROOT}
 	COMPONENTS
-		"components/service/smm_variable/client/cpp"
-		"components/service/smm_variable/test/service"
+		"components/service/uefi/smm_variable/client/cpp"
+		"components/service/uefi/smm_variable/test/service"
 )
-
-#-------------------------------------------------------------------------------
-#  Components used from external projects
-#
-#-------------------------------------------------------------------------------
-
-# Nanopb
-include(${TS_ROOT}/external/nanopb/nanopb.cmake)
-target_link_libraries(uefi-test PRIVATE nanopb::protobuf-nanopb-static)
-protobuf_generate_all(TGT "uefi-test" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protocols")
 
 #-------------------------------------------------------------------------------
 #  Define install content.

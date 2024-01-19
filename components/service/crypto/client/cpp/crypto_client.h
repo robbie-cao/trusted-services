@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2020-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -234,6 +234,11 @@ public:
 		psa_key_id_t private_key,
 		const uint8_t *peer_key, size_t peer_key_length,
 		uint8_t *output, size_t output_size, size_t *output_length) = 0;
+
+	virtual int verify_pkcs7_signature(const uint8_t *signature_cert,
+					   uint64_t signature_cert_len, const uint8_t *hash,
+					   uint64_t hash_len, const uint8_t *public_key_cert,
+					   uint64_t public_key_cert_len) = 0;
 
 protected:
 	crypto_client();

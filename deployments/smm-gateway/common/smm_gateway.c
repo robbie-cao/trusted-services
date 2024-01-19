@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #include <stddef.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
-#include <service/smm_variable/provider/smm_variable_provider.h>
+#include <service/uefi/smm_variable/provider/smm_variable_provider.h>
 #include <service/secure_storage/backend/secure_storage_client/secure_storage_client.h>
 #include <service/secure_storage/backend/mock_store/mock_store.h>
 #include <service_locator.h>
@@ -16,6 +16,13 @@
 /* Default to using the Protected Storage SP */
 #ifndef SMM_GATEWAY_NV_STORE_SN
 #define SMM_GATEWAY_NV_STORE_SN		"sn:ffa:751bf801-3dde-4768-a514-0f10aeed1790:0"
+#endif
+
+#if defined(UEFI_AUTH_VAR) && !defined(UEFI_INTERNAL_CRYPTO)
+/* Default to using the Crypto SP */
+#ifndef SMM_GATEWAY_CRYPTO_SN
+#define SMM_GATEWAY_CRYPTO_SN "sn:ffa:d9df52d5-16a2-4bb2-9aa4-d26d3b84e8c0:0"
+#endif
 #endif
 
 /* Default maximum number of UEFI variables */
@@ -31,9 +38,59 @@ static struct smm_gateway
 	struct mock_store volatile_store;
 	struct service_context *nv_storage_service_context;
 	struct rpc_caller_session *nv_storage_session;
+#if defined(UEFI_AUTH_VAR) && !defined(UEFI_INTERNAL_CRYPTO)
+	struct service_context *crypto_service_context;
+	struct rpc_caller_session *crypto_session;
+#endif
 
 } smm_gateway_instance;
 
+#if defined(UEFI_AUTH_VAR) && !defined(UEFI_INTERNAL_CRYPTO)
+bool create_crypto_binding(void)
+{
+ 	psa_status_t psa_status = PSA_ERROR_GENERIC_ERROR;
+
+	smm_gateway_instance.crypto_service_context = NULL;
+	smm_gateway_instance.crypto_session = NULL;
+
+	smm_gateway_instance.crypto_service_context = service_locator_query(SMM_GATEWAY_CRYPTO_SN);
+	if (!smm_gateway_instance.crypto_service_context)
+		goto err;
+
+	smm_gateway_instance.crypto_session =
+		service_context_open(smm_gateway_instance.crypto_service_context);
+	if (!smm_gateway_instance.crypto_session)
+		goto err;
+
+	/* Initialize the crypto client */
+	psa_status = psa_crypto_client_init(smm_gateway_instance.crypto_session);
+	if (psa_status != PSA_SUCCESS)
+		goto err;
+
+	psa_status = psa_crypto_init();
+	if (psa_status != PSA_SUCCESS)
+		goto err;
+
+	return true;
+
+err:
+	if (smm_gateway_instance.crypto_session != NULL)
+	{
+		service_context_close(smm_gateway_instance.crypto_service_context, smm_gateway_instance.crypto_session);
+		smm_gateway_instance.crypto_session = NULL;
+	}
+
+	if (smm_gateway_instance.crypto_service_context != NULL)
+	{
+		service_context_relinquish(smm_gateway_instance.crypto_service_context);
+		smm_gateway_instance.crypto_service_context = NULL;
+	}
+
+	return false;
+}
+#else
+#define create_crypto_binding(a) (true)
+#endif
 
 struct rpc_service_interface *smm_gateway_create(uint32_t owner_id)
 {
@@ -72,6 +129,9 @@ struct rpc_service_interface *smm_gateway_create(uint32_t owner_id)
 		SMM_GATEWAY_MAX_UEFI_VARIABLES,
 		persistent_backend,
 		volatile_backend);
+
+	if (!create_crypto_binding())
+		return NULL;
 
 	return service_iface;
 }

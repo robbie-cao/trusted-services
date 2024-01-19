@@ -145,6 +145,7 @@ add_components(
 		"components/service/crypto/provider/extension/aead/serializer/packed-c"
 		"components/service/crypto/provider/test"
 		"components/service/crypto/backend/mbedcrypto"
+        "components/service/crypto/backend/mbedcrypto/mbedtls_fake_x509"
 		"components/service/crypto/factory/full"
 		"components/service/crypto/test/unit"
 		"components/service/crypto/test/service"
@@ -179,9 +180,9 @@ add_components(
 		"components/service/test_runner/provider"
 		"components/service/test_runner/provider/serializer/packed-c"
 		"components/service/test_runner/provider/backend/null"
-		"components/service/smm_variable/provider"
-		"components/service/smm_variable/backend"
-		"components/service/smm_variable/backend/test"
+		"components/service/uefi/smm_variable/provider"
+		"components/service/uefi/smm_variable/backend"
+		"components/service/uefi/smm_variable/backend/test"
 		"components/media/disk"
 		"components/media/disk/disk_images"
 		"components/media/disk/formatter"
@@ -218,9 +219,17 @@ include(${TS_ROOT}/external/nanopb/nanopb.cmake)
 target_link_libraries(component-test PRIVATE nanopb::protobuf-nanopb-static)
 protobuf_generate_all(TGT "component-test" NAMESPACE "protobuf" BASE_DIR "${TS_ROOT}/protocols")
 
-# Mbed TLS provides libmbedcrypto
+# MbedTLS
+set(MBEDTLS_USER_CONFIG_FILE "${TS_ROOT}/external/MbedTLS/config/libmbedx509.h"
+	CACHE STRING "Configuration file for Mbed TLS" FORCE)
 include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(component-test PRIVATE MbedTLS::mbedcrypto)
+target_link_libraries(component-test PRIVATE MbedTLS::mbedx509)
+
+# Pass the location of the mbedtls config file to C preprocessor.
+target_compile_definitions(component-test PRIVATE
+		MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}"
+)
 
 # Qcbor
 include(${TS_ROOT}/external/qcbor/qcbor.cmake)
