@@ -1,4 +1,4 @@
-From b22daa35b3ef912e44e7f6a8d9f24c4703fb4784 Mon Sep 17 00:00:00 2001
+From ee65a0f8164db4531d35aa40db7b2f066cd333d7 Mon Sep 17 00:00:00 2001
 From: Gyorgy Szing <Gyorgy.Szing@arm.com>
 Date: Tue, 28 Mar 2023 18:20:44 +0200
 Subject: [PATCH 1/1] Add capability to selectively build libraries
@@ -11,24 +11,25 @@ Uptream-status: Invalid [other]
     to upstream this change.
 
 Signed-off-by: Gyorgy Szing <Gyorgy.Szing@arm.com>
+Signed-off-by: Imre Kis <imre.kis@arm.com>
 ---
  library/CMakeLists.txt | 77 +++++++++++++++++++++++++++++++-----------
  1 file changed, 57 insertions(+), 20 deletions(-)
 
 diff --git a/library/CMakeLists.txt b/library/CMakeLists.txt
-index 535988303..ea1247427 100644
+index eeda06aee..d79c657fd 100644
 --- a/library/CMakeLists.txt
 +++ b/library/CMakeLists.txt
-@@ -2,6 +2,8 @@ option(USE_STATIC_MBEDTLS_LIBRARY "Build mbed TLS static library." ON)
- option(USE_SHARED_MBEDTLS_LIBRARY "Build mbed TLS shared library." OFF)
- option(LINK_WITH_PTHREAD "Explicitly link mbed TLS library to pthread." OFF)
- option(LINK_WITH_TRUSTED_STORAGE "Explicitly link mbed TLS library to trusted_storage." OFF)
+@@ -2,6 +2,8 @@ option(USE_STATIC_MBEDTLS_LIBRARY "Build Mbed TLS static library." ON)
+ option(USE_SHARED_MBEDTLS_LIBRARY "Build Mbed TLS shared library." OFF)
+ option(LINK_WITH_PTHREAD "Explicitly link Mbed TLS library to pthread." OFF)
+ option(LINK_WITH_TRUSTED_STORAGE "Explicitly link Mbed TLS library to trusted_storage." OFF)
 +option(BUIILD_X509 "Build x509 library too." ON)
 +option(BUILD_TLS "Build TLS library too" OFF)
  
  # Set the project root directory if it's not already defined, as may happen if
  # the library folder is included directly by a parent project, without
-@@ -250,7 +252,15 @@ if (USE_STATIC_MBEDTLS_LIBRARY)
+@@ -255,7 +257,15 @@ if (USE_STATIC_MBEDTLS_LIBRARY)
      set(mbedcrypto_static_target ${mbedcrypto_target})
  endif()
  
@@ -45,7 +46,7 @@ index 535988303..ea1247427 100644
  
  if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
      string(APPEND mbedtls_static_target    "_static")
-@@ -258,9 +268,15 @@ if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
+@@ -263,9 +273,15 @@ if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
      string(APPEND mbedcrypto_static_target "_static")
  
      list(APPEND target_libraries
@@ -53,7 +54,7 @@ index 535988303..ea1247427 100644
 -        ${mbedx509_static_target}
 -        ${mbedtls_static_target})
 +        ${mbedcrypto_static_target})
-+    
++
 +    if (BUIILD_X509 OR BUIILD_TLS)
 +        list(APPEND target_libraries ${mbedx509_static_target})
 +    endif()
@@ -63,9 +64,9 @@ index 535988303..ea1247427 100644
 +    endif()
  endif()
  
- if(USE_STATIC_MBEDTLS_LIBRARY)
-@@ -272,13 +288,17 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
-         target_link_libraries(${mbedcrypto_static_target} PUBLIC everest)
+ set(p256m_target "${MBEDTLS_TARGET_PREFIX}p256m")
+@@ -284,13 +300,17 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
+         target_link_libraries(${mbedcrypto_static_target} PUBLIC ${p256m_target})
      endif()
  
 -    add_library(${mbedx509_static_target} STATIC ${src_x509})
@@ -88,32 +89,32 @@ index 535988303..ea1247427 100644
  endif(USE_STATIC_MBEDTLS_LIBRARY)
  
  if(USE_SHARED_MBEDTLS_LIBRARY)
-@@ -290,14 +310,16 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
-     if(TARGET everest)
-         target_link_libraries(${mbedcrypto_target} PUBLIC everest)
+@@ -306,14 +326,16 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
+     if(TARGET ${p256m_target})
+         target_link_libraries(${mbedcrypto_target} PUBLIC ${p256m_target})
      endif()
 -
 -    add_library(${mbedx509_target} SHARED ${src_x509})
--    set_target_properties(${mbedx509_target} PROPERTIES VERSION 3.4.0 SOVERSION 5)
+-    set_target_properties(${mbedx509_target} PROPERTIES VERSION 3.5.1 SOVERSION 6)
 -    target_link_libraries(${mbedx509_target} PUBLIC ${libs} ${mbedcrypto_target})
 -
 -    add_library(${mbedtls_target} SHARED ${src_tls})
--    set_target_properties(${mbedtls_target} PROPERTIES VERSION 3.4.0 SOVERSION 19)
+-    set_target_properties(${mbedtls_target} PROPERTIES VERSION 3.5.1 SOVERSION 20)
 -    target_link_libraries(${mbedtls_target} PUBLIC ${libs} ${mbedx509_target})
 +    if (BUIILD_X509 OR BUILD_TLS)
 +        add_library(${mbedx509_target} SHARED ${src_x509})
-+        set_target_properties(${mbedx509_target} PROPERTIES VERSION 3.4.0 SOVERSION 5)
++        set_target_properties(${mbedx509_target} PROPERTIES VERSION 3.5.1 SOVERSION 6)
 +        target_link_libraries(${mbedx509_target} PUBLIC ${libs} ${mbedcrypto_target})
 +    endif()
 +    if (BUILD_TLS)
 +        add_library(${mbedtls_target} SHARED ${src_tls})
-+        set_target_properties(${mbedtls_target} PROPERTIES VERSION 3.4.0 SOVERSION 19)
++        set_target_properties(${mbedtls_target} PROPERTIES VERSION 3.5.1 SOVERSION 20)
 +        target_link_libraries(${mbedtls_target} PUBLIC ${libs} ${mbedx509_target})
 +    endif()
  endif(USE_SHARED_MBEDTLS_LIBRARY)
  
  foreach(target IN LISTS target_libraries)
-@@ -322,7 +344,22 @@ endforeach(target)
+@@ -349,7 +371,22 @@ endforeach(target)
  
  set(lib_target "${MBEDTLS_TARGET_PREFIX}lib")
  

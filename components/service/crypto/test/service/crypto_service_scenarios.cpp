@@ -104,7 +104,7 @@ void crypto_service_scenarios::copyKey()
 	psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_COPY);
 	psa_set_key_algorithm(&attributes, PSA_ALG_RSA_PKCS1V15_CRYPT);
 	psa_set_key_type(&attributes, PSA_KEY_TYPE_RSA_KEY_PAIR);
-	psa_set_key_bits(&attributes, 256);
+	psa_set_key_bits(&attributes, 1024);
 
 	/* Generate a key */
 	psa_key_id_t key_id_1;
@@ -402,7 +402,7 @@ void crypto_service_scenarios::asymEncryptDecrypt()
 	psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT);
 	psa_set_key_algorithm(&attributes, PSA_ALG_RSA_PKCS1V15_CRYPT);
 	psa_set_key_type(&attributes, PSA_KEY_TYPE_RSA_KEY_PAIR);
-	psa_set_key_bits(&attributes, 256);
+	psa_set_key_bits(&attributes, 1024);
 
 	/* Generate a key */
 	status = m_crypto_client->generate_key(&attributes, &key_id);
