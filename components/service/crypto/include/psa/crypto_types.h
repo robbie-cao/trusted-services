@@ -217,7 +217,6 @@ typedef uint32_t psa_key_location_t;
  * - Key identifiers outside these ranges are reserved for future use.
  */
 typedef uint32_t psa_key_id_t;
-#define PSA_KEY_ID_INIT 0
 
 /** Key handle for open keys
  *
