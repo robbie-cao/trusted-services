@@ -7,6 +7,8 @@
 #include <stddef.h>
 #include <protocols/rpc/common/packed-c/encoding.h>
 #include <service/uefi/smm_variable/provider/smm_variable_provider.h>
+#include <service/crypto/client/psa/psa_crypto_client.h>
+#include "psa/crypto.h"
 #include <service/secure_storage/backend/secure_storage_client/secure_storage_client.h>
 #include <service/secure_storage/backend/mock_store/mock_store.h>
 #include <service_locator.h>

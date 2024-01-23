@@ -121,7 +121,7 @@ void remote_test_runner::output_summary(const struct test_summary &summary)
 void remote_test_runner::output_list(const struct test_summary &summary,
                                     const std::vector<struct test_result> &results)
 {
-    for (int i = 0; i < results.size(); ++i) {
+    for (size_t i = 0; i < results.size(); ++i) {
 
         printf("TEST(%s, %s)\n", results[i].group, results[i].name);
     }
@@ -132,7 +132,7 @@ void remote_test_runner::output_list(const struct test_summary &summary,
 void remote_test_runner::output_results(const struct test_summary &summary,
                                     const std::vector<struct test_result> &results)
 {
-    for (int i = 0; i < results.size(); ++i) {
+    for (size_t i = 0; i < results.size(); ++i) {
 
         printf("TEST(%s, %s) ", results[i].group, results[i].name);
 

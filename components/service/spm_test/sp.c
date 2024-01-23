@@ -881,7 +881,7 @@ err:
 	return_error(err, msg);
 }
 
-void test_mem_get_set(struct ffa_init_info *init_info)
+void test_mem_get_set(union ffa_boot_info *boot_info)
 {
 	void *addr = NULL;
 	ffa_result res = FFA_OK;
@@ -895,7 +895,7 @@ void test_mem_get_set(struct ffa_init_info *init_info)
 	DMSG("Testing FFA_MEM_PERM_GET/SET");
 	config_ramstore_init();
 
-	if (!sp_config_load(init_info)) {
+	if (!sp_config_load(boot_info)) {
 		EMSG("Failed to load SP config");
 		goto err;
 	}
@@ -956,8 +956,6 @@ err:
 void __noreturn sp_main(union ffa_boot_info *boot_info) {
 	struct ffa_direct_msg msg = {0};
 	uint16_t own_id = 0;
-
-	(void)boot_info;
 
 	/* Boot phase */
 	if (sp_discovery_own_id_get(&own_id) != SP_RESULT_OK) {

@@ -29,19 +29,24 @@ static inline int crypto_caller_verify_pkcs7_signature(struct service_client *co
 	int status = RPC_ERROR_INTERNAL;
 	size_t req_len = 0;
 
+	if (signature_cert_len > UINT16_MAX ||
+		hash_len > UINT16_MAX ||
+		public_key_cert_len > signature_cert_len)
+		return RPC_ERROR_INVALID_VALUE;
+
 	struct tlv_record signature_record = {
 		.tag = TS_CRYPTO_VERIFY_PKCS7_SIGNATURE_IN_TAG_SIGNATURE,
-		.length = signature_cert_len,
+		.length = (uint16_t)signature_cert_len,
 		.value = signature_cert
 	};
 
 	struct tlv_record hash_record = { .tag = TS_CRYPTO_VERIFY_PKCS7_SIGNATURE_IN_TAG_HASH,
-					  .length = hash_len,
+					  .length = (uint16_t)hash_len,
 					  .value = hash };
 
 	struct tlv_record public_key_record = {
 		.tag = TS_CRYPTO_VERIFY_PKCS7_SIGNATURE_IN_TAG_PUBLIC_KEY_CERT,
-		.length = public_key_cert_len,
+		.length = (uint16_t)public_key_cert_len,
 		.value = public_key_cert
 	};
 

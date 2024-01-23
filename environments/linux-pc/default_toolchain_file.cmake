@@ -11,7 +11,7 @@ include_guard(GLOBAL)
 
 set(TS_DEBUG_INFO_FLAGS "-fdiagnostics-show-option -gdwarf-2" CACHE STRING "Compiler flags to add debug information.")
 set(TS_MANDATORY_AARCH_FLAGS "" CACHE STRING "Compiler flags configuring architecture specific ")
-set(TS_WARNING_FLAGS "-Wall" CACHE STRING "Compiler flags affecting generating warning messages.")
+set(TS_WARNING_FLAGS "-Wall -Werror" CACHE STRING "Compiler flags affecting generating warning messages.")
 set(TS_MANDATORY_LINKER_FLAGS "" CACHE STRING "Linker flags needed for correct builds.")
 
 # Set flags affecting all build types

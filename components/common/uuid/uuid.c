@@ -52,10 +52,7 @@ size_t uuid_is_valid(const char *canonical_form)
 	/* Note that a valid canonical uuid may be part of a longer string
 	 * such as a urn.
 	 */
-	size_t input_len = strnlen(canonical_form, UUID_CANONICAL_FORM_LEN);
-
-	if (input_len == UUID_CANONICAL_FORM_LEN) {
-
+	if (!memchr(canonical_form, '\0', UUID_CANONICAL_FORM_LEN)) {
 		size_t i;
 		valid_chars = UUID_CANONICAL_FORM_LEN;
 

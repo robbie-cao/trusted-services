@@ -42,9 +42,9 @@ check_access_permitted_on_set(const struct uefi_variable_store *context,
 			      const struct variable_info *info,
 			      const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var);
 
+#if defined(UEFI_AUTH_VAR)
 static bool compare_guid(const EFI_GUID *guid1, const EFI_GUID *guid2);
 
-#if defined(UEFI_AUTH_VAR)
 /* Creating a map of the EFI SMM variable for easier access */
 typedef struct {
 	const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *smm_variable;
@@ -70,7 +70,7 @@ static bool calc_variable_hash(const efi_data_map *var_map, uint8_t *hash_buffer
 static efi_status_t select_verification_keys(
 	const efi_data_map new_var, EFI_GUID global_variable_guid, EFI_GUID security_database_guid,
 	uint64_t maximum_variable_size,
-	const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE **allowed_key_store_variables);
+	SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE **allowed_key_store_variables);
 
 static efi_status_t verify_var_by_key_var(const efi_data_map *new_var,
 					  const efi_data_map *key_store_var,
@@ -113,7 +113,7 @@ static efi_status_t psa_to_efi_storage_status(psa_status_t psa_status);
 static efi_status_t check_name_terminator(const int16_t *name, size_t name_size);
 
 #if defined(UEFI_AUTH_VAR)
-static bool compare_name_to_key_store_name(const uint16_t *name1, size_t size1,
+static bool compare_name_to_key_store_name(const int16_t *name1, size_t size1,
 					   const uint16_t *name2, size_t size2);
 #endif
 
@@ -655,6 +655,7 @@ check_access_permitted_on_set(const struct uefi_variable_store *context,
 	return status;
 }
 
+#if defined(UEFI_AUTH_VAR)
 /*
  * Returns whether the two guid-s equal. To avoid structure padding related error
  * the fields are checked separately instead of memcmp.
@@ -666,7 +667,6 @@ static bool compare_guid(const EFI_GUID *guid1, const EFI_GUID *guid2)
 	       !memcmp(&guid1->Data4, &guid2->Data4, sizeof(guid1->Data4));
 }
 
-#if defined(UEFI_AUTH_VAR)
 /*
  * Creates a "map" that contains pointers to some of the fields of the SMM variable and the
  * UEFI variable stored in the SMM data field. This way a variable is parsed only once.
@@ -873,7 +873,7 @@ static bool calc_variable_hash(const efi_data_map *var_map, uint8_t *hash_buffer
 static efi_status_t select_verification_keys(
 	const efi_data_map new_var, EFI_GUID global_variable_guid, EFI_GUID security_database_guid,
 	uint64_t maximum_variable_size,
-	const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE **allowed_key_store_variables)
+	SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE **allowed_key_store_variables)
 {
 	/**
 	 * UEFI: Page 254
@@ -1152,7 +1152,7 @@ static efi_status_t authenticate_variable(const struct uefi_variable_store *cont
 
 	status = select_verification_keys(var_map, global_variable_guid, security_database_guid,
 				     variable_info.MaximumVariableSize,
-				     &allowed_key_store_variables);
+				     &allowed_key_store_variables[0]);
 
 	if (status != EFI_SUCCESS)
 		goto end;
@@ -1512,7 +1512,7 @@ static efi_status_t check_name_terminator(const int16_t *name, size_t name_size)
 
 #if defined(UEFI_AUTH_VAR)
 /* Compares SMM variable name to key variable name. */
-static bool compare_name_to_key_store_name(const uint16_t *name1, size_t size1,
+static bool compare_name_to_key_store_name(const int16_t *name1, size_t size1,
 					   const uint16_t *name2, size_t size2)
 {
 	if (!name1 || !name2)
