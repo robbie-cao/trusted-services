@@ -68,7 +68,7 @@ FF-A layer. Building the SPMC tests uses the same build system but with the ``SP
 .. note::
   This build configuration only contains the SPMC test SPs and it does not include any of the :ref:`Services`.
 
-See :ref:`SPMC tests` for further information.
+See :ref:`OP-TEE SPMC tests` for further information.
 
 Run SPMC tests
 --------------
