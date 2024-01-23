@@ -29,7 +29,7 @@ is structured in the same way as other service providers within the TS project. 
 component are:
 
   * Source file location:  ``components/service/uefi/smm_variable``
-  * Public interface definitions: ``protocols/service/uefi/smm_variable``
+  * Public interface definitions: ``protocols/service/smm_variable``
   * Can be used with any RPC layer - not tied to MM Communicate RPC.
   * Volatile and non-volatile storage is accessed via instances of the common *storage_backend* interface.
 
@@ -405,13 +405,12 @@ Communicate RPC protocol:
     - 0x00000000
   * - W3/X3
     - Parameter[0]
-    - Address of the MM communication buffer
-    - | ARM_SVC_ID_SP_EVENT_COMPLETE
-      | (0x84000061/0xC4000061)
+    - Data offset in the MM communication buffer
+    - SUCCESS/[MM communicate error code]
   * - W4/X4
     - Parameter[1]
-    - Size of the MM communication buffer
-    - SUCCESS/[error code]
+    - 0x00000000
+    - 0x00000000
   * - W5/X5
     - Parameter[2]
     - 0x00000000
@@ -427,6 +426,6 @@ Communicate RPC protocol:
 
 --------------
 
-*Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2021-2024, Arm Limited and Contributors. All rights reserved.*
 
 SPDX-License-Identifier: BSD-3-Clause
