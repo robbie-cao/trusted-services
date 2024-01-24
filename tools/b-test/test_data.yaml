@@ -178,14 +178,6 @@ data:
       src: "$TS_ROOT/deployments/se-proxy/config/default-sp"
       params:
             - "-GUnix Makefiles"
-    - name: "sfs-demo-opteesp"
-      src: "$TS_ROOT/deployments/sfs-demo/opteesp"
-      params:
-            - "-GUnix Makefiles"
-    - name: "sfs-demo-sp"
-      src: "$TS_ROOT/deployments/sfs-demo/sp"
-      params:
-            - "-GUnix Makefiles"
     - name: "smm-gateway-default-opteesp"
       src: "$TS_ROOT/deployments/smm-gateway/config/default-opteesp"
       params:
