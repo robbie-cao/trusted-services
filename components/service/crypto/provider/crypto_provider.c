@@ -3,9 +3,6 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <mbedtls/build_info.h>
-#include <mbedtls/pkcs7.h>
-#include <mbedtls/x509_crt.h>
 #include <protocols/rpc/common/packed-c/status.h>
 #include <protocols/service/crypto/packed-c/opcodes.h>
 #include <service/crypto/backend/crypto_backend.h>
@@ -628,6 +625,7 @@ static rpc_status_t get_key_attributes_handler(void *context, struct rpc_request
 	return rpc_status;
 }
 
+#if defined(MBEDTLS_PKCS7_C) && defined(MBEDTLS_X509_CRT_PARSE_C)
 static rpc_status_t verify_pkcs7_signature_handler(void *context, struct rpc_request *req)
 {
 	rpc_status_t rpc_status = RPC_ERROR_INTERNAL;
@@ -704,3 +702,12 @@ static rpc_status_t verify_pkcs7_signature_handler(void *context, struct rpc_req
 
 	return rpc_status;
 }
+#else
+static rpc_status_t verify_pkcs7_signature_handler(void *context, struct rpc_request *req)
+{
+	(void)context;
+	(void)req;
+
+	return RPC_ERROR_INTERNAL;
+}
+#endif

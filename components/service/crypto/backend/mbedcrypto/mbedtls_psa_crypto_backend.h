@@ -17,6 +17,11 @@
 #include MBEDTLS_PSA_CRYPTO_H
 #endif
 
+#include <mbedtls/build_info.h>
+#include <mbedtls/error.h>
+#include <mbedtls/pkcs7.h>
+#include <mbedtls/x509_crt.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

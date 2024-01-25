@@ -4,10 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <mbedtls/build_info.h>
-#include <mbedtls/error.h>
-#include <mbedtls/pkcs7.h>
-#include <mbedtls/x509_crt.h>
+#include "../mbedtls_psa_crypto_backend.h"
+
 #include <compiler.h>
 #include <stdlib.h>
 
