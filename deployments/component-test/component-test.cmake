@@ -145,7 +145,6 @@ add_components(
 		"components/service/crypto/provider/extension/aead/serializer/packed-c"
 		"components/service/crypto/provider/test"
 		"components/service/crypto/backend/mbedcrypto"
-        "components/service/crypto/backend/mbedcrypto/mbedtls_fake_x509"
 		"components/service/crypto/factory/full"
 		"components/service/crypto/test/unit"
 		"components/service/crypto/test/service"
