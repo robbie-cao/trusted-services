@@ -27,7 +27,6 @@
 #include "service/crypto/client/psa/crypto_client.h"
 #endif
 
-
 static void load_variable_index(struct uefi_variable_store *context);
 
 static efi_status_t sync_variable_index(const struct uefi_variable_store *context);
@@ -48,17 +47,17 @@ static bool compare_guid(const EFI_GUID *guid1, const EFI_GUID *guid2);
 /* Creating a map of the EFI SMM variable for easier access */
 typedef struct {
 	const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *smm_variable;
-	const uint8_t                                  *smm_variable_data;
-	const EFI_VARIABLE_AUTHENTICATION_2            *efi_auth_descriptor;
-	size_t                                         efi_auth_descriptor_len;
-	size_t                                         efi_auth_descriptor_certdata_len;
-	const uint8_t                                  *payload;
-	size_t                                         payload_len;
-	const EFI_SIGNATURE_LIST                       *efi_signature_list;
+	const uint8_t *smm_variable_data;
+	const EFI_VARIABLE_AUTHENTICATION_2 *efi_auth_descriptor;
+	size_t efi_auth_descriptor_len;
+	size_t efi_auth_descriptor_certdata_len;
+	const uint8_t *payload;
+	size_t payload_len;
+	const EFI_SIGNATURE_LIST *efi_signature_list;
 } efi_data_map;
 
 static bool init_efi_data_map(const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var,
-				      efi_data_map *map);
+			      bool with_auth_hdr, efi_data_map *map);
 
 static void create_smm_variable(SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE **variable,
 				size_t name_size, size_t data_size, const uint8_t *name,
@@ -67,17 +66,17 @@ static void create_smm_variable(SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE **varia
 static bool calc_variable_hash(const efi_data_map *var_map, uint8_t *hash_buffer,
 			       size_t hash_buffer_size, size_t *hash_len);
 
-static efi_status_t select_verification_keys(
-	const efi_data_map new_var, EFI_GUID global_variable_guid, EFI_GUID security_database_guid,
-	uint64_t maximum_variable_size,
-	SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE **allowed_key_store_variables);
+static efi_status_t
+select_verification_keys(const efi_data_map new_var, EFI_GUID global_variable_guid,
+			 EFI_GUID security_database_guid, uint64_t maximum_variable_size,
+			 SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE **allowed_key_store_variables);
 
 static efi_status_t verify_var_by_key_var(const efi_data_map *new_var,
 					  const efi_data_map *key_store_var,
 					  const uint8_t *hash_buffer, size_t hash_len);
 
 static efi_status_t authenticate_variable(const struct uefi_variable_store *context,
-					  const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var);
+					  SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var);
 #endif
 
 static efi_status_t store_variable_data(const struct uefi_variable_store *context,
@@ -199,6 +198,7 @@ efi_status_t uefi_variable_store_set_variable(const struct uefi_variable_store *
 
 	/* Validate incoming request */
 	efi_status_t status = check_name_terminator(var->Name, var->NameSize);
+
 	if (status != EFI_SUCCESS)
 		return status;
 
@@ -230,10 +230,15 @@ efi_status_t uefi_variable_store_set_variable(const struct uefi_variable_store *
 		/* Access permitted */
 		if (info->is_variable_set) {
 #if defined(UEFI_AUTH_VAR)
-			/* Check if the already created variable needs authentication */
+			/*
+			 * Check if the variable needs authentication.
+			 * The authentication header is not needed after this point so
+			 * it is deleted from the variable.
+			 */
 			if (info->metadata.attributes &
 			    EFI_VARIABLE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS) {
-				status = authenticate_variable(context, var);
+				status = authenticate_variable(
+					context, (SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *)var);
 
 				if (status != EFI_SUCCESS)
 					return status;
@@ -252,13 +257,31 @@ efi_status_t uefi_variable_store_set_variable(const struct uefi_variable_store *
 			 * EFI_VARIABLE_ENHANCED_AUTHENTICATED_WRITE_ACCESS attribute is set,
 			 * setting a data variable with zero DataSize specified, causes it to
 			 * be deleted.
+			 *
+			 * UEFI: Page 247
+			 * To delete a variable created with the
+			 * EFI_VARIABLE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS attribute,
+			 * SetVariable must be used with attributes matching the existing
+			 * variable and the DataSize set to the size of the AuthInfo descriptor.
+			 * The Data buffer must contain an instance of the AuthInfo descriptor
+			 * which will be validated according to the steps in the appropriate
+			 * section above referring to updates of Authenticated variables. An
+			 * attempt to delete a variable created with the
+			 * EFI_VARIABLE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS attribute for
+			 * which the prescribed AuthInfo validation fails or when called using
+			 * DataSize of zero will fail with an EFI_SECURITY_VIOLATION status.
+			 *
+			 * Remarks:
+			 *   In case of EFI_VARIABLE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS, the
+			 *      authentication header is already removed from the data at this
+			 *      point, so the size will be zero at this point. That is why this
+			 *      condition is removed from the check below.
 			 */
+
 			if (!(var->Attributes &
 			      (EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS)) ||
-			    (!(var->Attributes &
-			       (EFI_VARIABLE_APPEND_WRITE |
-				EFI_VARIABLE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS |
-				EFI_VARIABLE_ENHANCED_AUTHENTICATED_ACCESS)) &&
+			    (!(var->Attributes & (EFI_VARIABLE_APPEND_WRITE |
+						  EFI_VARIABLE_ENHANCED_AUTHENTICATED_ACCESS)) &&
 			     !var->DataSize)) {
 				/* It's a remove operation - for a remove, the variable
 				 * data must be removed from the storage backend before
@@ -294,9 +317,14 @@ efi_status_t uefi_variable_store_set_variable(const struct uefi_variable_store *
 			}
 		} else {
 #if defined(UEFI_AUTH_VAR)
-			/* Check if the already created variable needs authentication */
+			/*
+			 * Check if the variable needs authentication.
+			 * The authentication header is not needed after this point so
+			 * it is deleted from the variable.
+			 */
 			if (var->Attributes & EFI_VARIABLE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS) {
-				status = authenticate_variable(context, var);
+				status = authenticate_variable(
+					context, (SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *)var);
 
 				if (status != EFI_SUCCESS)
 					return status;
@@ -343,6 +371,7 @@ efi_status_t uefi_variable_store_get_variable(const struct uefi_variable_store *
 					      size_t max_data_len, size_t *total_length)
 {
 	efi_status_t status = check_name_terminator(var->Name, var->NameSize);
+
 	if (status != EFI_SUCCESS)
 		return status;
 
@@ -460,6 +489,7 @@ efi_status_t uefi_variable_store_set_var_check_property(
 	const SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *property)
 {
 	efi_status_t status = check_name_terminator(property->Name, property->NameSize);
+
 	if (status != EFI_SUCCESS)
 		return status;
 
@@ -484,9 +514,8 @@ efi_status_t uefi_variable_store_set_var_check_property(
 	status = variable_checker_set_constraints(&constraints, info->is_constraints_set,
 						  &property->VariableProperty);
 
-	if (status == EFI_SUCCESS) {
+	if (status == EFI_SUCCESS)
 		variable_index_set_constraints(info, &constraints);
-	}
 
 	variable_index_remove_unused_entry(&context->variable_index, info);
 
@@ -498,6 +527,7 @@ efi_status_t uefi_variable_store_get_var_check_property(
 	SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY *property)
 {
 	efi_status_t status = check_name_terminator(property->Name, property->NameSize);
+
 	if (status != EFI_SUCCESS)
 		return status;
 
@@ -672,7 +702,7 @@ static bool compare_guid(const EFI_GUID *guid1, const EFI_GUID *guid2)
  * UEFI variable stored in the SMM data field. This way a variable is parsed only once.
  */
 static bool init_efi_data_map(const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var,
-				      efi_data_map *map)
+			      bool with_auth_hdr, efi_data_map *map)
 {
 	bool is_valid = false;
 
@@ -684,84 +714,96 @@ static bool init_efi_data_map(const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *va
 		map->smm_variable_data =
 			(uint8_t *)var + SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(var);
 
-		map->efi_auth_descriptor = (EFI_VARIABLE_AUTHENTICATION_2 *)map->smm_variable_data;
+		if (with_auth_hdr) {
+			map->efi_auth_descriptor =
+				(EFI_VARIABLE_AUTHENTICATION_2 *)map->smm_variable_data;
 
-		if (ADD_OVERFLOW (sizeof(map->efi_auth_descriptor->TimeStamp),
-				  map->efi_auth_descriptor->AuthInfo.Hdr.dwLength,
-				  &map->efi_auth_descriptor_len)) {
-			EMSG("Auth descriptor overflow (TimeStamp - dwLength)");
-			return false;
-		}
+			if (var->DataSize < EFI_VARIABLE_AUTHENTICATION_2_SIZE_WITHOUT_CERTDATA)
+				return false;
 
-		if (map->efi_auth_descriptor_len > var->DataSize) {
-			EMSG("auth descriptor is longer than the max variable size");
-			return false;
-		}
-
-		if (SUB_OVERFLOW (map->efi_auth_descriptor->AuthInfo.Hdr.dwLength,
-				  sizeof(map->efi_auth_descriptor->AuthInfo.Hdr),
-				  &map->efi_auth_descriptor_certdata_len)) {
-			EMSG("Auth descriptor overflow (dwLength - Hdr)");
-			return false;
-		}
-
-		if (SUB_OVERFLOW (map->efi_auth_descriptor_certdata_len,
-				  sizeof(map->efi_auth_descriptor->AuthInfo.CertType),
-				  &map->efi_auth_descriptor_certdata_len)) {
-			EMSG("Auth descriptor overflow (dwLength - Hdr - CertType)");
-			return false;
-		}
-
-		if (map->efi_auth_descriptor_certdata_len > var->DataSize) {
-			EMSG("auth descriptor certdata field is longer than the max variable size");
-			return false;
-		}
-
-		if (ADD_OVERFLOW ((uintptr_t)(map->efi_auth_descriptor),
-				  map->efi_auth_descriptor_len, (uintptr_t*)(&map->payload))) {
-			EMSG("auth descriptor overflow");
-			return false;
-		}
-
-		if (SUB_OVERFLOW (map->smm_variable->DataSize, map->efi_auth_descriptor_len,
-				 &map->payload_len)) {
-			EMSG("Payload length overflow");
-			return false;
-		}
-
-		if (map->payload_len > var->DataSize) {
-			EMSG("auth descriptor certdata field is longer than the max variable size");
-			return false;
-		}
-
-		/**
-		 * Check a viable auth descriptor is present at start of variable data
-		 * and that certificates and the signature are of the right type.
-		 *
-		 * UEFI: Page 253
-		 * 1. Verify that the correct AuthInfo.CertType (EFI_CERT_TYPE_PKCS7_GUID)
-		 * has been used and that the AuthInfo.CertData value parses correctly as a
-		 * PKCS #7 SignedData value
-		 */
-		if (map->smm_variable->DataSize >= sizeof(EFI_VARIABLE_AUTHENTICATION_2) &&
-		    map->efi_auth_descriptor->AuthInfo.Hdr.wRevision ==
-		     WIN_CERT_CURRENT_VERSION &&
-		    map->efi_auth_descriptor->AuthInfo.Hdr.wCertificateType ==
-		     WIN_CERT_TYPE_EFI_GUID &&
-		    compare_guid(&pkcs7_guid, &map->efi_auth_descriptor->AuthInfo.CertType)) {
-			/*
-			* If it the descriptor fits, determine the
-			* start and length of certificate data
-			*/
-			if (map->smm_variable->DataSize >= map->efi_auth_descriptor_len) {
-				/* The certificate buffer follows the fixed sized header */
-				uintptr_t cert_data_offset =
-					(size_t)map->efi_auth_descriptor->AuthInfo.CertData -
-					(size_t)map->smm_variable_data;
-
-				if (map->efi_auth_descriptor_len >= cert_data_offset)
-					is_valid = true;
+			if (ADD_OVERFLOW(sizeof(map->efi_auth_descriptor->TimeStamp),
+					 map->efi_auth_descriptor->AuthInfo.Hdr.dwLength,
+					 &map->efi_auth_descriptor_len)) {
+				EMSG("Auth descriptor overflow (TimeStamp - dwLength)");
+				return false;
 			}
+
+			if (map->efi_auth_descriptor_len > var->DataSize) {
+				EMSG("auth descriptor is longer than the max variable size");
+				return false;
+			}
+
+			if (SUB_OVERFLOW(map->efi_auth_descriptor->AuthInfo.Hdr.dwLength,
+					 sizeof(map->efi_auth_descriptor->AuthInfo.Hdr),
+					 &map->efi_auth_descriptor_certdata_len)) {
+				EMSG("Auth descriptor overflow (dwLength - Hdr)");
+				return false;
+			}
+
+			if (SUB_OVERFLOW(map->efi_auth_descriptor_certdata_len,
+					 sizeof(map->efi_auth_descriptor->AuthInfo.CertType),
+					 &map->efi_auth_descriptor_certdata_len)) {
+				EMSG("Auth descriptor overflow (dwLength - Hdr - CertType)");
+				return false;
+			}
+
+			if (map->efi_auth_descriptor_certdata_len > var->DataSize) {
+				EMSG("auth descriptor certdata field is longer than the max variable size");
+				return false;
+			}
+
+			if (ADD_OVERFLOW((uintptr_t)(map->efi_auth_descriptor),
+					 map->efi_auth_descriptor_len,
+					 (uintptr_t *)(&map->payload))) {
+				EMSG("auth descriptor overflow");
+				return false;
+			}
+
+			if (SUB_OVERFLOW(map->smm_variable->DataSize, map->efi_auth_descriptor_len,
+					 &map->payload_len)) {
+				EMSG("Payload length overflow");
+				return false;
+			}
+
+			if (map->payload_len > map->smm_variable->DataSize) {
+				EMSG("auth descriptor certdata field is longer than the max variable size");
+				return false;
+			}
+
+			/**
+			 * Check a viable auth descriptor is present at start of variable data
+			 * and that certificates and the signature are of the right type.
+			 *
+			 * UEFI: Page 253
+			 * 1. Verify that the correct AuthInfo.CertType (EFI_CERT_TYPE_PKCS7_GUID)
+			 * has been used and that the AuthInfo.CertData value parses correctly as a
+			 * PKCS #7 SignedData value
+			 */
+			if (map->smm_variable->DataSize >= map->efi_auth_descriptor_len &&
+			    map->efi_auth_descriptor->AuthInfo.Hdr.wRevision ==
+				    WIN_CERT_CURRENT_VERSION &&
+			    map->efi_auth_descriptor->AuthInfo.Hdr.wCertificateType ==
+				    WIN_CERT_TYPE_EFI_GUID &&
+			    compare_guid(&pkcs7_guid,
+					 &map->efi_auth_descriptor->AuthInfo.CertType)) {
+				/*
+				 * If it the descriptor fits, determine the
+				 * start and length of certificate data
+				 */
+				if (map->smm_variable->DataSize >= map->efi_auth_descriptor_len) {
+					/* The certificate buffer follows the fixed sized header */
+					uintptr_t cert_data_offset =
+						(size_t)map->efi_auth_descriptor->AuthInfo.CertData -
+						(size_t)map->smm_variable_data;
+
+					if (map->efi_auth_descriptor_len >= cert_data_offset)
+						is_valid = true;
+				}
+			}
+		} else {
+			map->payload = map->smm_variable_data;
+			map->payload_len = map->smm_variable->DataSize;
+			is_valid = true;
 		}
 
 		if (is_valid) {
@@ -870,10 +912,10 @@ static bool calc_variable_hash(const efi_data_map *var_map, uint8_t *hash_buffer
 	return false;
 }
 
-static efi_status_t select_verification_keys(
-	const efi_data_map new_var, EFI_GUID global_variable_guid, EFI_GUID security_database_guid,
-	uint64_t maximum_variable_size,
-	SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE **allowed_key_store_variables)
+static efi_status_t
+select_verification_keys(const efi_data_map new_var, EFI_GUID global_variable_guid,
+			 EFI_GUID security_database_guid, uint64_t maximum_variable_size,
+			 SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE **allowed_key_store_variables)
 {
 	/**
 	 * UEFI: Page 254
@@ -1025,7 +1067,7 @@ static efi_status_t verify_var_by_key_var(const efi_data_map *new_var,
  * then verifies it.
  */
 static efi_status_t authenticate_variable(const struct uefi_variable_store *context,
-					  const SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var)
+					  SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *var)
 {
 	efi_status_t status = EFI_SUCCESS;
 	EFI_GUID pkcs7_guid = EFI_CERT_TYPE_PKCS7_GUID;
@@ -1034,10 +1076,14 @@ static efi_status_t authenticate_variable(const struct uefi_variable_store *cont
 	SMM_VARIABLE_COMMUNICATE_QUERY_VARIABLE_INFO variable_info = { 0, 0, 0, 0 };
 	SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE *pk_variable = NULL;
 	size_t pk_payload_size = 0;
-	efi_data_map var_map;
+	efi_data_map var_map = { NULL, NULL, NULL, 0, 0, NULL, 0, NULL };
 	uint8_t hash_buffer[PSA_HASH_MAX_SIZE];
 	size_t hash_len = 0;
 	bool hash_result = false;
+
+	/* Create a map of the fields of the new variable including the auth header */
+	if (!init_efi_data_map(var, true, &var_map))
+		return EFI_SECURITY_VIOLATION;
 
 	/* database variables can be verified by either PK or KEK while images
 	 * should be checked by db and dbx so the length of two will be enough.
@@ -1085,7 +1131,8 @@ static efi_status_t authenticate_variable(const struct uefi_variable_store *cont
 	/* If PK does not exist authentication is disabled */
 	if (status != EFI_SUCCESS) {
 		free(pk_variable);
-		return EFI_SUCCESS;
+		status = EFI_SUCCESS;
+		goto end;
 	}
 
 	/*
@@ -1097,7 +1144,8 @@ static efi_status_t authenticate_variable(const struct uefi_variable_store *cont
 	{
 		efi_data_map pk_var_map;
 
-		if (!init_efi_data_map(pk_variable, &pk_var_map)) {
+		/* Authentication header is not stored, so don't search for it! */
+		if (!init_efi_data_map(pk_variable, false, &pk_var_map)) {
 			free(pk_variable);
 			return EFI_SECURITY_VIOLATION;
 		}
@@ -1107,12 +1155,10 @@ static efi_status_t authenticate_variable(const struct uefi_variable_store *cont
 	}
 
 	/* If PK exists, but is empty the authentication is disabled */
-	if (pk_payload_size == 0)
-		return EFI_SUCCESS;
-
-	/* Create a map of the fields of the new variable for easier access */
-	if (!init_efi_data_map(var, &var_map))
-		return EFI_SECURITY_VIOLATION;
+	if (pk_payload_size == 0) {
+		status = EFI_SUCCESS;
+		goto end;
+	}
 
 	/**
 	 * UEFI: Page 246
@@ -1150,21 +1196,21 @@ static efi_status_t authenticate_variable(const struct uefi_variable_store *cont
 		return EFI_SECURITY_VIOLATION;
 	}
 
-	status = select_verification_keys(var_map, global_variable_guid, security_database_guid,
-				     variable_info.MaximumVariableSize,
-				     &allowed_key_store_variables[0]);
-
-	if (status != EFI_SUCCESS)
-		goto end;
-
 	/* Calculate hash for the variable only once */
-	hash_result = calc_variable_hash(&var_map, (uint8_t *)&hash_buffer,
-					      sizeof(hash_buffer), &hash_len);
+	hash_result = calc_variable_hash(&var_map, (uint8_t *)&hash_buffer, sizeof(hash_buffer),
+					 &hash_len);
 
 	if (!hash_result) {
 		status = EFI_SECURITY_VIOLATION;
 		goto end;
 	}
+
+	status = select_verification_keys(var_map, global_variable_guid, security_database_guid,
+					  variable_info.MaximumVariableSize,
+					  &allowed_key_store_variables[0]);
+
+	if (status != EFI_SUCCESS)
+		goto end;
 
 	for (int i = 0; i < ARRAY_SIZE(allowed_key_store_variables); i++) {
 		size_t actual_variable_length = 0; /* Unused */
@@ -1177,12 +1223,16 @@ static efi_status_t authenticate_variable(const struct uefi_variable_store *cont
 							  variable_info.MaximumVariableSize,
 							  &actual_variable_length);
 
-		if (status)
+		if (status) {
+			/* When the parent does not exist it is considered verification failure */
+			if (status == EFI_NOT_FOUND)
+				status = EFI_SECURITY_VIOLATION;
 			goto end;
+		}
 
 		/* Create a map of the variable fields for easier access */
-		if (!init_efi_data_map(allowed_key_store_variables[i],
-					   &allowed_key_store_var_map)) {
+		if (!init_efi_data_map(allowed_key_store_variables[i], false,
+				       &allowed_key_store_var_map)) {
 			status = EFI_SECURITY_VIOLATION;
 			goto end;
 		}
@@ -1191,7 +1241,7 @@ static efi_status_t authenticate_variable(const struct uefi_variable_store *cont
 					       (uint8_t *)&hash_buffer, hash_len);
 
 		if (status == EFI_SUCCESS)
-			break;
+			goto end;
 	}
 
 end:
@@ -1199,6 +1249,18 @@ end:
 	for (int i = 0; i < ARRAY_SIZE(allowed_key_store_variables); i++) {
 		if (allowed_key_store_variables[i])
 			free(allowed_key_store_variables[i]);
+	}
+
+	/* Remove the authentication header from the variable if the authentication is successful */
+	if (status == EFI_SUCCESS) {
+		uint8_t *smm_payload =
+			(uint8_t *)var + SMM_VARIABLE_COMMUNICATE_ACCESS_VARIABLE_DATA_OFFSET(var);
+
+		memmove(smm_payload, var_map.payload, var_map.payload_len);
+		memset((uint8_t *)smm_payload + var_map.payload_len, 0,
+		       var_map.efi_auth_descriptor_len);
+
+		var->DataSize -= var_map.efi_auth_descriptor_len;
 	}
 
 	return status;
@@ -1347,13 +1409,15 @@ static psa_status_t store_append_write(struct delegate_variable_store *delegate_
 		return PSA_ERROR_INVALID_ARGUMENT;
 
 	/* Storage backend doesn't support an append operation so we need
-	 * need to read the current variable data, extend it and write it back.
+	 * to read the current variable data, extend it and write it back.
 	 */
 	uint8_t *rw_buf = malloc(new_size);
+
 	if (!rw_buf)
 		return PSA_ERROR_INSUFFICIENT_MEMORY;
 
 	size_t old_size = 0;
+
 	psa_status = delegate_store->storage_backend->interface->get(
 		delegate_store->storage_backend->context, client_id, uid, 0, new_size, rw_buf,
 		&old_size);
@@ -1383,6 +1447,7 @@ static void purge_orphan_index_entries(const struct uefi_variable_store *context
 {
 	bool any_orphans = false;
 	struct variable_index_iterator iter;
+
 	variable_index_iterator_first(&iter, &context->variable_index);
 
 	/* Iterate over variable index looking for any entries for NV
@@ -1434,6 +1499,7 @@ static size_t space_used(const struct uefi_variable_store *context, uint32_t att
 
 	size_t total_used = 0;
 	struct variable_index_iterator iter;
+
 	variable_index_iterator_first(&iter, &context->variable_index);
 
 	while (!variable_index_iterator_is_done(&iter)) {
@@ -1503,9 +1569,8 @@ static efi_status_t psa_to_efi_storage_status(psa_status_t psa_status)
 static efi_status_t check_name_terminator(const int16_t *name, size_t name_size)
 {
 	/* Variable names must be null terminated */
-	if (name_size < sizeof(int16_t) || name[name_size / sizeof(int16_t) - 1] != u'\0') {
+	if (name_size < sizeof(int16_t) || name[name_size / sizeof(int16_t) - 1] != u'\0')
 		return EFI_INVALID_PARAMETER;
-	}
 
 	return EFI_SUCCESS;
 }
@@ -1520,6 +1585,6 @@ static bool compare_name_to_key_store_name(const int16_t *name1, size_t size1,
 	if (size1 != size2)
 		return false;
 
-	return 0 == memcmp((void *)name1, (void *)name2, size1);
+	return memcmp((void *)name1, (void *)name2, size1) == 0;
 }
 #endif

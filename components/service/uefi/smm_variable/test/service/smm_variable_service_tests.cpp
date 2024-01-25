@@ -6,6 +6,7 @@
 
 #include <CppUTest/TestHarness.h>
 #include <cstring>
+
 #include "util.h"
 
 #if defined(UEFI_AUTH_VAR)
@@ -75,24 +76,31 @@ TEST_GROUP(SmmVariableServiceTests)
 	efi_status_t cleanupPersistentStore()
 	{
 		std::u16string var_name = to_variable_name(u"");
+		std::string get_data;
 		EFI_GUID guid;
 		efi_status_t status;
 
 		memset(&guid, 0, sizeof(guid));
 
 #if defined(UEFI_AUTH_VAR)
-		/*
-		 * PK must be cleared to disable authentication so other
-		 * variables can be deleted easily. Return value is not
-		 * checked, because if there is no PK in the store it
-		 * will not be found.
-		 */
-		status = m_client->set_variable(m_global_guid, u"PK", PK1_delete_auth,
-					     sizeof(PK1_delete_auth),
-					     m_authentication_common_attributes);
 
-		if (status)
-			printf("\n\tCannot remove PK");
+		/* Remove PK if exists */
+		status = m_client->get_variable(m_global_guid, u"PK", get_data);
+
+		if (status == EFI_SUCCESS) {
+			/*
+			* PK must be cleared to disable authentication so other
+			* variables can be deleted easily. Return value is not
+			* checked, because if there is no PK in the store it
+			* will not be found.
+			*/
+			status = m_client->set_variable(m_global_guid, u"PK", PK1_delete_auth,
+							sizeof(PK1_delete_auth),
+							m_authentication_common_attributes);
+
+			if (status)
+				printf("\n\tCannot remove PK");
+		}
 
 		/*
 		 * Note:
@@ -110,6 +118,18 @@ TEST_GROUP(SmmVariableServiceTests)
 
 			status = m_client->remove_variable(guid, var_name);
 
+#if defined(UEFI_AUTH_VAR)
+			/*
+			 * Authenticated variables can be removed only with authentication
+			 * header. If the variable could not be removed with a normal call,
+			 * try again with an empty header.
+			 */
+			if (status) {
+				status = m_client->set_variable(guid, var_name, m_empty_auth_header,
+								sizeof(m_empty_auth_header),
+								m_authentication_common_attributes);
+			}
+#endif
 			/*
 			 * If the variable was successfully removed the fields are cleared so
 			 * the iteration will start again from the first available variable.
@@ -150,6 +170,18 @@ TEST_GROUP(SmmVariableServiceTests)
 		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS |
 		EFI_VARIABLE_BOOTSERVICE_ACCESS |
 		EFI_VARIABLE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS;
+	uint8_t m_empty_auth_header[40] = { /* TimeStamp */
+					    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+					    /* dwLength = header size - sizeof (TimeStamp) */
+					    24, 0, 0, 0,
+					    /* wRevision = WIN_CERT_CURRENT_VERSION */
+					    0x00, 0x02,
+					    /* wCertificateType = WIN_CERT_TYPE_EFI_GUID */
+					    0xF1, 0x0E,
+					    /* CertType = EFI_CERT_TYPE_PKCS7_GUID */
+					    0x9d, 0xd2, 0xaf, 0x4a, 0xdf, 0x68, 0xee, 0x49, 0x8a,
+					    0xa9, 0x34, 0x7d, 0x37, 0x56, 0x65, 0xa7
+	};
 #endif
 };
 
@@ -322,13 +354,13 @@ TEST(SmmVariableServiceTests, runtimeStateAccessControl)
 
 	/* Add variables with runtime state access control */
 	efi_status = m_client->set_variable(m_common_guid, boot_var_name, boot_set_data,
-						EFI_VARIABLE_BOOTSERVICE_ACCESS);
+					    EFI_VARIABLE_BOOTSERVICE_ACCESS);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
-	efi_status = m_client->set_variable(
-		m_common_guid, runtime_var_name, runtime_set_data,
-		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS |
-			EFI_VARIABLE_BOOTSERVICE_ACCESS);
+	efi_status =
+		m_client->set_variable(m_common_guid, runtime_var_name, runtime_set_data,
+				       EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_RUNTIME_ACCESS |
+					       EFI_VARIABLE_BOOTSERVICE_ACCESS);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Expect access to boot variable to be permitted */
@@ -364,10 +396,10 @@ TEST(SmmVariableServiceTests, runtimeStateAccessControl)
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Set a non-volatile read-only variable marking the end of the boot phase */
-	efi_status = m_client->set_variable(m_common_guid, boot_finished_var_name, boot_finished_var_data,
-					EFI_VARIABLE_NON_VOLATILE |
-					EFI_VARIABLE_BOOTSERVICE_ACCESS |
-					EFI_VARIABLE_RUNTIME_ACCESS);
+	efi_status = m_client->set_variable(
+		m_common_guid, boot_finished_var_name, boot_finished_var_data,
+		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS |
+			EFI_VARIABLE_RUNTIME_ACCESS);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -379,8 +411,8 @@ TEST(SmmVariableServiceTests, runtimeStateAccessControl)
 	check_property.MinSize = 0;
 	check_property.MaxSize = 100;
 
-	efi_status =
-		m_client->set_var_check_property(m_common_guid, boot_finished_var_name, check_property);
+	efi_status = m_client->set_var_check_property(m_common_guid, boot_finished_var_name,
+						      check_property);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 }
 
@@ -398,9 +430,9 @@ TEST(SmmVariableServiceTests, readOnlyConstraint)
 	if (efi_status != EFI_SUCCESS) {
 		/* Add a variable to the store */
 		efi_status = m_client->set_variable(m_common_guid, var_name_1, set_data,
-						EFI_VARIABLE_NON_VOLATILE |
-						EFI_VARIABLE_BOOTSERVICE_ACCESS |
-							EFI_VARIABLE_RUNTIME_ACCESS);
+						    EFI_VARIABLE_NON_VOLATILE |
+							    EFI_VARIABLE_BOOTSERVICE_ACCESS |
+							    EFI_VARIABLE_RUNTIME_ACCESS);
 
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -420,7 +452,7 @@ TEST(SmmVariableServiceTests, readOnlyConstraint)
 		VAR_CHECK_VARIABLE_PROPERTY got_check_property;
 
 		efi_status = m_client->get_var_check_property(m_common_guid, var_name_1,
-							got_check_property);
+							      got_check_property);
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 		UNSIGNED_LONGS_EQUAL(check_property.Revision, got_check_property.Revision);
@@ -478,20 +510,23 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 	std::u16string var_name_3 = to_variable_name(u"variable_3");
 	std::string set_data = "Some variable data";
 
-	efi_status =
-		m_client->set_variable(m_common_guid, var_name_1, set_data,
-				       EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE);
+	efi_status = m_client->set_variable(m_common_guid, var_name_1, set_data,
+					    EFI_VARIABLE_BOOTSERVICE_ACCESS |
+						    EFI_VARIABLE_RUNTIME_ACCESS |
+						    EFI_VARIABLE_NON_VOLATILE);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
-	efi_status =
-		m_client->set_variable(m_common_guid, var_name_2, set_data,
-				       EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS |  EFI_VARIABLE_NON_VOLATILE);
+	efi_status = m_client->set_variable(m_common_guid, var_name_2, set_data,
+					    EFI_VARIABLE_BOOTSERVICE_ACCESS |
+						    EFI_VARIABLE_RUNTIME_ACCESS |
+						    EFI_VARIABLE_NON_VOLATILE);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	efi_status = m_client->set_variable(m_common_guid, var_name_3, set_data,
-					    EFI_VARIABLE_BOOTSERVICE_ACCESS |  EFI_VARIABLE_RUNTIME_ACCESS);
+					    EFI_VARIABLE_BOOTSERVICE_ACCESS |
+						    EFI_VARIABLE_RUNTIME_ACCESS);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -522,11 +557,11 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 	 * are added to a list and we check if all of them are added by iterating through
 	 * all elements of the store.
 	 */
-	std::u16string var_name=to_variable_name(u"");
+	std::u16string var_name = to_variable_name(u"");
 	EFI_GUID guid;
 	memset(&guid, 0, sizeof(guid));
 
-	std::u16string *expected_variables[] = {&var_name_1, &var_name_2, &var_name_3};
+	std::u16string *expected_variables[] = { &var_name_1, &var_name_2, &var_name_3 };
 
 	do {
 		efi_status = m_client->get_next_variable_name(guid, var_name);
@@ -535,15 +570,15 @@ TEST(SmmVariableServiceTests, enumerateStoreContents)
 
 		for (unsigned int i = 0; i < ARRAY_SIZE(expected_variables); i++) {
 			/* Skipp NULL elements*/
-			if(!expected_variables[i])
+			if (!expected_variables[i])
 				continue;
 			/* Check if the found variable is in the expected list */
 			if (!var_name.compare(*expected_variables[i])) {
-				if((*expected_variables[i]).size() == var_name.size())
+				if ((*expected_variables[i]).size() == var_name.size())
 					expected_variables[i] = NULL;
 			}
 		}
-	}while(1);
+	} while (1);
 
 	// Fail if sore content enumeration failed.
 	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, efi_status);
@@ -572,7 +607,8 @@ TEST(SmmVariableServiceTests, setSizeConstraint)
 
 	/* Add a variable to the store */
 	efi_status = m_client->set_variable(m_common_guid, var_name_1, set_data,
-					    EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS);
+					    EFI_VARIABLE_BOOTSERVICE_ACCESS |
+						    EFI_VARIABLE_RUNTIME_ACCESS);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -596,7 +632,8 @@ TEST(SmmVariableServiceTests, setSizeConstraint)
 
 	/* But setting a value that's within the constraints should work */
 	efi_status = m_client->set_variable(m_common_guid, var_name_1, std::string("Small value"),
-					    EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS);
+					    EFI_VARIABLE_BOOTSERVICE_ACCESS |
+						    EFI_VARIABLE_RUNTIME_ACCESS);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	/* Removing should be allowed though */
@@ -655,17 +692,17 @@ TEST(SmmVariableServiceTests, authenticationSetAllKeys)
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Try setting db1 and custom variable without KEK */
-	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth, sizeof(DB1_auth),
-					m_authentication_common_attributes);
-	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
+	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth,
+					sizeof(DB1_auth), m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SECURITY_VIOLATION, status);
 
 	status = m_client->set_variable(m_common_guid, u"var", VAR_auth, sizeof(VAR_auth),
 					m_authentication_common_attributes);
-	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SECURITY_VIOLATION, status);
 
 	/* Set db2 that was signed by OK */
-	status = m_client->set_variable(m_security_database_guid, u"db", DB2_auth, sizeof(DB2_auth),
-					m_authentication_common_attributes);
+	status = m_client->set_variable(m_security_database_guid, u"db", DB2_auth,
+					sizeof(DB2_auth), m_authentication_common_attributes);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Set KEK */
@@ -679,8 +716,8 @@ TEST(SmmVariableServiceTests, authenticationSetAllKeys)
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SECURITY_VIOLATION, status);
 
 	/* Set db and var and then overwrite var */
-	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth, sizeof(DB1_auth),
-					m_authentication_common_attributes);
+	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth,
+					sizeof(DB1_auth), m_authentication_common_attributes);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	status = m_client->set_variable(m_common_guid, u"var", VAR_auth, sizeof(VAR_auth),
@@ -706,8 +743,8 @@ TEST(SmmVariableServiceTests, authenticationDelete)
 					m_authentication_common_attributes);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
-	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth, sizeof(DB1_auth),
-					m_authentication_common_attributes);
+	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth,
+					sizeof(DB1_auth), m_authentication_common_attributes);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Remove KEK and try overwriting db with a valid request which should fail without KEK */
@@ -716,8 +753,8 @@ TEST(SmmVariableServiceTests, authenticationDelete)
 					m_authentication_common_attributes);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
-	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth, sizeof(DB1_auth),
-					m_authentication_common_attributes);
+	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth,
+					sizeof(DB1_auth), m_authentication_common_attributes);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SECURITY_VIOLATION, status);
 
 	/* Although db was not overwritten the original value is still available to verify the custom variable */
@@ -735,8 +772,8 @@ TEST(SmmVariableServiceTests, authenticationDelete)
 					m_authentication_common_attributes);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
-	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth, sizeof(DB1_auth),
-					m_authentication_common_attributes);
+	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth,
+					sizeof(DB1_auth), m_authentication_common_attributes);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 }
 
@@ -805,9 +842,9 @@ TEST(SmmVariableServiceTests, authenticationSignatureVerifyFailure)
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SECURITY_VIOLATION, status);
 
 	/* db can not be set, because KEK was not added to the store */
-	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth, sizeof(DB1_auth),
-					m_authentication_common_attributes);
-	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
+	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth,
+					sizeof(DB1_auth), m_authentication_common_attributes);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SECURITY_VIOLATION, status);
 
 	/* Set correct KEK */
 	status = m_client->set_variable(m_global_guid, u"KEK", KEK_auth, sizeof(KEK_auth),
@@ -815,8 +852,8 @@ TEST(SmmVariableServiceTests, authenticationSignatureVerifyFailure)
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
 	/* Set db */
-	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth, sizeof(DB1_auth),
-					m_authentication_common_attributes);
+	status = m_client->set_variable(m_security_database_guid, u"db", DB1_auth,
+					sizeof(DB1_auth), m_authentication_common_attributes);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 }
 #endif
