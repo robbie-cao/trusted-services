@@ -36,9 +36,9 @@ TEST(SfsRamTests, itsStorageLimitTest)
     its_api_tests::storageLimitTest(5000);
 }
 
-TEST(SfsRamTests, psCreateAndSet)
+TEST(SfsRamTests, Set)
 {
-    ps_api_tests::createAndSet();
+    ps_api_tests::set();
 }
 
 TEST(SfsRamTests, psCreateAndSetExtended)

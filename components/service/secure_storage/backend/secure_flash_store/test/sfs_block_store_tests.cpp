@@ -74,9 +74,9 @@ TEST(SfsBlockStoreTests, itsStorageLimitTest)
 	its_api_tests::storageLimitTest(5000);
 }
 
-TEST(SfsBlockStoreTests, psCreateAndSet)
+TEST(SfsBlockStoreTests, psSet)
 {
-	ps_api_tests::createAndSet();
+	ps_api_tests::set();
 }
 
 TEST(SfsBlockStoreTests, psCreateAndSetExtended)

@@ -40,9 +40,9 @@ TEST(MockStoreTests, itsStorageLimitTest)
     its_api_tests::storageLimitTest(MOCK_STORE_ITEM_SIZE_LIMIT);
 }
 
-TEST(MockStoreTests, psCreateAndSet)
+TEST(MockStoreTests, psSet)
 {
-    ps_api_tests::createAndSet();
+    ps_api_tests::set();
 }
 
 TEST(MockStoreTests, psCreateAndSetExtended)

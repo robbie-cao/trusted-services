@@ -97,9 +97,9 @@ TEST(SecureStorageProxyTests, itsStorageLimitTest)
     its_api_tests::storageLimitTest(MOCK_STORE_ITEM_SIZE_LIMIT);
 }
 
-TEST(SecureStorageProxyTests, psCreateAndSet)
+TEST(SecureStorageProxyTests, psSet)
 {
-    ps_api_tests::createAndSet();
+    ps_api_tests::set();
 }
 
 TEST(SecureStorageProxyTests, psCreateAndSetExtended)
