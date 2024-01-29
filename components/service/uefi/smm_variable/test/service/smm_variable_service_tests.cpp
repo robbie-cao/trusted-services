@@ -20,6 +20,8 @@
 #include "auth_vectors/db1.h"
 #include "auth_vectors/db2.h"
 #include "auth_vectors/var.h"
+#include "auth_vectors/var_data.h"
+#include "auth_vectors/var_delete.h"
 #endif
 #include "protocols/rpc/common/packed-c/encoding.h"
 #include "service/uefi/smm_variable/client/cpp/smm_variable_client.h"
@@ -203,7 +205,7 @@ TEST(SmmVariableServiceTests, setAndGet)
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	UNSIGNED_LONGS_EQUAL(set_data.size(), get_data.size());
-	LONGS_EQUAL(0, get_data.compare(set_data));
+	STRCMP_EQUAL(set_data.c_str(), get_data.c_str());
 
 	/* Extend the variable using an append write */
 	std::string append_data = " values added with append write";
@@ -223,11 +225,14 @@ TEST(SmmVariableServiceTests, setAndGet)
 
 	/* Expect the append write operation to have extended the variable */
 	UNSIGNED_LONGLONGS_EQUAL(appended_data.size(), get_data.size());
-	LONGS_EQUAL(0, appended_data.compare(get_data));
+	STRCMP_EQUAL(appended_data.c_str(), get_data.c_str());
 
 	/* Expect remove to be permitted */
 	efi_status = m_client->remove_variable(m_common_guid, var_name);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	efi_status = m_client->get_variable(m_common_guid, var_name, get_data);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, efi_status);
 }
 
 TEST(SmmVariableServiceTests, setAndGetNv)
@@ -249,7 +254,7 @@ TEST(SmmVariableServiceTests, setAndGetNv)
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 	UNSIGNED_LONGS_EQUAL(set_data.size(), get_data.size());
-	LONGS_EQUAL(0, get_data.compare(set_data));
+	STRCMP_EQUAL(set_data.c_str(), get_data.c_str());
 
 	/* Extend the variable using an append write */
 	std::string append_data = " values added with append write";
@@ -269,11 +274,14 @@ TEST(SmmVariableServiceTests, setAndGetNv)
 
 	/* Expect the append write operation to have extended the variable */
 	UNSIGNED_LONGLONGS_EQUAL(appended_data.size(), get_data.size());
-	LONGS_EQUAL(0, appended_data.compare(get_data));
+	STRCMP_EQUAL(appended_data.c_str(), get_data.c_str());
 
 	/* Expect remove to be permitted */
 	efi_status = m_client->remove_variable(m_common_guid, var_name);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	efi_status = m_client->get_variable(m_common_guid, var_name, get_data);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, efi_status);
 }
 
 TEST(SmmVariableServiceTests, getVarSize)
@@ -299,6 +307,9 @@ TEST(SmmVariableServiceTests, getVarSize)
 	/* Expect remove to be permitted */
 	efi_status = m_client->remove_variable(m_common_guid, var_name);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	efi_status = m_client->get_variable(m_common_guid, var_name, get_data);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, efi_status);
 }
 
 TEST(SmmVariableServiceTests, getVarSizeNv)
@@ -325,6 +336,9 @@ TEST(SmmVariableServiceTests, getVarSizeNv)
 	/* Expect remove to be permitted */
 	efi_status = m_client->remove_variable(m_common_guid, var_name);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
+
+	efi_status = m_client->get_variable(m_common_guid, var_name, get_data);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, efi_status);
 }
 
 /* This test makes the irreversible transition from boot to runtime
@@ -345,10 +359,9 @@ TEST(SmmVariableServiceTests, runtimeStateAccessControl)
 
 	efi_status = m_client->get_variable(m_common_guid, boot_finished_var_name, get_data);
 	if (efi_status != EFI_NOT_FOUND) {
-		printf("\n\t"
-		       "runtimeStateAccessControl testcase can only run once per boot cycle. "
-		       "It exits boot state, blocking access to the added boot variables, "
-		       "so the test is skipped for now.\n");
+		UT_PRINT("runtimeStateAccessControl testcase can only run once per boot cycle. "
+		        "It exits boot state, blocking access to the added boot variables, "
+		        "so the test is skipped for now.");
 		return;
 	}
 
@@ -367,7 +380,7 @@ TEST(SmmVariableServiceTests, runtimeStateAccessControl)
 	efi_status = m_client->get_variable(m_common_guid, boot_var_name, get_data);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 	UNSIGNED_LONGS_EQUAL(boot_set_data.size(), get_data.size());
-	LONGS_EQUAL(0, get_data.compare(boot_set_data));
+	STRCMP_EQUAL(boot_set_data.c_str(), get_data.c_str());
 
 	/* Expect access to the runtime variable to also be permitted during boot */
 	efi_status = m_client->get_variable(m_common_guid, runtime_var_name, get_data);
@@ -385,7 +398,7 @@ TEST(SmmVariableServiceTests, runtimeStateAccessControl)
 	efi_status = m_client->get_variable(m_common_guid, runtime_var_name, get_data);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 	UNSIGNED_LONGS_EQUAL(runtime_set_data.size(), get_data.size());
-	LONGS_EQUAL(0, get_data.compare(runtime_set_data));
+	STRCMP_EQUAL(runtime_set_data.c_str(), get_data.c_str());
 
 	/* Expect removing boot variable to be forbidden */
 	efi_status = m_client->remove_variable(m_common_guid, boot_var_name);
@@ -460,6 +473,8 @@ TEST(SmmVariableServiceTests, readOnlyConstraint)
 		UNSIGNED_LONGS_EQUAL(check_property.Property, got_check_property.Property);
 		UNSIGNED_LONGS_EQUAL(check_property.MinSize, got_check_property.MinSize);
 		UNSIGNED_LONGS_EQUAL(check_property.MaxSize, got_check_property.MaxSize);
+	} else {
+		UT_PRINT("Read-only variable already exists");
 	}
 
 	/* Attempt to modify variable */
@@ -476,7 +491,7 @@ TEST(SmmVariableServiceTests, readOnlyConstraint)
 
 	/* Variable value should be unmodified */
 	UNSIGNED_LONGS_EQUAL(set_data.size(), get_data.size());
-	LONGS_EQUAL(0, get_data.compare(set_data));
+	STRCMP_EQUAL(set_data.c_str(), get_data.c_str());
 }
 
 TEST(SmmVariableServiceTests, enumerateStoreContents)
@@ -667,11 +682,17 @@ TEST(SmmVariableServiceTests, checkMaxVariablePayload)
 TEST(SmmVariableServiceTests, authenticationDisabled)
 {
 	efi_status_t status;
+	std::string read_data;
 
 	/* Without PK the authentication is disabled so each variable are writable, even in wrong order */
 	status = m_client->set_variable(m_common_guid, u"var", VAR_auth, sizeof(VAR_auth),
 					m_authentication_common_attributes);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	status = m_client->get_variable(m_common_guid, u"var", read_data);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+	UNSIGNED_LONGS_EQUAL(var_data_txt_len, read_data.size());
+	MEMCMP_EQUAL(var_data_txt, read_data.c_str(), var_data_txt_len);
 
 	status = m_client->set_variable(m_security_database_guid, u"db", (uint8_t *)DB1_auth,
 					sizeof(DB1_auth), m_authentication_common_attributes);
@@ -685,6 +706,7 @@ TEST(SmmVariableServiceTests, authenticationDisabled)
 TEST(SmmVariableServiceTests, authenticationSetAllKeys)
 {
 	efi_status_t status;
+	std::string read_data;
 
 	/* Enable authentication via setting PK */
 	status = m_client->set_variable(m_global_guid, u"PK", PK1_auth, sizeof(PK1_auth),
@@ -720,13 +742,28 @@ TEST(SmmVariableServiceTests, authenticationSetAllKeys)
 					sizeof(DB1_auth), m_authentication_common_attributes);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
+	/* The variable is not yet set */
+	status = m_client->get_variable(m_common_guid, u"var", read_data);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
+
+	/* Set variable */
 	status = m_client->set_variable(m_common_guid, u"var", VAR_auth, sizeof(VAR_auth),
 					m_authentication_common_attributes);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 
-	status = m_client->set_variable(m_common_guid, u"var", VAR_auth, sizeof(VAR_auth),
+	/* Get and validate variable value */
+	status = m_client->get_variable(m_common_guid, u"var", read_data);
+	UNSIGNED_LONGS_EQUAL(var_data_txt_len, read_data.size());
+	MEMCMP_EQUAL(var_data_txt, read_data.c_str(), var_data_txt_len);
+
+	/* Set variable with empty payload */
+	status = m_client->set_variable(m_common_guid, u"var", VAR_delete_auth, sizeof(VAR_delete_auth),
 					m_authentication_common_attributes);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
+
+	/* Check if it doesn't exist */
+	status = m_client->get_variable(m_common_guid, u"var", read_data);
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, status);
 }
 
 TEST(SmmVariableServiceTests, authenticationDelete)

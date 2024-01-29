@@ -205,6 +205,8 @@ efi_status_t smm_variable_client::get_variable(const EFI_GUID &guid, const std::
 				} else if (efi_status == EFI_BUFFER_TOO_SMALL) {
 					data.clear();
 					data.insert(0, data_size, '!');
+				} else {
+					efi_status = EFI_PROTOCOL_ERROR;
 				}
 			}
 		} else {

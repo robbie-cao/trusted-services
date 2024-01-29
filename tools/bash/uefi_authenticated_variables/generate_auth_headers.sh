@@ -29,10 +29,9 @@
 # @enduml
 
 # Check environment
-which sign-efi-sig-list     || echo "Please install 'efitools'"
-which sbsign                || echo "Please install 'efitools'"
-sign-efi-sig-list --version || echo "Please update efitools. Minimum version: 1.8.1"
-which openssl               || echo "Please install 'openssl'"
+which sign-efi-sig-list     || { echo "Please install 'efitools' Minimum version: 1.8.1" && exit 1; }
+which sbsign                || { echo "Please install 'efitools' Minimum version: 1.8.1" && exit 1; }
+which openssl               || { echo "Please install 'openssl'" && exit 1; }
 
 
 HEADER_FOLDER=auth_vectors
@@ -63,8 +62,33 @@ generate_key_cert "DB2"
 generate_key_cert "VAR"
 
 # Create data file for the custom variable
-echo "Hello world!" -> variable_data.txt
-xxd -r -p variable_data.txt > variable_data.bin
+cat <<EOF > var_data.txt
+The term 'trusted service' is used as a general name for a class of application that runs in an isolated
+processing environment. Other applications rely on trusted services to perform security related operations in
+a way that avoids exposing secret data beyond the isolation boundary of the environment. The word 'trusted'
+does not imply anything inherently trustworthy about a service application but rather that other applications
+put trust in the service. Meeting those trust obligations relies on a range of hardware and firmware
+implemented security measures.
+
+The Arm Application-profile (A-profile) architecture, in combination with standard firmware, provides a range
+of isolated processing environments that offer hardware-backed protection against various classes of attack.
+Because of their strong security properties, these environments are suitable for running applications that have
+access to valuable assets such as keys or sensitive user data. The goal of the Trusted Services project is
+to provide a framework in which security related services may be developed, tested and easily deployed to
+run in any of the supported environments. A core set of trusted services are implemented to provide basic
+device security functions such as cryptography and secure storage.
+
+Example isolated processing environments are:
+
+    - **Secure partitions** - secure world isolated environments managed by a secure partition manager
+    - **Trusted applications** - application environments managed by a TEE
+    - **VM backed container** - container runtime that uses a hypervisor to provide hardware backed container isolation
+
+The default reference system, used for test and development, uses the Secure Partition Manager configuration
+of OP-TEE to manage a set of secure partitions running at S-EL0. The secure partitions host service providers
+that implement PSA root-of-trust services. Services may be accessed using client-side C bindings that expose PSA
+Functional APIs. UEFI SMM services are provided by the SMM Gateway.
+EOF
 
 # Generate EFI signature list from the certificates for each keystore variable and an empty esl for delete requests
 cert-to-efi-sig-list PK1.crt PK1.esl
@@ -88,7 +112,8 @@ sign-efi-sig-list -c PK1.crt -k PK1.key KEK NULL.esl              KEK_delete.aut
 sign-efi-sig-list -c KEK.crt -k KEK.key db  DB1.esl               DB1.auth
 sign-efi-sig-list -c PK1.crt -k PK1.key db  DB2.esl               DB2.auth
 # GUID: Must be syncronized with m_common_guid in the tests
-sign-efi-sig-list -c DB1.crt -k DB1.key -g '01234567-89AB-CDEF-0123-456789ABCDEF' var variable_data.bin     VAR.auth
+sign-efi-sig-list -c DB1.crt -k DB1.key -g '01234567-89AB-CDEF-0123-456789ABCDEF' var var_data.txt VAR.auth
+sign-efi-sig-list -c DB1.crt -k DB1.key -g '01234567-89AB-CDEF-0123-456789ABCDEF' var /dev/null VAR_delete.auth
 
 # Generate C headers from the authentication headers for the tests
 xxd -i PK1.auth        > ../${HEADER_FOLDER}/PK1.h
@@ -101,6 +126,8 @@ xxd -i KEK_delete.auth > ../${HEADER_FOLDER}/KEK_delete.h
 xxd -i DB1.auth        > ../${HEADER_FOLDER}/db1.h
 xxd -i DB2.auth        > ../${HEADER_FOLDER}/db2.h
 xxd -i VAR.auth        > ../${HEADER_FOLDER}/var.h
+xxd -i VAR_delete.auth > ../${HEADER_FOLDER}/var_delete.h
+xxd -i var_data.txt    > ../${HEADER_FOLDER}/var_data.h
 
 popd
 

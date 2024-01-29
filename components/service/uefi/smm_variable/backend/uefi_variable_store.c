@@ -450,7 +450,7 @@ uefi_variable_store_get_next_variable_name(const struct uefi_variable_store *con
 
 	/* If we found no accessible variable clear the fields for security */
 	if (status != EFI_SUCCESS) {
-		memset(cur->Name, 0, sizeof(cur->NameSize));
+		memset(cur->Name, 0, max_name_len);
 		memset(&cur->Guid, 0, sizeof(EFI_GUID));
 		cur->NameSize = 0;
 	}

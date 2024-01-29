@@ -37,12 +37,12 @@ if (COVERAGE)
 	include(Coverage)
 
 	set(COVERAGE_FILE "coverage.info")
-	set(TS_SERVICE_TEST_COVERAGE_FILE "uefi-test-coverage.info" CACHE PATH "Path of coverage info file")
-	set(TS_SERVICE_TEST_COVERAGE_REPORT_DIR "${CMAKE_CURRENT_BINARY_DIR}/ts-service-coverage-report" CACHE PATH "Directory of coverage report")
+	set(UEFI_TEST_COVERAGE_FILE "uefi-test-coverage.info" CACHE PATH "Path of coverage info file")
+	set(UEFI_TEST_COVERAGE_REPORT_DIR "${CMAKE_CURRENT_BINARY_DIR}/uefi-test-coverage-report" CACHE PATH "Directory of coverage report")
 
 	# Collecting coverage
 	coverage_generate(
-		NAME "ts-service test"
+		NAME "uefi-test"
 		SOURCE_DIR ${TS_ROOT}
 		BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}
 		OUTPUT_FILE ${COVERAGE_FILE}
@@ -51,14 +51,14 @@ if (COVERAGE)
 	# Filtering project file coverage
 	coverage_filter(
 		INPUT_FILE ${COVERAGE_FILE}
-		OUTPUT_FILE ${TS_SERVICE_TEST_COVERAGE_FILE}
+		OUTPUT_FILE ${UEFI_TEST_COVERAGE_FILE}
 		INCLUDE_DIRECTORY ${UNIT_TEST_PROJECT_PATH}/components
 	)
 
 	# Coverage report
 	coverage_generate_report(
-		INPUT_FILE ${TS_SERVICE_TEST_COVERAGE_FILE}
-		OUTPUT_DIRECTORY ${TS_SERVICE_TEST_COVERAGE_REPORT_DIR}
+		INPUT_FILE ${UEFI_TEST_COVERAGE_FILE}
+		OUTPUT_DIRECTORY ${UEFI_TEST_COVERAGE_REPORT_DIR}
 	)
 endif()
 
