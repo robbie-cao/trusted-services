@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Arm Limited. All rights reserved.
+ * Copyright (c) 2022-2024 Arm Limited. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,9 +112,18 @@ static enum mhu_v2_x_error_t
 clear_and_wait_for_signal(struct mhu_v2_x_dev_t *dev)
 {
     enum mhu_v2_x_error_t err;
-    uint32_t num_channels = mhu_v2_x_get_num_channel_implemented(dev);
+    uint32_t num_channels = 0;
     uint32_t val, i;
 
+    if (dev == NULL) {
+        return MHU_ERR_INVALID_ARG;
+    }
+
+    num_channels = mhu_v2_x_get_num_channel_implemented(dev);
+    /* At least 1 channal needed for signalling. */
+    if (num_channels < 1) {
+        return MHU_ERR_GENERAL;
+    }
     /* Clear all channels */
     for (i = 0; i < num_channels; ++i) {
         err = mhu_v2_x_channel_clear(dev, i);
@@ -207,7 +216,7 @@ enum mhu_error_t mhu_send_data(void *mhu_sender_dev,
     enum mhu_v2_x_error_t err;
     enum mhu_error_t mhu_err;
     struct mhu_v2_x_dev_t *dev = mhu_sender_dev;
-    uint32_t num_channels = mhu_v2_x_get_num_channel_implemented(dev);
+    uint32_t num_channels = 0;
     uint32_t chan = 0;
     uint32_t i;
     uint32_t *p;
@@ -223,6 +232,11 @@ enum mhu_error_t mhu_send_data(void *mhu_sender_dev,
         return MHU_ERR_INVALID_ARG;
     }
 
+    num_channels = mhu_v2_x_get_num_channel_implemented(dev);
+    /* At least 2 channals needed for sending a message. */
+    if (num_channels < 2) {
+        return MHU_ERR_GENERAL;
+    }
     err = mhu_v2_x_initiate_transfer(dev);
     if (err != MHU_V_2_X_ERR_NONE) {
         return error_mapping_to_mhu_error_t(err);
@@ -270,8 +284,18 @@ enum mhu_error_t mhu_wait_data(void *mhu_receiver_dev)
 {
     enum mhu_v2_x_error_t err;
     struct mhu_v2_x_dev_t *dev = mhu_receiver_dev;
-    uint32_t num_channels = mhu_v2_x_get_num_channel_implemented(dev);
+    uint32_t num_channels = 0;
     uint32_t val;
+
+    if (dev == NULL) {
+        return MHU_ERR_INVALID_ARG;
+    }
+
+    num_channels = mhu_v2_x_get_num_channel_implemented(dev);
+    /* At least 1 channal needed for signalling. */
+    if (num_channels < 1) {
+        return MHU_ERR_GENERAL;
+    }
 
     do {
         /* Using the last channel for notifications */
@@ -290,7 +314,7 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
 {
     enum mhu_v2_x_error_t err;
     struct mhu_v2_x_dev_t *dev = mhu_receiver_dev;
-    uint32_t num_channels = mhu_v2_x_get_num_channel_implemented(dev);
+    uint32_t num_channels = 0;
     uint32_t chan = 0;
     uint32_t message_len;
     uint32_t i;
@@ -308,6 +332,11 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
         return MHU_ERR_INVALID_ARG;
     }
 
+    num_channels = mhu_v2_x_get_num_channel_implemented(dev);
+    /* At least 1 channal needed for signalling. */
+    if (num_channels < 1) {
+        return MHU_ERR_GENERAL;
+    }
     /* The first word is the length of the actual message. */
     err = mhu_v2_x_channel_receive(dev, chan, &message_len);
     if (err != MHU_V_2_X_ERR_NONE) {

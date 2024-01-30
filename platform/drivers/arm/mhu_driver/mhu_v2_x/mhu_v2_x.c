@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022 Arm Limited
+ * Copyright (c) 2020-2024 Arm Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include "mhu_v2_x.h"
 
 #define _MHU_V2_X_MAX_CHANNELS    124
@@ -142,7 +143,6 @@ union _mhu_v2_x_frame_t {
 enum mhu_v2_x_error_t mhu_v2_x_driver_init(struct mhu_v2_x_dev_t *dev,
      enum mhu_v2_x_supported_revisions rev)
 {
-    uint32_t AIDR = 0;
     union _mhu_v2_x_frame_t *p_mhu = (union _mhu_v2_x_frame_t *)dev->base;
 
     if (dev->is_initialized) {
@@ -150,6 +150,7 @@ enum mhu_v2_x_error_t mhu_v2_x_driver_init(struct mhu_v2_x_dev_t *dev,
     }
 
     if (rev == MHU_REV_READ_FROM_HW) {
+        uint32_t AIDR = 0;
         /* Read revision from HW */
         if (dev->frame == MHU_V2_X_RECEIVER_FRAME) {
             AIDR = p_mhu->recv_frame.aidr;
@@ -190,7 +191,12 @@ enum mhu_v2_x_error_t mhu_v2_x_driver_init(struct mhu_v2_x_dev_t *dev,
 
 uint32_t mhu_v2_x_get_num_channel_implemented(const struct mhu_v2_x_dev_t *dev)
 {
-    union _mhu_v2_x_frame_t *p_mhu = (union _mhu_v2_x_frame_t *)dev->base;
+    union _mhu_v2_x_frame_t *p_mhu = NULL;
+
+    if (!dev)
+        return MHU_V_2_X_ERR_GENERAL;
+
+    p_mhu = (union _mhu_v2_x_frame_t *)dev->base;
 
     if ( !(dev->is_initialized) ) {
         return MHU_V_2_X_ERR_NOT_INIT;

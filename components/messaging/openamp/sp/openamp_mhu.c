@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2024, Arm Limited and Contributors. All rights reserved.
  * Copyright (c) 2021-2023, Linaro Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -8,7 +8,7 @@
 #include <config/interface/config_store.h>
 #include <config/interface/config_blob.h>
 #include <platform/interface/device_region.h>
-#include <platform/drivers/arm/mhu_driver/mhu_v2.h>
+#include <platform/drivers/arm/mhu_driver/mhu_v2_x/mhu_v2_x.h>
 #include <trace.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -70,6 +70,8 @@ int openamp_mhu_receive(struct openamp_messenger *openamp)
 	} while(!irq_status);
 
 	ret = mhu_v2_1_get_ch_interrupt_num(rx_dev, &channel);
+	if (ret < 0)
+		return -1;
 
 	ret = mhu_v2_x_channel_clear(rx_dev, channel);
 	if (ret != MHU_V_2_X_ERR_NONE) {
