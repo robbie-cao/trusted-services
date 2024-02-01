@@ -15,23 +15,35 @@ OUTPUTS:=$(TEMPLATES:%.j2=%)
 FILTER_PATTERN ?=
 
 ifneq (,${FILTER_PATTERN})
-FILTER_ARG=-p "${FILTER_PATTERN}"
+RUN_SH_ARGS += -p "${FILTER_PATTERN}"
+endif
+
+ifneq (,${INSTALL_PREFIX})
+RUN_SH_ARGS += -i ${INSTALL_PREFIX}
+endif
+
+ifneq (,${BUILD_PREFIX})
+RUN_SH_ARGS += -b ${BUILD_PREFIX}
+endif
+
+ifneq (,${LOGDIR_ROOT})
+RUN_SH_ARGS += -l ${LOGDIR_ROOT}
 endif
 
 all:
 	${MAKE} config
-	bash run.sh ${FILTER_ARG}
+	bash run.sh ${RUN_SH_ARGS}
 
 config: ${OUTPUTS}
 
 list:
 	${MAKE} config
-	bash run.sh ${FILTER_ARG} help
+	bash run.sh ${RUN_SH_ARGS} help
 
 # run a command of the generated script
 r-%:
 	${MAKE} config
-	bash run.sh ${FILTER_ARG} "$*"
+	bash run.sh ${RUN_SH_ARGS} "$*"
 
 define help_msg
 *************************************************************
@@ -40,9 +52,13 @@ Variables:
   or be set in the environment (e.g. export <var>=<value>;
   make ...).
 
+  BUILD_PREFIX   - Directory for build directories
   FILTER_PATTERN - grep regexp to limit test scope to tests
                    whose name matches. To see the selected tests
                    run: make FILTER_PATTERN=<pattern> list
+  INSTALL_PREFIX - Directory to install projects
+  LOGDIR_ROOT    - Directory to save build logs
+
 Available targets:
   all          - generate and run test script
   config       - run script generation only

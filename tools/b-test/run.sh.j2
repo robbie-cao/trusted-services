@@ -30,6 +30,12 @@ NUMBER_OF_PROCESSORS=${NUMBER_OF_PROCESSORS:-$(( $(nproc) * 2 ))}
 # By default run as much as we can
 FAIL_FAST=${FAIL_FAST:-0}
 
+# Directory to install projects to.
+INSTALL_PREFIX=${INSTALL_PREFIX:-./install}
+
+# Directory to place cmake build directories to
+BUILD_PREFIX=${BUILD_PREFIX:-.}
+
 # Global exit code.
 exit_code=0
 
@@ -42,7 +48,18 @@ test_list=(
 
 # Convert test name to build directory
 function name-to-bdir() {
-	printf "./build-%s" "$1"
+	printf "$BUILD_PREFIX/build-%s" "$1"
+}
+
+unset btest_logdir_root
+function name-to-logfile {
+	local config_name="$1"
+	if [ -z "$btest_logdir_root" ]
+	then
+		printf "%s/build.log" $(name-to-bdir "$1")
+	else
+		printf "$btest_logdir_root/build-%s.log" "$1"
+	fi
 }
 
 # Wrap cmake to allow verbose vs non-verbose mode
@@ -74,7 +91,7 @@ function _cmake() {
 	fi
 	{% endif %}
 	b_dir=$(name-to-bdir "{{config.name}}")
-	log_file=$b_dir/build.log
+	log_file=$(name-to-logfile "{{config.name}}")
 	rm -rf "$b_dir"
 	mkdir -p "$b_dir"
 
@@ -90,7 +107,7 @@ function _cmake() {
 	then
 		if _cmake "$log_file" --build "$b_dir" -j "${NUMBER_OF_PROCESSORS}" --verbose
 		then
-			if _cmake "$log_file" --install "$b_dir" --prefix ./install
+			if _cmake "$log_file" --install "$b_dir" --prefix "$INSTALL_PREFIX"
 			then
 				echo "########################## $COLOR_GREEN {{config.name}} passed $COLOR_RESET"
 			else
@@ -148,14 +165,25 @@ Some variables to note
         NUMBER_OF_PROCESSORS=$NUMBER_OF_PROCESSORS
     - CMAKE_EXTRA_FLAGS: additional environment specific CMake flags
         CMAKE_EXTRA_FLAGS=-DNEWLIB_LIBC_PATH=/path/to/newlib
-	- FAIL_FAST: <0/1> see -f
-	    FAIL_FAST=$FAIL_FAST
+    - FAIL_FAST: <0/1> see -f
+        FAIL_FAST=$FAIL_FAST
+    - INSTALL_PREFIX: <path> see -i
+        INSTALL_PREFIX=$INSTALL_PREFIX
+    - BUILD_PREFIX: <path> see -b
+        BUILD_PREFIX=$BUILD_PREFIX
 
 Options:
+    -b|--build-prefix: <path>
+            - directory for cmake build directories
     --color|--no-color
-	        - force or disable output coloring
-	-f|--fail-fast
-	        - exit after the first test failure
+            - force or disable output coloring
+    -f|--fail-fast
+            - exit after the first test failure
+    -i|--install-prefix <path>
+            - directory to install build results to.
+    -l|--log-dir <path>
+            - directory to save log files to. If not set, files are saved
+              to the build directory.
     -p <regexp>
             - filter out all test cases whose name is not matching regexp.
               regexp is a regular expression understood by grep
@@ -268,7 +296,8 @@ process_commands() {
 while true
 do
 	# parse options
-	case $1 in
+	arg=$1
+	case $arg in
 		-p)
 			shift
 			pattern=$1
@@ -294,8 +323,51 @@ do
 		--color)
 			set_color_mode "on"
 			;;
-		--f|--fail-fast)
+		-f|--fail-fast)
 			FAIL_FAST=1
+			;;
+		-l|--log-dir)
+			shift
+			btest_logdir_root=$1
+			[ -z "$btest_logdir_root" ] && {
+				echo "${COLOR_RED}Error: missing argument <path>. $COLOR_RESET"
+				exit_code=1
+				break
+			}
+
+			[ -d "$btest_logdir_root" ] || {
+				mkdir -p "$btest_logdir_root"
+			}
+			;;
+		-i|--install-prefix)
+			shift
+			INSTALL_PREFIX="$1"
+			[ -z "$INSTALL_PREFIX" ] && {
+				echo "${COLOR_RED}Error: missing argument <path> after $arg. $COLOR_RESET"
+				exit_code=1
+				break
+			}
+
+			[ -d "$INSTALL_PREFIX" ] || {
+				echo "${COLOR_RED}Error: install directory $INSTALL_PREFIX can not be found. $COLOR_RESET"
+				exit_code=1
+				break
+			}
+			;;
+		-b|--build-prefix)
+			shift
+			BUILD_PREFIX="$1"
+			[ -z "$BUILD_PREFIX" ] && {
+				echo "${COLOR_RED}Error: missing argument <path> after $arg. $COLOR_RESET"
+				exit_code=1
+				break
+			}
+
+			[ -d "$BUILD_PREFIX" ] || {
+				echo "${COLOR_RED}Error: build directory $BUILD_PREFIX can not be found. $COLOR_RESET"
+				exit_code=1
+				break
+			}
 			;;
 		*)
 			# parse commands
