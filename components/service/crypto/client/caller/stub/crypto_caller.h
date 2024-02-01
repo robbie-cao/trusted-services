@@ -31,5 +31,6 @@
 #include "crypto_caller_export_public_key.h"
 #include "crypto_caller_key_derivation.h"
 #include "crypto_caller_verify_hash.h"
+#include "crypto_caller_verify_pkcs7_signature.h"
 
 #endif /* STUB_CRYPTO_CALLER_H */

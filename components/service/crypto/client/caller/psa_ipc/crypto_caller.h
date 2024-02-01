@@ -30,5 +30,6 @@
 #include "crypto_caller_purge_key.h"
 #include "crypto_caller_sign_hash.h"
 #include "crypto_caller_verify_hash.h"
+#include "crypto_caller_verify_pkcs7_signature.h"
 
 #endif /* PSA_IPC_CRYPTO_CALLER_H */
