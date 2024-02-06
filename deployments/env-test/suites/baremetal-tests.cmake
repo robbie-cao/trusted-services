@@ -39,6 +39,8 @@ target_sources(env-test PRIVATE
 #-------------------------------------------------------------------------------
 
 # Mbed TLS provides libmbedcrypto
+set(MBEDTLS_USER_CONFIG_FILE "${TS_ROOT}/external/MbedTLS/config/libmbed_only.h"
+	CACHE STRING "Configuration file for Mbed TLS" FORCE)
 include(${TS_ROOT}/external/MbedTLS/MbedTLS.cmake)
 target_link_libraries(env-test PRIVATE MbedTLS::mbedcrypto)
 
