@@ -5,7 +5,10 @@
  */
 
 #include <CppUTest/TestHarness.h>
+#include <codecvt>
 #include <cstring>
+#include <locale>
+#include <sstream>
 
 #include "util.h"
 
@@ -23,6 +26,7 @@
 #include "auth_vectors/var_data.h"
 #include "auth_vectors/var_delete.h"
 #endif
+#include "common/uuid/uuid.h"
 #include "protocols/rpc/common/packed-c/encoding.h"
 #include "service/uefi/smm_variable/client/cpp/smm_variable_client.h"
 #include "service_locator.h"
@@ -46,12 +50,12 @@ TEST_GROUP(SmmVariableServiceTests)
 		CHECK_TRUE(m_rpc_session);
 
 		m_client = new smm_variable_client(m_rpc_session);
-
-		cleanupPersistentStore();
 	}
 
 	void teardown()
 	{
+		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, cleanupPersistentStore());
+
 		delete m_client;
 		m_client = NULL;
 
@@ -74,9 +78,47 @@ TEST_GROUP(SmmVariableServiceTests)
 		return var_name;
 	}
 
+	std::string guid_to_string(EFI_GUID *guid)
+	{
+		struct uuid_canonical canonical_uuid;
+
+		/* EFI_GUID is similar to the UUID octet structure */
+		uuid_canonical_from_guid_octets(&canonical_uuid, (const struct uuid_octets *)guid);
+
+		return std::string(canonical_uuid.characters);
+	}
+
+	/*
+	 * Adds a UEFI variable in a formatted way to a buffer. e.g:
+	 *     name: Bob
+	 *     guid: {0x01234567, 0x89ab, 0xCDEF, {0x1, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef }}
+	 */
+	void addVariableToMessage(std::u16string &var_name, EFI_GUID *guid, std::string &out)
+	{
+		std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+
+		/* Remove null terminator! */
+		out += "\tname: ";
+		out += (convert.to_bytes(var_name)).substr(0, var_name.size() - 1);
+		out += "\n\tguid: ";
+		out += guid_to_string(guid);
+		out += "\n";
+	}
+
+	bool isVariableUncleanable(std::u16string &var_name)
+	{
+		for(std::u16string* element : m_non_rm_vars) {
+			if (!var_name.compare(*element))
+				return true;
+		}
+
+		return false;
+	}
+
 	/* Clear all the removable variables from the persistent store. */
 	efi_status_t cleanupPersistentStore()
 	{
+		std::string error_message;
 		std::u16string var_name = to_variable_name(u"");
 		std::string get_data;
 		EFI_GUID guid;
@@ -101,7 +143,7 @@ TEST_GROUP(SmmVariableServiceTests)
 							m_authentication_common_attributes);
 
 			if (status)
-				printf("\n\tCannot remove PK");
+				FAIL("Cannot remove PK at cleanup!");
 		}
 
 		/*
@@ -115,8 +157,17 @@ TEST_GROUP(SmmVariableServiceTests)
 			status = m_client->get_next_variable_name(guid, var_name);
 
 			/* There are no more variables in the persistent store */
-			if (status != EFI_SUCCESS)
+			if (status == EFI_NOT_FOUND) {
+				status = EFI_SUCCESS;
 				break;
+			} else if (status != EFI_SUCCESS) {
+				addVariableToMessage(var_name, &guid, error_message);
+				break;
+			}
+
+			/* Skip variables that cannot be deleted */
+			if (isVariableUncleanable(var_name))
+				continue;
 
 			status = m_client->remove_variable(guid, var_name);
 
@@ -132,6 +183,11 @@ TEST_GROUP(SmmVariableServiceTests)
 								m_authentication_common_attributes);
 			}
 #endif
+			if (status) {
+				addVariableToMessage(var_name, &guid, error_message);
+				break;
+			}
+
 			/*
 			 * If the variable was successfully removed the fields are cleared so
 			 * the iteration will start again from the first available variable.
@@ -148,12 +204,28 @@ TEST_GROUP(SmmVariableServiceTests)
 
 		} while (1);
 
+		if (error_message.length() != 0) {
+			error_message.insert(0, "Could not remove variable: \n");
+			UT_PRINT(error_message.c_str());
+		}
+
 		return status;
 	}
 
 	smm_variable_client *m_client;
 	struct rpc_caller_session *m_rpc_session;
 	struct service_context *m_service_context;
+
+	/*
+	 * List of the variables which cannot be deleted.
+	 * E.g read-only ones or those that have boot only access
+	 */
+	std::u16string m_ro_variable = to_variable_name(u"ro_variable");
+	std::u16string m_boot_finished_var_name = to_variable_name(u"finished");
+
+	/* Cleanup skips these variables */
+	std::vector<std::u16string *> m_non_rm_vars{ &m_ro_variable, &m_boot_finished_var_name };
+
 	EFI_GUID m_common_guid = { 0x01234567,
 				   0x89ab,
 				   0xCDEF,
@@ -349,7 +421,7 @@ TEST(SmmVariableServiceTests, getVarSizeNv)
 TEST(SmmVariableServiceTests, runtimeStateAccessControl)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
-	const char16_t boot_finished_var_name[] = u"boot finished";
+
 	std::string boot_finished_var_data = "Set after bootstate is finished";
 	const char16_t boot_var_name[] = u"a boot variable";
 	std::string boot_set_data = "Only accessible during boot";
@@ -357,13 +429,16 @@ TEST(SmmVariableServiceTests, runtimeStateAccessControl)
 	std::string runtime_set_data = "Only accessible during runtime";
 	std::string get_data;
 
-	efi_status = m_client->get_variable(m_common_guid, boot_finished_var_name, get_data);
-	if (efi_status != EFI_NOT_FOUND) {
+	efi_status = m_client->get_variable(m_common_guid, m_boot_finished_var_name, get_data);
+	if (efi_status == EFI_SUCCESS) {
 		UT_PRINT("runtimeStateAccessControl testcase can only run once per boot cycle. "
-		        "It exits boot state, blocking access to the added boot variables, "
-		        "so the test is skipped for now.");
+			 "It exits boot state, blocking access to the added boot variables, "
+			 "so the test is skipped for now.");
 		return;
 	}
+
+	/* The variable should be successfully found or NOT_FOUND. Other values are related to errors */
+	UNSIGNED_LONGLONGS_EQUAL(EFI_NOT_FOUND, efi_status);
 
 	/* Add variables with runtime state access control */
 	efi_status = m_client->set_variable(m_common_guid, boot_var_name, boot_set_data,
@@ -410,7 +485,7 @@ TEST(SmmVariableServiceTests, runtimeStateAccessControl)
 
 	/* Set a non-volatile read-only variable marking the end of the boot phase */
 	efi_status = m_client->set_variable(
-		m_common_guid, boot_finished_var_name, boot_finished_var_data,
+		m_common_guid, m_boot_finished_var_name, boot_finished_var_data,
 		EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS |
 			EFI_VARIABLE_RUNTIME_ACCESS);
 
@@ -424,7 +499,7 @@ TEST(SmmVariableServiceTests, runtimeStateAccessControl)
 	check_property.MinSize = 0;
 	check_property.MaxSize = 100;
 
-	efi_status = m_client->set_var_check_property(m_common_guid, boot_finished_var_name,
+	efi_status = m_client->set_var_check_property(m_common_guid, m_boot_finished_var_name,
 						      check_property);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 }
@@ -433,16 +508,16 @@ TEST(SmmVariableServiceTests, runtimeStateAccessControl)
 TEST(SmmVariableServiceTests, readOnlyConstraint)
 {
 	efi_status_t efi_status = EFI_SUCCESS;
-	const char16_t var_name_1[] = u"ro_variable";
+
 	std::string set_data = "A read only variable";
 	std::string get_data;
 
 	/* Only add the read only variable if it is not already created */
-	efi_status = m_client->get_variable(m_common_guid, var_name_1, get_data);
+	efi_status = m_client->get_variable(m_common_guid, m_ro_variable, get_data);
 
 	if (efi_status != EFI_SUCCESS) {
 		/* Add a variable to the store */
-		efi_status = m_client->set_variable(m_common_guid, var_name_1, set_data,
+		efi_status = m_client->set_variable(m_common_guid, m_ro_variable, set_data,
 						    EFI_VARIABLE_NON_VOLATILE |
 							    EFI_VARIABLE_BOOTSERVICE_ACCESS |
 							    EFI_VARIABLE_RUNTIME_ACCESS);
@@ -457,14 +532,14 @@ TEST(SmmVariableServiceTests, readOnlyConstraint)
 		check_property.MinSize = 0;
 		check_property.MaxSize = 100;
 
-		efi_status =
-			m_client->set_var_check_property(m_common_guid, var_name_1, check_property);
+		efi_status = m_client->set_var_check_property(m_common_guid, m_ro_variable,
+							      check_property);
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
 		/* Read back the check property constraint and expect it to match the set value */
 		VAR_CHECK_VARIABLE_PROPERTY got_check_property;
 
-		efi_status = m_client->get_var_check_property(m_common_guid, var_name_1,
+		efi_status = m_client->get_var_check_property(m_common_guid, m_ro_variable,
 							      got_check_property);
 		UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -479,13 +554,13 @@ TEST(SmmVariableServiceTests, readOnlyConstraint)
 
 	/* Attempt to modify variable */
 	efi_status = m_client->set_variable(
-		m_common_guid, var_name_1, std::string("Different variable data"),
+		m_common_guid, m_ro_variable, std::string("Different variable data"),
 		EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_WRITE_PROTECTED, efi_status);
 
 	/* Expect to still be able to read variable */
-	efi_status = m_client->get_variable(m_common_guid, var_name_1, get_data);
+	efi_status = m_client->get_variable(m_common_guid, m_ro_variable, get_data);
 
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, efi_status);
 
@@ -757,7 +832,8 @@ TEST(SmmVariableServiceTests, authenticationSetAllKeys)
 	MEMCMP_EQUAL(var_data_txt, read_data.c_str(), var_data_txt_len);
 
 	/* Set variable with empty payload */
-	status = m_client->set_variable(m_common_guid, u"var", VAR_delete_auth, sizeof(VAR_delete_auth),
+	status = m_client->set_variable(m_common_guid, u"var", VAR_delete_auth,
+					sizeof(VAR_delete_auth),
 					m_authentication_common_attributes);
 	UNSIGNED_LONGLONGS_EQUAL(EFI_SUCCESS, status);
 

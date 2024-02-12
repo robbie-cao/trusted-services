@@ -40,6 +40,7 @@ add_components(
 	COMPONENTS
 		"components/service/uefi/smm_variable/client/cpp"
 		"components/service/uefi/smm_variable/test/service"
+		"components/common/uuid"
 )
 
 #-------------------------------------------------------------------------------
