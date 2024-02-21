@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2021-2024, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -9,6 +9,10 @@
 #include "sp_discovery.h"
 #include <stdlib.h>
 #include <string.h>
+
+#ifndef RPC_CALLER_SESSION_SHARED_MEMORY_SIZE
+#define RPC_CALLER_SESSION_SHARED_MEMORY_SIZE	(4096)
+#endif /* RPC_CALLER_SESSION_SHARED_MEMORY_SIZE */
 
 /* Concrete service_context methods */
 static struct rpc_caller_session *sp_ts_service_context_open(void *context);
@@ -52,7 +56,8 @@ static struct rpc_caller_session *sp_ts_service_context_open(void *context)
 		return NULL;
 
 	rpc_status = rpc_caller_session_find_and_open(session, &this_context->caller,
-						      &this_context->service_uuid, 4096);
+						      &this_context->service_uuid,
+						      RPC_CALLER_SESSION_SHARED_MEMORY_SIZE);
 	if (rpc_status != RPC_SUCCESS) {
 		free(session);
 		return NULL;
