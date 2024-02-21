@@ -11,6 +11,7 @@
 #include "psa/crypto.h"
 #include <service/secure_storage/backend/secure_storage_client/secure_storage_client.h>
 #include <service/secure_storage/backend/mock_store/mock_store.h>
+#include <service/locator/sp/ffa/spffa_service_context.h>
 #include <service_locator.h>
 
 /* Build-time default configuration */
@@ -31,6 +32,26 @@
 #ifndef SMM_GATEWAY_MAX_UEFI_VARIABLES
 #define SMM_GATEWAY_MAX_UEFI_VARIABLES		(40)
 #endif
+
+/**
+ * The UEFI variable store index must fit into the RPC shared memory, otherwise
+ * load_variable_index/sync_variable_index will fail.
+ */
+#define SMM_UEFI_VARIABLE_STORE_INDEX_SIZE \
+	UEFI_VARIABLE_STORE_INDEX_SIZE(SMM_GATEWAY_MAX_UEFI_VARIABLES)
+
+_Static_assert(SMM_UEFI_VARIABLE_STORE_INDEX_SIZE < RPC_CALLER_SESSION_SHARED_MEMORY_SIZE,
+	       "The UEFI variable index does not fit into the RPC shared memory, please increase " \
+	       "RPC_CALLER_SESSION_SHARED_MEMORY_SIZE");
+
+/**
+ * The SP heap must be large enough for storing the UEFI variable index, the RPC shared memory and
+ * ~16kB of miscellaneous data.
+ */
+#define SMM_MIN_HEAP_SIZE \
+	SMM_UEFI_VARIABLE_STORE_INDEX_SIZE + RPC_CALLER_SESSION_SHARED_MEMORY_SIZE + 16 * 1024
+
+_Static_assert(SP_HEAP_SIZE > SMM_MIN_HEAP_SIZE, "Please increase SP_HEAP_SIZE");
 
 /* The smm_gateway instance - it's a singleton */
 static struct smm_gateway

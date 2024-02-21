@@ -22,6 +22,11 @@ extern "C" {
 #endif
 
 /**
+ * \brief Size of the variable store index for a given entry count
+ */
+#define UEFI_VARIABLE_STORE_INDEX_SIZE(count) (sizeof(struct variable_metadata) * (count))
+
+/**
  * \brief delegate_variable_store structure definition
  *
  * A delegate_variable_store combines an association with a concrete

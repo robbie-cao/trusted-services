@@ -39,11 +39,26 @@ set(SP_FFA_UUID_CANON "${SP_BIN_UUID_CANON}")
 set(TRACE_PREFIX "SMMGW" CACHE STRING "Trace prefix")
 set(SP_STACK_SIZE "64 * 1024" CACHE STRING "Stack size")
 
+#-------------------------------------------------------------------------------
+#  Set target platform to provide drivers needed by the deployment
+#
+#-------------------------------------------------------------------------------
+add_platform(TARGET "smm-gateway")
+
+# SMM variable and RPC caller settings
+set(SMM_GATEWAY_MAX_UEFI_VARIABLES 40 CACHE STRING "Maximum UEFI variable count")
+set(SMM_RPC_CALLER_SESSION_SHARED_MEMORY_SIZE 2*4096 CACHE STRING "RPC caller buffer size in SMMGW")
 if (UEFI_AUTH_VAR)
-set(SP_HEAP_SIZE "64 * 1024" CACHE STRING "Heap size")
+set(SMM_SP_HEAP_SIZE 64*1024 CACHE STRING "SMM gateway SP heap size")
 else()
-set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "Heap size")
+set(SMM_SP_HEAP_SIZE 32*1024 CACHE STRING "SMM gateway SP heap size")
 endif()
+set(SP_HEAP_SIZE "${SMM_SP_HEAP_SIZE}" CACHE STRING "SP heap size in bytes")
+
+target_compile_definitions("smm-gateway" PRIVATE
+	RPC_CALLER_SESSION_SHARED_MEMORY_SIZE=${SMM_RPC_CALLER_SESSION_SHARED_MEMORY_SIZE}
+	SMM_GATEWAY_MAX_UEFI_VARIABLES=${SMM_GATEWAY_MAX_UEFI_VARIABLES}
+)
 
 # Setting the MM communication buffer parameters
 set(MM_COMM_BUFFER_ADDRESS "0x00000008 0x81000000" CACHE STRING "Address of MM communicte buffer in 64 bit DTS format")
@@ -62,12 +77,6 @@ add_components(TARGET "smm-gateway"
 include(../../env/commonsp/smm_gateway_sp.cmake REQUIRED)
 include(../../infra/psa-varstore.cmake REQUIRED)
 include(../../smm-gateway.cmake REQUIRED)
-
-#-------------------------------------------------------------------------------
-#  Set target platform to provide drivers needed by the deployment
-#
-#-------------------------------------------------------------------------------
-add_platform(TARGET "smm-gateway")
 
 #-------------------------------------------------------------------------------
 #  Deployment specific build options

@@ -13,6 +13,10 @@
 extern "C" {
 #endif
 
+#ifndef RPC_CALLER_SESSION_SHARED_MEMORY_SIZE
+#define RPC_CALLER_SESSION_SHARED_MEMORY_SIZE	(4096)
+#endif /* RPC_CALLER_SESSION_SHARED_MEMORY_SIZE */
+
 /*
  * A service_context that represents a service instance located in
  * a partition, accessed via FFA.  This service_context is suitable

@@ -10,10 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef RPC_CALLER_SESSION_SHARED_MEMORY_SIZE
-#define RPC_CALLER_SESSION_SHARED_MEMORY_SIZE	(4096)
-#endif /* RPC_CALLER_SESSION_SHARED_MEMORY_SIZE */
-
 /* Concrete service_context methods */
 static struct rpc_caller_session *sp_ts_service_context_open(void *context);
 static void sp_ts_service_context_close(void *context, struct rpc_caller_session *session);

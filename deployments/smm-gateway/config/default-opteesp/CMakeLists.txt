@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2024, Arm Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -34,11 +34,26 @@ endif()
 set(SP_BIN_UUID_CANON "ed32d533-99e6-4209-9cc0-2d72cdd998a7")
 set(SP_FFA_UUID_CANON "${SP_BIN_UUID_CANON}")
 
+#-------------------------------------------------------------------------------
+#  Set target platform to provide drivers needed by the deployment
+#
+#-------------------------------------------------------------------------------
+add_platform(TARGET "smm-gateway")
+
+# SMM variable and RPC caller settings
+set(SMM_GATEWAY_MAX_UEFI_VARIABLES 40 CACHE STRING "Maximum UEFI variable count")
+set(SMM_RPC_CALLER_SESSION_SHARED_MEMORY_SIZE 2*4096 CACHE STRING "RPC caller buffer size in SMMGW")
 if (UEFI_AUTH_VAR)
-set(SP_HEAP_SIZE "64 * 1024" CACHE STRING "SP heap size in bytes")
+set(SMM_SP_HEAP_SIZE 64*1024 CACHE STRING "SMM gateway SP heap size")
 else()
-set(SP_HEAP_SIZE "32 * 1024" CACHE STRING "SP heap size in bytes")
+set(SMM_SP_HEAP_SIZE 32*1024 CACHE STRING "SMM gateway SP heap size")
 endif()
+set(SP_HEAP_SIZE "${SMM_SP_HEAP_SIZE}" CACHE STRING "SP heap size in bytes")
+
+target_compile_definitions("smm-gateway" PRIVATE
+	RPC_CALLER_SESSION_SHARED_MEMORY_SIZE=${SMM_RPC_CALLER_SESSION_SHARED_MEMORY_SIZE}
+	SMM_GATEWAY_MAX_UEFI_VARIABLES=${SMM_GATEWAY_MAX_UEFI_VARIABLES}
+)
 
 set(TRACE_PREFIX "SMMGW" CACHE STRING "Trace prefix")
 
@@ -65,11 +80,6 @@ include(../../env/commonsp/smm_gateway_sp.cmake REQUIRED)
 include(../../infra/psa-varstore.cmake REQUIRED)
 include(../../smm-gateway.cmake REQUIRED)
 
-#-------------------------------------------------------------------------------
-#  Set target platform to provide drivers needed by the deployment
-#
-#-------------------------------------------------------------------------------
-add_platform(TARGET "smm-gateway")
 
 #-------------------------------------------------------------------------------
 #  Deployment specific build options
