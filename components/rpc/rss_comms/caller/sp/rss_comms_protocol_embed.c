@@ -8,15 +8,14 @@
 #include <assert.h>
 #include <string.h>
 
-#include <common/debug.h>
 #include "rss_comms_protocol_common.h"
 #include "rss_comms_protocol_embed.h"
 
 psa_status_t rss_protocol_embed_serialize_msg(psa_handle_t handle,
 					      int16_t type,
-					      const psa_invec *in_vec,
+					      const struct psa_invec *in_vec,
 					      uint8_t in_len,
-					      const psa_outvec *out_vec,
+					      const struct psa_outvec *out_vec,
 					      uint8_t out_len,
 					      struct rss_embed_msg_t *msg,
 					      size_t *msg_len)
@@ -44,7 +43,7 @@ psa_status_t rss_protocol_embed_serialize_msg(psa_handle_t handle,
 			return PSA_ERROR_INVALID_ARGUMENT;
 		}
 		memcpy(msg->trailer + payload_size,
-		       in_vec[i].base,
+		       psa_u32_to_ptr(in_vec[i].base),
 		       in_vec[i].len);
 		payload_size += in_vec[i].len;
 	}
@@ -55,7 +54,7 @@ psa_status_t rss_protocol_embed_serialize_msg(psa_handle_t handle,
 	return PSA_SUCCESS;
 }
 
-psa_status_t rss_protocol_embed_deserialize_reply(psa_outvec *out_vec,
+psa_status_t rss_protocol_embed_deserialize_reply(struct psa_outvec *out_vec,
 						  uint8_t out_len,
 						  psa_status_t *return_val,
 						  const struct rss_embed_reply_t *reply,
@@ -73,7 +72,7 @@ psa_status_t rss_protocol_embed_deserialize_reply(psa_outvec *out_vec,
 			return PSA_ERROR_INVALID_ARGUMENT;
 		}
 
-		memcpy(out_vec[i].base,
+		memcpy(psa_u32_to_ptr(out_vec[i].base),
 		       reply->trailer + payload_offset,
 		       reply->out_size[i]);
 		out_vec[i].len = reply->out_size[i];
@@ -81,6 +80,26 @@ psa_status_t rss_protocol_embed_deserialize_reply(psa_outvec *out_vec,
 	}
 
 	*return_val = reply->return_val;
+
+	return PSA_SUCCESS;
+}
+
+psa_status_t rss_protocol_embed_calculate_msg_len(psa_handle_t handle,
+						  const struct psa_invec *in_vec,
+						  uint8_t in_len,
+						  size_t *msg_len)
+{
+	uint32_t payload_size = 0;
+	uint32_t i = 0;
+
+	assert(in_vec != NULL);
+	assert(msg_len != NULL);
+
+	for (i = 0U; i < in_len; ++i)
+		payload_size += in_vec[i].len;
+
+	/* Output the actual size of the message, to optimize sending */
+	*msg_len = offsetof(struct rss_embed_msg_t, trailer) + payload_size;
 
 	return PSA_SUCCESS;
 }

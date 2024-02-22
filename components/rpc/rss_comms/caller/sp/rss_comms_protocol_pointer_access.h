@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * Copyright (c) 2022-2024, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -8,9 +8,9 @@
 #ifndef __RSS_COMMS_PROTOCOL_POINTER_ACCESS_H__
 #define __RSS_COMMS_PROTOCOL_POINTER_ACCESS_H__
 
-#include <cdefs.h>
 
 #include <psa/client.h>
+#include <sys/cdefs.h>
 
 struct __packed rss_pointer_access_msg_t {
 	psa_handle_t handle;
@@ -26,14 +26,14 @@ struct __packed rss_pointer_access_reply_t {
 
 psa_status_t rss_protocol_pointer_access_serialize_msg(psa_handle_t handle,
 						       int16_t type,
-						       const psa_invec *in_vec,
+						       const struct psa_invec *in_vec,
 						       uint8_t in_len,
-						       const psa_outvec *out_vec,
+						       const struct psa_outvec *out_vec,
 						       uint8_t out_len,
 						       struct rss_pointer_access_msg_t *msg,
 						       size_t *msg_len);
 
-psa_status_t rss_protocol_pointer_access_deserialize_reply(psa_outvec *out_vec,
+psa_status_t rss_protocol_pointer_access_deserialize_reply(struct psa_outvec *out_vec,
 							   uint8_t out_len,
 							   psa_status_t *return_val,
 							   const struct rss_pointer_access_reply_t *reply,

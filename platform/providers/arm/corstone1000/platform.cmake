@@ -9,6 +9,7 @@
 target_compile_definitions(${TGT} PRIVATE
 	SMM_VARIABLE_INDEX_STORAGE_UID=0x787
 	SMM_GATEWAY_MAX_UEFI_VARIABLES=80
+	PLAT_RSS_COMMS_PAYLOAD_MAX_SIZE=0x2080
 )
 
 get_property(_platform_driver_dependencies TARGET ${TGT}
