@@ -18,13 +18,6 @@ efi_status_t variable_checker_set_constraints(struct variable_constraints *const
 	if (check_var_property->MinSize > check_var_property->MaxSize)
 		return EFI_INVALID_PARAMETER;
 
-	/* Check for an attempt to undo previously set access constraints */
-	if (is_update) {
-		if ((constraints->property & VAR_CHECK_VARIABLE_PROPERTY_READ_ONLY) &&
-		    !(check_var_property->Property & VAR_CHECK_VARIABLE_PROPERTY_READ_ONLY))
-			return EFI_INVALID_PARAMETER;
-	}
-
 	/* New check constraints accepted */
 	constraints->revision = check_var_property->Revision;
 	constraints->attributes = check_var_property->Attributes;
